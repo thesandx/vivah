@@ -167,6 +167,25 @@ const rootDomain = pattern(
   'must be a bare lowercase domain with no scheme, port or path, e.g. vivah.online',
 );
 
+/**
+ * Phone numbers that may open the admin dashboard, comma-separated E.164.
+ * Not a secret: a number grants nothing without its OTP. Empty means no admin.
+ */
+function phoneList(name: string, value: string | undefined): readonly string[] {
+  const entries = optional(value, '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter((entry) => entry !== '');
+  const bad = entries.filter((entry) => !/^\+\d{8,15}$/.test(entry));
+  if (bad.length > 0) {
+    issues.push(`${name} must be comma-separated E.164 numbers like +919876543210`);
+    return [];
+  }
+  return entries;
+}
+
+const adminPhoneNumbers = phoneList('ADMIN_PHONE_NUMBERS', process.env.ADMIN_PHONE_NUMBERS);
+
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
 // Order matters below: the database id and bucket name default to values
@@ -288,6 +307,13 @@ export const env = {
    * and the `*.run.app` URL always show the product site.
    */
   rootDomain,
+
+  /**
+   * Who may open `/dashboard/admin` and edit any couple's invite: phone
+   * numbers in E.164. A signed-in session whose verified phone number is in
+   * this list is an admin. See `docs/auth.md`, "The dashboards".
+   */
+  adminPhoneNumbers,
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */
   appVersion: optional(process.env.NEXT_PUBLIC_APP_VERSION, 'dev'),

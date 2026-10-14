@@ -6,8 +6,9 @@ import { z } from 'zod';
 
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
+import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import { leads, tokenMatches } from '@/services/lead.service';
-import { createRepository, type StoredDocument } from '@/services/repository';
+import { createRepository, type Page, type StoredDocument } from '@/services/repository';
 
 /**
  * Weddings: one per paid couple, served at `<slug>.<root domain>`.
@@ -35,19 +36,24 @@ export const weddingSchema = z.object({
   leadId: z.string().min(1).max(128),
   // The ceremony details the invite shows. Optional: a wedding is published
   // before the couple adds them, and the invite says "shared soon" until then.
-  // The dashboard will set them; until it exists, they are set by hand in the
-  // Firestore console.
+  // The couple sets them in the dashboard; `null` clears one.
   /** `HH:MM`, 24-hour, India Standard Time. */
   ceremonyTime: z
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .nullable()
     .optional(),
   /** The venue's name: `Laxmisagar`. */
-  venueName: z.string().trim().min(1).max(80).optional(),
+  venueName: z.string().trim().min(1).max(80).nullable().optional(),
   /** The town and state: `Darbhanga, Bihar`. */
-  venueCity: z.string().trim().min(1).max(80).optional(),
+  venueCity: z.string().trim().min(1).max(80).nullable().optional(),
   /** A Google Maps share link, pasted by the couple. No Maps API. */
-  venueMapsUrl: z.string().max(500).refine(isGoogleMapsUrl, 'Not a Google Maps link.').optional(),
+  venueMapsUrl: z
+    .string()
+    .max(500)
+    .refine(isGoogleMapsUrl, 'Not a Google Maps link.')
+    .nullable()
+    .optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;
@@ -66,6 +72,63 @@ export async function getWeddingBySlug(slug: string): Promise<WeddingDocument | 
   if (!isValidCoupleSlug(slug)) return null;
   const page = await weddings.list({ limit: 1, where: [['slug', '==', slug]] });
   return page.items[0] ?? null;
+}
+
+/** A couple has one wedding; a few allows a second without a schema change. */
+const OWNED_LIMIT = 10;
+
+/**
+ * The weddings paid for from this phone number: what the couple dashboard
+ * lists. Served by the `(ownerPhoneE164, deletedAt, createdAt)` index.
+ */
+export async function weddingsOwnedBy(phoneE164: string): Promise<readonly WeddingDocument[]> {
+  const page = await weddings.list({
+    limit: OWNED_LIMIT,
+    where: [['ownerPhoneE164', '==', phoneE164]],
+  });
+  return page.items;
+}
+
+/** Rows per page on the admin dashboard. */
+export const ADMIN_PAGE_SIZE = 50;
+
+/**
+ * Every wedding, newest first, one page at a time: the admin dashboard.
+ * Served by the `(deletedAt, createdAt)` index.
+ */
+export async function listWeddings(cursor: string | undefined): Promise<Page<WeddingDocument>> {
+  return weddings.list({ limit: ADMIN_PAGE_SIZE, ...(cursor !== undefined && { cursor }) });
+}
+
+/** The outcome of a dashboard save. */
+export type UpdateResult =
+  | { ok: true }
+  | {
+      ok: false;
+      reason: 'not-found' | 'forbidden' | 'invalid';
+      errors?: Partial<Record<keyof WeddingDetails, string>>;
+    };
+
+/**
+ * Saves the couple's details. The caller's phone number comes from the
+ * verified session, never from the form. A stranger gets `not-found`, not
+ * `forbidden`, so the dashboard does not confirm which addresses exist.
+ */
+export async function updateWeddingDetails(
+  slug: string,
+  callerPhoneE164: string | null,
+  adminPhones: readonly string[],
+  form: Record<string, unknown>,
+): Promise<UpdateResult> {
+  const wedding = await getWeddingBySlug(slug);
+  if (wedding === null) return { ok: false, reason: 'not-found' };
+  if (!canEditWedding(callerPhoneE164, wedding.ownerPhoneE164, adminPhones)) {
+    return { ok: false, reason: 'not-found' };
+  }
+  const parsed = parseWeddingDetails(form);
+  if (!parsed.ok) return { ok: false, reason: 'invalid', errors: parsed.errors };
+  await weddings.update(wedding.id, parsed.details);
+  return { ok: true };
 }
 
 /**
