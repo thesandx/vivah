@@ -5,6 +5,8 @@ import {
   isValidCoupleSlug,
   MAX_SLUG_LENGTH,
   slugifyName,
+  slugProblem,
+  suggestedSlugs,
   withSuffix,
 } from '@/lib/couple-slug';
 
@@ -73,5 +75,37 @@ describe('withSuffix', () => {
   it('keeps the bare slug for the first attempt and numbers the rest', () => {
     expect(withSuffix('raadha-shyam', 1)).toBe('raadha-shyam');
     expect(withSuffix('raadha-shyam', 2)).toBe('raadha-shyam-2');
+  });
+});
+
+describe('suggestedSlugs', () => {
+  it('offers bride first, then groom first', () => {
+    expect(suggestedSlugs('Radha', 'Shyam')).toEqual(['radha-shyam', 'shyam-radha']);
+  });
+
+  it('drops a duplicate when both orders give the same slug', () => {
+    expect(suggestedSlugs('राधा', 'Shyam')).toEqual(['shyam']);
+  });
+
+  it('returns nothing when neither name has an ASCII form', () => {
+    expect(suggestedSlugs('राधा', 'श्याम')).toEqual([]);
+  });
+});
+
+describe('slugProblem', () => {
+  it('accepts a valid slug', () => {
+    expect(slugProblem('radha-shyam')).toBeNull();
+  });
+
+  it.each([
+    ['a', 'at least 2'],
+    ['a'.repeat(41), '40 characters or fewer'],
+    ['Radha', 'lowercase'],
+    ['-radha', 'lowercase'],
+    ['radha--shyam', 'lowercase'],
+    ['radha.shyam', 'lowercase'],
+    ['www', 'kept for Vivah'],
+  ])('refuses %s', (slug, message) => {
+    expect(slugProblem(slug)).toContain(message);
   });
 });

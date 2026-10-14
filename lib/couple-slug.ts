@@ -83,3 +83,28 @@ export function buildCoupleSlug(bride: string, groom: string): string | null {
 export function withSuffix(slug: string, attempt: number): string {
   return attempt <= 1 ? slug : `${slug}-${attempt}`;
 }
+
+/**
+ * The two ready-made addresses the preview page offers: bride first, then
+ * groom first. Invalid or duplicate ones are dropped, so the list can be
+ * shorter than two (for example, when a name has no ASCII form).
+ */
+export function suggestedSlugs(bride: string, groom: string): string[] {
+  const first = buildCoupleSlug(bride, groom);
+  const second = buildCoupleSlug(groom, bride);
+  return [...new Set([first, second].filter((slug): slug is string => slug !== null))];
+}
+
+/**
+ * Why `slug` cannot be an address, in words for the couple, or `null` when it
+ * can. Availability is a separate check: this looks at the shape only.
+ */
+export function slugProblem(slug: string): string | null {
+  if (slug.length < 2) return 'Use at least 2 characters.';
+  if (slug.length > MAX_SLUG_LENGTH) return `Use ${MAX_SLUG_LENGTH} characters or fewer.`;
+  if (!SLUG_PATTERN.test(slug) || slug.includes('--')) {
+    return 'Use lowercase letters, numbers and single hyphens. Start and end with a letter or number.';
+  }
+  if (RESERVED_SLUGS.has(slug)) return 'This address is kept for Vivah. Choose another.';
+  return null;
+}

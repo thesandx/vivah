@@ -53,3 +53,17 @@ export function resolveSiteSurface(host: string, rootDomain: string): SiteSurfac
 export function inviteUrl(slug: string, rootDomain: string): string {
   return `https://${slug}.${normaliseHost(rootDomain)}`;
 }
+
+/**
+ * Where to send a visitor for a couple's invite. With host routing on, the
+ * couple's own subdomain. Without it (local development), the internal
+ * `/site/<slug>` path, which renders the same page.
+ */
+export function inviteHref(slug: string, rootDomain: string): string {
+  return rootDomain === '' ? `/site/${slug}` : inviteUrl(slug, rootDomain);
+}
+
+/** The address as the couple reads it: `raadha-shyam.vivah.online`. */
+export function inviteHostLabel(slug: string, rootDomain: string): string {
+  return `${slug}.${rootDomain === '' ? 'vivah.online' : normaliseHost(rootDomain)}`;
+}

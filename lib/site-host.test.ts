@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { inviteUrl, normaliseHost, resolveSiteSurface } from '@/lib/site-host';
+import {
+  inviteHostLabel,
+  inviteHref,
+  inviteUrl,
+  normaliseHost,
+  resolveSiteSurface,
+} from '@/lib/site-host';
 
 const ROOT = 'vivah.online';
 
@@ -53,5 +59,25 @@ describe('resolveSiteSurface', () => {
 describe('inviteUrl', () => {
   it('builds the https link for a slug', () => {
     expect(inviteUrl('raadha-shyam', ROOT)).toBe('https://raadha-shyam.vivah.online');
+  });
+});
+
+describe('inviteHref', () => {
+  it('uses the subdomain when host routing is on', () => {
+    expect(inviteHref('radha-shyam', 'vivah.online')).toBe('https://radha-shyam.vivah.online');
+  });
+
+  it('uses the internal path when host routing is off', () => {
+    expect(inviteHref('radha-shyam', '')).toBe('/site/radha-shyam');
+  });
+});
+
+describe('inviteHostLabel', () => {
+  it('shows the address without a scheme', () => {
+    expect(inviteHostLabel('radha-shyam', 'Vivah.Online')).toBe('radha-shyam.vivah.online');
+  });
+
+  it('shows the product domain when host routing is off', () => {
+    expect(inviteHostLabel('radha-shyam', '')).toBe('radha-shyam.vivah.online');
   });
 });

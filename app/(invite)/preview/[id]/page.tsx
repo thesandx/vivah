@@ -3,11 +3,18 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { InviteCard } from '@/components/invite/InviteCard';
+import { SlugPicker } from '@/components/invite/SlugPicker';
 import { PageShell } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/Alert';
 import { Face } from '@/components/ui/Face';
+import { suggestedSlugs } from '@/lib/couple-slug';
+import { env } from '@/lib/env';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
+import { inviteHostLabel, inviteHref, normaliseHost } from '@/lib/site-host';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
+import { checkSlug } from '@/services/wedding.service';
+
+import { checkSlugAction, publishAction } from './actions';
 
 export const metadata: Metadata = {
   title: 'Your invite preview',
@@ -68,6 +75,42 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   }
 
   const { lead } = access;
+  const domainLabel = env.rootDomain === '' ? 'vivah.online' : normaliseHost(env.rootDomain);
+
+  // Already published: show where, instead of the address step.
+  if (lead.status === 'paid' && lead.weddingSlug !== undefined) {
+    const href = inviteHref(lead.weddingSlug, env.rootDomain);
+    return (
+      <PageShell>
+        <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
+          <InviteCard
+            bride={lead.bride}
+            groom={lead.groom}
+            weddingDate={lead.weddingDate}
+            className="lg:col-span-3"
+          />
+          <section className="flex flex-col gap-5 lg:col-span-2">
+            <h2 className="text-title">Your invite is live</h2>
+            <Alert tone="success" title="Share this link with your guests">
+              <a href={href} className="font-medium underline">
+                {inviteHostLabel(lead.weddingSlug, env.rootDomain)}
+              </a>
+            </Alert>
+          </section>
+        </div>
+      </PageShell>
+    );
+  }
+
+  // Which ready-made addresses are free right now. The publish step checks
+  // again, so a stale answer here can never overwrite another couple.
+  const suggestions = await Promise.all(
+    suggestedSlugs(lead.bride, lead.groom).map(async (slug) => ({
+      slug,
+      available: (await checkSlug(slug)).available,
+    })),
+  );
+
   return (
     <PageShell>
       <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
@@ -81,12 +124,16 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         <section className="flex flex-col gap-5 lg:col-span-2">
           <h2 className="text-title">This is your invite</h2>
           <p className="text-ink-soft max-w-prose">
-            Only this phone can open this preview. After you pay, it goes live at your own link, and
-            you can add each function, the venue, a map and photos.
+            Only this phone can open this preview. Choose your address and publish, and your guests
+            can open it at once. This preview stays here for 48 hours from your request.
           </p>
-          <Alert tone="info" title="Payment is the next step">
-            Payment is not open yet. This preview stays here for 48 hours from your request.
-          </Alert>
+          <SlugPicker
+            leadId={lead.id}
+            suggestions={suggestions}
+            domainLabel={domainLabel}
+            checkSlug={checkSlugAction}
+            publish={publishAction}
+          />
         </section>
       </div>
     </PageShell>
