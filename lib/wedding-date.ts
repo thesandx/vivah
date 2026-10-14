@@ -16,3 +16,14 @@ export function formatWeddingDate(isoDate: string): string {
     timeZone: 'UTC',
   }).format(date);
 }
+
+/** The short form for a link preview title: `9 March`. */
+export function formatShortWeddingDate(isoDate: string): string {
+  const date = new Date(`${isoDate}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return isoDate;
+  return new Intl.DateTimeFormat('en-IN', {
+    day: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(date);
+}

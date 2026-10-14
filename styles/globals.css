@@ -48,6 +48,9 @@
   --font-sans:
     var(--font-zen-maru), ui-rounded, 'Hiragino Maru Gothic ProN', system-ui, -apple-system,
     'Segoe UI', sans-serif;
+  /* The flowing script for names on a wedding invite. Only the Shubh Vivah
+     theme gives it a real typeface; elsewhere it falls back to the display face. */
+  --font-script: var(--font-display);
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
   /* Type scale — only these sizes exist */
@@ -108,6 +111,12 @@
   --animate-slide-in-back: slide-in-back 320ms var(--ease-settle) backwards;
   --animate-check: check 320ms var(--ease-squish) backwards;
   --animate-breathe: breathe 1.4s ease-in-out infinite;
+  /* The wedding envelope: the seal breaks, the flap folds back, the envelope
+     drops away. 1.2 s end to end; `components/invite/Envelope.tsx` waits the
+     same time before it removes the envelope. */
+  --animate-seal-break: seal-break 360ms var(--ease-settle) forwards;
+  --animate-flap-open: flap-open 480ms 240ms var(--ease-settle) forwards;
+  --animate-envelope-away: envelope-away 520ms 680ms var(--ease-settle) forwards;
 
   @keyframes page-enter {
     from {
@@ -147,6 +156,26 @@
     from {
       opacity: 0;
       transform: scale(0.3);
+    }
+  }
+
+  @keyframes seal-break {
+    to {
+      transform: scale(1.35);
+      opacity: 0;
+    }
+  }
+
+  @keyframes flap-open {
+    to {
+      transform: scaleY(-1);
+    }
+  }
+
+  @keyframes envelope-away {
+    to {
+      transform: translateY(40%);
+      opacity: 0;
     }
   }
 
@@ -208,6 +237,25 @@
     --color-brand-soft: #d5f3ec;
     --shadow-mochi: 0 3px 0 0 var(--color-line);
     --shadow-mochi-lg: 0 4px 0 0 var(--color-line);
+  }
+
+  /* Shubh Vivah — the traditional wedding invite. Marigold, maroon and gold
+     on ivory, with a serif display face and a script for the couple's names.
+     Ceremonial, so it spends no cute budget: see design-language.md > Themes.
+     Applied by app/(invite)/site/[slug]/layout.tsx, never to the product site. */
+  [data-theme='shubh-vivah'] {
+    --color-paper: #fbf3e4; /* ivory card stock */
+    --color-surface: #fffaf0;
+    --color-sunken: #f4e4c4;
+    --color-ink: #5a1020; /* deep maroon; 11:1 on paper */
+    --color-ink-soft: #7d3a2c; /* 6.4:1 on paper */
+    --color-line: #5a1020;
+    --color-brand: #8e1b2c; /* maroon: the envelope and the seal */
+    --color-brand-soft: #f2c46d; /* marigold */
+    --color-butter: #c99a3b; /* antique gold: borders and ornaments */
+    --color-peach: #e8782a; /* marigold orange, for the flower dots */
+    --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+    --font-script: var(--font-great-vibes), var(--font-cormorant), Georgia, serif;
   }
 
   /* Night — dark products (map trackers, gaming companions). */

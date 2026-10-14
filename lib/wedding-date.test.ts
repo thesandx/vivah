@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatWeddingDate } from '@/lib/wedding-date';
+import { formatShortWeddingDate, formatWeddingDate } from '@/lib/wedding-date';
 
 describe('formatWeddingDate', () => {
   it('writes the day in full, without shifting it by a time zone', () => {
@@ -9,5 +9,15 @@ describe('formatWeddingDate', () => {
 
   it('returns the input when it is not a date', () => {
     expect(formatWeddingDate('soon')).toBe('soon');
+  });
+});
+
+describe('formatShortWeddingDate', () => {
+  it('gives the day and month', () => {
+    expect(formatShortWeddingDate('2026-03-09')).toBe('9 March');
+  });
+
+  it('returns a malformed value unchanged', () => {
+    expect(formatShortWeddingDate('soon')).toBe('soon');
   });
 });

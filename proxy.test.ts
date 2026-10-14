@@ -39,6 +39,17 @@ describe('proxy', () => {
     expect(response.headers.get('location')).toBe('https://raadha-shyam.vivah.online/');
   });
 
+  it("rewrites a guest's link to the guest page", () => {
+    const response = proxy(request('/Kartheek-ji', 'raadha-shyam.vivah.online'));
+    expect(new URL(rewriteOf(response) ?? '').pathname).toBe('/site/raadha-shyam/Kartheek-ji');
+  });
+
+  it('keeps the guest name when it redirects /site/<slug>/<guest>', () => {
+    const response = proxy(request('/site/raadha-shyam/Kartheek', 'vivah.online'));
+    expect(response.status).toBe(308);
+    expect(response.headers.get('location')).toBe('https://raadha-shyam.vivah.online/Kartheek');
+  });
+
   it('falls back to the Host header when the Worker is bypassed', () => {
     const response = proxy(request('/'));
     expect(rewriteOf(response)).toBeNull();

@@ -1,0 +1,50 @@
+import { describe, expect, it } from 'vitest';
+
+import { coupleInitials, guestPath, MAX_GUEST_NAME_LENGTH, parseGuestName } from '@/lib/guest-name';
+
+describe('parseGuestName', () => {
+  it.each([
+    ['Kartheek', 'Kartheek'],
+    ['kartheek', 'Kartheek'],
+    ['Kartheek-ji', 'Kartheek ji'],
+    ['Kartheek%20ji', 'Kartheek ji'],
+    ['Sharma_ji_and_family', 'Sharma ji and family'],
+    ['Dr.%20Rao', 'Dr. Rao'],
+    ["D'Souza", "D'Souza"],
+    ['%E0%A4%B0%E0%A4%BE%E0%A4%A7%E0%A4%BE', 'राधा'],
+  ])('reads %s as %s', (segment, name) => {
+    expect(parseGuestName(segment)).toBe(name);
+  });
+
+  it.each([
+    ['', 'empty'],
+    ['---', 'only separators'],
+    ['<script>', 'markup'],
+    ['Kartheek123', 'digits'],
+    ['%E0%A4', 'a broken encoding'],
+    ['a'.repeat(MAX_GUEST_NAME_LENGTH + 1), 'too long'],
+    ['.Kartheek', 'a leading dot'],
+  ])('refuses %s (%s)', (segment) => {
+    expect(parseGuestName(segment)).toBeNull();
+  });
+});
+
+describe('guestPath', () => {
+  it('turns spaces into hyphens', () => {
+    expect(guestPath('Kartheek ji')).toBe('/Kartheek-ji');
+  });
+
+  it('round-trips through parseGuestName', () => {
+    expect(parseGuestName(guestPath('राधा जी').slice(1))).toBe('राधा जी');
+  });
+});
+
+describe('coupleInitials', () => {
+  it('joins the first letters', () => {
+    expect(coupleInitials('radha', 'Shyam')).toBe('R & S');
+  });
+
+  it('keeps one initial when a name is empty', () => {
+    expect(coupleInitials('Radha', ' ')).toBe('R');
+  });
+});

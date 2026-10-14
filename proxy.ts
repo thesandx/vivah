@@ -8,8 +8,10 @@ import { inviteUrl, resolveSiteSurface } from '@/lib/site-host';
  * Host routing: one Next.js app serves the product site and every couple's
  * invite. `proxy.ts` is the Next.js 16 name for middleware.
  *
- *   raadha-shyam.vivah.online/        → rewrite to /site/raadha-shyam
- *   vivah.online/site/raadha-shyam    → redirect to raadha-shyam.vivah.online
+ *   raadha-shyam.vivah.online/          → rewrite to /site/raadha-shyam
+ *   raadha-shyam.vivah.online/Kartheek  → rewrite to /site/raadha-shyam/Kartheek
+ *   vivah.online/site/raadha-shyam      → redirect to raadha-shyam.vivah.online
+ *   vivah.online/site/raadha-shyam/K    → redirect to raadha-shyam.vivah.online/K
  *   everything else                   → unchanged
  *
  * The visitor's host is in `X-Forwarded-Host`, set by the Cloudflare Worker.
@@ -34,10 +36,14 @@ export function proxy(request: NextRequest): NextResponse {
 
   // The product site never shows an invite under its own address: send the
   // visitor to the couple's real link. Only when routing is on.
-  const siteMatch = /^\/site\/([^/]+)\/?$/.exec(pathname);
+  // A guest's link keeps its name segment, still encoded.
+  const siteMatch = /^\/site\/([^/]+)(\/[^/]+)?\/?$/.exec(pathname);
   const siteSlug = siteMatch?.[1];
   if (siteSlug !== undefined && isValidCoupleSlug(siteSlug) && env.rootDomain !== '') {
-    return NextResponse.redirect(inviteUrl(siteSlug, env.rootDomain), 308);
+    return NextResponse.redirect(
+      `${inviteUrl(siteSlug, env.rootDomain)}${siteMatch?.[2] ?? ''}`,
+      308,
+    );
   }
 
   return NextResponse.next();

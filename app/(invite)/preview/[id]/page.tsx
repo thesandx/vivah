@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { InviteCard } from '@/components/invite/InviteCard';
+import { InviteTheme } from '@/components/invite/InviteTheme';
+import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { SlugPicker } from '@/components/invite/SlugPicker';
 import { PageShell } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/Alert';
@@ -82,12 +83,14 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     return (
       <PageShell>
         <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
-          <InviteCard
-            bride={lead.bride}
-            groom={lead.groom}
-            weddingDate={lead.weddingDate}
-            className="lg:col-span-3"
-          />
+          <InviteTheme className="lg:col-span-3">
+            <ShubhVivahInvite
+              bride={lead.bride}
+              groom={lead.groom}
+              weddingDate={lead.weddingDate}
+              guestName={null}
+            />
+          </InviteTheme>
           <section className="flex flex-col gap-5 lg:col-span-2">
             <h2 className="text-title">Your invite is live</h2>
             <Alert tone="success" title="Share this link with your guests">
@@ -109,13 +112,14 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   return (
     <PageShell>
       <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
-        <InviteCard
-          bride={lead.bride}
-          groom={lead.groom}
-          weddingDate={lead.weddingDate}
-          preview
-          className="lg:col-span-3"
-        />
+        <InviteTheme className="lg:col-span-3">
+          <ShubhVivahInvite
+            bride={lead.bride}
+            groom={lead.groom}
+            weddingDate={lead.weddingDate}
+            guestName={null}
+          />
+        </InviteTheme>
         <section className="flex flex-col gap-5 lg:col-span-2">
           <h2 className="text-title">This is your invite</h2>
           <p className="text-ink-soft max-w-prose">
