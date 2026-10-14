@@ -1,0 +1,219 @@
+# Architecture
+
+How this application is put together, and the reasoning behind each choice. Read this before adding a layer, a dependency, or changing how data moves.
+
+---
+
+## System view
+
+```
+Browser
+   │  HTTPS                                 ┌──────────────────────────┐
+   ▼                                        │  Cloud Storage bucket    │
+Google Cloud Run  (managed, autoscaling)    │  <project>-<slug>-media  │
+   │                                        └────────────▲─────────────┘
+   ├── Next.js standalone server            signed PUT   │  (bytes never
+   │      ├── Server Components   ──────────────────────┘    touch Cloud Run)
+   │      ├── Route Handlers      ── /api/*
+   │      └── Static assets       ── /_next/static, /public
+   │
+   ├── services/ ──ADC──▶ Firestore  <slug>-db  (Native mode, same region)
+   │              └─────▶ Cloud Storage        (same region)
+   │
+   └── stdout / stderr ──▶ Cloud Logging (structured JSON)
+```
+
+Both data services are reached with the Cloud Run runtime service account through Application Default Credentials. No key file exists at any point — see [ADR-0004](../../docs/adr/0004-use-firestore-and-cloud-storage.md).
+
+There is no cache or queue in the template. That is deliberate — see "What is not here" below.
+
+---
+
+## Layers
+
+Data flows **down**; dependencies point **inward**. A layer may import from the layers below it, never above.
+
+```
+┌──────────────────────────────────────────────────────────┐
+│  app/            routes, layouts, route handlers          │  ← composition
+├──────────────────────────────────────────────────────────┤
+│  components/     presentation                             │
+│  hooks/          client-side interaction                  │
+├──────────────────────────────────────────────────────────┤
+│  services/       external I/O (network, DB, cloud SDKs)   │  ← side effects
+├──────────────────────────────────────────────────────────┤
+│  lib/            pure utilities, config, logging          │  ← no side effects
+│  types/          shared contracts                         │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Allowed:** `app/` → `components/` → `lib/`. `app/` → `services/` → `lib/`.
+**Forbidden:** `lib/` → `services/`. `components/ui/` → `services/`. Anything → `app/`.
+
+Why it matters: `lib/` stays easy to test because it has no I/O to mock. You can also replace `services/` completely (REST → gRPC, one vendor → another) without changing a single component.
+
+**The data layer lives entirely in `services/`.** Every module there begins with `import 'server-only';`, which makes a Client Component importing it a build error rather than an SDK in the browser bundle.
+
+The split is deliberate and worth copying: rules that decide **what is allowed** are pure and live in `lib/` (`storage-paths.ts` validates every object path and upload; `document-ids.ts` validates a caller-supplied id; `session-cookie.ts` holds the cookie contract); rules that **talk to Google** live in `services/`. That is why the path, id and content-type logic is tested exhaustively with no emulator, no bucket and no credential.
+
+Authentication follows the same split, and it is the clearest example of why `hooks/` exists as its own layer. Assembling the Firebase web config is pure, so it lives in `lib/firebase-config.ts`. Calling `initializeApp` opens listeners and touches browser storage — a side effect, but a **client-side** one, which `services/` cannot hold because every module there is `server-only`. It therefore lives in `hooks/useFirebaseAuth.ts`. Nothing else in the app imports `firebase/auth` directly.
+
+Both cloud clients are lazy singletons. A module that defines a repository opens no connection at import time, which is what lets `next build` import every route on a CI runner with no credentials at all.
+
+These boundaries are lint rules, not conventions. `eslint.config.mjs` holds one `no-restricted-imports` block per folder, and each message names this section. A change to the layers changes that file in the same PR.
+
+---
+
+## Rendering strategy
+
+Next.js App Router with React Server Components.
+
+| Concern        | Where it runs                                           |
+| -------------- | ------------------------------------------------------- |
+| Data fetching  | Server Components (`async` functions) or Route Handlers |
+| HTML rendering | Server, by default                                      |
+| Interactivity  | Client Components — small, leaf-shaped islands          |
+| Mutations      | Server Actions or Route Handlers                        |
+
+**Why Server Components by default:**
+
+- The client bundle carries code only for the interactive parts.
+- Secrets and API keys never cross the network boundary.
+- Data fetching happens with in-datacentre latency, not a round trip from the user's device.
+
+**The cost:** the boundary is real. A Client Component cannot import a Server Component (it can only receive one through `children`), and props that cross the boundary must be serialisable. Design the tree around this limit instead of working against it.
+
+---
+
+## Configuration
+
+Single entry point: `lib/env.ts`. Nothing else in the codebase reads `process.env`.
+
+```
+Cloud Run env vars ──┐
+Secret Manager ──────┼──▶ process.env ──▶ lib/env.ts ──▶ typed `env` object
+Docker build args ───┘                    (validated at
+                                           module load)
+```
+
+**Why:** an unset variable makes the container refuse to start. Cloud Run reports this as a failed revision and rolls back. The alternative is an `undefined` value that reaches production and corrupts data hours later.
+
+Two timing rules that people often miss:
+
+- `NEXT_PUBLIC_*` is **inlined at build time**. Changing it in Cloud Run does nothing; you must rebuild the image.
+- Everything else is read **at runtime**, so a Cloud Run env var update plus a new revision is enough.
+
+---
+
+## Data
+
+Firestore in Native mode for documents, Cloud Storage for files. One named database and one bucket per app, both in the Cloud Run service's region. The full reasoning, including when to reach for Cloud SQL instead, is in [ADR-0004](../../docs/adr/0004-use-firestore-and-cloud-storage.md); the practical guide is [`docs/data-layer.md`](../../docs/data-layer.md).
+
+Three properties are worth stating here because they constrain how you design:
+
+- **Access is server-side only.** No client SDK reaches the database. Authorisation lives in route handlers and Server Components, not in security rules — the rules deny everything, and admin credentials bypass them anyway.
+- **Isolation is an IAM condition, not a convention.** `roles/datastore.user` is bound with a condition naming this database, so a second app in the same project cannot reach this one's data even with the same role.
+- **Uploads bypass the application.** The browser PUTs to a signed URL, so an upload never occupies a Cloud Run request slot and is never bounded by the 32 MiB request limit.
+- **Ownership is a field, not an assumption.** Anything a user owns carries an `ownerId` written from the session. Every read that must be scoped filters on it, with a composite index that leads with it.
+
+---
+
+## Authentication
+
+Firebase Auth for sign-in, exchanged for a server-side session cookie. The reasoning and its alternatives are in [ADR-0005](../../docs/adr/0005-use-firebase-auth-for-sign-in.md); the practical guide is [`docs/auth.md`](../../docs/auth.md).
+
+Three properties that constrain design:
+
+- **Identity is known on the server, on the first render.** The session is a cookie, so a Server Component calls `getCurrentUser()` directly. There is no client round trip, no loading state and no flash of signed-out UI — but a page that calls it is rendered on demand, never statically.
+- **Reads are public; writes need a session.** `requireUser()` throws, `lib/http-errors.ts` maps it to 401, and the handler needs no special case. Authorisation — whether this user may touch this document — is a separate, explicit check.
+- **Only `firebase/auth` reaches the browser.** No Firestore or Storage client SDK is shipped, so authorisation never moves into `firestore.rules` and the server-only data layer above stays true.
+
+---
+
+## Observability
+
+Logs are structured JSON on stdout, using the field names Cloud Logging parses natively (`severity`, `message`). No agent, no sidecar, no dependency.
+
+```ts
+logger.info('Order created', { orderId, userId, amountCents });
+```
+
+becomes a queryable LogEntry in Cloud Logging with `jsonPayload.orderId` as a filterable field.
+
+`/api/health` reports the running version (commit SHA), region and uptime — enough to answer "which build is serving traffic?" without opening the console.
+
+It does **not** check dependencies by default, and that is the important part. A probe that fails when Firestore has a bad thirty seconds makes Cloud Run kill healthy containers and turns a dependency blip into an outage of your own making. `?deep=1` adds one Firestore key lookup and one bucket metadata read, gated behind `HEALTH_DEEP_CHECKS_ENABLED` and off by default. Point dashboards and uptime checks at it; never the orchestrator.
+
+**Deliberately not included:** distributed tracing, metrics export, error tracking. Add OpenTelemetry or Cloud Error Reporting when there is a system complex enough to need them.
+
+---
+
+## Security posture
+
+| Layer    | Control                                                                                                 |
+| -------- | ------------------------------------------------------------------------------------------------------- |
+| Pipeline | Workload Identity Federation — no long-lived service account keys exist                                 |
+| Pipeline | Least-privilege job permissions; `contents: read` unless more is needed                                 |
+| Image    | Non-root user (uid 1001), Alpine base, standalone output (small surface)                                |
+| Image    | Read-only root filesystem in Compose; `no-new-privileges`                                               |
+| Runtime  | Secrets from Secret Manager, mounted as env vars — never baked into layers                              |
+| Data     | `datastore.user` under an IAM condition naming this database; `storage.objectUser` on this bucket only  |
+| Data     | Signed URLs via IAM `signBlob` — no private key on disk anywhere                                        |
+| Data     | Bucket has uniform access and enforced public access prevention; every read is a short-lived signed URL |
+| Runtime  | Security headers set in `next.config.ts`; `X-Powered-By` removed                                        |
+| Code     | CodeQL on every PR and weekly; Dependabot on npm, Actions and Docker                                    |
+
+---
+
+## Deployment topology
+
+```
+git push main
+   ↓
+GitHub Actions  ── OIDC token ──▶  Workload Identity Pool
+   ↓                                        │ impersonates
+   │                                        ▼
+   │                              Deployer service account
+   ├── docker build (Buildx, GHA layer cache)
+   ├── docker push ──▶ Artifact Registry  <region>-docker.pkg.dev
+   └── gcloud run deploy ──▶ Cloud Run
+                                 ↓
+                        new revision, 100% traffic
+                                 ↓
+                        health probe verifies it serves
+```
+
+The pipeline tags each image with the commit SHA and deploys it by that immutable tag — never `:latest`. A rollback is therefore a one-line `gcloud run services update-traffic` to a previous revision, with no rebuild.
+
+---
+
+## Key decisions and their trade-offs
+
+| Decision                         | Why                                                                                  | What it costs                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| **Cloud Run over GKE**           | No cluster to operate, scale-to-zero, per-request billing, native OIDC               | Less control over networking; 300s request ceiling; cold starts         |
+| **Cloud Run over Vercel**        | Same cloud as the rest of the stack, no vendor pricing cliff, full container control | You own the Dockerfile and the pipeline                                 |
+| **`output: 'standalone'`**       | Runtime image drops from ~1.2 GB to ~65 MB; faster cold starts and pulls             | Static assets must be copied explicitly in the Dockerfile               |
+| **pnpm**                         | Content-addressed store, fast CI installs, strict about phantom dependencies         | Contributors need corepack enabled                                      |
+| **Workload Identity Federation** | No key material exists to leak or rotate                                             | ~10 minutes of one-time setup (automated in `scripts/gcp-bootstrap.sh`) |
+| **Vitest over Jest**             | Reuses the tsconfig path aliases, no separate transform, fast enough for every PR    | Smaller ecosystem than Jest                                             |
+| **Hand-rolled logger**           | Zero dependencies, exactly the fields Cloud Logging wants                            | No sampling, redaction or transports — swap in `pino` if needed         |
+| **Tailwind CSS**                 | No naming debate, dead CSS is impossible, tokens live in one file                    | Verbose `className` strings                                             |
+
+---
+
+## What is not here, and when to add it
+
+The template stops at the point where choices become project-specific.
+
+| Not included    | Add it when                          | Suggested approach                                                                                                                          |
+| --------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Relational DB   | The domain genuinely normalises      | Cloud SQL. Firestore ships by default — see [ADR-0004](../../docs/adr/0004-use-firestore-and-cloud-storage.md) for when it is the wrong fit |
+| Rate limiting   | Before launch, for every write route | Cloud Armor rate-based rules in front, or a Firestore token bucket behind `services/`                                                       |
+| Caching         | Measurements show a hot path         | Next's own `revalidate` first; Memorystore only if that is insufficient                                                                     |
+| Background jobs | Work outlives a request              | Cloud Tasks or Pub/Sub → a second Cloud Run service                                                                                         |
+| Terraform       | More than one environment            | See `cloud/terraform.md` for the planned layout                                                                                             |
+| CDN             | Global audience with latency SLOs    | Cloud Load Balancer + Cloud CDN in front of Cloud Run                                                                                       |
+| Tracing         | Multiple services calling each other | OpenTelemetry → Cloud Trace                                                                                                                 |
+
+Adding any of these changes the architecture. Update this file, `cloud/architecture.md` and the README diagram in the same PR, and record the decision in `docs/adr/`.

@@ -1,0 +1,75 @@
+# Dependencies
+/node_modules
+/.pnp
+.pnp.*
+.pnpm-store/
+
+# Next.js
+/.next/
+/out/
+/build
+next-env.d.ts
+
+# Testing
+/coverage
+/playwright-report
+/test-results
+
+# TypeScript
+*.tsbuildinfo
+
+# Environment — never commit real values. .env.example is the tracked contract.
+.env
+.env.*
+!.env.example
+
+# Google Cloud — service account keys must never reach the repository.
+# The deploy pipeline uses Workload Identity Federation and needs no key files.
+*.json.key
+gha-creds-*.json
+service-account*.json
+application_default_credentials.json
+.gcloudignore
+
+# Firebase Hosting. `firebase.json` IS tracked — it is the rewrite that puts a
+# custom domain in front of Cloud Run, and `scripts/rename-project.sh` keeps
+# its serviceId correct. These two are not:
+#   .firebaserc   names your GCP project; `firebase use` writes it per checkout
+#   .firebase/    the CLI's local deploy cache
+.firebaserc
+.firebase/
+
+# Terraform (for when cloud/terraform/ lands — see cloud/terraform.md)
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+crash.log
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Editors and OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.pem
+
+# Vercel (unused here — this template deploys to Cloud Run)
+.vercel
+
+# design-sync: staged converter, build output and machine state
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
