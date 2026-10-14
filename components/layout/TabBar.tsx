@@ -72,7 +72,7 @@ export function TabBar({ className }: TabBarProps) {
         <span
           aria-hidden="true"
           className={cn(
-            'bg-brand border-line shadow-hard-sm rounded-pill absolute top-1.5 bottom-1.5 left-1.5 border-2',
+            'bg-brand-soft border-line shadow-hard-sm rounded-pill absolute top-1.5 bottom-1.5 left-1.5 border-2',
             'ease-spring transition-[transform,opacity] duration-300',
             activeIndex === -1 && 'opacity-0',
           )}

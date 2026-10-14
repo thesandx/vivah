@@ -1,4 +1,4 @@
-# Design language
+# Design language: Phera
 
 The visual and verbal rules for every product built from this template. Read this **before you write or change any UI**. The tokens live in `styles/globals.css`. The primitives live in `components/ui/`. The living reference renders at `/design`.
 
@@ -8,7 +8,7 @@ If a rule here conflicts with your training defaults, this file wins. If it bloc
 
 ## The idea in one paragraph
 
-The design language is soft on the outside and firm underneath. The **structure** is neo-brutalist: ink outlines, a hard shadow straight down, flat colour, clear hierarchy. The **details** are kawaii: faces, blush, rounded type, and a small bounce when something is pressed. Structure makes the product clear. Details make it friendly. When the two compete, clarity wins.
+Phera is warm, round and festive. The colours come from an Indian wedding: cream paper, plum ink, sindoor rose, haldi, marigold, peacock and lotus. The **structure** is simple: soft 2px outlines, a hard "puff" shadow straight down, flat colour and a clear hierarchy. The **details** are friendly: rounded type, faces, blush and a small bounce when you press something. Structure makes the product clear. Details make it friendly. When the two compete, clarity wins.
 
 Three words to test every decision against: **squishy, honest, playful.**
 
@@ -22,13 +22,13 @@ Three words to test every decision against: **squishy, honest, playful.**
 
 1. **Use the primitives.** `components/ui/` holds them — see [The primitives](#the-primitives). Do not re-create them inline. If one is missing a variant, add the variant to the primitive and show it on `/design`.
 2. **Use tokens only.** No raw hex, no arbitrary `shadow-[...]`, no arbitrary radius. If you need a value that does not exist, stop and ask. `pnpm lint` fails on each of these — see [Enforcement](#enforcement).
-3. **Ink is not black.** Text and outlines use `ink` / `line`. Never `black`, `#000`, `#111` or `neutral-900`.
+3. **Ink is not black.** Text uses `ink` (plum). Outlines use `line` (soft plum). Never `black`, `#000`, `#111` or `neutral-900`.
 4. **Outlines are 2px.** `border-2 border-line`. Never 1px hairlines, never 3px+.
-5. **Shadows go straight down.** `shadow-hard` (4px), `shadow-hard-sm` (2px), `shadow-hard-lg` (6px). No blur, no diagonal offsets, no grey `rgba` shadows, no glows.
+5. **Shadows go straight down.** The puff: `shadow-hard` (4px), `shadow-hard-sm` (2px), `shadow-hard-lg` (6px), in soft plum. A brand fill sits on `shadow-brand`, a darker rose. No blur, no diagonal offsets, no grey `rgba` shadows, no glows.
 6. **Radius follows hierarchy.** Inputs `rounded-input`, cards `rounded-card`, sheets and modals `rounded-sheet`, buttons and chips `rounded-pill`. Never one radius for everything.
 7. **One primary action per screen.** Exactly one `Button variant="primary"` is visible in any viewport. Everything else is `secondary` or `quiet`.
-8. **Two typefaces, fixed roles.** Headings and big numbers use `font-display` (Mochiy Pop One, weight 400 only). Everything else uses `font-sans` (Zen Maru Gothic, 400/500/700). No third font. No fake bold on the display face.
-9. **Colour has a job.** `brand` means "do this". Candy tones (`butter`, `soda`, `grape`, `peach`) mean identity — this game, this player, this category. Never pick a candy tone "because it looks nice here".
+8. **Two typefaces, fixed roles.** Huninn is the voice: `font-display` and `font-sans` both start with it. It has one weight (400), so size and colour make the hierarchy. Baloo 2 is `font-weighted`: use it for bold numbers and badges. Baloo 2 also covers all Devanagari text. No third font. No fake bold: the body sets `font-synthesis-weight: none`.
+9. **Colour has a job.** `brand` means "do this". Festival tones (`butter` haldi, `peach` marigold, `soda` peacock, `grape` lotus, `gold`) mean identity — this ceremony, this guest, this category. Never pick a festival tone "because it looks nice here".
 10. **Faces are the signature — use them on purpose.** A face appears on avatars, the mascot, empty states, errors and wins. Never on buttons, form fields, navigation, or body text.
 11. **Motion answers the user.** Press, navigate, open, select, join, win, error. The only ambient motion is the mascot's blink and a loading skeleton. No scroll-triggered fade-ins, no looping decoration. See [Motion](#motion).
 12. **Mobile first, 320px up, then a real desktop.** A phone gets an app. From `md` (768px) up, the same screen is a website. Tap targets ≥ 44px (buttons are 48px or 56px). No horizontal scroll. Left-aligned text. See [Responsive](#responsive-an-app-on-a-phone-a-website-on-a-desktop).
@@ -43,22 +43,30 @@ All tokens are in `styles/globals.css`. Tailwind v4 generates the utilities.
 
 ### Colour
 
-| Token                           | Utility examples             | Use it for                                      |
-| ------------------------------- | ---------------------------- | ----------------------------------------------- |
-| `paper`                         | `bg-paper`                   | The page. Nothing else.                         |
-| `surface`                       | `bg-surface`                 | Cards, inputs, sheets, bubbles                  |
-| `sunken`                        | `bg-sunken`                  | Wells, empty slots, disabled fills              |
-| `ink`                           | `text-ink`, `fill-ink`       | Body text, headings, face features              |
-| `ink-soft`                      | `text-ink-soft`              | Secondary text. Never for anything tappable.    |
-| `line`                          | `border-line`                | Every outline                                   |
-| `brand`                         | `bg-brand`                   | The primary action, focus rings, selected state |
-| `brand-soft`                    | `bg-brand-soft`              | Highlight fills, the mascot's background        |
-| `butter` `soda` `grape` `peach` | `bg-butter` …                | Identity only (see rule 9)                      |
-| `blush`                         | `fill-blush`                 | Cheeks on faces. Nowhere else.                  |
-| `danger`                        | `bg-danger`, `border-danger` | Errors — always with words, never colour alone  |
-| `success`                       | `bg-success`                 | Confirmations — always with words               |
+| Token                           | Utility examples             | Use it for                                    |
+| ------------------------------- | ---------------------------- | --------------------------------------------- |
+| `paper`                         | `bg-paper`                   | The page. Nothing else.                       |
+| `surface`                       | `bg-surface`                 | Cards, inputs, sheets, bubbles                |
+| `sunken`                        | `bg-sunken`                  | Wells, empty slots, disabled fills            |
+| `ink`                           | `text-ink`, `fill-ink`       | Body text, headings, face features (plum)     |
+| `ink-soft`                      | `text-ink-soft`              | Secondary text. Never for anything tappable.  |
+| `line`                          | `border-line`                | Every outline, and the puff shadow            |
+| `brand`                         | `bg-brand`                   | The primary action and the selected state     |
+| `brand-soft`                    | `bg-brand-soft`              | Highlight fills, the selected tab, the mascot |
+| `brand-deep`                    | `shadow-brand`               | The puff under a brand fill. Nothing else.    |
+| `on-brand`                      | `text-on-brand`              | Text and icons on a `brand` fill              |
+| `butter` `peach` `soda` `grape` | `bg-butter` …                | Identity only (see rule 9)                    |
+| `gold`                          | `bg-gold`, `border-gold`     | Dividers and foil accents                     |
+| `blush`                         | `fill-blush`                 | Cheeks on faces. Nowhere else.                |
+| `danger`                        | `border-danger`, `bg-danger` | Errors: outlines and dots. Always with words. |
+| `danger-soft`                   | `bg-danger-soft`             | The fill of an error badge or alert           |
+| `success`                       | `border-success`             | Confirmations: outlines. Always with words.   |
+| `success-soft`                  | `bg-success-soft`            | The fill of a success badge or alert          |
+| `focus`                         | `outline-focus`              | The focus ring (peacock). Nothing else.       |
 
-Text on a coloured fill is always `text-ink`. Never white text on `brand` or a candy tone — the contrast fails.
+Text on a `brand` fill is `text-on-brand` (white, 4.8:1). Text on every other fill is `text-ink`. Never white text on a festival tone or a soft fill: the contrast fails.
+
+`brand` is rose 600, not the lighter rose 500 of the Phera file. Rose 500 gives white text only 3.6:1, which fails WCAG AA.
 
 ### Type
 
@@ -80,14 +88,16 @@ Text on a coloured fill is always `text-ink`. Never white text on `brand` or a c
 | Token              | Value                    | Use                                      |
 | ------------------ | ------------------------ | ---------------------------------------- |
 | `rounded-box`      | 8px                      | Checkboxes only                          |
-| `rounded-input`    | 14px                     | Inputs, small wells                      |
-| `rounded-card`     | 22px                     | Cards, bubbles                           |
-| `rounded-sheet`    | 32px                     | Modals, bottom sheets, hero panels       |
+| `rounded-input`    | 18px                     | Inputs, small wells                      |
+| `rounded-card`     | 28px                     | Cards, bubbles                           |
+| `rounded-sheet`    | 40px                     | Modals, bottom sheets, hero panels       |
 | `rounded-pill`     | 999px                    | Buttons, chips, avatars (`rounded-full`) |
-| `shadow-hard-sm`   | 0 2px 0 ink              | Chips, bubbles, small pressables         |
-| `shadow-hard`      | 0 4px 0 ink              | Cards, buttons                           |
-| `shadow-hard-lg`   | 0 6px 0 ink              | One hero element per page, open sheets   |
+| `shadow-hard-sm`   | 0 2px 0 line             | Chips, bubbles, small pressables         |
+| `shadow-hard`      | 0 4px 0 line             | Cards, secondary buttons                 |
+| `shadow-hard-lg`   | 0 6px 0 line             | One hero element per page, open sheets   |
+| `shadow-brand`     | 0 4px 0 brand-deep       | A brand fill: the primary button         |
 | `squish` (utility) | hover lifts, press sinks | Anything pressable. Buttons have it.     |
+| `squish-brand`     | the same, on brand-deep  | The primary button only                  |
 | `ease-squish`      | overshoot curve          | Things that pop in or get pressed        |
 | `ease-settle`      | no overshoot             | Things that move from A to B             |
 | `ease-spring`      | soft overshoot           | A selection that slides into place       |
@@ -193,17 +203,17 @@ A dynamic page that reads data shows a loading state at once on navigation, so a
 
 A product sets its theme once, with `THEME` in `app/layout.tsx`. The theme re-assigns tokens; components do not change.
 
-| Theme      | For                                            | Cute budget                                                                    |
-| ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------ |
-| `playroom` | Party games, social, anything fun              | **High** — faces on every player, mascot on every key moment, stickers allowed |
-| `calm`     | Wellness, habits, focus, utilities             | **Medium** — mascot on empty states and completions only, no stickers          |
-| `night`    | Dark products: map trackers, gaming companions | **Low** — mascot on loading, empty and error states only; faces on avatars     |
+| Theme   | For                                            | Cute budget                                                                |
+| ------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
+| `phera` | The default: the vivah.online product site     | **Medium** — mascot on empty states and key moments, faces on avatars      |
+| `calm`  | Wellness, habits, focus, utilities             | **Medium** — mascot on empty states and completions only, no stickers      |
+| `night` | Dark products: map trackers, gaming companions | **Low** — mascot on loading, empty and error states only; faces on avatars |
 
-Products with a formal or ceremonial tone (a wedding site, a legal page, a portfolio for employers) do **not** use this design language. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
+Products with a formal or ceremonial tone (a legal page, a portfolio for employers) do **not** use Phera. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
 
 ### The invite theme
 
-In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not this design language. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `playroom`.
+In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not Phera. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `phera`.
 
 - **Colour.** Ivory paper, deep maroon ink, a maroon `brand`, antique gold `butter`, marigold `brand-soft` and `peach`, and a leaf-green `soda` for the garland. Gold borders replace the ink outline. The hard shadow stays, in deep maroon.
 - **Type.** `font-display` is Cormorant Garamond (500 and 600). `font-script` is Great Vibes, for the couple's names and the guest's greeting only. Both are self-hosted under `public/fonts` (OFL) and load only where the theme applies.
@@ -427,7 +437,7 @@ This is the minimum, not a goal.
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Below the fold: a live, playable mini board. Then the list of games as distinct cards, each with its own candy tone.
+Below the fold: a live, playable mini board. Then the list of games as distinct cards, each with its own festival tone.
 
 **Empty state:** a `Face mood="sleepy"` at 72px, one line of interface voice saying what goes here, one button that fills it. "No rounds yet. Start round".
 

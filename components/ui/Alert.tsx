@@ -4,8 +4,8 @@ export type AlertTone = 'info' | 'success' | 'danger';
 
 const TONE_CLASS: Record<AlertTone, string> = {
   info: 'bg-surface',
-  success: 'bg-success',
-  danger: 'bg-danger',
+  success: 'bg-success-soft',
+  danger: 'bg-danger-soft',
 };
 
 /** The glyph for each tone. Status is never colour alone — see design-language.md > Accessibility. */

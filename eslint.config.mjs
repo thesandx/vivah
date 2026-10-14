@@ -83,7 +83,7 @@ const designTokenSelectors = [
   {
     pattern: `${DESIGN.head}(bg|text|border|fill|stroke|ring|decoration|outline|divide|accent|caret|from|via|to)-(black|white|slate|gray|grey|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(-\\d{2,3})?${DESIGN.tail}`,
     message:
-      'That is a default Tailwind colour, not a design-language one. Text and outlines use `ink` and `line` — never black, white or a grey. Fills use `paper`, `surface`, `sunken`, `brand` or a candy tone. See design-language.md rules 3 and 9.',
+      'That is a default Tailwind colour, not a design-language one. Text and outlines use `ink` and `line` — never black, white or a grey. Fills use `paper`, `surface`, `sunken`, `brand` or a festival tone. See design-language.md rules 3 and 9.',
   },
   {
     pattern: `${DESIGN.head}text-(xs|sm|base|lg|xl|[2-9]xl)${DESIGN.tail}`,

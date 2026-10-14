@@ -1,12 +1,12 @@
 # The design language — how to build with it
 
-This is a soft, chunky design language: 2px ink outlines, a hard shadow straight down, rounded fonts, candy tones and little faces. Components are React, exposed on `window.VivahUI` (`VivahUI.Button`, `VivahUI.Card`, …).
+Phera is a warm, round, festive design language: cream paper, plum ink, sindoor rose, soft 2px outlines, a hard puff shadow straight down, rounded fonts, festival tones and little faces. Components are React, exposed on `window.VivahUI` (`VivahUI.Button`, `VivahUI.Card`, …).
 
 ## Setup
 
-No provider or wrapper is needed. Load `styles.css`: it carries the tokens, fonts and every utility class the components use, and styles `body` itself (paper background, ink text, Zen Maru Gothic). Headings `h1`–`h3` get the display font (Mochiy Pop One) automatically. Never set `font-bold` on a heading — the display face has one weight.
+No provider or wrapper is needed. Load `styles.css`: it carries the tokens, fonts and every utility class the components use, and styles `body` itself (cream paper background, plum ink text, Huninn). Headings `h1`–`h3` get the display font (Huninn) automatically. Never set `font-bold` on a heading — Huninn has one weight. Use `font-weighted` (Baloo 2) for a bold number.
 
-Themes re-assign tokens only. Default is "playroom". For a calm or dark product, set `data-theme="calm"` or `data-theme="night"` on `<html>`.
+Themes re-assign tokens only. Default is "phera". For a calm or dark product, set `data-theme="calm"` or `data-theme="night"` on `<html>`.
 
 ## Styling idiom: Tailwind utilities built from tokens
 
@@ -22,7 +22,7 @@ Style your own layout with these classes. Only classes compiled into `_ds_bundle
 | Layout      | `flex` `grid` `gap-*` `p-*` `px-*` `py-*` `grid-cols-1…4` `max-w-5xl` `max-w-3xl` `mx-auto` `w-full` with `sm:` `md:` `lg:`             |
 | Motion      | `animate-pop` `animate-rise-in` `animate-fade-in` `animate-wobble`                                                                   |
 
-Page background is `bg-paper`; cards and inputs sit on `bg-surface`. Candy tones (`butter`, `soda`, `grape`, `peach`) are for identity, never meaning. Status (`danger`, `success`) always comes with words or an icon — use `Alert`, `Badge`, `FieldError`.
+Page background is `bg-paper`; cards and inputs sit on `bg-surface`. Festival tones (`butter`, `peach`, `soda`, `grape`, `gold`) are for identity, never meaning. Status (`danger`, `success`) always comes with words or an icon — use `Alert`, `Badge`, `FieldError`.
 
 ## Rules the components assume
 

@@ -13,7 +13,7 @@ const TONE_CLASS: Record<CardTone, string> = {
 
 export interface CardProps {
   children: React.ReactNode;
-  /** Candy tones are identity (this game is butter), not decoration. Default: surface. */
+  /** Festival tones are identity (this game is butter), not decoration. Default: surface. */
   tone?: CardTone;
   /**
    * Something that peeks over the top edge — usually a <Face /> or <Avatar />.

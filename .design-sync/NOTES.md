@@ -23,8 +23,8 @@ Synced to claude.ai/design project for this design language (`projectId` in conf
 - `next/link` and `next/navigation` are shimmed via `.design-sync/tsconfig.json` paths
   (`shims/`). `usePathname()` reads `document.documentElement.dataset.pathname`, default `/`.
 - Fonts: the app loads them with `next/font/local`; `fonts.css` (`extraFonts`) declares
-  the same families from `public/fonts/`, and `tailwind-entry.css` sets `--font-pop` /
-  `--font-zen-maru` on `:root`.
+  the same families from `public/fonts/`, and `tailwind-entry.css` sets `--font-huninn`,
+  `--font-baloo` and `--font-baloo-devanagari` on `:root`.
 - Playwright: chromium-1228 is cached locally; `playwright@1.61.1` in `.ds-sync/` matches it.
 
 ## Tailwind safelist
@@ -47,7 +47,7 @@ safelist, not to a component.
   column cards for wide ones (Header, Footer, PageShell, AppBar, Avatar, Face).
 - MobileMenu's `Open` cell presses the menu button once on mount, because the open state
   is internal. The menu sits in a `relative` phone header row, as `Header` renders it.
-- `AppBar`'s title has `py-1`: `truncate` clips to the line box, and Mochiy Pop One's
+- `AppBar`'s title has `py-1`: `truncate` clips to the line box, and the display face's
   descenders fall below `text-title`'s 1.15 line-height.
 
 ## Re-sync risks

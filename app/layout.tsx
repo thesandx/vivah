@@ -38,32 +38,54 @@ export const viewport: Viewport = {
 };
 
 /**
- * The typefaces, self-hosted from public/fonts (Latin subsets, ~72 KB total).
- * Self-hosting means the build never calls Google Fonts, so the Docker build
- * works offline. See .github/instructions/design-language.md, "Type".
+ * The Phera typefaces, self-hosted from public/fonts. Self-hosting means the
+ * build never calls a font CDN, so the Docker build works offline. See
+ * .github/instructions/design-language.md, "Type".
+ *
+ * - Huninn (SIL OFL) is the voice: every heading, label and line of body text.
+ *   It has one weight, 400.
+ * - Baloo 2 (SIL OFL) carries the weights 500-800 for numbers and badges.
+ * - Baloo 2 Devanagari covers Hindi and Sanskrit text. Huninn has no
+ *   Devanagari glyphs, so the browser falls through to it. It is not
+ *   preloaded: it downloads only on a page that shows Devanagari.
  */
-const popOne = localFont({
-  src: '../public/fonts/mochiypopone-400.woff2',
+const huninn = localFont({
+  src: '../public/fonts/huninn-400.woff2',
   weight: '400',
-  variable: '--font-pop',
+  variable: '--font-huninn',
   display: 'swap',
 });
 
-const zenMaru = localFont({
+const baloo = localFont({
   src: [
-    { path: '../public/fonts/zenmarugothic-400.woff2', weight: '400' },
-    { path: '../public/fonts/zenmarugothic-500.woff2', weight: '500' },
-    { path: '../public/fonts/zenmarugothic-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-400.woff2', weight: '400' },
+    { path: '../public/fonts/baloo2-500.woff2', weight: '500' },
+    { path: '../public/fonts/baloo2-600.woff2', weight: '600' },
+    { path: '../public/fonts/baloo2-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-800.woff2', weight: '800' },
   ],
-  variable: '--font-zen-maru',
+  variable: '--font-baloo',
   display: 'swap',
+  preload: false,
+});
+
+const balooDevanagari = localFont({
+  src: [
+    { path: '../public/fonts/baloo2-devanagari-400.woff2', weight: '400' },
+    { path: '../public/fonts/baloo2-devanagari-600.woff2', weight: '600' },
+    { path: '../public/fonts/baloo2-devanagari-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-devanagari-800.woff2', weight: '800' },
+  ],
+  variable: '--font-baloo-devanagari',
+  display: 'swap',
+  preload: false,
 });
 
 /**
- * The product theme. 'playroom' is the default token set; 'calm' and 'night'
+ * The product theme. 'phera' is the default token set; 'calm' and 'night'
  * re-assign tokens in styles/globals.css. Set once per product, here only.
  */
-const THEME: 'playroom' | 'calm' | 'night' = 'playroom';
+const THEME: 'phera' | 'calm' | 'night' = 'phera';
 
 /**
  * Root layout — a Server Component, and it must stay one.
@@ -93,7 +115,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${popOne.variable} ${zenMaru.variable}`}
+      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}

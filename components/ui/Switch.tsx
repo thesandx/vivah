@@ -46,7 +46,7 @@ export function Switch({ label, hint, className, disabled, ...rest }: SwitchProp
           aria-describedby={hint ? hintId : undefined}
           className={cn(
             'peer bg-sunken border-line rounded-pill h-8 w-14 cursor-pointer appearance-none border-2',
-            'checked:bg-brand transition-colors duration-200',
+            'checked:bg-brand checked:border-brand transition-colors duration-200',
             'disabled:cursor-not-allowed disabled:border-dashed',
           )}
           {...rest}

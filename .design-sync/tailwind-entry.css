@@ -21,6 +21,7 @@
 @source inline('border-2 border-line font-{normal,medium,bold} truncate');
 
 :root {
-  --font-pop: 'Mochiy Pop One';
-  --font-zen-maru: 'Zen Maru Gothic';
+  --font-huninn: 'Huninn';
+  --font-baloo: 'Baloo 2';
+  --font-baloo-devanagari: 'Baloo 2 Devanagari';
 }

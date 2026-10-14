@@ -1,27 +1,33 @@
-/* The display and body typefaces. The app loads these through next/font/local (app/layout.tsx),
-   which sets --font-pop and --font-zen-maru. This file does the same job
-   for the design-sync bundle. */
+/* The Phera typefaces. The app loads these through next/font/local (app/layout.tsx),
+   which sets --font-huninn, --font-baloo and --font-baloo-devanagari. This file does
+   the same job for the design-sync bundle. */
 @font-face {
-  font-family: 'Mochiy Pop One';
-  src: url('../public/fonts/mochiypopone-400.woff2') format('woff2');
+  font-family: 'Huninn';
+  src: url('../public/fonts/huninn-400.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Zen Maru Gothic';
-  src: url('../public/fonts/zenmarugothic-400.woff2') format('woff2');
+  font-family: 'Baloo 2';
+  src: url('../public/fonts/baloo2-400.woff2') format('woff2');
   font-weight: 400;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Zen Maru Gothic';
-  src: url('../public/fonts/zenmarugothic-500.woff2') format('woff2');
-  font-weight: 500;
+  font-family: 'Baloo 2';
+  src: url('../public/fonts/baloo2-600.woff2') format('woff2');
+  font-weight: 600;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Zen Maru Gothic';
-  src: url('../public/fonts/zenmarugothic-700.woff2') format('woff2');
+  font-family: 'Baloo 2';
+  src: url('../public/fonts/baloo2-700.woff2') format('woff2');
   font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Baloo 2 Devanagari';
+  src: url('../public/fonts/baloo2-devanagari-400.woff2') format('woff2');
+  font-weight: 400;
   font-display: swap;
 }
