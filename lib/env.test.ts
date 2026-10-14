@@ -44,6 +44,7 @@ async function loadEnv(overrides: Record<string, string | undefined>): Promise<E
     'FIRESTORE_EMULATOR_HOST',
     'HEALTH_DEEP_CHECKS_ENABLED',
     'LOG_LEVEL',
+    'ADMIN_PHONE_NUMBERS',
   ]) {
     delete process.env[key];
   }
@@ -191,5 +192,23 @@ describe('value validation', () => {
     await expect(
       loadEnv({ NODE_ENV: 'development', HEALTH_DEEP_CHECKS_ENABLED: 'maybe' }),
     ).rejects.toThrow(/HEALTH_DEEP_CHECKS_ENABLED/);
+  });
+});
+
+describe('admin phone numbers', () => {
+  it('reads a comma-separated list of E.164 numbers', async () => {
+    const env = await loadEnv({ ADMIN_PHONE_NUMBERS: '+919546342507, +6591234567' });
+    expect(env.adminPhoneNumbers).toEqual(['+919546342507', '+6591234567']);
+  });
+
+  it('means nobody is an admin when unset', async () => {
+    const env = await loadEnv({});
+    expect(env.adminPhoneNumbers).toEqual([]);
+  });
+
+  it('refuses a number without its country code', async () => {
+    await expect(loadEnv({ ADMIN_PHONE_NUMBERS: '9546342507' })).rejects.toThrow(
+      /ADMIN_PHONE_NUMBERS/,
+    );
   });
 });

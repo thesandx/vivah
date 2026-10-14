@@ -134,6 +134,26 @@ await deleteUserProfile(uid); // the Firestore document
 await getFirebaseAuth().deleteUser(uid); // the Firebase Auth account
 ```
 
+## The couple and admin dashboards
+
+The dashboards live at `vivah.online/dashboard`. They use the same session as the rest of the app.
+
+| Page                     | Who sees it                                   |
+| ------------------------ | --------------------------------------------- |
+| `/dashboard`             | Any signed-in person. It lists their invites. |
+| `/dashboard/edit/<slug>` | The couple who owns the invite, or an admin.  |
+| `/dashboard/admin`       | An admin only. It lists every invite.         |
+
+- **Ownership is the phone number.** A couple owns a wedding when the session's verified phone number equals `wedding.ownerPhoneE164`. That is the number they paid with.
+- **Google sign-in has no phone number.** The dashboard asks that person to sign in with their phone.
+- **An admin is a number in `ADMIN_PHONE_NUMBERS`.** See [`cloud/environment-variables.md`](../cloud/environment-variables.md).
+- **A stranger gets a 404, not a 403.** The edit page and the admin page do not tell a stranger that an address exists.
+- **The save checks again.** `saveWeddingDetailsAction` calls `requireUser()`, and `updateWeddingDetails` checks ownership on the server. Hiding a page is not the control.
+- **The slug is not editable.** Guests already have links to it.
+- **Logs name the slug and the uid.** Never the phone number.
+
+The dashboards need phone sign-in enabled in Firebase, with an SMS region policy. See [SMS fraud is the real risk](#sms-fraud-is-the-real-risk).
+
 ### PII
 
 `email`, `phoneNumber` and `dateOfBirth` identify a person. `gender` is sensitive. A `uid` does not identify a person. Application logs go to Cloud Logging, where they are retained and widely readable, so **only the uid is ever logged**. Nothing in `services/auth.service.ts` or `services/user.service.ts` logs an address, a number, a birth date or a gender. A profile update logs the names of the changed fields, never their values. Keep it that way.

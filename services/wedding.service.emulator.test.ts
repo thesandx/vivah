@@ -10,7 +10,9 @@ import {
   publishWedding,
   slugClaimId,
   slugClaims,
+  updateWeddingDetails,
   weddings,
+  weddingsOwnedBy,
 } from '@/services/wedding.service';
 
 /**
@@ -128,5 +130,76 @@ describeEmulator('publishWedding (emulator)', () => {
       `shyam-${slugBride}`,
       `${slugBride}-weds-shyam`,
     ]);
+  });
+});
+
+describeEmulator('the dashboards (emulator)', () => {
+  const ADMINS = ['+919546342507'];
+  const FORM = {
+    bride: 'Anushka',
+    groom: 'Sandeep',
+    weddingDate: '2026-03-09',
+    ceremonyTime: '19:00',
+    venueName: 'Laxmisagar',
+    venueCity: 'Darbhanga, Bihar',
+    venueMapsUrl: 'https://maps.app.goo.gl/Ek5VHxyC6qYr2sW86',
+  };
+
+  /** A wedding owned by a fresh phone number, so runs do not collide. */
+  async function ownedWedding(): Promise<{ slug: string; phone: string }> {
+    const slug = uniqueSlug('dash');
+    const phone = `+9198${Math.floor(10_000_000 + Math.random() * 89_999_999)}`;
+    await weddings.create({
+      slug,
+      bride: 'Anu',
+      groom: 'Sandy',
+      weddingDate: null,
+      ownerPhoneE164: phone,
+      leadId: 'aaaaaaaaaaaaaaaaaaaa',
+    });
+    return { slug, phone };
+  }
+
+  it('lists only the weddings paid for from this number', async () => {
+    const mine = await ownedWedding();
+    await ownedWedding();
+    const owned = await weddingsOwnedBy(mine.phone);
+    expect(owned.map((wedding) => wedding.slug)).toEqual([mine.slug]);
+  });
+
+  it('lets the couple save their details, and clear one later', async () => {
+    const { slug, phone } = await ownedWedding();
+    expect(await updateWeddingDetails(slug, phone, ADMINS, FORM)).toEqual({ ok: true });
+    expect(await getWeddingBySlug(slug)).toMatchObject({ ...FORM });
+
+    await updateWeddingDetails(slug, phone, ADMINS, { ...FORM, venueMapsUrl: '' });
+    expect((await getWeddingBySlug(slug))?.venueMapsUrl).toBeNull();
+  });
+
+  it('lets an admin save, and answers a stranger as if the address were unknown', async () => {
+    const { slug } = await ownedWedding();
+    expect(await updateWeddingDetails(slug, ADMINS[0] ?? '', ADMINS, FORM)).toEqual({ ok: true });
+    expect(await updateWeddingDetails(slug, '+919000000000', ADMINS, FORM)).toEqual({
+      ok: false,
+      reason: 'not-found',
+    });
+    expect(await updateWeddingDetails(slug, null, ADMINS, FORM)).toEqual({
+      ok: false,
+      reason: 'not-found',
+    });
+  });
+
+  it('names the fields that are wrong and saves nothing', async () => {
+    const { slug, phone } = await ownedWedding();
+    const result = await updateWeddingDetails(slug, phone, ADMINS, {
+      ...FORM,
+      ceremonyTime: '7pm',
+    });
+    expect(result).toMatchObject({
+      ok: false,
+      reason: 'invalid',
+      errors: { ceremonyTime: expect.any(String) },
+    });
+    expect((await getWeddingBySlug(slug))?.bride).toBe('Anu');
   });
 });
