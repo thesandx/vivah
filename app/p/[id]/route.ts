@@ -25,12 +25,18 @@ function isSecureContext(): boolean {
 }
 
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> },
 ): Promise<NextResponse> {
   const { id } = await params;
-  const destination = new URL(`/preview/${encodeURIComponent(id)}`, request.url);
-  const response = NextResponse.redirect(destination, 303);
+  // A relative Location, on purpose. Behind the Cloudflare Worker,
+  // `request.url` is the container's own address (http://0.0.0.0:8080), so an
+  // absolute URL built from it sends the visitor somewhere they cannot reach.
+  // The browser resolves a relative Location against the address it used.
+  const response = new NextResponse(null, {
+    status: 303,
+    headers: { Location: `/preview/${encodeURIComponent(id)}` },
+  });
 
   try {
     const store = await cookies();

@@ -26,7 +26,7 @@ const { GET } = await import('./route');
 const ID = 'AbCdEfGhIjKlMnOpQrSt';
 
 function open(): Promise<Response> {
-  return GET(new Request(`http://localhost/p/${ID}`), { params: Promise.resolve({ id: ID }) });
+  return GET(new Request(`http://0.0.0.0:8080/p/${ID}`), { params: Promise.resolve({ id: ID }) });
 }
 
 describe('GET /p/[id]', () => {
@@ -39,7 +39,7 @@ describe('GET /p/[id]', () => {
     openPreviewLink.mockResolvedValue({ access: 'ok', newToken: 'fresh-token' });
     const response = await open();
     expect(response.status).toBe(303);
-    expect(response.headers.get('location')).toBe(`http://localhost/preview/${ID}`);
+    expect(response.headers.get('location')).toBe(`/preview/${ID}`);
     const cookie = response.headers.get('set-cookie') ?? '';
     expect(cookie).toContain('vivah_preview=fresh-token');
     expect(cookie).toContain(`Path=/preview/${ID}`);
