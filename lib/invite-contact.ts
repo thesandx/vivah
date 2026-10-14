@@ -51,7 +51,7 @@ export function isGoogleMapsUrl(value: string): boolean {
   if (url.protocol !== 'https:' || !MAPS_HOSTS.has(url.hostname)) return false;
   // goo.gl and google.com also serve other products; only their maps paths count.
   if (url.hostname === 'goo.gl') return url.pathname.startsWith('/maps');
-  if (url.hostname.endsWith('google.com') && url.hostname !== 'maps.google.com') {
+  if (url.hostname === 'google.com' || url.hostname === 'www.google.com') {
     return url.pathname.startsWith('/maps');
   }
   return true;
