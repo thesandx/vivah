@@ -1,4 +1,4 @@
-import { Face } from 'nextjs-cloudrun-template';
+import { Face } from 'vivah';
 
 export const Moods = () => (
   <div className="flex items-center gap-4">

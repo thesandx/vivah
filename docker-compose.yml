@@ -18,8 +18,8 @@ services:
         NEXT_PUBLIC_APP_URL: http://localhost:8080
         NEXT_PUBLIC_APP_NAME: Next.js on Cloud Run
         NEXT_PUBLIC_APP_VERSION: local
-    image: nextjs-cloudrun-template:local
-    container_name: nextjs-cloudrun-template
+    image: vivah:local
+    container_name: vivah
     ports:
       # Cloud Run's default container port is 8080; mirror it locally.
       - "8080:8080"

@@ -1,4 +1,4 @@
-import { Spinner } from 'nextjs-cloudrun-template';
+import { Spinner } from 'vivah';
 
 export const Sizes = () => (
   <div className="flex flex-col gap-4">

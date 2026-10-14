@@ -1,4 +1,4 @@
-import { Skeleton } from 'nextjs-cloudrun-template';
+import { Skeleton } from 'vivah';
 
 export const ListRow = () => (
   <div className="flex max-w-md items-center gap-3">

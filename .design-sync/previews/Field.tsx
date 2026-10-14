@@ -1,4 +1,4 @@
-import { controlStyles, Field } from 'nextjs-cloudrun-template';
+import { controlStyles, Field } from 'vivah';
 
 export const CustomControl = () => (
   <div className="max-w-md">
