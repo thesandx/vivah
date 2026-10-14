@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-import { Face } from '@/components/ui/Face';
+import { BrandMark } from '@/components/layout/BrandMark';
 import { cn } from '@/lib/utils';
 
 import { MobileMenu } from './MobileMenu';
@@ -11,7 +11,7 @@ export interface HeaderLink {
 }
 
 export interface HeaderProps {
-  /** The product name, beside the mascot. */
+  /** The product name, beside the mark. */
   appName: string;
   /** Top-level destinations. Only pages that exist — no link to a page you have not built. */
   links?: readonly HeaderLink[];
@@ -29,8 +29,8 @@ export interface HeaderProps {
 }
 
 /**
- * The site header. The logo is the mascot face, never a letter in a circle —
- * see design-language.md > Recipes — and it always links home. The current
+ * The site header. The logo is the vivah.online mark (`BrandMark`), never a
+ * letter in a circle, and it always links home. The current
  * page has an underline and `aria-current`, not only a colour change.
  *
  * On a phone the links fold into `MobileMenu`, so the header never wraps or
@@ -52,10 +52,8 @@ export function Header({
       )}
     >
       <Link href="/" className="font-display flex min-h-11 min-w-0 items-center gap-2">
-        <span className="bg-brand-soft border-line inline-grid size-10 shrink-0 place-items-center rounded-full border-2">
-          <Face size={32} blush={false} />
-        </span>
-        <span className="truncate">{appName}</span>
+        <BrandMark />
+        <span className="text-heading truncate font-semibold">{appName}</span>
       </Link>
       <div className="ml-auto flex shrink-0 items-center gap-3">
         {links.length > 0 && (

@@ -195,6 +195,7 @@ A product sets its theme once, with `THEME` in `app/layout.tsx`. The theme re-as
 
 | Theme      | For                                            | Cute budget                                                                    |
 | ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------ |
+| `vivah`    | This app's product site (the default `@theme`) | **None** — no faces, no mascot; `BrandMark` is the logo                        |
 | `playroom` | Party games, social, anything fun              | **High** — faces on every player, mascot on every key moment, stickers allowed |
 | `calm`     | Wellness, habits, focus, utilities             | **Medium** — mascot on empty states and completions only, no stickers          |
 | `night`    | Dark products: map trackers, gaming companions | **Low** — mascot on loading, empty and error states only; faces on avatars     |
@@ -203,7 +204,18 @@ Products with a formal or ceremonial tone (a wedding site, a legal page, a portf
 
 ### The invite theme
 
-In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not Mochi. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `playroom`.
+In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not Mochi. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site uses `vivah`.
+
+### The product site theme (`vivah`)
+
+The tokens in `@theme` are the `vivah` palette. The old Mochi colours live in `[data-theme='playroom']`, and `/design` still shows them.
+
+- **Colour.** Ivory paper, plum ink, a rose `brand`, gold `butter`, sage `soda`, lavender `grape`. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so white reaches 3:1.
+- **Shadow.** Soft and low, not hard. `squish` lifts to `shadow-mochi-lg` on hover in every theme.
+- **Type.** `font-display` is Cormorant Garamond. `font-script` (Great Vibes) is for one accent per section, such as "5 minutes" in the home heading.
+- **Logo.** `BrandMark`: a gold marigold around a heart. It replaces the mascot in the header.
+- **Home page.** A pin board (`InspirationBoard`, CSS columns), a feature list, a paper-or-digital table, and two `Marquee` carousels of reviews and chat screenshots. Each pin, feature and table row shows a feature that is built. A review slot stays empty until a real couple sends words. See `lib/testimonials.ts`.
+- **Help.** `WhatsAppButton` floats on every page of the product site, above the `TabBar` on a phone.
 
 - **Colour.** Ivory paper, deep maroon ink, a maroon `brand`, antique gold `butter`, marigold `brand-soft` and `peach`, and a leaf-green `soda` for the garland. Gold borders replace the ink outline. The hard shadow stays, in deep maroon.
 - **Type.** `font-display` is Cormorant Garamond (500 and 600). `font-script` is Great Vibes, for the couple's names and the guest's greeting only. Both are self-hosted under `public/fonts` (OFL) and load only where the theme applies.

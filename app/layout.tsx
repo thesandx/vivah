@@ -38,14 +38,26 @@ export const viewport: Viewport = {
 };
 
 /**
- * Mochi typefaces, self-hosted from public/fonts (Latin subsets, ~72 KB total).
- * Self-hosting means the build never calls Google Fonts, so the Docker build
- * works offline. See .github/instructions/design-language.md, "Type".
+ * The typefaces, self-hosted from public/fonts (Latin subsets, OFL). Self-hosting
+ * means the build never calls Google Fonts, so the Docker build works offline.
+ * See .github/instructions/design-language.md, "Type".
+ *
+ * Cormorant Garamond sets the headings, Great Vibes the script flourishes and
+ * the couple's names, Zen Maru Gothic the body text.
  */
-const mochiy = localFont({
-  src: '../public/fonts/mochiypopone-400.woff2',
+const cormorant = localFont({
+  src: [
+    { path: '../public/fonts/cormorantgaramond-500.woff2', weight: '500' },
+    { path: '../public/fonts/cormorantgaramond-600.woff2', weight: '600' },
+  ],
+  variable: '--font-cormorant',
+  display: 'swap',
+});
+
+const greatVibes = localFont({
+  src: '../public/fonts/greatvibes-400.woff2',
   weight: '400',
-  variable: '--font-mochiy',
+  variable: '--font-great-vibes',
   display: 'swap',
 });
 
@@ -60,10 +72,10 @@ const zenMaru = localFont({
 });
 
 /**
- * The product theme. 'playroom' is the default token set; 'calm' and 'night'
- * re-assign tokens in styles/globals.css. Set once per product, here only.
+ * The product theme. 'vivah' is the default token set; 'playroom', 'calm' and
+ * 'night' re-assign tokens in styles/globals.css. Set once per product, here only.
  */
-const THEME: 'playroom' | 'calm' | 'night' = 'playroom';
+const THEME: 'vivah' | 'playroom' | 'calm' | 'night' = 'vivah';
 
 /**
  * Root layout — a Server Component, and it must stay one.
@@ -93,7 +105,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${mochiy.variable} ${zenMaru.variable}`}
+      className={`${cormorant.variable} ${greatVibes.variable} ${zenMaru.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}
