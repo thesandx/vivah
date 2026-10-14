@@ -11,10 +11,12 @@ Where every file goes, and why. **This layout is fixed** — see rule 1 in [codi
 │   │   ├── layout.tsx      #     and its pages, including GET / (the lead form)
 │   │   └── example/        #     EXAMPLE — the page that uses the example API
 │   ├── (invite)/           #   A couple's invite and the private preview. No product shell
-│   │   └── preview/[id]/   #     The preview, with the address picker and its Server Actions (ADR-0007)
+│   │   ├── preview/[id]/   #     The preview, with the address picker and its Server Actions (ADR-0007)
+│   │   └── site/[slug]/    #     The couple's invite in the Shubh Vivah theme; [guest]/ greets one guest
 │   ├── api/                #   Route handlers (server-side HTTP endpoints)
 │   │   ├── health/         #     GET /api/health — liveness probe
 │   │   ├── leads/          #     POST /api/leads — anonymous lead capture (ADR-0006)
+│   │   ├── og/[slug]/      #     GET /api/og/<slug> — the invite's link preview image
 │   │   └── example/        #     EXAMPLE — data layer endpoints, delete these
 │   ├── p/[id]/             #   GET /p/<lead id> — binds a preview link to a browser
 │   ├── error.tsx           #   Route-segment error boundary (Client Component)

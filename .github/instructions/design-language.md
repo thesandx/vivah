@@ -201,6 +201,16 @@ A product sets its theme once, with `THEME` in `app/layout.tsx`. The theme re-as
 
 Products with a formal or ceremonial tone (a wedding site, a legal page, a portfolio for employers) do **not** use Mochi. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
 
+### The invite theme
+
+In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not Mochi. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `playroom`.
+
+- **Colour.** Ivory paper, deep maroon ink, a maroon `brand`, antique gold `butter`, marigold `brand-soft` and `peach`. Gold borders replace the ink outline. The hard shadow stays, in deep maroon.
+- **Type.** `font-display` is Cormorant Garamond (500 and 600). `font-script` is Great Vibes, for the couple's names and the guest's greeting only. Both are self-hosted under `public/fonts` (OFL) and load only where the theme applies.
+- **Cute budget.** None. No faces, no stickers, no mascot. Ornament is gold corners and marigold dots.
+- **No deity motif by default.** The theme is religion-neutral, as the PRD asks.
+- **The link preview image** cannot read CSS tokens. `lib/invite-palette.ts` repeats the values. Change both together.
+
 Budget limits per viewport, all themes:
 
 - One `peek` card.
