@@ -71,6 +71,7 @@ const PRIVATE_PATHS = [
   '/api/',
   '/preview/',
   '/site/',
+  '/dashboard',
   '/profile',
   '/sign-in',
   '/design',
