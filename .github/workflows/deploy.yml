@@ -221,9 +221,10 @@ jobs:
           # time, so they belong here and not in env_vars below. Setting one
           # on the Cloud Run service changes nothing until the next build.
           #
-          # APP_URL falls back to the root domain, not to localhost: the
-          # marketing pages are prerendered here, and their canonical URLs,
-          # sitemap and Open Graph tags are fixed in this build.
+          # The marketing pages are prerendered here, so their canonical URLs,
+          # sitemap and Open Graph tags are fixed in this build. ROOT_DOMAIN
+          # names them (vivah.online), even when APP_URL is the Cloud Run
+          # address; APP_URL falls back to the root domain, not localhost.
           #
           # The Firebase values are repository VARIABLES, not secrets. They are
           # public by design and ship in every bundle; a build arg is the right
@@ -232,6 +233,7 @@ jobs:
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ vars.APP_URL || format('https://{0}', vars.ROOT_DOMAIN || 'vivah.online') }}
             NEXT_PUBLIC_APP_NAME=${{ vars.APP_NAME || 'vivah.online' }}
+            ROOT_DOMAIN=${{ vars.ROOT_DOMAIN || 'vivah.online' }}
             NEXT_PUBLIC_APP_VERSION=${{ github.sha }}
             NEXT_PUBLIC_FIREBASE_API_KEY=${{ vars.FIREBASE_API_KEY }}
             NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }}
