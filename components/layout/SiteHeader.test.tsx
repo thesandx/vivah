@@ -7,7 +7,7 @@ let pathname = '/';
 vi.mock('next/navigation', () => ({ usePathname: () => pathname }));
 
 describe('SiteHeader', () => {
-  it('lists the same destinations as the tab bar, with the logo linked home', () => {
+  it('lists the top-level destinations, with the logo linked home', () => {
     pathname = '/';
     render(<SiteHeader appName="Playroom" />);
     expect(screen.getByRole('link', { name: 'Playroom' })).toHaveAttribute('href', '/');
@@ -26,8 +26,8 @@ describe('SiteHeader', () => {
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
   });
 
-  it('has no phone menu: the tab bar is the phone navigation', () => {
+  it('has a hamburger menu for a phone', () => {
     render(<SiteHeader appName="Playroom" />);
-    expect(screen.queryByRole('button', { name: 'Menu' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument();
   });
 });

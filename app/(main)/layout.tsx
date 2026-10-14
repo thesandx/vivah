@@ -1,6 +1,5 @@
 import { Footer } from '@/components/layout/Footer';
 import { SiteHeader } from '@/components/layout/SiteHeader';
-import { TabBar } from '@/components/layout/TabBar';
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton';
 import { env } from '@/lib/env';
 
@@ -22,11 +21,10 @@ const FOOTER_LINKS = [
 /**
  * The product site's shell. A Server Component.
  *
- * It holds the two postures. A phone gets an app: the `TabBar` at the bottom.
- * From `md` up the same destinations move to the `SiteHeader` at the top, and
- * the page reads as a website. Both are CSS breakpoints, so the server sends
- * one HTML for every screen and nothing guesses the device.
- * See design-language.md > Responsive: an app on a phone, a website on a desktop.
+ * The `SiteHeader` is at the top on every screen. On a phone its links fold
+ * into a hamburger menu (`MobileMenu`); from `md` up they sit inline. The
+ * switch is a CSS breakpoint, so the server sends one HTML for every screen.
+ * See design-language.md > Responsive.
  *
  * The WhatsApp button floats on every page here, so help is one tap away.
  *
@@ -34,15 +32,14 @@ const FOOTER_LINKS = [
  */
 export default function MainLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    // pb-28 keeps the last line of every page clear of the floating TabBar, on
-    // a phone only: from md up the TabBar hides. SiteHeader and TabBar are
-    // client components rendered from this Server Component.
-    <div className="flex flex-1 flex-col pb-28 md:pb-0">
+    // pb-24 keeps the last line of every page clear of the floating WhatsApp
+    // button on a phone. SiteHeader is a client component rendered from this
+    // Server Component.
+    <div className="flex flex-1 flex-col pb-24 md:pb-0">
       <SiteHeader appName={env.appName} />
       {children}
       <Footer owner={env.appName} links={FOOTER_LINKS} />
       <WhatsAppButton />
-      <TabBar />
     </div>
   );
 }

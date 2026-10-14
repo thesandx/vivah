@@ -18,7 +18,7 @@ import { inviteUrl, resolveSiteSurface } from '@/lib/site-host';
  * `Host` is the Cloud Run address. See `cloud/domain-routing.md`.
  *
  * The invite pages live in the `app/(invite)` route group, which has no site
- * header or tab bar. That is decided by the route, not by `usePathname()` in a
+ * header. That is decided by the route, not by `usePathname()` in a
  * client component, because a rewrite makes the client and server paths differ.
  */
 export function proxy(request: NextRequest): NextResponse {

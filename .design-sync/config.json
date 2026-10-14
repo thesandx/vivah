@@ -42,8 +42,7 @@
     "Header": "components/layout/Header.tsx",
     "MobileMenu": "components/layout/MobileMenu.tsx",
     "PageShell": "components/layout/PageShell.tsx",
-    "SiteHeader": "components/layout/SiteHeader.tsx",
-    "TabBar": "components/layout/TabBar.tsx"
+    "SiteHeader": "components/layout/SiteHeader.tsx"
   },
   "libOverrides": {
     "dts.mjs": "read the tsc-generated .d.ts tree in .design-sync/.cache/types (an app, no dist/ types), keep inherited interaction props (onClick, disabled, value...), and declare referenced helper types"
@@ -52,10 +51,6 @@
     ".github/instructions/design-language.md"
   ],
   "overrides": {
-    "TabBar": {
-      "cardMode": "single",
-      "viewport": "390x240"
-    },
     "Dialog": {
       "cardMode": "single",
       "viewport": "900x520"

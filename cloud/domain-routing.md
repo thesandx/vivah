@@ -16,7 +16,7 @@ Visitor ─► Cloudflare (DNS + certificate) ─► Worker vivah-router ─► 
    - `vivah.online` shows the product site.
    - `<slug>.vivah.online` is rewritten to `/site/<slug>`, which renders that couple's invite.
    - `<slug>.vivah.online/<guest>` is rewritten to `/site/<slug>/<guest>`, the same invite with a greeting for that guest.
-6. **Route groups.** Invite pages live in `app/(invite)`, which has no product header or tab bar. Product pages live in `app/(main)`.
+6. **Route groups.** Invite pages live in `app/(invite)`, which has no product header. Product pages live in `app/(main)`.
 
 Why a Worker: Cloud Run domain mapping and Firebase Hosting do not support wildcard domains. A Google Cloud load balancer does, but it costs a fixed monthly fee. The Worker free tier allows 100,000 requests per day.
 

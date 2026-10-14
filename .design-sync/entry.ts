@@ -31,4 +31,3 @@ export * from '../components/layout/Header';
 export * from '../components/layout/MobileMenu';
 export * from '../components/layout/PageShell';
 export * from '../components/layout/SiteHeader';
-export * from '../components/layout/TabBar';

@@ -20,9 +20,8 @@ export interface HeaderProps {
   /** A slot on the right, such as the sign-in state. */
   end?: React.ReactNode;
   /**
-   * Fold the links into `MobileMenu` below `md`. Default true, for a website
-   * with no `TabBar`. `SiteHeader` turns it off: there the `TabBar` is the
-   * phone navigation, and the header shows from `md` up only.
+   * Fold the links into `MobileMenu` below `md`. Default true. Turn it off
+   * only when something else gives a phone its navigation.
    */
   phoneMenu?: boolean;
   className?: string;

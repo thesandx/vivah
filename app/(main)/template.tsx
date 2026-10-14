@@ -5,7 +5,7 @@
  *
  * A Server Component, and the animation is CSS, so it ships no JavaScript.
  * It starts from a visible state, so the first paint and Largest Contentful
- * Paint are not delayed. The TabBar lives in the layout, outside this wrapper,
+ * Paint are not delayed. The header lives in the layout, outside this wrapper,
  * so it stays still while the page moves. See design-language.md > Motion.
  */
 export default function Template({ children }: { children: React.ReactNode }) {

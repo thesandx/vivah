@@ -42,8 +42,8 @@ safelist, not to a component.
 
 ## Preview notes
 
-- Card overrides: `TabBar` single 390px (it is `fixed` and `md:hidden`), `SiteHeader`
-  column 1200px (`hidden md:block`), `Dialog` single (opens with `showModal`), and
+- Card overrides: `SiteHeader`
+  column 1200px, `Dialog` single (opens with `showModal`), and
   column cards for wide ones (Header, Footer, PageShell, AppBar, Avatar, Face).
 - MobileMenu's `Open` cell presses the menu button once on mount, because the open state
   is internal. The menu sits in a `relative` phone header row, as `Header` renders it.

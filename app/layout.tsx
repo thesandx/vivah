@@ -30,8 +30,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Lets the page draw under a phone's notch and home indicator, so TabBar can
-  // pad itself with env(safe-area-inset-bottom) like a native nav bar.
+  // Lets the page draw under a phone's notch and home indicator, so fixed chrome can
+  // pad itself with env(safe-area-inset-bottom), as the WhatsApp button does.
   viewportFit: 'cover',
   // Matches --color-paper for the active theme. See lib/pwa.ts.
   themeColor: THEME_COLOR,
@@ -120,8 +120,8 @@ const THEME: 'phera' | 'calm' | 'night' = 'phera';
  * It holds only what every surface shares: the document, the fonts and the
  * theme. The shell is per surface, in a route group:
  *
- *   - `app/(main)/layout.tsx` — the product site. `TabBar` on a phone,
- *     `SiteHeader` from `md` up, and the `Footer`.
+ *   - `app/(main)/layout.tsx` — the product site. `SiteHeader` on every
+ *     screen (a hamburger menu on a phone), and the `Footer`.
  *   - `app/(invite)/layout.tsx` — a couple's invite and the private preview.
  *     No product navigation: a guest opening an invite sees the invite.
  *
