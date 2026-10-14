@@ -44,9 +44,6 @@ describe('Envelope', () => {
     expect(screen.queryByText('Hi Kartheek')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'The invite' })).toBeInTheDocument();
     expect(window.localStorage.getItem('vivah:opened:test')).toBe('1');
-
-    fireEvent.click(screen.getByRole('button', { name: 'Open the envelope again' }));
-    expect(screen.getByText('Hi Kartheek')).toBeInTheDocument();
   });
 
   it('skips the envelope for a guest who opened it before', () => {

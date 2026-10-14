@@ -4,6 +4,7 @@ import {
   inviteHostLabel,
   inviteHref,
   inviteUrl,
+  madeByUrl,
   normaliseHost,
   resolveSiteSurface,
 } from '@/lib/site-host';
@@ -79,5 +80,16 @@ describe('inviteHostLabel', () => {
 
   it('shows the product domain when host routing is off', () => {
     expect(inviteHostLabel('radha-shyam', '')).toBe('radha-shyam.vivah.online');
+  });
+});
+
+describe('madeByUrl', () => {
+  it('links the invite credit to the product home, tagged', () => {
+    expect(madeByUrl('Vivah.Online', 'https://app.example')).toBe(
+      'https://vivah.online/?utm_source=invite&utm_medium=footer',
+    );
+    expect(madeByUrl('', 'http://localhost:3000/')).toBe(
+      'http://localhost:3000/?utm_source=invite&utm_medium=footer',
+    );
   });
 });

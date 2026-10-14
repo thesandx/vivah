@@ -13,6 +13,7 @@ const full: ShubhVivahInviteProps = {
   venueCity: 'Darbhanga, Bihar',
   venueMapsUrl: 'https://maps.app.goo.gl/Ek5VHxyC6qYr2sW86',
   rsvpPhoneE164: '+917983873235',
+  madeByUrl: 'https://vivah.online/?utm_source=invite&utm_medium=footer',
 };
 
 describe('ShubhVivahInvite', () => {
@@ -56,7 +57,16 @@ describe('ShubhVivahInvite', () => {
     expect(screen.queryByText(/^Hi /)).not.toBeInTheDocument();
     expect(screen.getByText('Date to be shared soon')).toBeInTheDocument();
     expect(screen.getByText('Venue to be shared soon')).toBeInTheDocument();
-    expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    // Only the credit links out: no venue, RSVP or phone on a preview.
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+  });
+
+  it('credits vivah.online at the foot of the invite', () => {
+    render(<ShubhVivahInvite {...full} />);
+    expect(screen.getByRole('link', { name: /made with love by vivah\.online/i })).toHaveAttribute(
+      'href',
+      full.madeByUrl,
+    );
   });
 
   it('ignores a venue link that is not Google Maps', () => {

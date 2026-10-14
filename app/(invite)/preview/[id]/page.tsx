@@ -10,7 +10,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Face } from '@/components/ui/Face';
 import { env } from '@/lib/env';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
-import { inviteHostLabel, inviteHref, normaliseHost } from '@/lib/site-host';
+import { inviteHostLabel, inviteHref, madeByUrl, normaliseHost } from '@/lib/site-host';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
 import { freeSlugSuggestions } from '@/services/wedding.service';
 
@@ -94,6 +94,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
               venueCity={null}
               venueMapsUrl={null}
               rsvpPhoneE164={null}
+              madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
             />
           </InviteTheme>
           <section className="flex flex-col gap-5 lg:col-span-2">
@@ -128,6 +129,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
             venueCity={null}
             venueMapsUrl={null}
             rsvpPhoneE164={null}
+            madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
           />
         </InviteTheme>
         <section className="flex flex-col gap-5 lg:col-span-2">

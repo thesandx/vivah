@@ -38,6 +38,11 @@ export interface ShubhVivahInviteProps {
    * couple's preview has RSVP off.
    */
   rsvpPhoneE164: string | null;
+  /**
+   * The product's home page, for the "Made with ❤️ by vivah.online" credit
+   * at the foot of every invite. Each guest who taps it is a possible couple.
+   */
+  madeByUrl: string;
   className?: string;
 }
 
@@ -85,6 +90,7 @@ export function ShubhVivahInvite({
   venueCity,
   venueMapsUrl,
   rsvpPhoneE164,
+  madeByUrl,
   className,
 }: ShubhVivahInviteProps) {
   const mapsUrl = venueMapsUrl !== null && isGoogleMapsUrl(venueMapsUrl) ? venueMapsUrl : null;
@@ -189,6 +195,24 @@ export function ShubhVivahInvite({
             Your presence will mean the world to us as we celebrate this special day.
           </p>
         </footer>
+
+        {/* Small and quiet on purpose (PRD): the couple's invite is the hero,
+            and a credit they would pay to remove helps nobody. */}
+        <a
+          href={madeByUrl}
+          target="_blank"
+          rel="noopener"
+          className="text-small text-ink-soft hover:text-brand inline-flex min-h-11 items-center"
+        >
+          Made with{' '}
+          <span role="img" aria-label="love" className="mx-1">
+            ❤️
+          </span>{' '}
+          by{' '}
+          <span className="text-brand decoration-butter ml-1 font-semibold underline decoration-2 underline-offset-4">
+            vivah.online
+          </span>
+        </a>
       </div>
     </article>
   );

@@ -7,6 +7,7 @@ import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { env } from '@/lib/env';
 import { coupleInitials, parseGuestName } from '@/lib/guest-name';
 import { inviteMetadata } from '@/lib/invite-meta';
+import { madeByUrl } from '@/lib/site-host';
 import { getWeddingBySlug } from '@/services/wedding.service';
 
 /**
@@ -76,6 +77,7 @@ export async function CoupleInvite({
           venueCity={wedding.venueCity ?? null}
           venueMapsUrl={wedding.venueMapsUrl ?? null}
           rsvpPhoneE164={wedding.ownerPhoneE164}
+          madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
           className="flex-1"
         />
       </main>

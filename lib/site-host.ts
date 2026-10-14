@@ -67,3 +67,14 @@ export function inviteHref(slug: string, rootDomain: string): string {
 export function inviteHostLabel(slug: string, rootDomain: string): string {
   return `${slug}.${rootDomain === '' ? 'vivah.online' : normaliseHost(rootDomain)}`;
 }
+
+/**
+ * The product's home page, as the "Made with ❤️ by vivah.online" credit on
+ * every invite links to it. The `utm_*` tags let analytics count couples who
+ * arrive from a guest's invite. Without host routing, the app's own URL.
+ */
+export function madeByUrl(rootDomain: string, appUrl: string): string {
+  const home =
+    rootDomain === '' ? appUrl.replace(/\/$/, '') : `https://${normaliseHost(rootDomain)}`;
+  return `${home}/?utm_source=invite&utm_medium=footer`;
+}
