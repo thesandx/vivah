@@ -33,7 +33,7 @@ export function siteOrigin(rootDomain: string, appUrl: string): string {
 export interface MarketingPage {
   path: string;
   /** How often the page changes, for the sitemap. */
-  changeFrequency: 'weekly' | 'monthly';
+  changeFrequency: 'weekly' | 'monthly' | 'yearly';
   priority: number;
 }
 
@@ -54,6 +54,12 @@ export const MARKETING_PAGES: readonly MarketingPage[] = [
     changeFrequency: 'monthly',
     priority: 0.7,
   },
+  { path: '/about', changeFrequency: 'yearly', priority: 0.5 },
+  { path: '/contact', changeFrequency: 'yearly', priority: 0.5 },
+  { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },
+  { path: '/terms', changeFrequency: 'yearly', priority: 0.3 },
+  { path: '/refund-policy', changeFrequency: 'yearly', priority: 0.3 },
+  { path: '/delivery-policy', changeFrequency: 'yearly', priority: 0.3 },
 ];
 
 export function sitemapEntries(origin: string): MetadataRoute.Sitemap {

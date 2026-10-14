@@ -10,10 +10,13 @@ vi.mock('@/services/lead.service', () => ({
 
 const { POST } = await import('./route');
 
-function post(body: unknown): Request {
+let visitor = 0;
+
+/** Each request comes from a new visitor unless `ip` is given, so the rate limit stays out of the way. */
+function post(body: unknown, ip = `10.0.0.${(visitor += 1)}`): Request {
   return new Request('http://localhost/api/leads', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'CF-Connecting-IP': ip },
     body: typeof body === 'string' ? body : JSON.stringify(body),
   });
 }
@@ -70,5 +73,15 @@ describe('POST /api/leads', () => {
     const response = await POST(post(VALID));
     expect(response.status).toBe(500);
     expect(JSON.stringify(await response.json())).not.toContain('connection reset');
+  });
+
+  it('refuses a sixth preview from one visitor within 10 minutes', async () => {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      expect((await POST(post(VALID, '203.0.113.9'))).status).toBe(201);
+    }
+    const refused = await POST(post(VALID, '203.0.113.9'));
+    expect(refused.status).toBe(429);
+    expect(refused.headers.get('Retry-After')).not.toBeNull();
+    expect((await POST(post(VALID, '203.0.113.10'))).status).toBe(201);
   });
 });

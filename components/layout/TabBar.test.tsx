@@ -11,13 +11,13 @@ describe('TabBar', () => {
     pathname = '/';
     render(<TabBar />);
     expect(screen.getByRole('navigation', { name: 'Main' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('href', '/profile');
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveAttribute('href', '/contact');
   });
 
   it('marks the current tab with aria-current', () => {
-    pathname = '/profile';
+    pathname = '/contact';
     render(<TabBar />);
-    expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'Help' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
   });
 
@@ -33,7 +33,7 @@ describe('TabBar', () => {
     const pill = container.querySelector('ul > span') as HTMLElement;
     expect(pill.style.transform).toBe('translateX(0%)');
 
-    fireEvent.click(screen.getByRole('link', { name: 'Profile' }));
+    fireEvent.click(screen.getByRole('link', { name: 'Help' }));
     expect(pill.style.transform).toBe('translateX(200%)');
     // aria-current still names the page actually shown.
     expect(screen.getByRole('link', { name: 'Home' })).toHaveAttribute('aria-current', 'page');
@@ -42,7 +42,7 @@ describe('TabBar', () => {
   it('leaves the pill alone on a click that opens a new browser tab', () => {
     pathname = '/';
     const { container } = render(<TabBar />);
-    fireEvent.click(screen.getByRole('link', { name: 'Profile' }), { metaKey: true });
+    fireEvent.click(screen.getByRole('link', { name: 'Help' }), { metaKey: true });
     const pill = container.querySelector('ul > span') as HTMLElement;
     expect(pill.style.transform).toBe('translateX(0%)');
   });

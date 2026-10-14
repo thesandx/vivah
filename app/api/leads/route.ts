@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { mapHttpError } from '@/lib/http-errors';
 import { type LeadRequest, leadRequestSchema } from '@/lib/lead-schema';
 import { logger } from '@/lib/logger';
+import { clientIp, RateLimiter } from '@/lib/rate-limit';
 import { createLead } from '@/services/lead.service';
 
 /**
@@ -18,6 +19,7 @@ import { createLead } from '@/services/lead.service';
  *     existing document, and takes no identity field from the body.
  *   - The body is validated by `leadRequestSchema` (strict: unknown keys fail).
  *   - A filled honeypot field answers like a success and stores nothing.
+ *   - Each visitor may ask for 5 previews in 10 minutes (`lib/rate-limit.ts`).
  *
  * The response is the preview path. Until the WhatsApp templates are approved,
  * the form opens it at once; afterwards the link goes by WhatsApp instead.
@@ -26,7 +28,26 @@ import { createLead } from '@/services/lead.service';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+/**
+ * 5 previews per visitor per 10 minutes, per instance. A couple needs one or
+ * two; a script filling the `leads` collection is stopped early. See
+ * `lib/rate-limit.ts` for what this does not cover.
+ */
+const limiter = new RateLimiter({ limit: 5, windowMs: 10 * 60_000 });
+
 export async function POST(request: Request): Promise<NextResponse> {
+  const verdict = limiter.hit(clientIp(request.headers));
+  if (!verdict.allowed) {
+    logger.warn('Lead rate limit reached', { retryAfterSeconds: verdict.retryAfterSeconds });
+    return NextResponse.json(
+      {
+        error: 'rate_limited',
+        message: 'Too many tries from this phone. Wait a few minutes, then try again.',
+      },
+      { status: 429, headers: { 'Retry-After': String(verdict.retryAfterSeconds) } },
+    );
+  }
+
   let lead: LeadRequest;
   try {
     lead = leadRequestSchema.parse(await request.json());

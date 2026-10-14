@@ -11,15 +11,18 @@ describe('SiteHeader', () => {
     pathname = '/';
     render(<SiteHeader appName="Playroom" />);
     expect(screen.getByRole('link', { name: 'Playroom' })).toHaveAttribute('href', '/');
-    for (const label of ['Home', 'Dashboard', 'Profile']) {
+    for (const label of ['Home', 'My invites', 'Help']) {
       expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
     }
   });
 
   it('marks the destination of a page below it as current', () => {
-    pathname = '/profile/photo';
+    pathname = '/dashboard/edit/raadha-shyam';
     render(<SiteHeader appName="Playroom" />);
-    expect(screen.getByRole('link', { name: 'Profile' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: 'My invites' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
   });
 
