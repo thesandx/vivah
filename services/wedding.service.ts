@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
+import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { leads, tokenMatches } from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
 
@@ -32,6 +33,21 @@ export const weddingSchema = z.object({
   ownerPhoneE164: z.string().regex(/^\+\d{8,15}$/),
   /** The lead this wedding was paid from. */
   leadId: z.string().min(1).max(128),
+  // The ceremony details the invite shows. Optional: a wedding is published
+  // before the couple adds them, and the invite says "shared soon" until then.
+  // The dashboard will set them; until it exists, they are set by hand in the
+  // Firestore console.
+  /** `HH:MM`, 24-hour, India Standard Time. */
+  ceremonyTime: z
+    .string()
+    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .optional(),
+  /** The venue's name: `Laxmisagar`. */
+  venueName: z.string().trim().min(1).max(80).optional(),
+  /** The town and state: `Darbhanga, Bihar`. */
+  venueCity: z.string().trim().min(1).max(80).optional(),
+  /** A Google Maps share link, pasted by the couple. No Maps API. */
+  venueMapsUrl: z.string().max(500).refine(isGoogleMapsUrl, 'Not a Google Maps link.').optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;

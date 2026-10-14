@@ -116,6 +116,7 @@
      same time before it removes the envelope. */
   --animate-seal-break: seal-break 360ms var(--ease-settle) forwards;
   --animate-flap-open: flap-open 480ms 240ms var(--ease-settle) forwards;
+  --animate-petal-fall: petal-fall 14s linear infinite;
   --animate-envelope-away: envelope-away 520ms 680ms var(--ease-settle) forwards;
 
   @keyframes page-enter {
@@ -169,6 +170,15 @@
   @keyframes flap-open {
     to {
       transform: scaleY(-1);
+    }
+  }
+
+  @keyframes petal-fall {
+    from {
+      transform: translate3d(0, -10vh, 0) rotate(0deg);
+    }
+    to {
+      transform: translate3d(6vw, 110vh, 0) rotate(540deg);
     }
   }
 
@@ -254,6 +264,7 @@
     --color-brand-soft: #f2c46d; /* marigold */
     --color-butter: #c99a3b; /* antique gold: borders and ornaments */
     --color-peach: #e8782a; /* marigold orange, for the flower dots */
+    --color-soda: #5f7d32; /* leaf green, for the garland */
     --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
     --font-script: var(--font-great-vibes), var(--font-cormorant), Georgia, serif;
   }

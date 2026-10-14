@@ -83,12 +83,17 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     return (
       <PageShell>
         <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
-          <InviteTheme className="lg:col-span-3">
+          <InviteTheme className="bg-paper border-butter rounded-card overflow-hidden border-2 lg:col-span-3">
             <ShubhVivahInvite
               bride={lead.bride}
               groom={lead.groom}
               weddingDate={lead.weddingDate}
               guestName={null}
+              ceremonyTime={null}
+              venueName={null}
+              venueCity={null}
+              venueMapsUrl={null}
+              rsvpPhoneE164={null}
             />
           </InviteTheme>
           <section className="flex flex-col gap-5 lg:col-span-2">
@@ -112,12 +117,17 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   return (
     <PageShell>
       <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
-        <InviteTheme className="lg:col-span-3">
+        <InviteTheme className="bg-paper border-butter rounded-card overflow-hidden border-2 lg:col-span-3">
           <ShubhVivahInvite
             bride={lead.bride}
             groom={lead.groom}
             weddingDate={lead.weddingDate}
             guestName={null}
+            ceremonyTime={null}
+            venueName={null}
+            venueCity={null}
+            venueMapsUrl={null}
+            rsvpPhoneE164={null}
           />
         </InviteTheme>
         <section className="flex flex-col gap-5 lg:col-span-2">
