@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { InviteTheme } from '@/components/invite/InviteTheme';
+import { PreviewGuard } from '@/components/invite/PreviewGuard';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { SlugPicker } from '@/components/invite/SlugPicker';
 import { PageShell } from '@/components/layout/PageShell';
@@ -119,18 +120,22 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     <PageShell>
       <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
         <InviteTheme className="bg-paper border-butter rounded-card overflow-hidden border-2 lg:col-span-3">
-          <ShubhVivahInvite
-            bride={lead.bride}
-            groom={lead.groom}
-            weddingDate={lead.weddingDate}
-            guestName={null}
-            ceremonyTime={null}
-            venueName={null}
-            venueCity={null}
-            venueMapsUrl={null}
-            rsvpPhoneE164={null}
-            madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
-          />
+          {/* Unpaid, so watermarked and hard to save. The published invite
+              (above) and the couple's site carry no watermark. */}
+          <PreviewGuard label={`${domainLabel} · preview only`}>
+            <ShubhVivahInvite
+              bride={lead.bride}
+              groom={lead.groom}
+              weddingDate={lead.weddingDate}
+              guestName={null}
+              ceremonyTime={null}
+              venueName={null}
+              venueCity={null}
+              venueMapsUrl={null}
+              rsvpPhoneE164={null}
+              madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+            />
+          </PreviewGuard>
         </InviteTheme>
         <section className="flex flex-col gap-5 lg:col-span-2">
           <h2 className="text-title">This is your invite</h2>
