@@ -91,4 +91,15 @@ describe('SlugPicker', () => {
     expect(screen.getByLabelText('shyam-radha.vivah.online')).toBeChecked();
     expect(assign).not.toHaveBeenCalled();
   });
+
+  it('does not let a dot or other symbols into a typed address', async () => {
+    checkSlug.mockResolvedValue({ available: true });
+    renderPicker();
+    fireEvent.click(screen.getByLabelText('Choose my own address'));
+    fireEvent.change(screen.getByLabelText('Your address'), {
+      target: { value: 'Radha.Shyam_@2' },
+    });
+    expect(screen.getByLabelText('Your address')).toHaveValue('radhashyam2');
+    await waitFor(() => expect(checkSlug).toHaveBeenCalledWith('radhashyam2'));
+  });
 });

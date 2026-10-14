@@ -55,9 +55,17 @@ type CustomState =
   | { kind: 'available' }
   | { kind: 'problem'; message: string };
 
-/** Lowercase, spaces to hyphens: what a typed address becomes as it is typed. */
+/**
+ * What a typed address becomes as it is typed: lowercase, spaces to hyphens,
+ * and every other character an address cannot hold dropped. A dot is dropped
+ * on purpose: `radha.shyam.vivah.online` would be a deeper host that the
+ * certificate does not cover. The server refuses these too (`slugProblem`).
+ */
 function normaliseTyped(value: string): string {
-  return value.toLowerCase().replace(/\s+/g, '-');
+  return value
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
 }
 
 export function SlugPicker({
