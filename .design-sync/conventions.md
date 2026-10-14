@@ -27,7 +27,7 @@ Page background is `bg-paper`; cards and inputs sit on `bg-surface`. Festival to
 ## Rules the components assume
 
 - **One primary action per screen.** Exactly one `<Button>` (default `variant="primary"`); everything else `secondary` or `quiet`. Labels are verb phrases: "Create room", not "Submit".
-- **Mobile first.** Unprefixed classes are the phone layout; add `sm:`/`md:`/`lg:`. On a phone the app is an app: `AppBar` on top (with `back`) and `TabBar` at the bottom. From `md` up it is a website: `SiteHeader` (or `Header`) on top, content in `PageShell` (the `max-w-5xl` frame), columns at `lg`.
+- **Mobile first.** Unprefixed classes are the phone layout; add `sm:`/`md:`/`lg:`. On a phone the app is an app: `SiteHeader` on top with a hamburger menu, and `AppBar` (with `back`) below a top-level page. From `md` up it is a website: `SiteHeader` (or `Header`) on top, content in `PageShell` (the `max-w-5xl` frame), columns at `lg`.
 - Every form control takes a visible `label`; errors go in the `error` prop, which replaces the hint.
 - `Card peek={<Avatar …/>}` perches an avatar on the card's top edge — leave room above it (`pt-8`).
 

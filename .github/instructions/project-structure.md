@@ -7,7 +7,7 @@ Where every file goes, and why. **This layout is fixed** — see rule 1 in [codi
 ```
 .
 ├── app/                    # Next.js App Router: routes, layouts, route handlers
-│   ├── (main)/             #   The product site: its shell (header, tab bar, footer)
+│   ├── (main)/             #   The product site: its shell (header, footer)
 │   │   ├── layout.tsx      #     and its pages, including GET / (the lead form)
 │   │   └── example/        #     EXAMPLE — the page that uses the example API
 │   ├── (invite)/           #   A couple's invite and the private preview. No product shell

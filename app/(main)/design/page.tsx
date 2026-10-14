@@ -323,10 +323,9 @@ export default function DesignPage() {
             </div>
             <p className="text-small text-ink-soft max-w-prose">
               Every page sits inside <code>PageShell</code>, which sets the frame, gutter and
-              rhythm. This app puts the <code>TabBar</code> at the bottom of a phone and the same
-              links in the <code>SiteHeader</code> from tablet width up. A website with no tab bar
-              uses <code>Header</code> alone: on a phone its links fold into a menu button. The
-              footer takes its copyright year from the clock.
+              rhythm. The <code>SiteHeader</code> sits at the top of every screen: on a phone its
+              links fold into a hamburger menu, and from tablet width up they sit inline. The footer
+              takes its copyright year from the clock.
             </p>
             <div className="flex flex-col gap-1">
               <p className="text-small text-ink-soft">

@@ -2,7 +2,7 @@
  * The invite surface: a couple's invite and the private preview. A Server
  * Component.
  *
- * No product header, tab bar or footer. A guest who opens an invite from
+ * No product header or footer. A guest who opens an invite from
  * WhatsApp sees the couple's page and nothing that asks them to sign in or
  * look around. The product site's shell is `app/(main)/layout.tsx`.
  */
