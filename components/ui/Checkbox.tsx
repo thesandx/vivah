@@ -28,7 +28,7 @@ export function Checkbox({ label, hint, className, disabled, ...rest }: Checkbox
           disabled={disabled}
           aria-describedby={hint ? hintId : undefined}
           className={cn(
-            'peer bg-surface border-line rounded-box shadow-mochi-sm size-7 cursor-pointer appearance-none border-2',
+            'peer bg-surface border-line rounded-box shadow-hard-sm size-7 cursor-pointer appearance-none border-2',
             'checked:bg-brand transition-colors duration-200',
             'disabled:bg-sunken disabled:cursor-not-allowed disabled:border-dashed',
           )}

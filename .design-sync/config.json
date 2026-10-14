@@ -2,12 +2,12 @@
   "projectId": "93ce0681-aec9-493f-9fc8-375b3211b1d2",
   "shape": "package",
   "pkg": "vivah",
-  "globalName": "Mochi",
+  "globalName": "VivahUI",
   "entry": ".design-sync/entry.ts",
   "buildCmd": "node .design-sync/build-css.mjs && ./node_modules/.bin/tsc -p .design-sync/tsconfig.dts.json",
   "srcDir": "components",
   "tsconfig": ".design-sync/tsconfig.json",
-  "cssEntry": ".design-sync/.cache/mochi.css",
+  "cssEntry": ".design-sync/.cache/ui.css",
   "extraFonts": [
     ".design-sync/fonts.css"
   ],

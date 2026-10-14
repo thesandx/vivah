@@ -14,8 +14,8 @@ export const Moods = () => (
 );
 
 export const Mascot = () => (
-  <span className="bg-brand-soft border-line shadow-mochi inline-grid size-20 place-items-center rounded-full border-2">
-    <Face size={64} blink label="The Mochi face" />
+  <span className="bg-brand-soft border-line shadow-hard inline-grid size-20 place-items-center rounded-full border-2">
+    <Face size={64} blink label="A smiling face" />
   </span>
 );
 

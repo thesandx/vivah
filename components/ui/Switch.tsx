@@ -54,7 +54,7 @@ export function Switch({ label, hint, className, disabled, ...rest }: SwitchProp
         <span
           aria-hidden="true"
           className={cn(
-            'bg-surface border-line shadow-mochi-sm pointer-events-none absolute left-1 size-6 rounded-full border-2',
+            'bg-surface border-line shadow-hard-sm pointer-events-none absolute left-1 size-6 rounded-full border-2',
             'ease-spring transition-transform duration-300 peer-checked:translate-x-6',
           )}
         />

@@ -1,5 +1,5 @@
-/* Mochi typefaces. The app loads these through next/font/local (app/layout.tsx),
-   which sets --font-mochiy and --font-zen-maru. This file does the same job
+/* The display and body typefaces. The app loads these through next/font/local (app/layout.tsx),
+   which sets --font-pop and --font-zen-maru. This file does the same job
    for the design-sync bundle. */
 @font-face {
   font-family: 'Mochiy Pop One';

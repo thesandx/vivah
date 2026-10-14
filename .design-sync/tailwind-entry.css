@@ -1,7 +1,7 @@
 /* Design-sync stylesheet entry: the app's own tokens and utilities, compiled
    by Tailwind over every class the repo uses, plus a safelist of token and
    layout utilities so a design built with the components can style its own
-   layout glue. build-css.mjs compiles it to .cache/mochi.css. */
+   layout glue. build-css.mjs compiles it to .cache/ui.css. */
 @import '../styles/globals.css';
 
 @source '../components';
@@ -9,7 +9,7 @@
 
 /* Token utilities - every colour, radius, shadow, type size and font. */
 @source inline('{,hover:}{bg,text,border,ring,outline,fill,stroke}-{paper,surface,sunken,ink,ink-soft,line,brand,brand-soft,butter,soda,grape,peach,blush,danger,success}');
-@source inline('rounded-{box,input,card,sheet,pill} shadow-mochi{,-sm,-lg,-pressed} text-{hero,title,heading,body,small,key} font-{display,sans,mono} squish press animate-{pop,wobble,rise-in,fade-in,page-enter,breathe}');
+@source inline('rounded-{box,input,card,sheet,pill} shadow-hard{,-sm,-lg,-pressed} text-{hero,title,heading,body,small,key} font-{display,sans,mono} squish press animate-{pop,wobble,rise-in,fade-in,page-enter,breathe}');
 /* Layout glue - spacing, flex, grid, width, responsive at sm/md/lg. */
 @source inline('{,sm:,md:,lg:}{p,px,py,pt,pb,pl,pr,m,mx,my,mt,mb,gap,gap-x,gap-y,space-y,space-x}-{0,1,2,3,4,5,6,8,10,12,16,20,24}');
 @source inline('{,sm:,md:,lg:}{flex,grid,block,hidden,inline-flex,flex-col,flex-row,flex-wrap,items-center,items-start,items-end,justify-between,justify-center,justify-end,text-center,text-left,w-full,h-full,min-w-0,max-w-5xl,max-w-3xl,max-w-xl,max-w-md,mx-auto}');
@@ -21,6 +21,6 @@
 @source inline('border-2 border-line font-{normal,medium,bold} truncate');
 
 :root {
-  --font-mochiy: 'Mochiy Pop One';
+  --font-pop: 'Mochiy Pop One';
   --font-zen-maru: 'Zen Maru Gothic';
 }

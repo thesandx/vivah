@@ -1,4 +1,4 @@
-# Design language: Mochi
+# Design language
 
 The visual and verbal rules for every product built from this template. Read this **before you write or change any UI**. The tokens live in `styles/globals.css`. The primitives live in `components/ui/`. The living reference renders at `/design`.
 
@@ -8,7 +8,7 @@ If a rule here conflicts with your training defaults, this file wins. If it bloc
 
 ## The idea in one paragraph
 
-Mochi is soft on the outside and firm underneath. The **structure** is neo-brutalist: ink outlines, a hard shadow straight down, flat colour, clear hierarchy. The **details** are kawaii: faces, blush, rounded type, and a small bounce when something is pressed. Structure makes the product clear. Details make it friendly. When the two compete, clarity wins.
+The design language is soft on the outside and firm underneath. The **structure** is neo-brutalist: ink outlines, a hard shadow straight down, flat colour, clear hierarchy. The **details** are kawaii: faces, blush, rounded type, and a small bounce when something is pressed. Structure makes the product clear. Details make it friendly. When the two compete, clarity wins.
 
 Three words to test every decision against: **squishy, honest, playful.**
 
@@ -24,7 +24,7 @@ Three words to test every decision against: **squishy, honest, playful.**
 2. **Use tokens only.** No raw hex, no arbitrary `shadow-[...]`, no arbitrary radius. If you need a value that does not exist, stop and ask. `pnpm lint` fails on each of these — see [Enforcement](#enforcement).
 3. **Ink is not black.** Text and outlines use `ink` / `line`. Never `black`, `#000`, `#111` or `neutral-900`.
 4. **Outlines are 2px.** `border-2 border-line`. Never 1px hairlines, never 3px+.
-5. **Shadows go straight down.** `shadow-mochi` (4px), `shadow-mochi-sm` (2px), `shadow-mochi-lg` (6px). No blur, no diagonal offsets, no grey `rgba` shadows, no glows.
+5. **Shadows go straight down.** `shadow-hard` (4px), `shadow-hard-sm` (2px), `shadow-hard-lg` (6px). No blur, no diagonal offsets, no grey `rgba` shadows, no glows.
 6. **Radius follows hierarchy.** Inputs `rounded-input`, cards `rounded-card`, sheets and modals `rounded-sheet`, buttons and chips `rounded-pill`. Never one radius for everything.
 7. **One primary action per screen.** Exactly one `Button variant="primary"` is visible in any viewport. Everything else is `secondary` or `quiet`.
 8. **Two typefaces, fixed roles.** Headings and big numbers use `font-display` (Mochiy Pop One, weight 400 only). Everything else uses `font-sans` (Zen Maru Gothic, 400/500/700). No third font. No fake bold on the display face.
@@ -84,9 +84,9 @@ Text on a coloured fill is always `text-ink`. Never white text on `brand` or a c
 | `rounded-card`     | 22px                     | Cards, bubbles                           |
 | `rounded-sheet`    | 32px                     | Modals, bottom sheets, hero panels       |
 | `rounded-pill`     | 999px                    | Buttons, chips, avatars (`rounded-full`) |
-| `shadow-mochi-sm`  | 0 2px 0 ink              | Chips, bubbles, small pressables         |
-| `shadow-mochi`     | 0 4px 0 ink              | Cards, buttons                           |
-| `shadow-mochi-lg`  | 0 6px 0 ink              | One hero element per page, open sheets   |
+| `shadow-hard-sm`   | 0 2px 0 ink              | Chips, bubbles, small pressables         |
+| `shadow-hard`      | 0 4px 0 ink              | Cards, buttons                           |
+| `shadow-hard-lg`   | 0 6px 0 ink              | One hero element per page, open sheets   |
 | `squish` (utility) | hover lifts, press sinks | Anything pressable. Buttons have it.     |
 | `ease-squish`      | overshoot curve          | Things that pop in or get pressed        |
 | `ease-settle`      | no overshoot             | Things that move from A to B             |
@@ -199,11 +199,11 @@ A product sets its theme once, with `THEME` in `app/layout.tsx`. The theme re-as
 | `calm`     | Wellness, habits, focus, utilities             | **Medium** — mascot on empty states and completions only, no stickers          |
 | `night`    | Dark products: map trackers, gaming companions | **Low** — mascot on loading, empty and error states only; faces on avatars     |
 
-Products with a formal or ceremonial tone (a wedding site, a legal page, a portfolio for employers) do **not** use Mochi. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
+Products with a formal or ceremonial tone (a wedding site, a legal page, a portfolio for employers) do **not** use this design language. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
 
 ### The invite theme
 
-In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not Mochi. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `playroom`.
+In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not this design language. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `playroom`.
 
 - **Colour.** Ivory paper, deep maroon ink, a maroon `brand`, antique gold `butter`, marigold `brand-soft` and `peach`, and a leaf-green `soda` for the garland. Gold borders replace the ink outline. The hard shadow stays, in deep maroon.
 - **Type.** `font-display` is Cormorant Garamond (500 and 600). `font-script` is Great Vibes, for the couple's names and the guest's greeting only. Both are self-hosted under `public/fonts` (OFL) and load only where the theme applies.
@@ -218,13 +218,13 @@ Budget limits per viewport, all themes:
 - One `peek` card.
 - One `Speech` bubble.
 - Two `Sticker`s (zero in `calm` and `night`).
-- One `shadow-mochi-lg` element.
+- One `shadow-hard-lg` element.
 
 ---
 
 ## Signature patterns
 
-These make Mochi recognisable. Use them; do not invent new decorative devices.
+These make the design language recognisable. Use them; do not invent new decorative devices.
 
 **The face.** `<Face mood="happy" />`. Two dot eyes, a small mouth, blush. Moods: `happy`, `wow`, `wink`, `sleepy`, `sad`. Pick the mood from the situation: `wow` for a win, `sad` for an error, `sleepy` for an empty or idle state.
 

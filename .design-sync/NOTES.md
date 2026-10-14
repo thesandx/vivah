@@ -1,6 +1,6 @@
-# design-sync notes — Mochi
+# design-sync notes
 
-Synced to claude.ai/design project "Mochi Design System" (`projectId` in config.json).
+Synced to claude.ai/design project for this design language (`projectId` in config.json).
 
 ## How this repo is shaped for the converter
 
@@ -10,7 +10,7 @@ Synced to claude.ai/design project "Mochi Design System" (`projectId` in config.
 - `buildCmd` must run before the converter on every sync:
   1. `node .design-sync/build-css.mjs` compiles `.design-sync/tailwind-entry.css`
      (imports `styles/globals.css`) with the repo's own `@tailwindcss/postcss` into
-     `.design-sync/.cache/mochi.css` (= `cssEntry`).
+     `.design-sync/.cache/ui.css` (= `cssEntry`).
   2. `tsc -p .design-sync/tsconfig.dts.json` emits `.d.ts` into `.design-sync/.cache/types`.
 - `overrides/dts.mjs` is a fork (see `libOverrides`). It reads that `.d.ts` tree. It keeps
   inherited interaction props (`onClick`, `disabled`, `value`...) that upstream drops. It
@@ -23,7 +23,7 @@ Synced to claude.ai/design project "Mochi Design System" (`projectId` in config.
 - `next/link` and `next/navigation` are shimmed via `.design-sync/tsconfig.json` paths
   (`shims/`). `usePathname()` reads `document.documentElement.dataset.pathname`, default `/`.
 - Fonts: the app loads them with `next/font/local`; `fonts.css` (`extraFonts`) declares
-  the same families from `public/fonts/`, and `tailwind-entry.css` sets `--font-mochiy` /
+  the same families from `public/fonts/`, and `tailwind-entry.css` sets `--font-pop` /
   `--font-zen-maru` on `:root`.
 - Playwright: chromium-1228 is cached locally; `playwright@1.61.1` in `.ds-sync/` matches it.
 

@@ -1,15 +1,15 @@
 @import 'tailwindcss';
 
 /**
- * Mochi design language — tokens.
+ * Design language — tokens.
  *
  * The rulebook is .github/instructions/design-language.md. Read it before
  * changing anything here.
  *
  * Everything the app renders references a token, never a raw hex value.
  * Tailwind v4 turns each token into utilities: `--color-brand` becomes
- * `bg-brand`, `text-brand`, `border-brand`; `--shadow-mochi` becomes
- * `shadow-mochi`; `--radius-card` becomes `rounded-card`.
+ * `bg-brand`, `text-brand`, `border-brand`; `--shadow-hard` becomes
+ * `shadow-hard`; `--radius-card` becomes `rounded-card`.
  *
  * Themes (bottom of this file) only re-assign these variables. A product
  * picks a theme with `data-theme` on <html>. Components never know which
@@ -44,7 +44,7 @@
   --color-success: #7adbcb;
 
   /* Type. The font variables come from next/font/local in app/layout.tsx. */
-  --font-display: var(--font-mochiy), 'Arial Rounded MT Bold', ui-rounded, system-ui, sans-serif;
+  --font-display: var(--font-pop), 'Arial Rounded MT Bold', ui-rounded, system-ui, sans-serif;
   --font-sans:
     var(--font-zen-maru), ui-rounded, 'Hiragino Maru Gothic ProN', system-ui, -apple-system,
     'Segoe UI', sans-serif;
@@ -74,11 +74,11 @@
   --radius-sheet: 32px;
   --radius-pill: 999px;
 
-  /* Shadows — hard, straight down, ink coloured. The "mochi base". */
-  --shadow-mochi: 0 4px 0 0 var(--color-line);
-  --shadow-mochi-sm: 0 2px 0 0 var(--color-line);
-  --shadow-mochi-lg: 0 6px 0 0 var(--color-line);
-  --shadow-mochi-pressed: 0 1px 0 0 var(--color-line);
+  /* Shadows — hard, straight down, ink coloured. */
+  --shadow-hard: 0 4px 0 0 var(--color-line);
+  --shadow-hard-sm: 0 2px 0 0 var(--color-line);
+  --shadow-hard-lg: 0 6px 0 0 var(--color-line);
+  --shadow-hard-pressed: 0 1px 0 0 var(--color-line);
 
   /* Motion */
   --ease-squish: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoots — for things that pop */
@@ -245,8 +245,8 @@
     --color-sunken: #e3f4ef;
     --color-brand: #7adbcb;
     --color-brand-soft: #d5f3ec;
-    --shadow-mochi: 0 3px 0 0 var(--color-line);
-    --shadow-mochi-lg: 0 4px 0 0 var(--color-line);
+    --shadow-hard: 0 3px 0 0 var(--color-line);
+    --shadow-hard-lg: 0 4px 0 0 var(--color-line);
   }
 
   /* Shubh Vivah — the traditional wedding invite. Marigold, maroon and gold
@@ -355,7 +355,7 @@
   transition:
     transform 160ms var(--ease-squish),
     box-shadow 160ms var(--ease-squish);
-  box-shadow: var(--shadow-mochi);
+  box-shadow: var(--shadow-hard);
 
   &:hover {
     transform: translateY(-1px);
@@ -364,7 +364,7 @@
 
   &:active {
     transform: translateY(3px);
-    box-shadow: var(--shadow-mochi-pressed);
+    box-shadow: var(--shadow-hard-pressed);
   }
 
   &:disabled,

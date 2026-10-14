@@ -146,7 +146,7 @@ export function ShubhVivahInvite({
                 href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="border-butter bg-surface text-brand shadow-mochi inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-pill border-2 px-6 font-semibold tracking-wide uppercase"
+                className="border-butter bg-surface text-brand shadow-hard inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-pill border-2 px-6 font-semibold tracking-wide uppercase"
               >
                 <PinIcon />
                 Wedding venue
@@ -164,7 +164,7 @@ export function ShubhVivahInvite({
                   href={rsvpWhatsAppUrl(rsvpPhoneE164, bride, groom, guestName)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="border-butter bg-brand text-surface shadow-mochi sticky bottom-4 z-10 inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-pill border-2 px-6 font-semibold tracking-wide uppercase md:static"
+                  className="border-butter bg-brand text-surface shadow-hard sticky bottom-4 z-10 inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-pill border-2 px-6 font-semibold tracking-wide uppercase md:static"
                 >
                   <WhatsAppIcon />
                   RSVP now

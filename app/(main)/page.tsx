@@ -42,7 +42,7 @@ export default function HomePage() {
       <JsonLd data={organizationSchema(siteOrigin(env.rootDomain, env.appUrl), env.appName)} />
       <div className="grid gap-10 lg:grid-cols-2 lg:items-start lg:gap-12">
         <header className="flex flex-col gap-5">
-          <span className="bg-brand-soft border-line shadow-mochi-lg inline-grid size-20 place-items-center rounded-full border-2">
+          <span className="bg-brand-soft border-line shadow-hard-lg inline-grid size-20 place-items-center rounded-full border-2">
             <Face size={64} blink label="The Vivah mascot" />
           </span>
           <h1 className="text-hero">Your wedding invite, on its own link</h1>

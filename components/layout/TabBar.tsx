@@ -68,11 +68,11 @@ export function TabBar({ className }: TabBarProps) {
         className,
       )}
     >
-      <ul className="bg-surface border-line shadow-mochi rounded-pill relative flex border-2 p-1.5">
+      <ul className="bg-surface border-line shadow-hard rounded-pill relative flex border-2 p-1.5">
         <span
           aria-hidden="true"
           className={cn(
-            'bg-brand border-line shadow-mochi-sm rounded-pill absolute top-1.5 bottom-1.5 left-1.5 border-2',
+            'bg-brand border-line shadow-hard-sm rounded-pill absolute top-1.5 bottom-1.5 left-1.5 border-2',
             'ease-spring transition-[transform,opacity] duration-300',
             activeIndex === -1 && 'opacity-0',
           )}

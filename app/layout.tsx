@@ -38,14 +38,14 @@ export const viewport: Viewport = {
 };
 
 /**
- * Mochi typefaces, self-hosted from public/fonts (Latin subsets, ~72 KB total).
+ * The typefaces, self-hosted from public/fonts (Latin subsets, ~72 KB total).
  * Self-hosting means the build never calls Google Fonts, so the Docker build
  * works offline. See .github/instructions/design-language.md, "Type".
  */
-const mochiy = localFont({
+const popOne = localFont({
   src: '../public/fonts/mochiypopone-400.woff2',
   weight: '400',
-  variable: '--font-mochiy',
+  variable: '--font-pop',
   display: 'swap',
 });
 
@@ -93,7 +93,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${mochiy.variable} ${zenMaru.variable}`}
+      className={`${popOne.variable} ${zenMaru.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}
