@@ -11,8 +11,26 @@ describe('HomePage', () => {
   it('renders the heading', () => {
     render(<HomePage />);
     expect(
-      screen.getByRole('heading', { level: 1, name: 'Your wedding invite, on its own link' }),
+      screen.getByRole('heading', {
+        level: 1,
+        name: 'Create your personal wedding website in 5 minutes',
+      }),
     ).toBeInTheDocument();
+  });
+
+  it('shows both carousels, with open slots that claim no review', () => {
+    render(<HomePage />);
+    expect(screen.getByRole('region', { name: 'Reviews from couples' })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Messages couples received' })).toBeInTheDocument();
+    expect(screen.queryByText(/out of 5 stars/)).not.toBeInTheDocument();
+  });
+
+  it('offers a WhatsApp chat with a first message', () => {
+    render(<HomePage />);
+    expect(screen.getByRole('link', { name: 'Ask us on WhatsApp' })).toHaveAttribute(
+      'href',
+      'https://wa.me/919546342507?text=Hi',
+    );
   });
 
   it('starts the funnel with the lead form', () => {

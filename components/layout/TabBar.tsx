@@ -15,10 +15,11 @@ const ICONS: Record<TabIcon, React.ReactNode> = {
       <path d="M3.5 7l8.5 6.5L20.5 7" />
     </>
   ),
-  person: (
+  help: (
     <>
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4.5 20c1.2-3.8 4-5.5 7.5-5.5s6.3 1.7 7.5 5.5" />
+      <path d="M4 5.5h16a1 1 0 011 1v9a1 1 0 01-1 1h-9l-4.5 3.5V16.5H4a1 1 0 01-1-1v-9a1 1 0 011-1z" />
+      <path d="M10 9.5a2 2 0 113 1.7c-.6.4-1 .8-1 1.5" />
+      <circle cx="12" cy="14.6" r=".5" />
     </>
   ),
 };

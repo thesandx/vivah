@@ -56,6 +56,10 @@
   --color-success: #3f8a54;
   --color-success-soft: #e1f3e5;
 
+  /* WhatsApp's own green, for the WhatsApp button only. People know it on
+     sight, so it stays the same in every theme. */
+  --color-whatsapp: #1da851; /* a shade darker than #25d366, so white reaches 3:1 */
+
   /* Focus — peacock, so a focus ring never reads as the brand */
   --color-focus: #2c9fa8;
 
@@ -143,6 +147,10 @@
   --animate-flap-open: flap-open 480ms 240ms var(--ease-settle) forwards;
   --animate-petal-fall: petal-fall 14s linear infinite;
   --animate-envelope-away: envelope-away 520ms 680ms var(--ease-settle) forwards;
+  /* The home page carousels: a slow, endless drift to the left. The track
+     holds the list twice and moves by half, so the loop has no seam. */
+  --animate-marquee: marquee 80s linear infinite;
+  --animate-marquee-reverse: marquee 90s linear infinite reverse;
 
   @keyframes page-enter {
     from {
@@ -204,6 +212,15 @@
     }
     to {
       transform: translate3d(6vw, 110vh, 0) rotate(540deg);
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
     }
   }
 
@@ -277,7 +294,7 @@
   /* Shubh Vivah — the traditional wedding invite. Marigold, maroon and gold
      on ivory, with a serif display face and a script for the couple's names.
      Ceremonial, so it spends no cute budget: see design-language.md > Themes.
-     Applied by app/(invite)/site/[slug]/layout.tsx, never to the product site. */
+     Applied by `InviteTheme` to a couple's invite and the preview card. */
   [data-theme='shubh-vivah'] {
     --color-paper: #fbf3e4; /* ivory card stock */
     --color-surface: #fffaf0;
@@ -293,6 +310,11 @@
     --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
     --font-script: var(--font-great-vibes), var(--font-cormorant), Georgia, serif;
     --color-focus: #8e1b2c;
+    /* The invite keeps a hard base in deep maroon, as printed card stock. */
+    --shadow-hard: 0 4px 0 0 var(--color-line);
+    --shadow-hard-sm: 0 2px 0 0 var(--color-line);
+    --shadow-hard-lg: 0 6px 0 0 var(--color-line);
+    --shadow-hard-pressed: 0 1px 0 0 var(--color-line);
   }
 
   /* Night — dark products (map trackers, gaming companions). */
@@ -375,6 +397,15 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/* The marquee: a carousel stops while a pointer is on it or a card has
+   focus, so a visitor can read a card. Used by Marquee only. */
+@utility marquee-pause {
+  &:hover > *,
+  &:focus-within > * {
+    animation-play-state: paused;
   }
 }
 

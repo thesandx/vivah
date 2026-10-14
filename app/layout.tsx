@@ -82,6 +82,29 @@ const balooDevanagari = localFont({
 });
 
 /**
+ * The Shubh Vivah invite faces (SIL OFL): Cormorant Garamond for headings and
+ * Great Vibes for the couple's names. Only `[data-theme='shubh-vivah']` uses
+ * them, so they are not preloaded on the product site.
+ */
+const cormorant = localFont({
+  src: [
+    { path: '../public/fonts/cormorantgaramond-500.woff2', weight: '500' },
+    { path: '../public/fonts/cormorantgaramond-600.woff2', weight: '600' },
+  ],
+  variable: '--font-cormorant',
+  display: 'swap',
+  preload: false,
+});
+
+const greatVibes = localFont({
+  src: '../public/fonts/greatvibes-400.woff2',
+  weight: '400',
+  variable: '--font-great-vibes',
+  display: 'swap',
+  preload: false,
+});
+
+/**
  * The product theme. 'phera' is the default token set; 'calm' and 'night'
  * re-assign tokens in styles/globals.css. Set once per product, here only.
  */
@@ -115,7 +138,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable}`}
+      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${cormorant.variable} ${greatVibes.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}

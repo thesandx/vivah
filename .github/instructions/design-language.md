@@ -205,11 +205,22 @@ A product sets its theme once, with `THEME` in `app/layout.tsx`. The theme re-as
 
 | Theme   | For                                            | Cute budget                                                                |
 | ------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
-| `phera` | The default: the vivah.online product site     | **Medium** — mascot on empty states and key moments, faces on avatars      |
+| `phera` | This app's product site (the default `@theme`) | **Low** — `BrandMark` is the logo; faces on avatars and empty states only  |
 | `calm`  | Wellness, habits, focus, utilities             | **Medium** — mascot on empty states and completions only, no stickers      |
 | `night` | Dark products: map trackers, gaming companions | **Low** — mascot on loading, empty and error states only; faces on avatars |
 
 Products with a formal or ceremonial tone (a legal page, a portfolio for employers) do **not** use Phera. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
+
+### The product site (`phera`)
+
+The tokens in `@theme` are the Phera palette. `/design` shows them.
+
+- **Colour.** Cream paper, plum ink, a sindoor rose `brand` with white text, and the festival tones. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so white reaches 3:1.
+- **Shadow.** The puff: hard, straight down, in soft plum. The primary button sits on a darker rose puff.
+- **Type.** Huninn for every heading and line of text. `font-script` is the display face here; only the invite theme gives it a real script.
+- **Logo.** `BrandMark`: a marigold around a heart. It replaces the mascot in the header.
+- **Home page.** A pin board (`InspirationBoard`, CSS columns), a feature list, a paper-or-digital table, and two `Marquee` carousels of reviews and chat screenshots. Each pin, feature and table row shows a feature that is built. A review slot stays empty until a real couple sends words. See `lib/testimonials.ts`.
+- **Help.** `WhatsAppButton` floats on every page of the product site, above the `TabBar` on a phone.
 
 ### The invite theme
 
