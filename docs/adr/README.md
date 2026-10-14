@@ -37,3 +37,4 @@ Do **not** write one for a routine choice with an obvious answer. An ADR per pul
 | [0002](./0002-use-workload-identity-federation.md)            | Use Workload Identity Federation instead of service account keys | Accepted |
 | [0003](./0003-scope-workload-identity-to-the-github-owner.md) | Scope the WIF provider to the GitHub owner                       | Accepted |
 | [0004](./0004-use-firestore-and-cloud-storage.md)             | Use Firestore and Cloud Storage for data and files               | Accepted |
+| [0006](./0006-accept-anonymous-lead-capture.md)               | Accept one anonymous write, for lead capture                     | Accepted |

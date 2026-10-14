@@ -246,6 +246,7 @@ jobs:
           env_vars: |-
             NODE_ENV=production
             LOG_LEVEL=${{ vars.LOG_LEVEL || 'info' }}
+            ROOT_DOMAIN=${{ vars.ROOT_DOMAIN || 'vivah.online' }}
             APP_SLUG=${{ env.APP_SLUG }}
             GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }}
             GCP_REGION=${{ env.GCP_REGION }}

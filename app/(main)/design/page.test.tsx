@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-import DesignPage from '@/app/design/page';
+import DesignPage from '@/app/(main)/design/page';
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/design' }));
 

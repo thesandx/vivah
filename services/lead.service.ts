@@ -1,0 +1,156 @@
+import 'server-only';
+
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+
+import { z } from 'zod';
+
+import type { LeadRequest } from '@/lib/lead-schema';
+import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
+import { createRepository, type StoredDocument } from '@/services/repository';
+
+/**
+ * Leads: a couple who typed their names on the home page and has not paid yet.
+ *
+ * One document per form submission, under an auto-generated id. That id is
+ * also the preview link (`/p/<id>`): Firestore generates 20 random characters,
+ * about 119 bits, so nobody can guess a link they were not sent. The PRD keys
+ * leads by phone; an auto id is used instead because the repository refuses a
+ * caller-chosen id of that shape (see `lib/document-ids.ts`), and because one
+ * phone may start more than one preview.
+ *
+ * A phone number is personal data. It is stored, because the WhatsApp step
+ * needs it, and it is never logged.
+ */
+
+export const LEAD_COLLECTION = 'leads';
+
+export const LEAD_STATUSES = ['preview-sent', 'opened', 'paid'] as const;
+
+export const leadSchema = z.object({
+  bride: z.string().trim().min(1).max(60),
+  groom: z.string().trim().min(1).max(60),
+  /** `YYYY-MM-DD`, or `null` for "I'll add this later". */
+  weddingDate: z.iso.date().nullable(),
+  /** E.164, from `toE164`. Never logged. */
+  phoneE164: z.string().regex(/^\+\d{8,15}$/),
+  status: z.enum(LEAD_STATUSES),
+  /** When the couple ticked the WhatsApp consent box. */
+  consentAt: z.date(),
+  /** The preview link stops working after this instant. */
+  expiresAt: z.date(),
+  /**
+   * SHA-256 of the token in the first browser's cookie, or `null` until the
+   * link is opened. The hash, not the token: a database export must not be
+   * enough to open somebody's preview.
+   */
+  previewTokenHash: z.string().length(64).nullable(),
+  firstOpenedAt: z.date().nullable(),
+});
+
+export type LeadPayload = z.infer<typeof leadSchema>;
+export type LeadDocument = StoredDocument<LeadPayload>;
+
+export const leads = createRepository({ collection: LEAD_COLLECTION, schema: leadSchema });
+
+/** A Firestore auto id: 20 characters of base62. Checked before any read. */
+const AUTO_ID_PATTERN = /^[A-Za-z0-9]{20}$/;
+
+export function isLeadId(value: string): boolean {
+  return AUTO_ID_PATTERN.test(value);
+}
+
+function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function tokenMatches(token: string | undefined, storedHash: string): boolean {
+  if (token === undefined || token === '') return false;
+  const presented = Buffer.from(hashToken(token), 'hex');
+  const stored = Buffer.from(storedHash, 'hex');
+  return presented.length === stored.length && timingSafeEqual(presented, stored);
+}
+
+/** Saves a lead and returns its id, which is also its preview link. */
+export async function createLead(input: LeadRequest, now: Date = new Date()): Promise<string> {
+  return leads.create({
+    bride: input.bride,
+    groom: input.groom,
+    weddingDate: input.weddingDate,
+    phoneE164: input.phoneE164,
+    status: 'preview-sent',
+    consentAt: now,
+    expiresAt: new Date(now.getTime() + PREVIEW_LIFETIME_SECONDS * 1000),
+    previewTokenHash: null,
+    firstOpenedAt: null,
+  });
+}
+
+/** What a browser may see of a lead's preview. */
+export type PreviewAccess =
+  | { state: 'ok'; lead: LeadDocument }
+  | { state: 'not-found' }
+  | { state: 'expired' }
+  | { state: 'unopened' }
+  | { state: 'other-browser' };
+
+/**
+ * Opens a preview link. The FIRST call binds the lead to a new random token
+ * and returns it, for the caller to set as a cookie. Later calls only report
+ * whether the presented token matches.
+ *
+ * A transaction, so two taps on the link at the same moment cannot bind two
+ * different browsers.
+ */
+export async function openPreviewLink(
+  leadId: string,
+  presentedToken: string | undefined,
+  now: Date = new Date(),
+): Promise<{ access: PreviewAccess['state']; newToken: string | null }> {
+  if (!isLeadId(leadId)) return { access: 'not-found', newToken: null };
+
+  return leads.runTransaction(async (repo) => {
+    const lead = await repo.get(leadId);
+    if (lead === null) return { access: 'not-found' as const, newToken: null };
+    if (lead.status !== 'paid' && lead.expiresAt.getTime() <= now.getTime()) {
+      return { access: 'expired' as const, newToken: null };
+    }
+
+    if (lead.previewTokenHash === null) {
+      const token = randomBytes(32).toString('base64url');
+      repo.update(leadId, {
+        previewTokenHash: hashToken(token),
+        firstOpenedAt: now,
+        status: lead.status === 'preview-sent' ? 'opened' : lead.status,
+      });
+      return { access: 'ok' as const, newToken: token };
+    }
+
+    return {
+      access: tokenMatches(presentedToken, lead.previewTokenHash)
+        ? ('ok' as const)
+        : ('other-browser' as const),
+      newToken: null,
+    };
+  });
+}
+
+/**
+ * Reads a preview for the browser presenting `token`. Read-only: binding
+ * happens in `openPreviewLink`, from the `/p/<id>` link.
+ */
+export async function getPreview(
+  leadId: string,
+  token: string | undefined,
+  now: Date = new Date(),
+): Promise<PreviewAccess> {
+  if (!isLeadId(leadId)) return { state: 'not-found' };
+
+  const lead = await leads.get(leadId);
+  if (lead === null) return { state: 'not-found' };
+  if (lead.status !== 'paid' && lead.expiresAt.getTime() <= now.getTime()) {
+    return { state: 'expired' };
+  }
+  if (lead.previewTokenHash === null) return { state: 'unopened' };
+  if (!tokenMatches(token, lead.previewTokenHash)) return { state: 'other-browser' };
+  return { state: 'ok', lead };
+}
