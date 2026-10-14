@@ -187,8 +187,8 @@ Neither is a credential — both are resource identifiers, useless without a val
 | `FIRESTORE_DATABASE_ID`      | no       | `<slug>-db`                | Override only for an existing database          |
 | `GCS_BUCKET`                 | no       | `<project>-<slug>-media`   | Override only for an existing bucket            |
 | `HEALTH_DEEP_CHECKS_ENABLED` | no       | `false`                    | Enables `/api/health?deep=1`. Dashboards only   |
-| `APP_URL`                    | no       | —                          | Public URL, inlined at build time               |
-| `APP_NAME`                   | no       | `Next.js on Cloud Run`     | Display name                                    |
+| `APP_URL`                    | no       | `https://<ROOT_DOMAIN>`    | Public URL, inlined at build time               |
+| `APP_NAME`                   | no       | `vivah.online`             | Display name, in every page title               |
 | `LOG_LEVEL`                  | no       | `info`                     | Runtime log verbosity                           |
 | `MIN_INSTANCES`              | no       | `0`                        | `1` removes cold starts, at a cost              |
 | `MAX_INSTANCES`              | no       | `10`                       | Scaling and bill ceiling                        |

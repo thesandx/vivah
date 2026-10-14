@@ -189,8 +189,8 @@ Current inventory:
 | `GCP_REGION`                 | variable | no       | Deployment region (default `asia-south1`)                                      |
 | `ARTIFACT_REPOSITORY`        | variable | no       | Artifact Registry repository (default `containers`)                            |
 | `CLOUD_RUN_SERVICE`          | variable | no       | Service name (defaults to the repository name)                                 |
-| `APP_URL`                    | variable | no       | Public URL — **inlined at build time**                                         |
-| `APP_NAME`                   | variable | no       | Display name                                                                   |
+| `APP_URL`                    | variable | no       | Public URL — **inlined at build time** (default `https://<ROOT_DOMAIN>`)       |
+| `APP_NAME`                   | variable | no       | Display name, in every page title (default `vivah.online`)                     |
 | `LOG_LEVEL`                  | variable | no       | Runtime verbosity (default `info`)                                             |
 | `ROOT_DOMAIN`                | variable | no       | Root domain for couple invites (default `vivah.online`)                        |
 | `ADMIN_PHONE_NUMBERS`        | variable | no       | E.164 numbers that may open the admin dashboard (default the owner's number)   |

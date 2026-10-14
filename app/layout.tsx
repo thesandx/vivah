@@ -5,14 +5,17 @@ import localFont from 'next/font/local';
 
 import { env } from '@/lib/env';
 import { THEME_COLOR } from '@/lib/pwa';
+import { BRAND_DESCRIPTION, siteOrigin } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(env.appUrl),
+  // The public origin, so canonical and Open Graph URLs name vivah.online and
+  // never the Cloud Run address. See `siteOrigin` in lib/seo.ts.
+  metadataBase: new URL(siteOrigin(env.rootDomain, env.appUrl)),
   title: {
     default: env.appName,
     template: `%s | ${env.appName}`,
   },
-  description: 'Production-ready Next.js App Router template deployed on Google Cloud Run.',
+  description: BRAND_DESCRIPTION,
   applicationName: env.appName,
   // iOS reads these, not the manifest, when the user adds the app to the home
   // screen. The manifest in app/manifest.ts serves every other browser.
