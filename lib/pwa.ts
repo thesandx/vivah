@@ -11,7 +11,7 @@
  * for the active theme in `styles/globals.css`; `tests/site-checklist.test.ts`
  * fails when the two differ. Change both together.
  */
-export const THEME_COLOR = '#fdf7f2';
+export const THEME_COLOR = '#fffcf8';
 
 /**
  * PNG icons in `public/icons/`, drawn from `app/icon.svg`. `any` icons keep

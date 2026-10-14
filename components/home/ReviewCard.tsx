@@ -42,7 +42,7 @@ export function ReviewCard({ review, className }: ReviewCardProps) {
   return (
     <figure
       className={cn(
-        'bg-surface shadow-mochi rounded-card flex w-64 flex-col overflow-hidden sm:w-72',
+        'bg-surface shadow-hard rounded-card flex w-64 flex-col overflow-hidden sm:w-72',
         className,
       )}
     >

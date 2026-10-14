@@ -16,7 +16,7 @@ export interface FaceProps {
 }
 
 /**
- * The Mochi face: two ink eyes, a small mouth, blush. It is the signature of
+ * The face: two ink eyes, a small mouth, blush. It is the signature of
  * the design language. It sits on top of a coloured shape (Avatar, Card peek,
  * mascot) and never carries meaning on its own.
  */

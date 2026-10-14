@@ -34,11 +34,11 @@ describe('Button', () => {
 });
 
 describe('buttonStyles', () => {
-  it('gives the primary variant the ink outline and the squish', () => {
+  it('gives the primary variant the brand fill, white text and the brand squish', () => {
     const classes = buttonStyles();
-    expect(classes).toContain('squish');
-    expect(classes).toContain('border-line');
+    expect(classes).toContain('squish-brand');
     expect(classes).toContain('bg-brand');
+    expect(classes).toContain('text-on-brand');
   });
 
   it('drops the squish on the quiet variant — a text link has no base to sink onto', () => {

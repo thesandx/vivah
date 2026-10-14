@@ -78,7 +78,7 @@ export function FeatureList({ className }: FeatureListProps) {
       {FEATURES.map((feature) => (
         <li
           key={feature.title}
-          className="bg-surface shadow-mochi rounded-card flex items-start gap-4 p-5"
+          className="bg-surface shadow-hard rounded-card flex items-start gap-4 p-5"
         >
           <span className="bg-brand-soft rounded-input grid size-12 shrink-0 place-items-center">
             <Icon path={ICONS[feature.icon]} />

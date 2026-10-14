@@ -1,12 +1,12 @@
-# Mochi — how to build with it
+# The design language — how to build with it
 
-Mochi is a soft, chunky design language: 2px ink outlines, a hard shadow straight down (the "mochi base"), rounded fonts, candy tones and little faces. Components are React, exposed on `window.Mochi` (`Mochi.Button`, `Mochi.Card`, …).
+Phera is a warm, round, festive design language: cream paper, plum ink, sindoor rose, soft 2px outlines, a hard puff shadow straight down, rounded fonts, festival tones and little faces. Components are React, exposed on `window.VivahUI` (`VivahUI.Button`, `VivahUI.Card`, …).
 
 ## Setup
 
-No provider or wrapper is needed. Load `styles.css`: it carries the tokens, fonts and every utility class the components use, and styles `body` itself (paper background, ink text, Zen Maru Gothic). Headings `h1`–`h3` get the display font (Mochiy Pop One) automatically. Never set `font-bold` on a heading — the display face has one weight.
+No provider or wrapper is needed. Load `styles.css`: it carries the tokens, fonts and every utility class the components use, and styles `body` itself (cream paper background, plum ink text, Huninn). Headings `h1`–`h3` get the display font (Huninn) automatically. Never set `font-bold` on a heading — Huninn has one weight. Use `font-weighted` (Baloo 2) for a bold number.
 
-Themes re-assign tokens only. Default is "playroom". For a calm or dark product, set `data-theme="calm"` or `data-theme="night"` on `<html>`.
+Themes re-assign tokens only. Default is "phera". For a calm or dark product, set `data-theme="calm"` or `data-theme="night"` on `<html>`.
 
 ## Styling idiom: Tailwind utilities built from tokens
 
@@ -18,11 +18,11 @@ Style your own layout with these classes. Only classes compiled into `_ds_bundle
 | Type        | `text-hero` `text-title` `text-heading` `text-body` `text-small` `text-key` · `font-display` `font-sans` · `font-medium`               |
 | Radius      | `rounded-box` `rounded-input` `rounded-card` `rounded-sheet` `rounded-pill`                                                           |
 | Outline     | `border-2 border-line` (outlines are always 2px ink)                                                                                   |
-| Shadow      | `shadow-mochi-sm` `shadow-mochi` `shadow-mochi-lg`; `squish` makes a custom surface pressable                                        |
+| Shadow      | `shadow-hard-sm` `shadow-hard` `shadow-hard-lg`; `squish` makes a custom surface pressable                                        |
 | Layout      | `flex` `grid` `gap-*` `p-*` `px-*` `py-*` `grid-cols-1…4` `max-w-5xl` `max-w-3xl` `mx-auto` `w-full` with `sm:` `md:` `lg:`             |
 | Motion      | `animate-pop` `animate-rise-in` `animate-fade-in` `animate-wobble`                                                                   |
 
-Page background is `bg-paper`; cards and inputs sit on `bg-surface`. Candy tones (`butter`, `soda`, `grape`, `peach`) are for identity, never meaning. Status (`danger`, `success`) always comes with words or an icon — use `Alert`, `Badge`, `FieldError`.
+Page background is `bg-paper`; cards and inputs sit on `bg-surface`. Festival tones (`butter`, `peach`, `soda`, `grape`, `gold`) are for identity, never meaning. Status (`danger`, `success`) always comes with words or an icon — use `Alert`, `Badge`, `FieldError`.
 
 ## Rules the components assume
 
@@ -33,14 +33,14 @@ Page background is `bg-paper`; cards and inputs sit on `bg-surface`. Candy tones
 
 ## Where the truth lives
 
-- `styles.css` → `_ds_bundle.css`: every token (`--color-*`, `--text-*`, `--radius-*`, `--shadow-mochi*`) and class.
+- `styles.css` → `_ds_bundle.css`: every token (`--color-*`, `--text-*`, `--radius-*`, `--shadow-hard*`) and class.
 - `guidelines/.github/instructions/design-language.md`: the full rulebook (cute budget, words, anti-slop list).
 - `components/<group>/<Name>/<Name>.prompt.md` and `<Name>.d.ts`: each component's API and examples.
 
 ## Example
 
 ```jsx
-const { PageShell, Card, Avatar, Input, Button, Badge } = window.Mochi;
+const { PageShell, Card, Avatar, Input, Button, Badge } = window.VivahUI;
 
 <PageShell>
   <header className="flex flex-col gap-3">

@@ -25,7 +25,7 @@ function Pin({ title, note, className, children }: PinProps) {
     <figure className="mb-4 break-inside-avoid sm:mb-5">
       <div
         className={cn(
-          'shadow-mochi rounded-card overflow-hidden transition-transform hover:-translate-y-1',
+          'shadow-hard rounded-card overflow-hidden transition-transform hover:-translate-y-1',
           className,
         )}
       >

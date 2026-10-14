@@ -69,7 +69,7 @@ export function ChatShotCard({ chat, tilt, className }: ChatShotCardProps) {
   return (
     <figure
       className={cn(
-        'bg-surface shadow-mochi-lg flex w-56 flex-col gap-3 p-3 pb-4 sm:w-64',
+        'bg-surface shadow-hard-lg flex w-56 flex-col gap-3 p-3 pb-4 sm:w-64',
         tilt === 'left' ? '-rotate-2' : 'rotate-2',
         className,
       )}

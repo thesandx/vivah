@@ -38,12 +38,53 @@ export const viewport: Viewport = {
 };
 
 /**
- * The typefaces, self-hosted from public/fonts (Latin subsets, OFL). Self-hosting
- * means the build never calls Google Fonts, so the Docker build works offline.
- * See .github/instructions/design-language.md, "Type".
+ * The Phera typefaces, self-hosted from public/fonts. Self-hosting means the
+ * build never calls a font CDN, so the Docker build works offline. See
+ * .github/instructions/design-language.md, "Type".
  *
- * Cormorant Garamond sets the headings, Great Vibes the script flourishes and
- * the couple's names, Zen Maru Gothic the body text.
+ * - Huninn (SIL OFL) is the voice: every heading, label and line of body text.
+ *   It has one weight, 400.
+ * - Baloo 2 (SIL OFL) carries the weights 500-800 for numbers and badges.
+ * - Baloo 2 Devanagari covers Hindi and Sanskrit text. Huninn has no
+ *   Devanagari glyphs, so the browser falls through to it. It is not
+ *   preloaded: it downloads only on a page that shows Devanagari.
+ */
+const huninn = localFont({
+  src: '../public/fonts/huninn-400.woff2',
+  weight: '400',
+  variable: '--font-huninn',
+  display: 'swap',
+});
+
+const baloo = localFont({
+  src: [
+    { path: '../public/fonts/baloo2-400.woff2', weight: '400' },
+    { path: '../public/fonts/baloo2-500.woff2', weight: '500' },
+    { path: '../public/fonts/baloo2-600.woff2', weight: '600' },
+    { path: '../public/fonts/baloo2-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-800.woff2', weight: '800' },
+  ],
+  variable: '--font-baloo',
+  display: 'swap',
+  preload: false,
+});
+
+const balooDevanagari = localFont({
+  src: [
+    { path: '../public/fonts/baloo2-devanagari-400.woff2', weight: '400' },
+    { path: '../public/fonts/baloo2-devanagari-600.woff2', weight: '600' },
+    { path: '../public/fonts/baloo2-devanagari-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-devanagari-800.woff2', weight: '800' },
+  ],
+  variable: '--font-baloo-devanagari',
+  display: 'swap',
+  preload: false,
+});
+
+/**
+ * The Shubh Vivah invite faces (SIL OFL): Cormorant Garamond for headings and
+ * Great Vibes for the couple's names. Only `[data-theme='shubh-vivah']` uses
+ * them, so they are not preloaded on the product site.
  */
 const cormorant = localFont({
   src: [
@@ -52,6 +93,7 @@ const cormorant = localFont({
   ],
   variable: '--font-cormorant',
   display: 'swap',
+  preload: false,
 });
 
 const greatVibes = localFont({
@@ -59,23 +101,14 @@ const greatVibes = localFont({
   weight: '400',
   variable: '--font-great-vibes',
   display: 'swap',
-});
-
-const zenMaru = localFont({
-  src: [
-    { path: '../public/fonts/zenmarugothic-400.woff2', weight: '400' },
-    { path: '../public/fonts/zenmarugothic-500.woff2', weight: '500' },
-    { path: '../public/fonts/zenmarugothic-700.woff2', weight: '700' },
-  ],
-  variable: '--font-zen-maru',
-  display: 'swap',
+  preload: false,
 });
 
 /**
- * The product theme. 'vivah' is the default token set; 'playroom', 'calm' and
- * 'night' re-assign tokens in styles/globals.css. Set once per product, here only.
+ * The product theme. 'phera' is the default token set; 'calm' and 'night'
+ * re-assign tokens in styles/globals.css. Set once per product, here only.
  */
-const THEME: 'vivah' | 'playroom' | 'calm' | 'night' = 'vivah';
+const THEME: 'phera' | 'calm' | 'night' = 'phera';
 
 /**
  * Root layout — a Server Component, and it must stay one.
@@ -105,7 +138,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${cormorant.variable} ${greatVibes.variable} ${zenMaru.variable}`}
+      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${cormorant.variable} ${greatVibes.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}

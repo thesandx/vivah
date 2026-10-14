@@ -65,7 +65,7 @@ export function PaperVsDigital({ className }: PaperVsDigitalProps) {
   return (
     <div
       className={cn(
-        'border-line bg-surface shadow-mochi rounded-card overflow-hidden border-2',
+        'border-line bg-surface shadow-hard rounded-card overflow-hidden border-2',
         className,
       )}
     >

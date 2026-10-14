@@ -129,7 +129,7 @@ export default function HomePage() {
 
         <Card
           as="section"
-          className="shadow-mochi-lg flex scroll-mt-24 flex-col gap-4 lg:col-start-2 lg:row-span-2 lg:row-start-1"
+          className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4 lg:col-start-2 lg:row-span-2 lg:row-start-1"
         >
           <div className="flex flex-col gap-1">
             <h2 id={FORM_ID} className="text-heading scroll-mt-24">
@@ -173,7 +173,7 @@ export default function HomePage() {
           {STEPS.map((step, index) => (
             <li
               key={step.title}
-              className="bg-surface shadow-mochi rounded-card flex flex-col gap-2 p-6"
+              className="bg-surface shadow-hard rounded-card flex flex-col gap-2 p-6"
             >
               <span aria-hidden="true" className="font-script text-hero text-ink-soft leading-none">
                 {index + 1}

@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/Textarea';
 
 export const metadata: Metadata = {
   title: 'Design',
-  description: 'Every token and every component of the Mochi design language, rendered live.',
+  description: 'Every token and every component of Phera, the design language, rendered live.',
   robots: { index: false, follow: false },
 };
 
@@ -55,12 +55,14 @@ const DESIGN_SECTIONS: ReadonlyArray<{ id: string; label: string }> = [
 const SWATCHES = [
   { name: 'paper', className: 'bg-paper', use: 'Page background' },
   { name: 'surface', className: 'bg-surface', use: 'Cards, inputs' },
-  { name: 'ink', className: 'bg-ink', use: 'Text and outlines' },
-  { name: 'brand', className: 'bg-brand', use: 'The main action' },
-  { name: 'butter', className: 'bg-butter', use: 'Identity tone' },
-  { name: 'soda', className: 'bg-soda', use: 'Identity tone' },
-  { name: 'grape', className: 'bg-grape', use: 'Identity tone' },
-  { name: 'peach', className: 'bg-peach', use: 'Identity tone' },
+  { name: 'ink', className: 'bg-ink', use: 'Text (plum)' },
+  { name: 'line', className: 'bg-line', use: 'Outlines and the puff' },
+  { name: 'brand', className: 'bg-brand', use: 'The main action (sindoor rose)' },
+  { name: 'brand-soft', className: 'bg-brand-soft', use: 'Selected and soft fills' },
+  { name: 'butter', className: 'bg-butter', use: 'Haldi' },
+  { name: 'peach', className: 'bg-peach', use: 'Marigold' },
+  { name: 'soda', className: 'bg-soda', use: 'Peacock' },
+  { name: 'grape', className: 'bg-grape', use: 'Lotus' },
 ];
 
 const PLAYERS = ['sandy', 'momo', 'captain_k', 'bubbles', 'rajma chawal'];
@@ -96,7 +98,7 @@ const GAME_VIEWS = [
 ];
 
 /**
- * The living style guide. It renders every Mochi primitive with real
+ * The living style guide. It renders every primitive with real
  * content. When you add or change a component in components/ui/, show it
  * here in the same PR. Not indexed; safe to ship.
  */
@@ -104,13 +106,13 @@ export default function DesignPage() {
   return (
     <PageShell>
       <header className="flex flex-col gap-4">
-        <span className="bg-brand-soft border-line shadow-mochi inline-grid size-20 place-items-center rounded-full border-2">
-          <Face size={64} blink label="The Mochi face" />
+        <span className="bg-brand-soft border-line shadow-hard inline-grid size-20 place-items-center rounded-full border-2">
+          <Face size={64} blink label="A smiling face" />
         </span>
-        <h1 className="text-hero">Mochi</h1>
+        <h1 className="text-hero">Phera</h1>
         <p className="text-ink-soft max-w-prose">
-          Soft on the outside, firm underneath. Chunky outlines and a hard base keep things clear;
-          faces, blush and a little bounce keep them friendly.
+          Warm, round and festive. Cream paper, plum ink and sindoor rose, with soft outlines and a
+          puff of shadow under everything you can press.
         </p>
       </header>
 
@@ -151,8 +153,12 @@ export default function DesignPage() {
             <p className="font-display text-hero">Bingo night</p>
             <p className="font-display text-key tracking-[0.3em]">PLZ4K9</p>
             <p className="max-w-prose">
-              Body text is Zen Maru Gothic: rounded, calm and easy to read at 16px. Headings are
-              Mochiy Pop One, which carries the personality. Nothing else.
+              Huninn is the voice of every heading, label and line of body text. It has one weight,
+              so size and colour make the hierarchy. Baloo 2 carries bold numbers and all
+              Devanagari:
+            </p>
+            <p lang="hi" className="font-display text-title text-brand">
+              शुभ विवाह
             </p>
           </section>
 
