@@ -94,15 +94,6 @@ export function Envelope({
           while the envelope covers it. */}
       <div inert={phase !== 'open'} className="flex flex-1 flex-col">
         {children}
-        {phase === 'open' && (
-          <button
-            type="button"
-            onClick={() => setChosen('closed')}
-            className="text-small text-ink-soft decoration-butter mx-auto mb-10 min-h-11 px-4 underline decoration-2 underline-offset-4"
-          >
-            Open the envelope again
-          </button>
-        )}
       </div>
 
       {phase !== 'open' && (

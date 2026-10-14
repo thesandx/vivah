@@ -4,10 +4,10 @@ import { cache } from 'react';
 
 import { Envelope } from '@/components/invite/Envelope';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
-import { PageShell } from '@/components/layout/PageShell';
 import { env } from '@/lib/env';
 import { coupleInitials, parseGuestName } from '@/lib/guest-name';
 import { inviteMetadata } from '@/lib/invite-meta';
+import { madeByUrl } from '@/lib/site-host';
 import { getWeddingBySlug } from '@/services/wedding.service';
 
 /**
@@ -64,14 +64,23 @@ export async function CoupleInvite({
       initials={coupleInitials(wedding.bride, wedding.groom)}
       rememberKey={`vivah:opened:${wedding.slug}:${guestName ?? ''}`}
     >
-      <PageShell className="flex-1 justify-center">
+      {/* Full width, not PageShell: the garland runs edge to edge, and the
+          invite narrows its own text column. */}
+      <main className="flex flex-1 flex-col">
         <ShubhVivahInvite
           bride={wedding.bride}
           groom={wedding.groom}
-          weddingDate={wedding.weddingDate}
           guestName={guestName}
+          weddingDate={wedding.weddingDate}
+          ceremonyTime={wedding.ceremonyTime ?? null}
+          venueName={wedding.venueName ?? null}
+          venueCity={wedding.venueCity ?? null}
+          venueMapsUrl={wedding.venueMapsUrl ?? null}
+          rsvpPhoneE164={wedding.ownerPhoneE164}
+          madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+          className="flex-1"
         />
-      </PageShell>
+      </main>
     </Envelope>
   );
 }
