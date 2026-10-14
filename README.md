@@ -6,9 +6,9 @@
 
 Multi-stage Docker build · Keyless CI/CD via Workload Identity Federation · Strict TypeScript · Documented for humans and AI assistants
 
-[![PR Validation](https://github.com/thesandx/nextjs-cloudrun-template/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/thesandx/nextjs-cloudrun-template/actions/workflows/pr-validation.yml)
-[![Deploy](https://github.com/thesandx/nextjs-cloudrun-template/actions/workflows/deploy.yml/badge.svg)](https://github.com/thesandx/nextjs-cloudrun-template/actions/workflows/deploy.yml)
-[![CodeQL](https://github.com/thesandx/nextjs-cloudrun-template/actions/workflows/codeql.yml/badge.svg)](https://github.com/thesandx/nextjs-cloudrun-template/actions/workflows/codeql.yml)
+[![PR Validation](https://github.com/thesandx/vivah/actions/workflows/pr-validation.yml/badge.svg)](https://github.com/thesandx/vivah/actions/workflows/pr-validation.yml)
+[![Deploy](https://github.com/thesandx/vivah/actions/workflows/deploy.yml/badge.svg)](https://github.com/thesandx/vivah/actions/workflows/deploy.yml)
+[![CodeQL](https://github.com/thesandx/vivah/actions/workflows/codeql.yml/badge.svg)](https://github.com/thesandx/vivah/actions/workflows/codeql.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 </div>
@@ -179,7 +179,7 @@ From nothing to your own domain serving traffic.
 
 ```bash
 # 1. Create the repository from this template
-gh repo create my-app --template thesandx/nextjs-cloudrun-template --private --clone && cd my-app
+gh repo create my-app --template thesandx/vivah --private --clone && cd my-app
 
 # 2. Make it yours. Writes .env.local with the app slug and derived names.
 ./scripts/rename-project.sh my-app --owner my-github-org --project my-gcp-project
@@ -242,12 +242,12 @@ The rest of this section explains each step.
 
 ### 1. Create your repository
 
-Click **[Use this template](https://github.com/thesandx/nextjs-cloudrun-template/generate)** → _Create a new repository_.
+Click **[Use this template](https://github.com/thesandx/vivah/generate)** → _Create a new repository_.
 
 Or with the CLI:
 
 ```bash
-gh repo create my-app --template thesandx/nextjs-cloudrun-template --private --clone
+gh repo create my-app --template thesandx/vivah --private --clone
 cd my-app
 ```
 

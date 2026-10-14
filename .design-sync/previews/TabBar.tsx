@@ -1,4 +1,4 @@
-import { TabBar } from 'nextjs-cloudrun-template';
+import { TabBar } from 'vivah';
 
 export const Phone = () => (
   <div className="bg-paper relative h-40">

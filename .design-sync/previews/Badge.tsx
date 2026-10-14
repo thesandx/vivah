@@ -1,4 +1,4 @@
-import { Badge } from 'nextjs-cloudrun-template';
+import { Badge } from 'vivah';
 
 export const Tones = () => (
   <div className="flex flex-wrap items-center gap-3">

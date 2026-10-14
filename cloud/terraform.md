@@ -57,7 +57,7 @@ terraform {
 
   backend "gcs" {
     bucket = "my-project-tf-state"
-    prefix = "nextjs-cloudrun-template"
+    prefix = "vivah"
   }
 
   required_providers {

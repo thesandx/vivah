@@ -1,7 +1,7 @@
 {
   "projectId": "93ce0681-aec9-493f-9fc8-375b3211b1d2",
   "shape": "package",
-  "pkg": "nextjs-cloudrun-template",
+  "pkg": "vivah",
   "globalName": "Mochi",
   "entry": ".design-sync/entry.ts",
   "buildCmd": "node .design-sync/build-css.mjs && ./node_modules/.bin/tsc -p .design-sync/tsconfig.dts.json",
