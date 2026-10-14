@@ -210,6 +210,7 @@ In this app, a couple's invite is the ceremonial surface. It uses the `shubh-viv
 - **Cute budget.** None. No faces, no stickers, no mascot. Ornament is a marigold toran across the top (`Toran`), falling petals (`FallingPetals`, CSS only) and marigold dots.
 - **Layout.** The page follows the couple's first site: greeting, names, day and place, countdown, venue map, WhatsApp RSVP, phone, closing line. A detail the couple has not added yet says "shared soon". On a phone, the RSVP button stays in reach while the guest scrolls.
 - **No deity motif by default.** The theme is religion-neutral, as the PRD asks.
+- **The unpaid preview is watermarked.** `PreviewGuard` lays a tiled `<domain> · preview only` watermark over the invite card. It also blocks the right-click menu, selection, the iOS long-press save, Ctrl/Cmd+S, P and U, and printing. The card blanks while the window is in the background. It cannot stop a phone screenshot, so the watermark is the real control. The published invite has no watermark.
 - **The link preview image** cannot read CSS tokens. `lib/invite-palette.ts` repeats the values. Change both together.
 
 Budget limits per viewport, all themes:
