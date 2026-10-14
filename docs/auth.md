@@ -88,11 +88,13 @@ Hiding a form from a signed-out user is a courtesy, not a control. The control i
 
 ---
 
-### The one anonymous write
+### The anonymous writes
 
 `POST /api/leads` creates a lead with no session. It is the first step of the funnel, before the couple has an account. [ADR-0006](./adr/0006-accept-anonymous-lead-capture.md) records why, and the limits that keep it narrow: it creates one document, the body schema is strict, and a honeypot catches simple bots.
 
 The preview link `GET /p/<lead id>` is not a sign-in either. It sets a `vivah_preview` cookie that ties the preview to the first browser that opened it. The lead stores only the SHA-256 hash of that token.
+
+Publishing the invite is the second write without a session. The preview page's Server Action calls `publishWedding`, which checks the `vivah_preview` cookie against the stored hash, then reserves the address in one transaction. [ADR-0007](./adr/0007-publish-from-the-bound-preview-browser.md) records why. Until Cashfree is connected, a test payment button starts it.
 
 Every other write route still starts with `requireUser()`.
 

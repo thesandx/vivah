@@ -45,6 +45,11 @@ export const leadSchema = z.object({
    */
   previewTokenHash: z.string().length(64).nullable(),
   firstOpenedAt: z.date().nullable(),
+  /**
+   * The address the couple published at, set with `status: 'paid'`. Optional
+   * because leads written before publishing existed do not have it.
+   */
+  weddingSlug: z.string().optional(),
 });
 
 export type LeadPayload = z.infer<typeof leadSchema>;
@@ -63,7 +68,8 @@ function hashToken(token: string): string {
   return createHash('sha256').update(token).digest('hex');
 }
 
-function tokenMatches(token: string | undefined, storedHash: string): boolean {
+/** True when `token` is the one whose hash the lead stores. Constant-time. */
+export function tokenMatches(token: string | undefined, storedHash: string): boolean {
   if (token === undefined || token === '') return false;
   const presented = Buffer.from(hashToken(token), 'hex');
   const stored = Buffer.from(storedHash, 'hex');

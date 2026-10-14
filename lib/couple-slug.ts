@@ -83,3 +83,53 @@ export function buildCoupleSlug(bride: string, groom: string): string | null {
 export function withSuffix(slug: string, attempt: number): string {
   return attempt <= 1 ? slug : `${slug}-${attempt}`;
 }
+
+/** How many numbered fallbacks (`-2` to `-9`) to try after the word forms. */
+const MAX_SUFFIX = 9;
+
+/**
+ * Ready-made addresses for a couple, best first: `radha-shyam`,
+ * `shyam-radha`, `radha-weds-shyam`, `shyam-weds-radha`, `radha-and-shyam`,
+ * `shyam-and-radha`, then `radha-shyam-2` to `-9`. Invalid and duplicate
+ * forms are dropped. The preview page offers the first ones that are free, so
+ * a couple never sees a suggestion they cannot have.
+ */
+export function slugCandidates(bride: string, groom: string): string[] {
+  const b = slugifyName(bride);
+  const g = slugifyName(groom);
+  const pairs =
+    b !== '' && g !== ''
+      ? [
+          [b, g],
+          [g, b],
+        ]
+      : [[b || g]];
+  const words = pairs.flatMap((pair) => [
+    pair.join('-'),
+    ...(pair.length === 2 ? [pair.join('-weds-'), pair.join('-and-')] : []),
+  ]);
+  const ordered = [
+    ...words.filter((_, index) => index % 3 === 0),
+    ...words.filter((_, index) => index % 3 === 1),
+    ...words.filter((_, index) => index % 3 === 2),
+  ];
+  const base = ordered[0] ?? '';
+  const numbered = Array.from({ length: MAX_SUFFIX - 1 }, (_, index) =>
+    withSuffix(base, index + 2),
+  );
+  return [...new Set([...ordered, ...numbered])].filter(isValidCoupleSlug);
+}
+
+/**
+ * Why `slug` cannot be an address, in words for the couple, or `null` when it
+ * can. Availability is a separate check: this looks at the shape only.
+ */
+export function slugProblem(slug: string): string | null {
+  if (slug.length < 2) return 'Use at least 2 characters.';
+  if (slug.length > MAX_SLUG_LENGTH) return `Use ${MAX_SLUG_LENGTH} characters or fewer.`;
+  if (!SLUG_PATTERN.test(slug) || slug.includes('--')) {
+    return 'Use lowercase letters, numbers and single hyphens. Start and end with a letter or number.';
+  }
+  if (RESERVED_SLUGS.has(slug)) return 'This address is kept for Vivah. Choose another.';
+  return null;
+}
