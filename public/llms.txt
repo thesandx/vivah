@@ -1,0 +1,14 @@
+# vivah.online
+
+> Online Hindu wedding invitation websites for India, sent on WhatsApp with each guest's name.
+
+vivah.online makes a couple's wedding invitation into a website on its own link, such as raadha-shyam.vivah.online. The couple types the bride's and groom's names and the wedding date, gets a private preview on WhatsApp, and pays only if they like it. Each guest gets a personal link: the invite opens with their name, the date, a countdown, the venue map and a WhatsApp RSVP button. Guests need no app.
+
+It is for Hindu weddings in India, in English and Hindi.
+
+## Pages
+
+- [Wedding invitation for WhatsApp](https://vivah.online/whatsapp-wedding-invitation): what a WhatsApp wedding invitation is, how it works, and a paper card vs digital wedding invitation comparison
+- [WhatsApp wedding invitation messages](https://vivah.online/guides/wedding-invitation-message-whatsapp): ready messages for family, friends and colleagues, in English and Hindi
+- [How to reply to a wedding invitation on WhatsApp](https://vivah.online/guides/reply-to-wedding-invitation-on-whatsapp): replies to accept, decline politely or send blessings, in English and Hindi
+- [Make an invite](https://vivah.online/): the form to start, with a preview before payment

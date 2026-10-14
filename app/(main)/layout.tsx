@@ -25,6 +25,8 @@ export default function MainLayout({ children }: Readonly<{ children: React.Reac
       <Footer
         owner={env.appName}
         links={[
+          { href: '/whatsapp-wedding-invitation', label: 'WhatsApp invitation' },
+          { href: '/guides/wedding-invitation-message-whatsapp', label: 'Invitation messages' },
           { href: '/design', label: 'Components' },
           { href: '/api/health', label: 'Health' },
         ]}
