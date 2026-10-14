@@ -4,9 +4,9 @@ import {
   buildCoupleSlug,
   isValidCoupleSlug,
   MAX_SLUG_LENGTH,
+  slugCandidates,
   slugifyName,
   slugProblem,
-  suggestedSlugs,
   withSuffix,
 } from '@/lib/couple-slug';
 
@@ -78,17 +78,36 @@ describe('withSuffix', () => {
   });
 });
 
-describe('suggestedSlugs', () => {
-  it('offers bride first, then groom first', () => {
-    expect(suggestedSlugs('Radha', 'Shyam')).toEqual(['radha-shyam', 'shyam-radha']);
+describe('slugCandidates', () => {
+  it('lists both name orders first, then word forms, then numbers', () => {
+    expect(slugCandidates('Radha', 'Shyam')).toEqual([
+      'radha-shyam',
+      'shyam-radha',
+      'radha-weds-shyam',
+      'shyam-weds-radha',
+      'radha-and-shyam',
+      'shyam-and-radha',
+      'radha-shyam-2',
+      'radha-shyam-3',
+      'radha-shyam-4',
+      'radha-shyam-5',
+      'radha-shyam-6',
+      'radha-shyam-7',
+      'radha-shyam-8',
+      'radha-shyam-9',
+    ]);
   });
 
-  it('drops a duplicate when both orders give the same slug', () => {
-    expect(suggestedSlugs('राधा', 'Shyam')).toEqual(['shyam']);
+  it('uses the one name that has an ASCII form', () => {
+    expect(slugCandidates('राधा', 'Shyam').slice(0, 2)).toEqual(['shyam', 'shyam-2']);
   });
 
   it('returns nothing when neither name has an ASCII form', () => {
-    expect(suggestedSlugs('राधा', 'श्याम')).toEqual([]);
+    expect(slugCandidates('राधा', 'श्याम')).toEqual([]);
+  });
+
+  it('returns only valid slugs', () => {
+    expect(slugCandidates('A'.repeat(18), 'B'.repeat(18)).every(isValidCoupleSlug)).toBe(true);
   });
 });
 

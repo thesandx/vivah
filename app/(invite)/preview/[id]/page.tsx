@@ -7,12 +7,11 @@ import { SlugPicker } from '@/components/invite/SlugPicker';
 import { PageShell } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/Alert';
 import { Face } from '@/components/ui/Face';
-import { suggestedSlugs } from '@/lib/couple-slug';
 import { env } from '@/lib/env';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { inviteHostLabel, inviteHref, normaliseHost } from '@/lib/site-host';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
-import { checkSlug } from '@/services/wedding.service';
+import { freeSlugSuggestions } from '@/services/wedding.service';
 
 import { checkSlugAction, publishAction } from './actions';
 
@@ -102,14 +101,10 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  // Which ready-made addresses are free right now. The publish step checks
-  // again, so a stale answer here can never overwrite another couple.
-  const suggestions = await Promise.all(
-    suggestedSlugs(lead.bride, lead.groom).map(async (slug) => ({
-      slug,
-      available: (await checkSlug(slug)).available,
-    })),
-  );
+  // Only free addresses are offered, so a couple never sees "taken" for an
+  // address we chose for them. The publish step checks again, so a stale
+  // answer here can never overwrite another couple.
+  const suggestions = await freeSlugSuggestions(lead.bride, lead.groom);
 
   return (
     <PageShell>

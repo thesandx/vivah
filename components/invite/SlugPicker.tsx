@@ -27,11 +27,6 @@ const CUSTOM = 'CUSTOM';
 /** Wait this long after the last keystroke before checking a typed address. */
 const CHECK_DELAY_MS = 400;
 
-export interface SlugSuggestion {
-  slug: string;
-  available: boolean;
-}
-
 export type SlugCheck =
   | { available: true }
   | { available: false; reason: 'invalid'; message: string }
@@ -42,8 +37,11 @@ export type PublishOutcome =
 
 export interface SlugPickerProps {
   leadId: string;
-  /** Bride first, then groom first, each with whether it is free now. */
-  suggestions: readonly SlugSuggestion[];
+  /**
+   * Free addresses, best first. Only free ones: the couple never sees "taken"
+   * for an address we suggested. "Taken" appears only for one they type.
+   */
+  suggestions: readonly string[];
   /** The part after the slug, as the couple reads it: `vivah.online`. */
   domainLabel: string;
   checkSlug: (slug: string) => Promise<SlugCheck>;
@@ -70,12 +68,8 @@ export function SlugPicker({
   publish,
   className,
 }: SlugPickerProps): React.JSX.Element {
-  const [taken, setTaken] = useState<ReadonlySet<string>>(
-    () => new Set(suggestions.filter((item) => !item.available).map((item) => item.slug)),
-  );
-  const [choice, setChoice] = useState<string>(
-    () => suggestions.find((item) => item.available)?.slug ?? CUSTOM,
-  );
+  const [offered, setOffered] = useState<readonly string[]>(suggestions);
+  const [choice, setChoice] = useState<string>(() => suggestions[0] ?? CUSTOM);
   const [typed, setTyped] = useState('');
   const [custom, setCustom] = useState<CustomState>({ kind: 'empty' });
   const [status, setStatus] = useState<'idle' | 'working' | 'done'>('idle');
@@ -124,12 +118,18 @@ export function SlugPicker({
       if (result.taken === true) {
         if (choice === CUSTOM) {
           setCustom({ kind: 'problem', message: 'This address is taken. Try another.' });
+          setError(result.message);
         } else {
-          setTaken((previous) => new Set([...previous, choice]));
-          setChoice(CUSTOM);
+          // Another couple published our suggestion a moment ago. Drop it
+          // quietly and move to the next one, rather than say "taken".
+          const remaining = offered.filter((item) => item !== choice);
+          setOffered(remaining);
+          setChoice(remaining[0] ?? CUSTOM);
+          setError('That address was just published by another couple. Choose again.');
         }
+      } else {
+        setError(result.message);
       }
-      setError(result.message);
     } catch {
       setError('Your invite was not published. Check your connection and try again.');
     }
@@ -137,11 +137,7 @@ export function SlugPicker({
   }
 
   const options = [
-    ...suggestions.map((item) => ({
-      value: item.slug,
-      label: `${item.slug}.${domainLabel}`,
-      ...(taken.has(item.slug) && { hint: 'Taken', disabled: true }),
-    })),
+    ...offered.map((slug) => ({ value: slug, label: `${slug}.${domainLabel}` })),
     { value: CUSTOM, label: 'Choose my own address' },
   ];
 
@@ -150,7 +146,9 @@ export function SlugPicker({
       ? 'Checking…'
       : custom.kind === 'available'
         ? `${typed}.${domainLabel} is free.`
-        : `Your invite will be at ${typed === '' ? 'your-address' : typed}.${domainLabel}`;
+        : typed === ''
+          ? 'Make it yours. For example, virat-anushka could be virushka, and deepika-ranveer could be deepveer.'
+          : `Your invite will be at ${typed}.${domainLabel}`;
 
   return (
     <div className={cn('flex flex-col gap-5', className)}>
@@ -173,6 +171,7 @@ export function SlugPicker({
           autoCapitalize="none"
           spellCheck={false}
           maxLength={40}
+          placeholder="virushka"
           value={typed}
           onChange={(event) => {
             const next = normaliseTyped(event.target.value);

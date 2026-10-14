@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 
 import { z } from 'zod';
 
-import { isValidCoupleSlug, slugProblem } from '@/lib/couple-slug';
+import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
 import { leads, tokenMatches } from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
 
@@ -105,6 +105,25 @@ export async function checkSlug(slug: string): Promise<SlugAvailability> {
  */
 function weddingAtSlugQuery(slug: string) {
   return weddings.ref().where('slug', '==', slug).where('deletedAt', '==', null).limit(1);
+}
+
+/**
+ * The first `count` free addresses for a couple, best first. Checked one at a
+ * time and stops early, so a couple whose names are free costs two checks.
+ * A couple never sees a suggestion that is taken: the page offers only these.
+ */
+export async function freeSlugSuggestions(
+  bride: string,
+  groom: string,
+  count = 2,
+): Promise<string[]> {
+  const free: string[] = [];
+  for (const slug of slugCandidates(bride, groom)) {
+    if (free.length >= count) break;
+    // Sequential on purpose: most couples stop after the first two.
+    if ((await checkSlug(slug)).available) free.push(slug);
+  }
+  return free;
 }
 
 export type PublishResult =

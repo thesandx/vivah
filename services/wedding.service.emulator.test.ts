@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { createLead, leads, openPreviewLink } from '@/services/lead.service';
 import {
   checkSlug,
+  freeSlugSuggestions,
   getWeddingBySlug,
   publishWedding,
   slugClaimId,
@@ -111,5 +112,21 @@ describeEmulator('publishWedding (emulator)', () => {
       state: 'other-browser',
     });
     expect((await publishWedding(id, undefined, 'www')).state).toBe('invalid');
+  });
+
+  it('suggests only free addresses, skipping one already published', async () => {
+    const bride = `Radha${Math.random().toString(36).slice(2, 8)}`;
+    const slugBride = bride.toLowerCase();
+    expect(await freeSlugSuggestions(bride, 'Shyam')).toEqual([
+      `${slugBride}-shyam`,
+      `shyam-${slugBride}`,
+    ]);
+
+    const { id, token } = await openedLead();
+    await publishWedding(id, token, `${slugBride}-shyam`);
+    expect(await freeSlugSuggestions(bride, 'Shyam')).toEqual([
+      `shyam-${slugBride}`,
+      `${slugBride}-weds-shyam`,
+    ]);
   });
 });

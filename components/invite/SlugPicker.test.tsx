@@ -1,23 +1,15 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import {
-  type PublishOutcome,
-  type SlugCheck,
-  SlugPicker,
-  type SlugSuggestion,
-} from '@/components/invite/SlugPicker';
+import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/invite/SlugPicker';
 
 const checkSlug = vi.fn<(slug: string) => Promise<SlugCheck>>();
 const publish = vi.fn<(leadId: string, slug: string) => Promise<PublishOutcome>>();
 const assign = vi.fn<(url: string) => void>();
 
-const BOTH_FREE: SlugSuggestion[] = [
-  { slug: 'radha-shyam', available: true },
-  { slug: 'shyam-radha', available: true },
-];
+const BOTH_FREE = ['radha-shyam', 'shyam-radha'];
 
-function renderPicker(suggestions: SlugSuggestion[] = BOTH_FREE): void {
+function renderPicker(suggestions: string[] = BOTH_FREE): void {
   render(
     <SlugPicker
       leadId="AbCdEfGhIjKlMnOpQrSt"
@@ -45,14 +37,18 @@ describe('SlugPicker', () => {
     expect(screen.getByLabelText('Choose my own address')).toBeInTheDocument();
   });
 
-  it('disables a taken suggestion and chooses the next free one', () => {
-    renderPicker([
-      { slug: 'radha-shyam', available: false },
-      { slug: 'shyam-radha', available: true },
-    ]);
-    expect(screen.getByLabelText('radha-shyam.vivah.online')).toBeDisabled();
-    expect(screen.getByText('Taken')).toBeInTheDocument();
+  it('never shows "taken" for a suggestion, and hints at a short custom address', () => {
+    renderPicker(['shyam-radha', 'radha-weds-shyam']);
+    expect(screen.queryByText('Taken')).not.toBeInTheDocument();
     expect(screen.getByLabelText('shyam-radha.vivah.online')).toBeChecked();
+    fireEvent.click(screen.getByLabelText('Choose my own address'));
+    expect(screen.getByText(/virushka/)).toBeInTheDocument();
+  });
+
+  it('starts on a typed address when there is nothing to suggest', () => {
+    renderPicker([]);
+    expect(screen.getByLabelText('Choose my own address')).toBeChecked();
+    expect(screen.getByLabelText('Your address')).toBeInTheDocument();
   });
 
   it('publishes the chosen address and opens the live invite', async () => {
@@ -84,12 +80,15 @@ describe('SlugPicker', () => {
     expect(screen.getByRole('button', { name: 'Pay and publish' })).toBeDisabled();
   });
 
-  it('marks a suggestion taken when somebody published there first', async () => {
+  it('drops a suggestion that another couple published first and picks the next', async () => {
     publish.mockResolvedValue({ ok: false, message: 'Somebody took this address.', taken: true });
     renderPicker();
     fireEvent.click(screen.getByRole('button', { name: 'Pay and publish' }));
-    expect(await screen.findByText('Somebody took this address.')).toBeInTheDocument();
-    expect(screen.getByLabelText('radha-shyam.vivah.online')).toBeDisabled();
+    expect(
+      await screen.findByText('That address was just published by another couple. Choose again.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText('radha-shyam.vivah.online')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('shyam-radha.vivah.online')).toBeChecked();
     expect(assign).not.toHaveBeenCalled();
   });
 });

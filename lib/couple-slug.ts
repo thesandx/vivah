@@ -84,15 +84,40 @@ export function withSuffix(slug: string, attempt: number): string {
   return attempt <= 1 ? slug : `${slug}-${attempt}`;
 }
 
+/** How many numbered fallbacks (`-2` to `-9`) to try after the word forms. */
+const MAX_SUFFIX = 9;
+
 /**
- * The two ready-made addresses the preview page offers: bride first, then
- * groom first. Invalid or duplicate ones are dropped, so the list can be
- * shorter than two (for example, when a name has no ASCII form).
+ * Ready-made addresses for a couple, best first: `radha-shyam`,
+ * `shyam-radha`, `radha-weds-shyam`, `shyam-weds-radha`, `radha-and-shyam`,
+ * `shyam-and-radha`, then `radha-shyam-2` to `-9`. Invalid and duplicate
+ * forms are dropped. The preview page offers the first ones that are free, so
+ * a couple never sees a suggestion they cannot have.
  */
-export function suggestedSlugs(bride: string, groom: string): string[] {
-  const first = buildCoupleSlug(bride, groom);
-  const second = buildCoupleSlug(groom, bride);
-  return [...new Set([first, second].filter((slug): slug is string => slug !== null))];
+export function slugCandidates(bride: string, groom: string): string[] {
+  const b = slugifyName(bride);
+  const g = slugifyName(groom);
+  const pairs =
+    b !== '' && g !== ''
+      ? [
+          [b, g],
+          [g, b],
+        ]
+      : [[b || g]];
+  const words = pairs.flatMap((pair) => [
+    pair.join('-'),
+    ...(pair.length === 2 ? [pair.join('-weds-'), pair.join('-and-')] : []),
+  ]);
+  const ordered = [
+    ...words.filter((_, index) => index % 3 === 0),
+    ...words.filter((_, index) => index % 3 === 1),
+    ...words.filter((_, index) => index % 3 === 2),
+  ];
+  const base = ordered[0] ?? '';
+  const numbered = Array.from({ length: MAX_SUFFIX - 1 }, (_, index) =>
+    withSuffix(base, index + 2),
+  );
+  return [...new Set([...ordered, ...numbered])].filter(isValidCoupleSlug);
 }
 
 /**
