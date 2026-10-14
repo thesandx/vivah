@@ -3,9 +3,6 @@ import '@/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 
-import { Footer } from '@/components/layout/Footer';
-import { SiteHeader } from '@/components/layout/SiteHeader';
-import { TabBar } from '@/components/layout/TabBar';
 import { env } from '@/lib/env';
 import { THEME_COLOR } from '@/lib/pwa';
 
@@ -72,11 +69,17 @@ const THEME: 'playroom' | 'calm' | 'night' = 'playroom';
  * bundle. Providers that need client state belong in their own
  * `'use client'` component rendered from here as a child.
  *
- * It holds the two postures of the shell. A phone gets an app: the `TabBar`
- * at the bottom. From `md` up the same destinations move to the `SiteHeader`
- * at the top, and the page reads as a website. Both are CSS breakpoints, so
- * the server sends one HTML for every screen and nothing guesses the device.
- * See design-language.md > Responsive: an app on a phone, a website on a desktop.
+ * It holds only what every surface shares: the document, the fonts and the
+ * theme. The shell is per surface, in a route group:
+ *
+ *   - `app/(main)/layout.tsx` — the product site. `TabBar` on a phone,
+ *     `SiteHeader` from `md` up, and the `Footer`.
+ *   - `app/(invite)/layout.tsx` — a couple's invite and the private preview.
+ *     No product navigation: a guest opening an invite sees the invite.
+ *
+ * The split is by route, not by `usePathname()`, because a couple's invite is
+ * reached through a rewrite in `proxy.ts`, and a rewrite makes the client and
+ * server paths differ.
  */
 export default function RootLayout({
   children,
@@ -90,25 +93,8 @@ export default function RootLayout({
       className={`${mochiy.variable} ${zenMaru.variable}`}
       suppressHydrationWarning
     >
-      {/*
-        pb-28 keeps the last line of every page clear of the floating TabBar,
-        on a phone only: from md up the TabBar hides. The flex column lets a
-        short page push the footer to the bottom of the screen. SiteHeader and
-        TabBar are client components rendered from this Server Component, so
-        the layout itself stays server-only.
-      */}
-      <body className="flex min-h-dvh flex-col pb-28 antialiased md:pb-0">
-        <SiteHeader appName={env.appName} />
-        {children}
-        <Footer
-          owner={env.appName}
-          links={[
-            { href: '/design', label: 'Components' },
-            { href: '/api/health', label: 'Health' },
-          ]}
-        />
-        <TabBar />
-      </body>
+      {/* The flex column lets a short page push its footer to the bottom of the screen. */}
+      <body className="flex min-h-dvh flex-col antialiased">{children}</body>
     </html>
   );
 }

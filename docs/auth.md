@@ -88,6 +88,14 @@ Hiding a form from a signed-out user is a courtesy, not a control. The control i
 
 ---
 
+### The one anonymous write
+
+`POST /api/leads` creates a lead with no session. It is the first step of the funnel, before the couple has an account. [ADR-0006](./adr/0006-accept-anonymous-lead-capture.md) records why, and the limits that keep it narrow: it creates one document, the body schema is strict, and a honeypot catches simple bots.
+
+The preview link `GET /p/<lead id>` is not a sign-in either. It sets a `vivah_preview` cookie that ties the preview to the first browser that opened it. The lead stores only the SHA-256 hash of that token.
+
+Every other write route still starts with `requireUser()`.
+
 ## Profiles
 
 `users/{uid}` — the app's own record of a person, separate from Firebase Auth, which remains the source of truth for identity.

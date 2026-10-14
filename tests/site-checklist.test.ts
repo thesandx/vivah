@@ -137,7 +137,9 @@ describe('site checklist', () => {
   });
 
   it('has both postures: an app shell on a phone, a website header on a desktop', () => {
-    const layout = readFileSync(join(ROOT, 'app/layout.tsx'), 'utf8');
+    // The product site's shell lives in its route group. The invite surface,
+    // app/(invite), has no product navigation on purpose: a guest sees the invite.
+    const layout = readFileSync(join(ROOT, 'app/(main)/layout.tsx'), 'utf8');
     expect(layout).toMatch(/<SiteHeader\b/);
     expect(layout).toMatch(/<TabBar\b/);
     expect(layout).toMatch(/<Footer\b/);

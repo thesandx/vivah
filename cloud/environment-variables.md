@@ -192,6 +192,7 @@ Current inventory:
 | `APP_URL`                    | variable | no       | Public URL — **inlined at build time**                                         |
 | `APP_NAME`                   | variable | no       | Display name                                                                   |
 | `LOG_LEVEL`                  | variable | no       | Runtime verbosity (default `info`)                                             |
+| `ROOT_DOMAIN`                | variable | no       | Root domain for couple invites (default `vivah.online`)                        |
 | `MIN_INSTANCES`              | variable | no       | `1` removes cold starts, at a cost                                             |
 | `MAX_INSTANCES`              | variable | no       | Scaling and bill ceiling (default `10`)                                        |
 | `APP_SLUG`                   | variable | no       | Names the database, bucket and runtime identity (defaults to the service name) |

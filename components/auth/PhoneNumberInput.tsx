@@ -3,6 +3,8 @@ import { DIAL_COUNTRIES } from '@/lib/phone';
 import { cn } from '@/lib/utils';
 
 export interface PhoneNumberInputProps {
+  /** The visible label. Default: "Phone number". */
+  label?: string;
   /** ISO code of the chosen country, e.g. `IN`. */
   country: string;
   onCountryChange: (iso: string) => void;
@@ -23,6 +25,7 @@ export interface PhoneNumberInputProps {
  * its own accessible name; the visible label belongs to the number field.
  */
 export function PhoneNumberInput({
+  label = 'Phone number',
   country,
   onCountryChange,
   value,
@@ -32,7 +35,7 @@ export function PhoneNumberInput({
   autoFocus = false,
 }: PhoneNumberInputProps) {
   return (
-    <Field label="Phone number" error={error}>
+    <Field label={label} error={error}>
       {(control) => (
         <div className="flex gap-2">
           <div className="relative shrink-0">
