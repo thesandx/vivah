@@ -83,6 +83,20 @@
       ]
     },
     {
+      "collectionGroup": "guestLinks",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletedAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "homeChats",
       "queryScope": "COLLECTION",
       "fields": [

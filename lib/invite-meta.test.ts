@@ -65,4 +65,9 @@ describe('invite link preview', () => {
     expect(guest.description).toMatch(/^Hi Kartheek ji, /);
     expect(guest.robots).toEqual({ index: false, follow: false });
   });
+
+  it('keeps the shared segment in the URL of a numbered guest link', () => {
+    const second = inviteMetadata({ ...base, guestName: 'Rahul', guestSegment: 'Rahul-2' });
+    expect(second.openGraph).toMatchObject({ url: 'https://sara.vivah.online/Rahul-2' });
+  });
 });

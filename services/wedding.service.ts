@@ -52,9 +52,9 @@ export const weddingSchema = z.object({
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
     .nullable()
     .optional(),
-  /** The venue's name: `Laxmisagar`. */
+  /** The venue's name: `The Grand Pavilion, Chhatarpur`. */
   venueName: z.string().trim().min(1).max(80).nullable().optional(),
-  /** The town and state: `Darbhanga, Bihar`. */
+  /** The town and state: `New Delhi, Delhi`. */
   venueCity: z.string().trim().min(1).max(80).nullable().optional(),
   /** A Google Maps share link, pasted by the couple. No Maps API. */
   venueMapsUrl: z
