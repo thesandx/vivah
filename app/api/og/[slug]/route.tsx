@@ -29,8 +29,8 @@ let fonts: Promise<{ serif: Buffer; script: Buffer }> | null = null;
 function loadFonts(): Promise<{ serif: Buffer; script: Buffer }> {
   const dir = join(process.cwd(), 'public', 'fonts');
   fonts ??= Promise.all([
-    readFile(join(dir, 'cormorantgaramond-600.woff')),
-    readFile(join(dir, 'greatvibes-400.woff')),
+    readFile(join(dir, 'arvo-700.woff')),
+    readFile(join(dir, 'dancingscript-700.woff')),
   ])
     .then(([serif, script]) => ({ serif, script }))
     .catch((error: unknown) => {
@@ -67,7 +67,7 @@ export async function GET(
           display: 'flex',
           padding: 28,
           background: C.brand,
-          fontFamily: 'Cormorant',
+          fontFamily: 'Arvo',
         }}
       >
         <div
@@ -91,7 +91,7 @@ export async function GET(
             <div
               style={{
                 display: 'flex',
-                fontFamily: 'Great Vibes',
+                fontFamily: 'Dancing Script',
                 fontSize: 72,
                 color: C.blush,
               }}
@@ -106,7 +106,7 @@ export async function GET(
             <div
               style={{
                 display: 'flex',
-                fontFamily: 'Great Vibes',
+                fontFamily: 'Dancing Script',
                 fontSize: coupleSize,
                 lineHeight: 1.1,
               }}
@@ -143,8 +143,8 @@ export async function GET(
         width: OG_IMAGE_WIDTH,
         height: OG_IMAGE_HEIGHT,
         fonts: [
-          { name: 'Cormorant', data: serif, weight: 600, style: 'normal' },
-          { name: 'Great Vibes', data: script, weight: 400, style: 'normal' },
+          { name: 'Arvo', data: serif, weight: 700, style: 'normal' },
+          { name: 'Dancing Script', data: script, weight: 700, style: 'normal' },
         ],
         headers: {
           // WhatsApp fetches the image once per shared link. An hour keeps a

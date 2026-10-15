@@ -4,6 +4,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 import { z } from 'zod';
 
+import { capitalizeName } from '@/lib/guest-name';
 import type { LeadRequest } from '@/lib/lead-schema';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { type ChosenSong, chosenSongSchema } from '@/lib/wedding-songs';
@@ -28,8 +29,9 @@ export const LEAD_COLLECTION = 'leads';
 export const LEAD_STATUSES = ['preview-sent', 'opened', 'paid'] as const;
 
 export const leadSchema = z.object({
-  bride: z.string().trim().min(1).max(60),
-  groom: z.string().trim().min(1).max(60),
+  /** Read through `capitalizeName`, so a name saved as `riya` shows as `Riya`. */
+  bride: z.string().trim().min(1).max(60).transform(capitalizeName),
+  groom: z.string().trim().min(1).max(60).transform(capitalizeName),
   /** `YYYY-MM-DD`, or `null` for "I'll add this later". */
   weddingDate: z.iso.date().nullable(),
   /** E.164, from `toE164`. Never logged. */

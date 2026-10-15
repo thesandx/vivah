@@ -1,8 +1,10 @@
+import Image from 'next/image';
+
 import { Countdown } from '@/components/invite/Countdown';
 import { FallingPetals } from '@/components/invite/FallingPetals';
+import { Ganesha } from '@/components/invite/Ganesha';
 import { ScratchCard } from '@/components/invite/ScratchCard';
 import { ContactLink } from '@/components/ui/ContactLink';
-import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-contact';
 import { cn } from '@/lib/utils';
 import {
@@ -15,14 +17,14 @@ import {
 
 /**
  * The couple's invite page, in the pink-pastel invite theme. It reads like a
- * printed card that comes alive: the names on a card framed in gold, a
- * scratch-to-reveal date, the day with a countdown, the venue with a map, a
- * WhatsApp RSVP and a closing line.
+ * printed card that comes alive: Shri Ganesh and his shloka over the names,
+ * as on an offline Hindu wedding card, a scratch-to-reveal date, the day with
+ * a countdown, the venue with a Google Maps button, a WhatsApp RSVP and a
+ * closing line.
  *
  * A Server Component. Only the scratch cards and the countdown run in the
  * browser. Colours come from the `shubh-vivah` theme tokens, which
- * `InviteTheme` applies. Nothing here depends on a religion: no deity motif,
- * as the PRD asks. The lotus is a flower.
+ * `InviteTheme` applies.
  *
  * The couple's preview renders this same component with the couple's own
  * details, so the preview is exactly what guests will see.
@@ -84,21 +86,16 @@ function CalendarIcon() {
   );
 }
 
-/** A lotus in gold line and blush, over the couple's names. */
-function Lotus({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 120 64" aria-hidden="true" className={cn('h-14 w-28', className)}>
-      <g className="stroke-butter fill-brand-soft" strokeWidth="1.6" strokeLinejoin="round">
-        <path d="M60 58 C 30 58, 10 44, 6 30 C 24 30, 44 40, 60 58 Z" />
-        <path d="M60 58 C 90 58, 110 44, 114 30 C 96 30, 76 40, 60 58 Z" />
-        <path d="M60 58 C 40 46, 30 28, 34 12 C 48 20, 58 38, 60 58 Z" />
-        <path d="M60 58 C 80 46, 90 28, 86 12 C 72 20, 62 38, 60 58 Z" />
-        <path d="M60 58 C 50 40, 50 18, 60 4 C 70 18, 70 40, 60 58 Z" className="fill-peach" />
-      </g>
-      <circle cx="60" cy="58" r="2.5" className="fill-butter" />
-    </svg>
-  );
-}
+/**
+ * The Ganesh shloka every offline card opens with: "O Lord Ganesha, of the
+ * curved trunk and mighty body, as bright as a million suns, remove every
+ * obstacle from all my work, always."
+ */
+const SHLOKA = [
+  '॥ श्री गणेशाय नमः ॥',
+  'वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ।',
+  'निर्विघ्नं कुरु मे देव सर्वकार्येषु सर्वदा ॥',
+] as const;
 
 /** A gold rule with a small diamond: the divider between sections. */
 function Divider() {
@@ -119,7 +116,7 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
   return (
     <div className="flex flex-col items-center gap-1">
       <p className={cn(SPACED, 'text-small text-gold')}>{eyebrow}</p>
-      <h2 className="font-display text-hero text-brand font-semibold">{title}</h2>
+      <h2 className="font-script text-hero text-brand">{title}</h2>
     </div>
   );
 }
@@ -128,9 +125,12 @@ function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
 const CARD =
   'bg-surface border-line rounded-sheet shadow-hard flex w-full flex-col items-center border-2 px-5 py-10 sm:px-10';
 
-/** A rounded rose button, full width on a phone. */
+/**
+ * A rounded pill button, full width on a phone, as on the couple's own
+ * hand-made invites: the colour comes from the call site.
+ */
 const BUTTON =
-  'squish bg-brand text-on-brand shadow-brand inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-2 rounded-pill px-6 font-display text-heading font-semibold tracking-widest uppercase';
+  'squish shadow-hard inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-3 rounded-pill px-6 font-display text-heading font-bold tracking-widest uppercase';
 
 export function ShubhVivahInvite({
   bride,
@@ -190,15 +190,18 @@ export function ShubhVivahInvite({
             className="border-butter absolute right-0 bottom-0 size-14 border-r-2 border-b-2"
           />
           <div className={cn(CARD, 'gap-5')}>
-            <Lotus />
-            <p className="font-display text-heading text-gold" lang="hi">
-              ॥ शुभ विवाह ॥
+            <Ganesha />
+            <p lang="sa" className="font-shloka text-heading text-brand flex flex-col italic">
+              {SHLOKA.map((line) => (
+                <span key={line}>{line}</span>
+              ))}
             </p>
             {guestName !== null && (
               <p className="font-script text-title text-brand">Dear {guestName},</p>
             )}
             <p className="font-display text-heading text-ink-soft max-w-sm italic">
-              With the blessings of our families, we joyfully invite you to celebrate the union of
+              With the blessings of Shri Ganesh and our beloved families, we joyfully invite you to
+              celebrate the union of
             </p>
             <h1 className="flex flex-col items-center gap-1">
               <span className="font-script text-hero text-brand">{bride}</span>
@@ -263,7 +266,7 @@ export function ShubhVivahInvite({
           <p className="font-display text-heading text-ink-soft max-w-xs italic">
             A lifetime of togetherness begins with one sacred step
           </p>
-          <h2 className="font-display text-hero text-brand font-semibold">The Wedding</h2>
+          <h2 className="font-script text-hero text-brand">The Wedding</h2>
           {parts === null ? (
             <p className={cn(SPACED, 'text-heading text-ink')}>Date to be shared soon</p>
           ) : (
@@ -321,10 +324,10 @@ export function ShubhVivahInvite({
                 href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn(BUTTON, 'mt-4')}
+                className={cn(BUTTON, 'bg-surface text-maps border-line mt-4 border-2')}
               >
-                <PinIcon />
-                View on maps
+                <Image src="/icons/google-maps.png" alt="" width={24} height={24} />
+                Wedding venue
               </a>
             )}
           </div>
@@ -343,9 +346,13 @@ export function ShubhVivahInvite({
               href={rsvpWhatsAppUrl(rsvpPhoneE164, bride, groom, guestName)}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(BUTTON, stickyRsvp && 'sticky bottom-4 z-10 md:static')}
+              className={cn(
+                BUTTON,
+                'bg-whatsapp text-surface',
+                stickyRsvp && 'sticky bottom-4 z-10 md:static',
+              )}
             >
-              <WhatsAppIcon />
+              <Image src="/icons/whatsapp.png" alt="" width={24} height={24} />
               RSVP now
             </a>
             <p className="text-ink-soft font-display text-heading">

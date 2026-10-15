@@ -27,6 +27,12 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getByText('Chhatarpur, New Delhi')).toBeInTheDocument();
   });
 
+  it('opens with the Ganesh shloka, as a printed card does', () => {
+    render(<ShubhVivahInvite {...full} />);
+    expect(screen.getByText('॥ श्री गणेशाय नमः ॥')).toBeInTheDocument();
+    expect(screen.getByText(/blessings of Shri Ganesh/)).toBeInTheDocument();
+  });
+
   it('hides the date under three scratch cards', () => {
     render(<ShubhVivahInvite {...full} />);
     const section = screen.getByRole('region', { name: 'Save the date' });
@@ -38,7 +44,7 @@ describe('ShubhVivahInvite', () => {
 
   it('links the venue map, the calendar, the WhatsApp RSVP and the phone', () => {
     render(<ShubhVivahInvite {...full} />);
-    expect(screen.getByRole('link', { name: /view on maps/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: /wedding venue/i })).toHaveAttribute(
       'href',
       full.venueMapsUrl,
     );
@@ -92,6 +98,6 @@ describe('ShubhVivahInvite', () => {
 
   it('ignores a venue link that is not Google Maps', () => {
     render(<ShubhVivahInvite {...full} venueMapsUrl="https://evil.example/maps" />);
-    expect(screen.queryByRole('link', { name: /view on maps/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /wedding venue/i })).not.toBeInTheDocument();
   });
 });
