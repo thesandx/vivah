@@ -16,18 +16,32 @@ export const MAX_GUEST_NAME_LENGTH = 40;
 const ALLOWED = /^[\p{L}\p{M}][\p{L}\p{M} .']*$/u;
 
 /**
- * The display name for a guest link's last path segment, or `null` when it is
- * not a usable name. A hyphen or underscore reads as a space, so a couple can
- * share `/Kartheek-ji` without an encoded space in the link.
+ * The number the dashboard adds to a second guest of the same name:
+ * `/Rahul-2`. Names never contain digits, so a trailing `-2` is always this
+ * marker and never part of the name.
  */
-export function parseGuestName(segment: string): string | null {
-  let decoded: string;
+const DUPLICATE_MARKER = /[-_+ ]\d{1,3}$/;
+
+/** Decodes a path segment, or `null` for a broken encoding. */
+function decodeSegment(segment: string): string | null {
   try {
-    decoded = decodeURIComponent(segment);
+    return decodeURIComponent(segment);
   } catch {
     return null;
   }
+}
+
+/**
+ * The display name for a guest link's last path segment, or `null` when it is
+ * not a usable name. A hyphen or underscore reads as a space, so a couple can
+ * share `/Kartheek-ji` without an encoded space in the link. The duplicate
+ * marker is dropped: `/Rahul-2` greets "Rahul".
+ */
+export function parseGuestName(segment: string): string | null {
+  const decoded = decodeSegment(segment);
+  if (decoded === null) return null;
   const name = decoded
+    .replace(DUPLICATE_MARKER, '')
     .replace(/[-_+]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -37,9 +51,42 @@ export function parseGuestName(segment: string): string | null {
   return name.charAt(0).toLocaleUpperCase('en-IN') + name.slice(1);
 }
 
+/**
+ * A path segment, encoded exactly once, whether it arrives encoded
+ * (`Rahul%20Sharma`) or decoded (`राधा`).
+ */
+export function encodeGuestSegment(segment: string): string {
+  return encodeURIComponent(decodeSegment(segment) ?? segment);
+}
+
 /** The path for a guest: `Kartheek ji` → `/Kartheek-ji`. */
 export function guestPath(name: string): string {
   return `/${encodeURIComponent(name.trim().replace(/\s+/g, '-'))}`;
+}
+
+/**
+ * The last path segment of a guest link the dashboard makes: `Rahul Sharma`
+ * → `Rahul-Sharma`, and the second guest of that name → `Rahul-Sharma-2`.
+ */
+export function guestLinkSegment(name: string, copy: number): string {
+  const base = guestPath(name).slice(1);
+  return copy > 1 ? `${base}-${copy}` : base;
+}
+
+/**
+ * The lookup key for a guest link segment: decoded, separators folded to one
+ * hyphen, lowercased. `Rahul%20Sharma`, `rahul-sharma` and `Rahul_Sharma`
+ * share one key, because they greet the same guest. `null` for a broken
+ * encoding.
+ */
+export function guestLinkKey(segment: string): string | null {
+  const decoded = decodeSegment(segment);
+  if (decoded === null) return null;
+  const key = decoded
+    .replace(/[-_+\s]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase();
+  return key === '' ? null : key;
 }
 
 /** The seal's initials: `Radha`, `Shyam` → `R & S`. */

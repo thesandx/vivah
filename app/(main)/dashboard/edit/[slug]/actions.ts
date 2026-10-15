@@ -1,5 +1,7 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
+
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
 import { logger } from '@/lib/logger';
 import { requireUser } from '@/services/auth.service';
@@ -27,6 +29,9 @@ export async function saveWeddingDetailsAction(
     const result = await updateWeddingDetails(slug, user.phoneNumber, fields);
     if (result.ok) {
       logger.info('Wedding details saved', { slug, uid: user.uid });
+      // Both pages that show the details re-render with the saved values.
+      revalidatePath('/dashboard');
+      revalidatePath(`/dashboard/edit/${slug}`);
       return { status: 'saved' };
     }
     if (result.reason === 'invalid') {
