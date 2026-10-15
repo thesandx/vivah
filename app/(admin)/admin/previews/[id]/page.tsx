@@ -1,0 +1,189 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+
+import {
+  deleteLeadAction,
+  reactivatePreviewAction,
+  restoreLeadAction,
+} from '@/app/(admin)/admin/actions';
+import { AdminActionForm } from '@/components/admin/AdminActionForm';
+import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
+import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
+import { CopyButton } from '@/components/admin/CopyButton';
+import { StateBadge } from '@/components/admin/StateBadge';
+import { AppBar } from '@/components/layout/AppBar';
+import { buttonStyles } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { ContactLink } from '@/components/ui/ContactLink';
+import { formatAdminTime, leadState } from '@/lib/admin-list';
+import { whatsAppChatUrl } from '@/lib/business';
+import { env } from '@/lib/env';
+import { formatPhoneForDisplay } from '@/lib/phone';
+import { siteOrigin } from '@/lib/seo';
+import { formatWeddingDate } from '@/lib/wedding-date';
+import { getLeadForAdmin } from '@/services/admin.service';
+import { getAdminSession } from '@/services/admin-session.service';
+import { getWeddingBySlug } from '@/services/wedding.service';
+
+/**
+ * `GET /admin/previews/<lead id>` — one preview: who asked, when it expires,
+ * and the buttons to reactivate it, send it again, delete or restore it.
+ */
+
+export const metadata: Metadata = {
+  title: 'Admin: preview',
+  description: 'Reactivate, resend or delete one invite preview.',
+  robots: { index: false, follow: false },
+};
+
+export const dynamic = 'force-dynamic';
+
+export default async function AdminPreviewPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<React.JSX.Element> {
+  if (!env.adminEnabled) notFound();
+  const session = await getAdminSession();
+  if (session === null) return <AdminSignInScreen />;
+
+  const { id } = await params;
+  const lead = await getLeadForAdmin(id);
+  if (lead === null) notFound();
+
+  const now = new Date();
+  const state = leadState(lead, now);
+  const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
+  const link = `${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`;
+  const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview: ${link} . It opens on the first phone you tap it on, and stays open for 48 hours.`;
+
+  return (
+    <>
+      <AppBar
+        title={`${lead.bride} & ${lead.groom}`}
+        back={{ fallbackHref: '/admin?view=previews', label: 'Back to all previews' }}
+        end={<AdminSignOutButton />}
+      />
+      <main className="mx-auto grid w-full max-w-5xl gap-6 px-5 py-6 sm:px-8 sm:py-10 lg:grid-cols-3 lg:items-start lg:gap-10">
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-8">
+          <div>
+            <StateBadge state={state} />
+          </div>
+          <dl className="text-small grid gap-2">
+            <div>
+              <dt className="text-ink-soft">Couple&apos;s WhatsApp</dt>
+              <dd>
+                <ContactLink kind="phone" value={formatPhoneForDisplay(lead.phoneE164)} />
+              </dd>
+            </div>
+            <div>
+              <dt className="text-ink-soft">Wedding date</dt>
+              <dd>
+                {lead.weddingDate === null ? 'Not given' : formatWeddingDate(lead.weddingDate)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-ink-soft">Asked</dt>
+              <dd>{formatAdminTime(lead.createdAt)}</dd>
+            </div>
+            <div>
+              <dt className="text-ink-soft">First opened</dt>
+              <dd>
+                {lead.firstOpenedAt === null ? 'Not yet' : formatAdminTime(lead.firstOpenedAt)}
+              </dd>
+            </div>
+            {lead.status !== 'paid' && (
+              <div>
+                <dt className="text-ink-soft">{state === 'expired' ? 'Expired' : 'Expires'}</dt>
+                <dd>{formatAdminTime(lead.expiresAt)}</dd>
+              </div>
+            )}
+          </dl>
+          {wedding !== null && (
+            <Link
+              href={`/admin/invites/${wedding.id}`}
+              className={buttonStyles({ variant: 'secondary' })}
+            >
+              Open the paid invite
+            </Link>
+          )}
+        </aside>
+
+        <div className="flex flex-col gap-6 lg:col-span-2">
+          {state !== 'paid' && state !== 'deleted' && (
+            <>
+              <Card className="flex flex-col gap-4">
+                <h2 className="text-heading">Send the preview again</h2>
+                <p className="text-small text-ink-soft">
+                  WhatsApp sending is not automatic yet. Copy the link, or open WhatsApp with the
+                  message typed in for you.
+                  {state === 'expired' && ' Reactivate it first: the link has expired.'}
+                </p>
+                <p className="text-small text-ink-soft break-all">{link}</p>
+                <div className="flex flex-wrap gap-3">
+                  <CopyButton value={link} />
+                  <a
+                    href={whatsAppChatUrl(lead.phoneE164, message)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonStyles({ variant: 'primary' })}
+                  >
+                    Send on WhatsApp
+                  </a>
+                </div>
+              </Card>
+
+              <Card className="flex flex-col gap-4">
+                <h2 className="text-heading">Reactivate</h2>
+                <p className="text-small text-ink-soft">
+                  Gives the link a fresh 48 hours and frees it from the first phone, so the couple
+                  can open it on any phone. The next phone to open it keeps it.
+                </p>
+                <AdminActionForm
+                  action={reactivatePreviewAction.bind(null, lead.id)}
+                  label="Reactivate preview"
+                  variant="primary"
+                  {...(state === 'opened' && {
+                    confirm: {
+                      title: 'Reactivate this preview?',
+                      body: 'The phone that opened it loses it until it taps the link again.',
+                      confirmLabel: 'Reactivate',
+                    },
+                  })}
+                />
+              </Card>
+            </>
+          )}
+
+          <Card className="flex flex-col gap-4">
+            <h2 className="text-heading">Delete</h2>
+            <p className="text-small text-ink-soft">
+              {lead.deletedAt === null
+                ? 'The preview link stops opening. A paid invite is not affected. You can restore it.'
+                : 'Deleted. The preview link does not open.'}
+            </p>
+            <AdminActionForm
+              key="delete"
+              {...(lead.deletedAt === null
+                ? {
+                    action: deleteLeadAction.bind(null, lead.id),
+                    label: 'Delete preview',
+                    confirm: {
+                      title: 'Delete this preview?',
+                      body: 'The couple can no longer open the preview link.',
+                      confirmLabel: 'Delete preview',
+                    },
+                  }
+                : {
+                    action: restoreLeadAction.bind(null, lead.id),
+                    label: 'Restore preview',
+                    variant: 'primary' as const,
+                  })}
+            />
+          </Card>
+        </div>
+      </main>
+    </>
+  );
+}

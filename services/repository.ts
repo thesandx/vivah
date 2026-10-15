@@ -369,6 +369,11 @@ export interface Repository<TPayload> {
   runTransaction<T>(
     fn: (repo: TransactionalRepository<TPayload>, tx: Transaction) => Promise<T>,
   ): Promise<T>;
+  /**
+   * This collection, bound to a transaction another repository opened. Use it
+   * when one transaction must read or write more than one collection.
+   */
+  inTransaction(tx: Transaction): TransactionalRepository<TPayload>;
   /** Collects up to 500 writes and commits them atomically. */
   batchWrite(fn: (repo: BatchedRepository<TPayload>, batch: WriteBatch) => void): Promise<void>;
 }
@@ -520,6 +525,43 @@ export function createRepository<TPayload extends Record<string, unknown>>(
     return query;
   }
 
+  /**
+   * The repository surface bound to `tx`. Shared by `runTransaction` and
+   * `inTransaction`, so a write is validated the same way in either.
+   */
+  function scopedTo(tx: Transaction): TransactionalRepository<TPayload> {
+    return {
+      async get(docId) {
+        const snapshot = await tx.get(ref().doc(docId));
+        return snapshot.data() ?? null;
+      },
+      create(payload) {
+        const docRef = db().collection(collection).doc();
+        tx.set(docRef, creationFields(payload));
+        return docRef.id;
+      },
+      createWithId(docId, payload, idOptions) {
+        assertDistributedId(docId, idOptions);
+        // `tx.create` fails the whole transaction when the document
+        // exists, which is what makes a read-then-create sequence safe
+        // against another instance doing the same thing concurrently.
+        tx.create(db().collection(collection).doc(docId), creationFields(payload));
+      },
+      update(docId, patch) {
+        tx.update(db().collection(collection).doc(docId), {
+          ...validatePatch(patch),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      },
+      softDelete(docId) {
+        tx.update(db().collection(collection).doc(docId), {
+          deletedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        });
+      },
+    };
+  }
+
   return {
     collection,
     ref,
@@ -632,39 +674,11 @@ export function createRepository<TPayload extends Record<string, unknown>>(
     async runTransaction<T>(
       fn: (repo: TransactionalRepository<TPayload>, tx: Transaction) => Promise<T>,
     ): Promise<T> {
-      return db().runTransaction(async (tx) => {
-        const scoped: TransactionalRepository<TPayload> = {
-          async get(docId) {
-            const snapshot = await tx.get(ref().doc(docId));
-            return snapshot.data() ?? null;
-          },
-          create(payload) {
-            const docRef = db().collection(collection).doc();
-            tx.set(docRef, creationFields(payload));
-            return docRef.id;
-          },
-          createWithId(docId, payload, idOptions) {
-            assertDistributedId(docId, idOptions);
-            // `tx.create` fails the whole transaction when the document
-            // exists, which is what makes a read-then-create sequence safe
-            // against another instance doing the same thing concurrently.
-            tx.create(db().collection(collection).doc(docId), creationFields(payload));
-          },
-          update(docId, patch) {
-            tx.update(db().collection(collection).doc(docId), {
-              ...validatePatch(patch),
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-          },
-          softDelete(docId) {
-            tx.update(db().collection(collection).doc(docId), {
-              deletedAt: FieldValue.serverTimestamp(),
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-          },
-        };
-        return fn(scoped, tx);
-      });
+      return db().runTransaction(async (tx) => fn(scopedTo(tx), tx));
+    },
+
+    inTransaction(tx): TransactionalRepository<TPayload> {
+      return scopedTo(tx);
     },
 
     async batchWrite(fn): Promise<void> {

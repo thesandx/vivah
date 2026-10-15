@@ -1,6 +1,6 @@
 ---
 name: add-page
-description: Add a new page (a route under app/) to this Next.js app, in the Mochi design language, mobile-first, with metadata and site-checklist compliance. Use when asked to create a page, screen, or route that renders UI.
+description: Add a new page (a route under app/) to this Next.js app, in the design language, mobile-first, with metadata and site-checklist compliance. Use when asked to create a page, screen, or route that renders UI.
 ---
 
 # Add a page

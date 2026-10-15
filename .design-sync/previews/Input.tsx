@@ -1,4 +1,4 @@
-import { Input } from 'nextjs-cloudrun-template';
+import { Input } from 'vivah';
 
 export const WithHint = () => (
   <div className="max-w-md">

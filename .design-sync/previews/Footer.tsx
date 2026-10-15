@@ -1,4 +1,4 @@
-import { Footer } from 'nextjs-cloudrun-template';
+import { Footer } from 'vivah';
 
 export const WithContact = () => (
   <div className="bg-paper">

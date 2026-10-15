@@ -1,4 +1,4 @@
-import { Avatar } from 'nextjs-cloudrun-template';
+import { Avatar } from 'vivah';
 
 export const Sizes = () => (
   <div className="flex items-end gap-4">

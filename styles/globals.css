@@ -1,81 +1,113 @@
 @import 'tailwindcss';
 
 /**
- * Mochi design language — tokens.
+ * Phera — the design tokens.
  *
  * The rulebook is .github/instructions/design-language.md. Read it before
  * changing anything here.
  *
+ * Phera is warm, round and festive: cream paper, plum ink, sindoor rose,
+ * soft 2px outlines and a "puff" shadow straight down. The colour names come
+ * from an Indian wedding (sindoor, haldi, marigold, mehendi, peacock, lotus).
+ *
  * Everything the app renders references a token, never a raw hex value.
  * Tailwind v4 turns each token into utilities: `--color-brand` becomes
- * `bg-brand`, `text-brand`, `border-brand`; `--shadow-mochi` becomes
- * `shadow-mochi`; `--radius-card` becomes `rounded-card`.
+ * `bg-brand`, `text-brand`, `border-brand`; `--shadow-hard` becomes
+ * `shadow-hard`; `--radius-card` becomes `rounded-card`.
  *
  * Themes (bottom of this file) only re-assign these variables. A product
  * picks a theme with `data-theme` on <html>. Components never know which
  * theme is active.
  */
 @theme {
-  /* Surfaces */
-  --color-paper: #fff7fa; /* page background — strawberry milk, not cream */
+  /* Surfaces — warm paper, never a cold white page */
+  --color-paper: #fffcf8; /* page background, cream-50 */
   --color-surface: #ffffff; /* cards, inputs, sheets */
-  --color-sunken: #fdeaf1; /* wells, code, disabled fills */
+  --color-sunken: #fdefe4; /* wells, code, disabled fills, cream-200 */
 
-  /* Ink — text AND outlines. Deep grape, never pure black. */
-  --color-ink: #2a2250;
-  --color-ink-soft: #5b5385; /* secondary text; 5.9:1 on paper */
-  --color-line: #2a2250;
+  /* Ink — text. Plum, a warm near-black; Phera never uses pure black. */
+  --color-ink: #3d1f2e; /* 15:1 on paper */
+  --color-ink-soft: #8a6274; /* secondary text; 5.0:1 on paper, 4.6:1 on sunken */
+  /* Outlines are soft plum, not ink. 2px, so they still read next to Huninn. */
+  --color-line: #e6d6dd;
 
-  /* Brand — the one colour that means "do this" */
-  --color-brand: #ff6f9c; /* strawberry; ink text on it is 5.5:1 */
-  --color-brand-soft: #ffd6e3;
+  /* Brand — sindoor rose, the one colour that means "do this". Rose 600, not
+     the lighter rose 500, so white text on it passes AA (4.8:1). */
+  --color-brand: #d62e55;
+  --color-brand-soft: #ffe6ee; /* rose-100 */
+  --color-brand-deep: #b01f45; /* the puff under a brand-filled button */
+  --color-on-brand: #ffffff; /* text and icons on a brand fill */
 
-  /* Candy tones — for identity (games, avatars, tags), never for meaning */
-  --color-butter: #ffd84a;
-  --color-soda: #7adbcb;
-  --color-grape: #c3b3ff;
-  --color-peach: #ffb38a;
+  /* Festival tones — for identity (avatars, tags, ceremonies), never for meaning */
+  --color-butter: #ffce3d; /* haldi */
+  --color-soda: #8ad2d6; /* peacock */
+  --color-grape: #d2b0e6; /* lotus */
+  --color-peach: #ffb759; /* marigold */
+  --color-gold: #c9922b; /* gold leaf: dividers and foil accents */
 
   /* Face details */
-  --color-blush: #ff9db8;
+  --color-blush: #ffa3bc;
 
-  /* Status — always paired with an icon or words, never colour alone */
-  --color-danger: #ff7a6b;
-  --color-success: #7adbcb;
+  /* Status — always paired with an icon or words, never colour alone.
+     The strong tone is for outlines and dots; the soft tone is a fill
+     under ink text. */
+  --color-danger: #d33b49;
+  --color-danger-soft: #fde5e7;
+  --color-success: #3f8a54;
+  --color-success-soft: #e1f3e5;
 
-  /* Type. The font variables come from next/font/local in app/layout.tsx. */
-  --font-display: var(--font-mochiy), 'Arial Rounded MT Bold', ui-rounded, system-ui, sans-serif;
+  /* WhatsApp's own green, for the WhatsApp button only. People know it on
+     sight, so it stays the same in every theme. */
+  --color-whatsapp: #1da851; /* a shade darker than #25d366, so white reaches 3:1 */
+
+  /* Focus — peacock, so a focus ring never reads as the brand */
+  --color-focus: #2c9fa8;
+
+  /* Type. The font variables come from next/font/local in app/layout.tsx.
+     Huninn has one weight; Baloo 2 carries 500-800 and all Devanagari. */
+  --font-display:
+    var(--font-huninn), var(--font-baloo), var(--font-baloo-devanagari), ui-rounded,
+    'Hiragino Maru Gothic ProN', system-ui, sans-serif;
   --font-sans:
-    var(--font-zen-maru), ui-rounded, 'Hiragino Maru Gothic ProN', system-ui, -apple-system,
-    'Segoe UI', sans-serif;
+    var(--font-huninn), var(--font-baloo), var(--font-baloo-devanagari), ui-rounded,
+    'Hiragino Maru Gothic ProN', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Numbers, badges and anything that needs a real bold weight. */
+  --font-weighted:
+    var(--font-baloo), var(--font-huninn), var(--font-baloo-devanagari), ui-rounded, system-ui,
+    sans-serif;
+  /* The flowing script for names on a wedding invite. Only the Shubh Vivah
+     theme gives it a real typeface; elsewhere it falls back to the display face. */
+  --font-script: var(--font-display);
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
 
   /* Type scale — only these sizes exist */
   --text-hero: clamp(2.25rem, 1.4rem + 4.5vw, 4rem);
-  --text-hero--line-height: 1.08;
+  --text-hero--line-height: 1.06;
   --text-title: clamp(1.625rem, 1.3rem + 1.6vw, 2.25rem);
   --text-title--line-height: 1.15;
-  --text-heading: 1.25rem;
-  --text-heading--line-height: 1.3;
+  --text-heading: 1.1875rem;
+  --text-heading--line-height: 1.35;
   --text-body: 1rem;
   --text-body--line-height: 1.65;
   --text-small: 0.875rem;
-  --text-small--line-height: 1.5;
+  --text-small--line-height: 1.55;
   --text-key: clamp(2rem, 1.2rem + 4vw, 3rem); /* room keys, scores, big numbers */
   --text-key--line-height: 1;
 
-  /* Radius — a hierarchy, not one value for everything */
-  --radius-box: 8px; /* checkboxes: 14px on a 28px box would read as a radio */
-  --radius-input: 14px;
-  --radius-card: 22px;
-  --radius-sheet: 32px;
+  /* Radius — Phera is round. Nothing has a sharp corner. */
+  --radius-box: 8px; /* checkboxes: a larger radius on a 28px box would read as a radio */
+  --radius-input: 18px;
+  --radius-card: 28px;
+  --radius-sheet: 40px;
   --radius-pill: 999px;
 
-  /* Shadows — hard, straight down, ink coloured. The "mochi base". */
-  --shadow-mochi: 0 4px 0 0 var(--color-line);
-  --shadow-mochi-sm: 0 2px 0 0 var(--color-line);
-  --shadow-mochi-lg: 0 6px 0 0 var(--color-line);
-  --shadow-mochi-pressed: 0 1px 0 0 var(--color-line);
+  /* Shadows — the "puff": hard, straight down, no blur, in soft plum. */
+  --shadow-hard: 0 4px 0 0 var(--color-line);
+  --shadow-hard-sm: 0 2px 0 0 var(--color-line);
+  --shadow-hard-lg: 0 6px 0 0 var(--color-line);
+  --shadow-hard-pressed: 0 1px 0 0 var(--color-line);
+  /* The puff under a brand fill is a darker rose, not plum. */
+  --shadow-brand: 0 4px 0 0 var(--color-brand-deep);
 
   /* Motion */
   --ease-squish: cubic-bezier(0.34, 1.56, 0.64, 1); /* overshoots — for things that pop */
@@ -108,6 +140,26 @@
   --animate-slide-in-back: slide-in-back 320ms var(--ease-settle) backwards;
   --animate-check: check 320ms var(--ease-squish) backwards;
   --animate-breathe: breathe 1.4s ease-in-out infinite;
+  /* The wedding envelope: the seal breaks, the flap folds back, the envelope
+     drops away. 1.2 s end to end; `components/invite/Envelope.tsx` waits the
+     same time before it removes the envelope. */
+  --animate-seal-break: seal-break 360ms var(--ease-settle) forwards;
+  --animate-flap-open: flap-open 480ms 240ms var(--ease-settle) forwards;
+  --animate-petal-fall: petal-fall 14s linear infinite;
+  --animate-envelope-away: envelope-away 520ms 680ms var(--ease-settle) forwards;
+  /* The sign-up card's send: the envelope pulls back, then zooms off to the
+     right as its speed lines streak behind it. `components/lead/SendMoment.tsx`
+     waits the same 760 ms before it shows the tick. */
+  --animate-fly-away: fly-away 760ms var(--ease-settle) forwards;
+  --animate-speed-line: speed-line 760ms var(--ease-settle) forwards;
+  /* The home page carousels: a slow, endless drift to the left. The track
+     holds the list twice and moves by half, so the loop has no seam. */
+  --animate-marquee: marquee 80s linear infinite;
+  --animate-marquee-reverse: marquee 90s linear infinite reverse;
+  /* The home page's "How it works" steps: a bar fills under the highlighted
+     step, and the next step lights up when it is full. 5 s, the same as
+     STEP_INTERVAL_MS in lib/how-it-works.ts. */
+  --animate-step-progress: step-progress 5s linear both;
 
   @keyframes page-enter {
     from {
@@ -147,6 +199,77 @@
     from {
       opacity: 0;
       transform: scale(0.3);
+    }
+  }
+
+  @keyframes seal-break {
+    to {
+      transform: scale(1.35);
+      opacity: 0;
+    }
+  }
+
+  @keyframes flap-open {
+    to {
+      transform: scaleY(-1);
+    }
+  }
+
+  @keyframes petal-fall {
+    from {
+      transform: translate3d(0, -10vh, 0) rotate(0deg);
+    }
+    to {
+      transform: translate3d(6vw, 110vh, 0) rotate(540deg);
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  @keyframes fly-away {
+    25% {
+      transform: translateX(-12%) rotate(-6deg);
+    }
+    100% {
+      transform: translateX(170%) scale(0.5);
+      opacity: 0;
+    }
+  }
+
+  @keyframes speed-line {
+    0% {
+      transform: scaleX(0.2);
+    }
+    35% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(60%) scaleX(0.3);
+      opacity: 0;
+    }
+  }
+
+  @keyframes envelope-away {
+    to {
+      transform: translateY(40%);
+      opacity: 0;
+    }
+  }
+
+  @keyframes step-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
     }
   }
 
@@ -198,7 +321,7 @@
 /* ------------------------------------------------------------------ */
 
 @layer base {
-  /* Playroom and party products. This is the default, so no selector. */
+  /* Phera is the default, so it has no selector. */
 
   /* Calm — wellness, habit and utility apps. Softer brand, lower bases. */
   [data-theme='calm'] {
@@ -206,8 +329,34 @@
     --color-sunken: #e3f4ef;
     --color-brand: #7adbcb;
     --color-brand-soft: #d5f3ec;
-    --shadow-mochi: 0 3px 0 0 var(--color-line);
-    --shadow-mochi-lg: 0 4px 0 0 var(--color-line);
+    --shadow-hard: 0 3px 0 0 var(--color-line);
+    --shadow-hard-lg: 0 4px 0 0 var(--color-line);
+  }
+
+  /* Shubh Vivah — the traditional wedding invite. Marigold, maroon and gold
+     on ivory, with a serif display face and a script for the couple's names.
+     Ceremonial, so it spends no cute budget: see design-language.md > Themes.
+     Applied by `InviteTheme` to a couple's invite and the preview card. */
+  [data-theme='shubh-vivah'] {
+    --color-paper: #fbf3e4; /* ivory card stock */
+    --color-surface: #fffaf0;
+    --color-sunken: #f4e4c4;
+    --color-ink: #5a1020; /* deep maroon; 11:1 on paper */
+    --color-ink-soft: #7d3a2c; /* 6.4:1 on paper */
+    --color-line: #5a1020;
+    --color-brand: #8e1b2c; /* maroon: the envelope and the seal */
+    --color-brand-soft: #f2c46d; /* marigold */
+    --color-butter: #c99a3b; /* antique gold: borders and ornaments */
+    --color-peach: #e8782a; /* marigold orange, for the flower dots */
+    --color-soda: #5f7d32; /* leaf green, for the garland */
+    --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+    --font-script: var(--font-great-vibes), var(--font-cormorant), Georgia, serif;
+    --color-focus: #8e1b2c;
+    /* The invite keeps a hard base in deep maroon, as printed card stock. */
+    --shadow-hard: 0 4px 0 0 var(--color-line);
+    --shadow-hard-sm: 0 2px 0 0 var(--color-line);
+    --shadow-hard-lg: 0 6px 0 0 var(--color-line);
+    --shadow-hard-pressed: 0 1px 0 0 var(--color-line);
   }
 
   /* Night — dark products (map trackers, gaming companions). */
@@ -228,6 +377,41 @@
 /* ------------------------------------------------------------------ */
 
 @layer base {
+  /* Date and time fields. iOS Safari gives them an intrinsic width wider than
+     a phone column and centres the value, so the field overflows the card and
+     looks skewed. Drop the native look, let the field shrink, and set the value
+     at the start like every other field. `Input` draws its own calendar icon. */
+  input[type='date'],
+  input[type='time'] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+    /* iOS Safari sets a picked value at the top of the box, not in the middle.
+       A fixed height with a line as tall as the inside (the field's 52px less
+       its 2px borders) centres it on every browser. */
+    height: 3.25rem;
+    padding-block: 0;
+    line-height: calc(3.25rem - 4px);
+  }
+  input[type='date']::-webkit-date-and-time-value,
+  input[type='time']::-webkit-date-and-time-value {
+    margin: 0;
+    padding: 0;
+    line-height: inherit;
+    text-align: start;
+  }
+  /* Chrome's picker button covers the whole field, invisible, so a tap
+     anywhere opens the calendar and the drawn icon is the only one shown. */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     /* App posture: no grey flash on tap. The squish is the press feedback. */
@@ -252,6 +436,9 @@
     font-family: var(--font-sans);
     font-size: var(--text-body);
     line-height: 1.65;
+    /* Huninn has one weight. A bold request stays at 400 instead of a smeared
+       fake bold; use font-weighted (Baloo 2) when a real weight matters. */
+    font-synthesis-weight: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
   }
@@ -260,7 +447,7 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 400; /* Mochiy Pop One has one weight. Never fake-bold it. */
+    font-weight: 400; /* Huninn has one weight. Never fake-bold it. */
     text-wrap: balance;
   }
 
@@ -269,12 +456,12 @@
   }
 
   ::selection {
-    background: var(--color-butter);
-    color: #2a2250;
+    background: var(--color-brand-soft);
+    color: var(--color-ink);
   }
 
   :focus-visible {
-    outline: 3px solid var(--color-brand);
+    outline: 3px solid var(--color-focus);
     outline-offset: 3px;
   }
 
@@ -290,22 +477,65 @@
   }
 }
 
+/* The marquee: a carousel stops while a pointer is on it or a card has
+   focus, so a visitor can read a card. Used by Marquee only. */
+@utility marquee-pause {
+  &:hover > *,
+  &:focus-within > * {
+    animation-play-state: paused;
+  }
+}
+
+/* The "How it works" steps: the highlighted step's bar stops filling while a
+   pointer is on the section or a step has focus. Used by HowItWorks only. */
+@utility steps-pause {
+  &:hover *,
+  &:focus-within * {
+    animation-play-state: paused;
+  }
+}
+
 /* The squish: a pressable thing sinks onto its base. Used by Button and by
    any custom pressable surface. Do not re-implement it with other values. */
 @utility squish {
   transition:
     transform 160ms var(--ease-squish),
     box-shadow 160ms var(--ease-squish);
-  box-shadow: var(--shadow-mochi);
+  box-shadow: var(--shadow-hard);
 
   &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 5px 0 0 var(--color-line);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 0 var(--color-line);
   }
 
   &:active {
     transform: translateY(3px);
-    box-shadow: var(--shadow-mochi-pressed);
+    box-shadow: var(--shadow-hard-pressed);
+  }
+
+  &:disabled,
+  &[aria-disabled='true'] {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* The squish on a brand fill: the same motion, sinking onto a darker rose
+   base instead of plum. Used by the primary Button. */
+@utility squish-brand {
+  transition:
+    transform 160ms var(--ease-squish),
+    box-shadow 160ms var(--ease-squish);
+  box-shadow: var(--shadow-brand);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 0 var(--color-brand-deep);
+  }
+
+  &:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 0 var(--color-brand-deep);
   }
 
   &:disabled,

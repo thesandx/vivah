@@ -48,7 +48,7 @@ const noImportingApp = {
 };
 
 /**
- * The Mochi design language, enforced.
+ * The design language, enforced.
  *
  * Every rule here is written in .github/instructions/design-language.md. The
  * checks look inside `className` — both the string form and the strings passed
@@ -83,7 +83,7 @@ const designTokenSelectors = [
   {
     pattern: `${DESIGN.head}(bg|text|border|fill|stroke|ring|decoration|outline|divide|accent|caret|from|via|to)-(black|white|slate|gray|grey|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)(-\\d{2,3})?${DESIGN.tail}`,
     message:
-      'That is a default Tailwind colour, not a Mochi one. Text and outlines use `ink` and `line` — never black, white or a grey. Fills use `paper`, `surface`, `sunken`, `brand` or a candy tone. See design-language.md rules 3 and 9.',
+      'That is a default Tailwind colour, not a design-language one. Text and outlines use `ink` and `line` — never black, white or a grey. Fills use `paper`, `surface`, `sunken`, `brand` or a festival tone. See design-language.md rules 3 and 9.',
   },
   {
     pattern: `${DESIGN.head}text-(xs|sm|base|lg|xl|[2-9]xl)${DESIGN.tail}`,
@@ -98,7 +98,7 @@ const designTokenSelectors = [
   {
     pattern: `${DESIGN.head}shadow(-(2xs|xs|sm|md|lg|xl|2xl|inner|none))?${DESIGN.tail}`,
     message:
-      'Shadows are hard and straight down: `shadow-mochi-sm`, `shadow-mochi`, `shadow-mochi-lg`. A blurred grey shadow is not part of this language. See design-language.md rule 5.',
+      'Shadows are hard and straight down: `shadow-hard-sm`, `shadow-hard`, `shadow-hard-lg`. A blurred grey shadow is not part of this language. See design-language.md rule 5.',
   },
   {
     pattern: `${DESIGN.head}rounded-(none|xs|sm|md|lg|xl|[2-4]xl)${DESIGN.tail}`,

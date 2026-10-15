@@ -7,14 +7,21 @@ Where every file goes, and why. **This layout is fixed** — see rule 1 in [codi
 ```
 .
 ├── app/                    # Next.js App Router: routes, layouts, route handlers
+│   ├── (main)/             #   The product site: its shell (header, footer)
+│   │   ├── layout.tsx      #     and its pages, including GET / (the lead form)
+│   │   └── example/        #     EXAMPLE — the page that uses the example API
+│   ├── (invite)/           #   A couple's invite and the private preview. No product shell
+│   │   ├── preview/[id]/   #     The preview, with the address picker and its Server Actions (ADR-0007)
+│   │   └── site/[slug]/    #     The couple's invite in the Shubh Vivah theme; [guest]/ greets one guest
 │   ├── api/                #   Route handlers (server-side HTTP endpoints)
 │   │   ├── health/         #     GET /api/health — liveness probe
+│   │   ├── leads/          #     POST /api/leads — anonymous lead capture (ADR-0006)
+│   │   ├── og/[slug]/      #     GET /api/og/<slug> — the invite's link preview image
 │   │   └── example/        #     EXAMPLE — data layer endpoints, delete these
-│   ├── example/            #   EXAMPLE — the page that uses them
+│   ├── p/[id]/             #   GET /p/<lead id> — binds a preview link to a browser
 │   ├── error.tsx           #   Route-segment error boundary (Client Component)
-│   ├── layout.tsx          #   Root layout — must stay a Server Component
-│   ├── not-found.tsx       #   404 page
-│   └── page.tsx            #   GET / — template home page, built from components/ui/
+│   ├── layout.tsx          #   Root layout: document, fonts, theme. Server Component
+│   └── not-found.tsx       #   404 page
 │
 ├── components/             # Reusable React components
 │   ├── ui/                 #   Presentational primitives: Button, Card, Input
@@ -91,6 +98,7 @@ Where every file goes, and why. **This layout is fixed** — see rule 1 in [codi
 ├── Dockerfile              # Multi-stage production image
 ├── docker-compose.yml      # Run the production image locally
 ├── next.config.ts
+├── proxy.ts                # Host routing: a couple's host → their invite page
 ├── tsconfig.json
 ├── eslint.config.mjs
 ├── vitest.config.ts

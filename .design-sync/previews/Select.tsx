@@ -1,4 +1,4 @@
-import { Select } from 'nextjs-cloudrun-template';
+import { Select } from 'vivah';
 
 const GAMES = [
   { value: 'bingo', label: 'Bingo' },

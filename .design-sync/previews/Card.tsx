@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, Input, Sticker } from 'nextjs-cloudrun-template';
+import { Avatar, Button, Card, Input, Sticker } from 'vivah';
 
 export const JoinForm = () => (
   <div className="max-w-md pt-8">

@@ -1,5 +1,5 @@
-// Design-sync entry: the Mochi primitives and the app shell, as one module.
-// The converter bundles this into window.Mochi. Feature folders
+// Design-sync entry: the design-language primitives and the app shell, as one module.
+// The converter bundles this into window.VivahUI. Feature folders
 // (auth, example, profile, design) are app code, not the design system.
 export * from '../components/ui/Alert';
 export * from '../components/ui/Avatar';
@@ -31,4 +31,3 @@ export * from '../components/layout/Header';
 export * from '../components/layout/MobileMenu';
 export * from '../components/layout/PageShell';
 export * from '../components/layout/SiteHeader';
-export * from '../components/layout/TabBar';

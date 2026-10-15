@@ -1,4 +1,4 @@
-import { Sticker } from 'nextjs-cloudrun-template';
+import { Sticker } from 'vivah';
 
 export const Kinds = () => (
   <div className="flex items-center gap-6">

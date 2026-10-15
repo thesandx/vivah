@@ -1,4 +1,4 @@
-import { ContactLink } from 'nextjs-cloudrun-template';
+import { ContactLink } from 'vivah';
 
 export const PhoneAndEmail = () => (
   <div className="flex flex-wrap gap-x-6">
