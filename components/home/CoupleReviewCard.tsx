@@ -58,7 +58,7 @@ export function CoupleReviewCard({
         decoding="async"
         className="absolute inset-0 -z-10 size-full object-cover"
       />
-      <div className="from-ink via-ink/80 text-on-brand flex flex-col gap-3 bg-linear-to-t to-transparent px-5 pt-24 pb-6 text-center">
+      <div className="from-ink via-ink/85 text-on-brand flex flex-col gap-3 bg-linear-to-t to-transparent px-5 pt-32 pb-6 text-center">
         <Stars count={stars} />
         <span className="sr-only">{stars} out of 5 stars</span>
         <blockquote className="line-clamp-6 font-semibold">{quote}</blockquote>
