@@ -1,22 +1,24 @@
 import { Footer } from '@/components/layout/Footer';
 import { SiteHeader } from '@/components/layout/SiteHeader';
+import { SocialLinks } from '@/components/layout/SocialLinks';
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton';
-import { BUSINESS } from '@/lib/business';
+import { BUSINESS, SOCIAL, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
 
 /**
- * The footer: the guides first, then help and the policy pages the consumer
- * rules and the payment provider ask for. See the PRD, "Legal and policies".
+ * The footer: the pages the consumer rules and the payment provider ask for,
+ * by the names a payment reviewer looks for, then the guides. See the PRD,
+ * "Legal and policies".
  */
 const FOOTER_LINKS = [
+  { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/terms', label: 'Terms & Conditions' },
+  { href: '/privacy', label: 'Privacy Policy' },
+  { href: '/refund-policy', label: 'Refund Policy' },
+  { href: '/delivery-policy', label: 'Shipping & Delivery' },
   { href: '/whatsapp-wedding-invitation', label: 'WhatsApp invitation' },
   { href: '/guides/wedding-invitation-message-whatsapp', label: 'Invitation messages' },
-  { href: '/about', label: 'About us' },
-  { href: '/contact', label: 'Contact' },
-  { href: '/privacy', label: 'Privacy' },
-  { href: '/terms', label: 'Terms' },
-  { href: '/refund-policy', label: 'Refunds and cancellation' },
-  { href: '/delivery-policy', label: 'Delivery' },
 ] as const;
 
 /**
@@ -39,7 +41,21 @@ export default function MainLayout({ children }: Readonly<{ children: React.Reac
     <div className="flex flex-1 flex-col pb-24 md:pb-0">
       <SiteHeader appName={env.appName} />
       {children}
-      <Footer owner={env.appName} contact={{ email: BUSINESS.email }} links={FOOTER_LINKS} />
+      <Footer
+        brand={env.appName}
+        owner={env.appName}
+        links={FOOTER_LINKS}
+        social={
+          <SocialLinks
+            instagram={SOCIAL.instagram.url}
+            facebook={SOCIAL.facebook.url}
+            whatsApp={whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO)}
+            email={BUSINESS.email}
+          />
+        }
+      >
+        {BUSINESS.natureOfService}
+      </Footer>
       <WhatsAppButton />
     </div>
   );

@@ -25,8 +25,20 @@ export const BUSINESS = {
     'We are a small team. A real person reads every message, and we fix your issue as soon as we can.',
   /** When a support message gets an answer. */
   hours: '9 am to 9 pm IST, every day',
+  /** What we sell, in one line. The footer prints it for the payment provider. */
+  natureOfService: 'Digital invitation service. No physical products are shipped.',
   /** The date the policy pages last changed, `YYYY-MM-DD`. */
   policiesUpdated: '2026-10-14',
+} as const;
+
+/**
+ * Our public social profiles. The footer links them, and the home page's
+ * `Organization` schema lists them as `sameAs`, so search engines join them
+ * to the site.
+ */
+export const SOCIAL = {
+  instagram: { url: 'https://www.instagram.com/vivah.online/', handle: '@vivah.online' },
+  facebook: { url: 'https://www.facebook.com/profile.php?id=61595459818394' },
 } as const;
 
 /**

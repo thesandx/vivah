@@ -6,6 +6,7 @@ import {
   faqPageSchema,
   formatUpdated,
   MARKETING_PAGES,
+  organizationSchema,
   robotsFor,
   sitemapEntries,
   siteOrigin,
@@ -92,6 +93,14 @@ describe('schema', () => {
     });
     expect(article.dateModified).toBe(article.datePublished);
     expect(article.mainEntityOfPage).toBe(`${ORIGIN}/guides/x`);
+  });
+
+  it('joins the organisation to its Instagram and Facebook profiles', () => {
+    const graph = organizationSchema(ORIGIN, 'vivah.online')['@graph'] as Record<string, unknown>[];
+    expect(graph[0]?.sameAs).toEqual([
+      'https://www.instagram.com/vivah.online/',
+      'https://www.facebook.com/profile.php?id=61595459818394',
+    ]);
   });
 });
 
