@@ -15,7 +15,7 @@ export interface AppTab {
 
 export const APP_TABS: readonly AppTab[] = [
   { href: '/', label: 'Home' },
-  { href: '/dashboard', label: 'My invites' },
+  { href: '/dashboard', label: 'My site' },
   { href: '/contact', label: 'Help' },
 ];
 

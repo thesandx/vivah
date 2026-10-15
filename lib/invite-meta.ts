@@ -10,7 +10,7 @@
 
 import type { Metadata } from 'next';
 
-import { guestPath } from '@/lib/guest-name';
+import { encodeGuestSegment, guestPath } from '@/lib/guest-name';
 import { inviteUrl } from '@/lib/site-host';
 import { formatShortWeddingDate, formatWeddingDate } from '@/lib/wedding-date';
 
@@ -24,6 +24,11 @@ export interface InviteMetaInput {
   weddingDate: string | null;
   /** The parsed guest name, or `null` for the couple's plain link. */
   guestName: string | null;
+  /**
+   * The guest's path segment as shared, such as `Rahul-2` for a second Rahul.
+   * The page's own URL keeps it. Omit to derive it from `guestName`.
+   */
+  guestSegment?: string;
   /** The product's root domain; empty when host routing is off. */
   rootDomain: string;
   /** The app's own URL, used when host routing is off. */
@@ -83,7 +88,12 @@ export function inviteMetadata(input: InviteMetaInput): Metadata {
     input.guestName,
   );
   const origin = inviteOrigin(input.slug, input.rootDomain, input.appUrl);
-  const url = input.guestName === null ? origin : `${origin}${guestPath(input.guestName)}`;
+  const url =
+    input.guestName === null
+      ? origin
+      : input.guestSegment === undefined
+        ? `${origin}${guestPath(input.guestName)}`
+        : `${origin}/${encodeGuestSegment(input.guestSegment)}`;
   const image = {
     url: ogImageUrl(input),
     width: OG_IMAGE_WIDTH,

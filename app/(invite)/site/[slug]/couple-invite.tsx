@@ -9,7 +9,8 @@ import { env } from '@/lib/env';
 import { coupleInitials, parseGuestName } from '@/lib/guest-name';
 import { inviteMetadata } from '@/lib/invite-meta';
 import { madeByUrl } from '@/lib/site-host';
-import { getWeddingBySlug } from '@/services/wedding.service';
+import { isGuestLinkDeleted } from '@/services/guest-link.service';
+import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
 
 /**
  * The couple's invite, shared by the plain link (`sara.vivah.online`) and a
@@ -20,9 +21,19 @@ import { getWeddingBySlug } from '@/services/wedding.service';
 /** One Firestore read per request, shared by the metadata and the page. */
 const loadWedding = cache(getWeddingBySlug);
 
-/** The guest name from the path, or `null` for no segment or an unusable one. */
-function guestFrom(segment: string | null): string | null {
-  return segment === null ? null : parseGuestName(segment);
+/** One guest-link read per request, shared by the metadata and the page. */
+const loadDeleted = cache(isGuestLinkDeleted);
+
+/**
+ * The guest name from the path, or `null` for no segment, an unusable one, or
+ * a link the couple deleted in the dashboard. A deleted link shows the
+ * couple's general invite, not an error.
+ */
+async function guestFrom(wedding: WeddingDocument, segment: string | null): Promise<string | null> {
+  if (segment === null) return null;
+  const name = parseGuestName(segment);
+  if (name === null) return null;
+  return (await loadDeleted(wedding.id, segment)) ? null : name;
 }
 
 export async function coupleInviteMetadata(
@@ -35,12 +46,14 @@ export async function coupleInviteMetadata(
     return { title: 'Invite not available', robots: { index: false } };
   }
 
+  const guestName = await guestFrom(wedding, guestSegment);
   return inviteMetadata({
     slug: wedding.slug,
     bride: wedding.bride,
     groom: wedding.groom,
     weddingDate: wedding.weddingDate,
-    guestName: guestFrom(guestSegment),
+    guestName,
+    ...(guestName !== null && guestSegment !== null && { guestSegment }),
     rootDomain: env.rootDomain,
     appUrl: env.appUrl,
   });
@@ -61,7 +74,7 @@ export async function CoupleInvite({
   const wedding = await loadWedding(slug);
   if (wedding === null) notFound();
   if (wedding.status === 'unavailable') return <InviteUnavailable />;
-  const guestName = guestFrom(guestSegment);
+  const guestName = await guestFrom(wedding, guestSegment);
 
   return (
     <Envelope
