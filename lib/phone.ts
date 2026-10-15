@@ -87,3 +87,16 @@ export function formatPhoneForDisplay(e164: string): string {
   const split = Math.ceil(national.length / 2);
   return `+${country.dialCode} ${national.slice(0, split)} ${national.slice(split)}`;
 }
+
+/**
+ * What the sign-up card keeps of a typed or autofilled Indian mobile number:
+ * at most 10 digits. Autofill often stores the number as `09876543210` or
+ * `+91 98765 43210`, so a leading `0` on 11 digits and a leading `91` on 12
+ * digits are dropped first.
+ */
+export function indianMobileDigits(typed: string): string {
+  let digits = typed.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('0')) digits = digits.slice(1);
+  if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
+  return digits.slice(0, 10);
+}

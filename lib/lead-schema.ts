@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { DEFAULT_DIAL_COUNTRY, DIAL_COUNTRIES, toE164 } from '@/lib/phone';
+import { toE164 } from '@/lib/phone';
 import { todayInIndia } from '@/lib/wedding-date';
 
 /**
@@ -42,14 +42,13 @@ export const weddingDateSchema = z.iso
     `Pick a date in the next ${MAX_YEARS_AHEAD} years.`,
   );
 
-const countryIsos = DIAL_COUNTRIES.map((country) => country.iso) as [string, ...string[]];
-
 export const leadRequestSchema = z
   .object({
     bride: coupleNameSchema,
     groom: coupleNameSchema,
     weddingDate: weddingDateSchema.nullable(),
-    countryIso: z.enum(countryIsos).default(DEFAULT_DIAL_COUNTRY),
+    /** Indian numbers only: the couples and our WhatsApp templates are in India. */
+    countryIso: z.literal('IN', 'We accept Indian (+91) numbers only.').default('IN'),
     phone: z.string().trim().min(1, 'Enter your WhatsApp number.').max(20),
     /** The consent tick. WhatsApp's policy needs an explicit opt-in. */
     consent: z.literal(true, 'Tick the box so we can send your preview on WhatsApp.'),

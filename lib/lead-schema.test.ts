@@ -60,4 +60,8 @@ describe('leadRequestSchema', () => {
     const { countryIso: _unused, ...withoutCountry } = VALID;
     expect(leadRequestSchema.parse(withoutCountry).phoneE164).toBe('+919876543210');
   });
+
+  it('refuses a number from outside India', () => {
+    expect(leadRequestSchema.safeParse({ ...VALID, countryIso: 'US' }).success).toBe(false);
+  });
 });

@@ -364,6 +364,33 @@
 /* ------------------------------------------------------------------ */
 
 @layer base {
+  /* Date and time fields. iOS Safari gives them an intrinsic width wider than
+     a phone column and centres the value, so the field overflows the card and
+     looks skewed. Drop the native look, let the field shrink, and set the value
+     at the start like every other field. `Input` draws its own calendar icon. */
+  input[type='date'],
+  input[type='time'] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    min-width: 0;
+  }
+  input[type='date']::-webkit-date-and-time-value,
+  input[type='time']::-webkit-date-and-time-value {
+    margin: 0;
+    text-align: start;
+  }
+  /* Chrome's picker button covers the whole field, invisible, so a tap
+     anywhere opens the calendar and the drawn icon is the only one shown. */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
     /* App posture: no grey flash on tap. The squish is the press feedback. */
