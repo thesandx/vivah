@@ -13,23 +13,17 @@ export interface AppBarProps {
 }
 
 /**
- * The top of an app screen: back arrow, title, one optional action. On a phone
- * it sticks to the top, so the way back is always in reach on a long page.
+ * The top of an app screen: back arrow, title, one optional action. It
+ * scrolls with the page as its heading. The sticky `SiteHeader` above it is
+ * the only chrome that stays in view, so two bars never stack on a phone.
  *
- * From `md` up the `SiteHeader` sticks instead, so the bar becomes the page's
- * heading: it scrolls with the page, loses its outline, and lines up with the
- * page frame.
+ * From `md` up the bar loses its outline and lines up with the page frame.
  *
  * A Server Component; only the back arrow ships as JavaScript.
  */
 export function AppBar({ title, back, end, className }: AppBarProps) {
   return (
-    <div
-      className={cn(
-        'bg-paper border-line sticky top-0 z-20 border-b-2 md:static md:border-b-0',
-        className,
-      )}
-    >
+    <div className={cn('bg-paper border-line border-b-2 md:border-b-0', className)}>
       <div className="mx-auto flex min-h-16 w-full max-w-5xl items-center gap-3 px-4 py-2 sm:px-8 md:pt-10">
         {back !== undefined && <BackButton {...(back === true ? {} : back)} />}
         {/* py-1: `truncate` clips to the line box, and the display face's

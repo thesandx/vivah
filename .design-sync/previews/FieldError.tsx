@@ -1,4 +1,4 @@
-import { FieldError } from 'nextjs-cloudrun-template';
+import { FieldError } from 'vivah';
 
 export const Default = () => <FieldError>Keys are 6 letters or numbers.</FieldError>;
 

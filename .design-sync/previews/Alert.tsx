@@ -1,4 +1,4 @@
-import { Alert, Button } from 'nextjs-cloudrun-template';
+import { Alert, Button } from 'vivah';
 
 export const Success = () => (
   <Alert tone="success" title="Room created.">

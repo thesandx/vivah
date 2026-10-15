@@ -136,16 +136,20 @@ describe('site checklist', () => {
     expect(heavy).toEqual([]);
   });
 
-  it('has both postures: an app shell on a phone, a website header on a desktop', () => {
-    const layout = readFileSync(join(ROOT, 'app/layout.tsx'), 'utf8');
+  it('has a header on every screen, with a hamburger menu on a phone', () => {
+    // The product site's shell lives in its route group. The invite surface,
+    // app/(invite), has no product navigation on purpose: a guest sees the invite.
+    const layout = readFileSync(join(ROOT, 'app/(main)/layout.tsx'), 'utf8');
     expect(layout).toMatch(/<SiteHeader\b/);
-    expect(layout).toMatch(/<TabBar\b/);
     expect(layout).toMatch(/<Footer\b/);
-    // The posture switch is md, in CSS: the tab bar hides and the header shows.
-    const tabBar = readFileSync(join(ROOT, 'components/layout/TabBar.tsx'), 'utf8');
+    // No bottom tab bar: the phone gets the header's hamburger menu instead.
+    expect(layout).not.toMatch(/<TabBar\b/);
+    // The posture switch is md, in CSS: the menu button hides and the links show.
+    const header = readFileSync(join(ROOT, 'components/layout/Header.tsx'), 'utf8');
+    expect(header).toMatch(/<MobileMenu\b[^>]*\bmd:hidden\b/s);
     const siteHeader = readFileSync(join(ROOT, 'components/layout/SiteHeader.tsx'), 'utf8');
-    expect(tabBar).toMatch(/\bmd:hidden\b/);
-    expect(siteHeader).toMatch(/\bhidden\b[^'"]*\bmd:block\b/);
+    expect(siteHeader).not.toMatch(/phoneMenu=\{false\}/);
+    expect(siteHeader).not.toMatch(/\bhidden\b[^'"]*\bmd:block\b/);
   });
 
   it('frames every page on the site width, not a phone-width column', () => {

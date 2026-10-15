@@ -62,6 +62,13 @@ const FIREBASE_API_KEY_PATTERN = /^AIza[0-9A-Za-z_-]{35}$/;
 /** A bare hostname, e.g. `my-project.firebaseapp.com`. No scheme, no path. */
 const FIREBASE_AUTH_DOMAIN_PATTERN = /^[a-z0-9][a-z0-9.-]{1,251}[a-z0-9]$/;
 
+/**
+ * A bare root domain for couple invites, e.g. `vivah.online`. At least one
+ * dot, lowercase, no scheme, no port, no path.
+ */
+const ROOT_DOMAIN_PATTERN =
+  /^(?=.{3,253}$)[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/;
+
 /** Firebase web app ids look like `1:1234567890:web:0a1b2c3d4e5f`. */
 const FIREBASE_APP_ID_PATTERN = /^\d+:\d+:web:[0-9a-z]+$/;
 
@@ -152,6 +159,35 @@ function boolean(name: string, value: string | undefined, fallback: boolean): bo
   issues.push(`${name} must be a boolean (true/false) but was "${value}"`);
   return fallback;
 }
+
+const rootDomain = pattern(
+  'ROOT_DOMAIN',
+  process.env.ROOT_DOMAIN,
+  ROOT_DOMAIN_PATTERN,
+  'must be a bare lowercase domain with no scheme, port or path, e.g. vivah.online',
+);
+
+/**
+ * The admin's two sign-in factors: a Google account, then an OTP to a phone.
+ * See ADR-0008. Both must be set, or `/admin` answers 404 for everyone.
+ *
+ * Not secrets: neither grants anything without the Google password and the
+ * phone. The email is still set as a GitHub variable, not in the repository,
+ * because the repository is public.
+ */
+const adminEmail = pattern(
+  'ADMIN_EMAIL',
+  process.env.ADMIN_EMAIL?.trim().toLowerCase(),
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  'must be one email address, like admin@example.com',
+);
+
+const adminPhone = pattern(
+  'ADMIN_PHONE',
+  process.env.ADMIN_PHONE?.trim(),
+  /^\+\d{8,15}$/,
+  'must be one E.164 phone number, like +919876543210',
+);
 
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
@@ -266,6 +302,29 @@ export const env = {
 
   /** Human-readable name shown in the UI and in page titles. */
   appName: optional(process.env.NEXT_PUBLIC_APP_NAME, 'Next.js on Cloud Run'),
+
+  /**
+   * Root domain for couple invites, e.g. `vivah.online`. A request for
+   * `<slug>.<rootDomain>` renders that couple's invite; see `proxy.ts` and
+   * `cloud/domain-routing.md`. Empty turns invite routing off, so `localhost`
+   * and the `*.run.app` URL always show the product site.
+   */
+  rootDomain,
+
+  /**
+   * The Google account that is the admin's first sign-in step for `/admin`.
+   * Lowercase. Empty turns the admin dashboard off. See ADR-0008.
+   */
+  adminEmail,
+
+  /**
+   * The phone that receives the admin's second-step OTP, in E.164. Empty
+   * turns the admin dashboard off. See ADR-0008.
+   */
+  adminPhone,
+
+  /** True when both admin factors are set, so `/admin` can exist at all. */
+  adminEnabled: adminEmail !== '' && adminPhone !== '',
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */
   appVersion: optional(process.env.NEXT_PUBLIC_APP_VERSION, 'dev'),

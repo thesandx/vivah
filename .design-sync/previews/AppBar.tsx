@@ -1,4 +1,4 @@
-import { AppBar, Button } from 'nextjs-cloudrun-template';
+import { AppBar, Button } from 'vivah';
 
 export const WithBack = () => <AppBar title="Room settings" back />;
 

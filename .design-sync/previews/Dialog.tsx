@@ -1,4 +1,4 @@
-import { Button, Dialog } from 'nextjs-cloudrun-template';
+import { Button, Dialog } from 'vivah';
 
 export const LeaveRoom = () => (
   <Dialog

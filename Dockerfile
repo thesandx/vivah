@@ -65,6 +65,14 @@ ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME}
 ENV NEXT_PUBLIC_APP_VERSION=${NEXT_PUBLIC_APP_VERSION}
 
+# The product's root domain, e.g. vivah.online. The marketing pages, the
+# sitemap and their canonical URLs are prerendered here, and `siteOrigin` in
+# lib/seo.ts names this domain over NEXT_PUBLIC_APP_URL, which can be the
+# Cloud Run address. Builder stage only: the runtime reads ROOT_DOMAIN from
+# the Cloud Run service, as before.
+ARG ROOT_DOMAIN=""
+ENV ROOT_DOMAIN=${ROOT_DOMAIN}
+
 # Firebase web configuration, for sign-in. Also build-time, for the same
 # reason, and each value is public by design — none of them grants access on
 # its own. See docs/auth.md.

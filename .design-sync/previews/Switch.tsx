@@ -1,4 +1,4 @@
-import { Switch } from 'nextjs-cloudrun-template';
+import { Switch } from 'vivah';
 
 export const States = () => (
   <div className="flex max-w-md flex-col gap-2">
