@@ -483,6 +483,15 @@
   }
 }
 
+/* The "How it works" steps: the highlighted step's bar stops filling while a
+   pointer is on the section or a step has focus. Used by HowItWorks only. */
+@utility steps-pause {
+  &:hover *,
+  &:focus-within * {
+    animation-play-state: paused;
+  }
+}
+
 /* The squish: a pressable thing sinks onto its base. Used by Button and by
    any custom pressable surface. Do not re-implement it with other values. */
 @utility squish {
