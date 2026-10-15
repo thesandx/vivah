@@ -15,7 +15,7 @@ import { saveWeddingDetailsAction } from './actions';
  * `GET /dashboard/edit/<slug>` — the form that changes one invite's details.
  *
  * Only the couple (the session's phone number is the wedding's owner number)
- * or an admin sees it. Anyone else gets a 404, not a 403, so a stranger
+ * sees it. Anyone else gets a 404, not a 403, so a stranger
  * cannot tell which addresses exist. The Server Action checks again on save:
  * hiding the form is a courtesy, not the control.
  */
@@ -39,10 +39,7 @@ export default async function EditWeddingPage({
   if (user === null) redirect(`/sign-in?next=/dashboard/edit/${encodeURIComponent(slug)}`);
 
   const wedding = await getWeddingBySlug(slug);
-  if (
-    wedding === null ||
-    !canEditWedding(user.phoneNumber, wedding.ownerPhoneE164, env.adminPhoneNumbers)
-  ) {
+  if (wedding === null || !canEditWedding(user.phoneNumber, wedding.ownerPhoneE164)) {
     notFound();
   }
 

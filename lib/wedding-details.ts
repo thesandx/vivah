@@ -71,22 +71,12 @@ export function parseWeddingDetails(form: Record<string, unknown>): DetailsResul
   return { ok: false, errors };
 }
 
-/** True when a verified phone number is on the admin list. */
-export function isAdminPhone(phoneE164: string | null, adminPhones: readonly string[]): boolean {
-  return phoneE164 !== null && adminPhones.includes(phoneE164);
-}
-
 /**
- * Who may edit a wedding: the couple, signed in with the number they paid
- * from, or an admin. The phone number is the one Firebase verified with an
- * OTP, never one the caller typed into a form.
+ * Who may edit a wedding from the couple dashboard: the couple, signed in with
+ * the number they paid from. The phone number is the one Firebase verified
+ * with an OTP, never one the caller typed into a form. The admin edits from
+ * `/admin`, behind its own two-step sign-in (ADR-0008), not from here.
  */
-export function canEditWedding(
-  phoneE164: string | null,
-  ownerPhoneE164: string,
-  adminPhones: readonly string[],
-): boolean {
-  return (
-    phoneE164 !== null && (phoneE164 === ownerPhoneE164 || isAdminPhone(phoneE164, adminPhones))
-  );
+export function canEditWedding(phoneE164: string | null, ownerPhoneE164: string): boolean {
+  return phoneE164 !== null && phoneE164 === ownerPhoneE164;
 }

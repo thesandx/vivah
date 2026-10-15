@@ -118,6 +118,36 @@
       "collectionGroup": "weddings",
       "fieldPath": "updatedAt",
       "indexes": []
+    },
+    {
+      "collectionGroup": "adminSessions",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminSessions",
+      "fieldPath": "expiresAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminSessions",
+      "fieldPath": "uid",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminAudit",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminAudit",
+      "fieldPath": "detail",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminAudit",
+      "fieldPath": "adminUid",
+      "indexes": []
     }
   ]
 }

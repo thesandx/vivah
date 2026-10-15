@@ -1,7 +1,6 @@
 'use server';
 
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
-import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { requireUser } from '@/services/auth.service';
 import { updateWeddingDetails } from '@/services/wedding.service';
@@ -11,7 +10,7 @@ import { updateWeddingDetails } from '@/services/wedding.service';
  *
  * `requireUser()` first: a Server Action is a public endpoint, whatever page
  * shows the form. The caller's phone number comes from the verified session.
- * `updateWeddingDetails` then checks that it owns the wedding, or is an admin.
+ * `updateWeddingDetails` then checks that it owns the wedding.
  */
 export async function saveWeddingDetailsAction(
   slug: string,
@@ -25,12 +24,7 @@ export async function saveWeddingDetailsAction(
         (entry): entry is [string, string] => typeof entry[1] === 'string',
       ),
     );
-    const result = await updateWeddingDetails(
-      slug,
-      user.phoneNumber,
-      env.adminPhoneNumbers,
-      fields,
-    );
+    const result = await updateWeddingDetails(slug, user.phoneNumber, fields);
     if (result.ok) {
       logger.info('Wedding details saved', { slug, uid: user.uid });
       return { status: 'saved' };

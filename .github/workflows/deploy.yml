@@ -253,7 +253,8 @@ jobs:
             NODE_ENV=production
             LOG_LEVEL=${{ vars.LOG_LEVEL || 'info' }}
             ROOT_DOMAIN=${{ vars.ROOT_DOMAIN || 'vivah.online' }}
-            ADMIN_PHONE_NUMBERS=${{ vars.ADMIN_PHONE_NUMBERS || '+919546342507' }}
+            ADMIN_EMAIL=${{ vars.ADMIN_EMAIL }}
+            ADMIN_PHONE=${{ vars.ADMIN_PHONE || '+919546342507' }}
             APP_SLUG=${{ env.APP_SLUG }}
             GCP_PROJECT_ID=${{ env.GCP_PROJECT_ID }}
             GCP_REGION=${{ env.GCP_REGION }}

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { SignOutButton } from '@/components/auth/SignOutButton';
 import { AppBar } from '@/components/layout/AppBar';
+import { Badge } from '@/components/ui/Badge';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -11,7 +12,6 @@ import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref } from '@/lib/site-host';
 import { formatWeddingDate } from '@/lib/wedding-date';
-import { isAdminPhone } from '@/lib/wedding-details';
 import { getCurrentUser } from '@/services/auth.service';
 import { weddingsOwnedBy } from '@/services/wedding.service';
 
@@ -41,7 +41,6 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
 
   const phone = user.phoneNumber;
   const owned = phone === null ? [] : await weddingsOwnedBy(phone);
-  const admin = phone !== null && isAdminPhone(phone, env.adminPhoneNumbers);
 
   return (
     <>
@@ -57,18 +56,6 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
             </p>
           )}
         </header>
-
-        {admin && (
-          <Card
-            tone="butter"
-            className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <p className="font-medium">You are an admin. You can see and edit every invite.</p>
-            <Link href="/dashboard/admin" className={buttonStyles({ variant: 'secondary' })}>
-              Open admin
-            </Link>
-          </Card>
-        )}
 
         {phone === null ? (
           <EmptyState
@@ -102,6 +89,11 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
                     ? 'Date not added yet'
                     : formatWeddingDate(wedding.weddingDate)}
                 </p>
+                {wedding.status === 'unavailable' && (
+                  <Badge tone="brand" className="self-start">
+                    Paused: guests see &ldquo;not available&rdquo;
+                  </Badge>
+                )}
                 <a
                   href={inviteHref(wedding.slug, env.rootDomain)}
                   target="_blank"
