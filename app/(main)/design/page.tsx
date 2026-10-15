@@ -5,6 +5,7 @@ import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { PageShell } from '@/components/layout/PageShell';
 import { Alert } from '@/components/ui/Alert';
+import { AutoScroller } from '@/components/ui/AutoScroller';
 import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -102,6 +103,8 @@ const GAME_VIEWS = [
  * content. When you add or change a component in components/ui/, show it
  * here in the same PR. Not indexed; safe to ship.
  */
+const ROW_CARDS = ['Haldi', 'Mehendi', 'Sangeet', 'Baraat', 'Pheras', 'Vidaai'];
+
 export default function DesignPage() {
   return (
     <PageShell>
@@ -289,6 +292,22 @@ export default function DesignPage() {
                 Rounds you play in this room show up here.
               </EmptyState>
             </Card>
+          </section>
+
+          <section id="rows" className="flex flex-col gap-5">
+            <h2 className="text-title">A row that drifts</h2>
+            <p className="text-ink-soft max-w-prose">
+              The cards drift sideways and loop when they are wider than the row. Swipe them any
+              time. The row stops under a pointer, a finger or the keyboard.
+            </p>
+            <AutoScroller
+              label="Sample cards"
+              className="-mx-5 sm:-mx-8"
+              items={ROW_CARDS.map((card) => ({
+                key: card,
+                node: <Card className="w-56">{card}</Card>,
+              }))}
+            />
           </section>
 
           <section id="interruptions" className="flex flex-col gap-5">

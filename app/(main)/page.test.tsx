@@ -1,7 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import HomePage from '@/app/(main)/page';
+
+// The testimonials are an async Server Component with its own test.
+vi.mock('@/app/(main)/home-testimonials', () => ({ HomeTestimonials: () => null }));
 
 /**
  * Smoke test for the home page. `HomePage` is a synchronous Server Component,
@@ -16,13 +19,6 @@ describe('HomePage', () => {
         name: 'Create your personal wedding website in 5 minutes',
       }),
     ).toBeInTheDocument();
-  });
-
-  it('shows both carousels, with open slots that claim no review', () => {
-    render(<HomePage />);
-    expect(screen.getByRole('region', { name: 'Reviews from couples' })).toBeInTheDocument();
-    expect(screen.getByRole('region', { name: 'Messages couples received' })).toBeInTheDocument();
-    expect(screen.queryByText(/out of 5 stars/)).not.toBeInTheDocument();
   });
 
   it('offers a WhatsApp chat with a first message', () => {

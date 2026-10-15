@@ -5,9 +5,11 @@ import { revalidatePath } from 'next/cache';
 import type { ActionState } from '@/components/admin/AdminActionForm';
 import type { StepUploadStart } from '@/components/admin/StepImageUpload';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
+import type { UploadStart } from '@/hooks/useImageUpload';
 import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
+import { parseKind } from '@/lib/testimonials';
 import {
   type AdminResult,
   changeWeddingAddress,
@@ -27,6 +29,7 @@ import {
   resetStepImage,
   saveStepImage,
 } from '@/services/site-content.service';
+import { createTestimonialUpload, saveBanner, storeFor } from '@/services/testimonials.service';
 
 /**
  * The admin dashboard's Server Actions. Each is a public endpoint, whatever
@@ -189,4 +192,88 @@ export async function resetStepImageAction(rawStep: number): Promise<ActionState
   const step = parseStep(rawStep);
   if (step === null) return { status: 'error', message: 'That step does not exist.' };
   return run('home-image-reset', String(step), (uid) => resetStepImage(step, uid));
+}
+
+/**
+ * Step 1 of a chat screenshot or couple photo upload: a signed URL the
+ * browser sends the image to. Admin only, like the step images.
+ */
+export async function startTestimonialUploadAction(
+  rawKind: string,
+  contentType: string,
+): Promise<UploadStart> {
+  let adminUid: string;
+  try {
+    adminUid = (await requireAdmin()).uid;
+  } catch {
+    return { status: 'error', message: SIGN_IN_AGAIN_MESSAGE };
+  }
+  const kind = parseKind(rawKind);
+  if (kind === null) return { status: 'error', message: 'That list does not exist.' };
+  try {
+    return { status: 'ok', upload: await createTestimonialUpload(kind, contentType) };
+  } catch (error) {
+    logger.error('Signing a testimonial upload failed', error, { kind, uid: adminUid });
+    return { status: 'error', message: 'Use a JPEG, PNG or WebP image, then try again.' };
+  }
+}
+
+/** The typed fields of a chat or review form, as zod reads them. */
+function testimonialFields(form: FormData): Record<string, string> {
+  return Object.fromEntries(
+    ['message', 'caption', 'app', 'quote', 'names', 'relation', 'stars'].map((key) => [
+      key,
+      text(form, key),
+    ]),
+  );
+}
+
+/**
+ * Step 2: saves the words, and the uploaded image when there is one. A new
+ * item (`id` is `null`) needs an image; an edit keeps its image without one.
+ */
+export async function saveTestimonialAction(
+  rawKind: string,
+  id: string | null,
+  tmpPath: string | null,
+  form: FormData,
+): Promise<ActionState> {
+  const kind = parseKind(rawKind);
+  if (kind === null) return { status: 'error', message: 'That list does not exist.' };
+  const store = storeFor(kind);
+  const fields = testimonialFields(form);
+  if (id === null) {
+    if (tmpPath === null) return { status: 'error', message: 'Choose an image first.' };
+    return run('testimonial-add', kind, (uid) => store.add(fields, tmpPath, uid));
+  }
+  return run('testimonial-edit', id, (uid) => store.edit(id, fields, tmpPath, uid));
+}
+
+export async function removeTestimonialAction(rawKind: string, id: string): Promise<ActionState> {
+  const kind = parseKind(rawKind);
+  if (kind === null) return { status: 'error', message: 'That list does not exist.' };
+  return run('testimonial-remove', id, (uid) => storeFor(kind).remove(id, uid));
+}
+
+export async function moveTestimonialAction(
+  rawKind: string,
+  id: string,
+  direction: 'up' | 'down',
+): Promise<ActionState> {
+  const kind = parseKind(rawKind);
+  if (kind === null) return { status: 'error', message: 'That list does not exist.' };
+  if (direction !== 'up' && direction !== 'down') {
+    return { status: 'error', message: 'That is not a direction.' };
+  }
+  return run('testimonial-move', id, (uid) => storeFor(kind).move(id, direction, uid));
+}
+
+export async function saveBannerAction(_state: ActionState, form: FormData): Promise<ActionState> {
+  return run('banner', 'home-banner', (uid) =>
+    saveBanner({ headline: text(form, 'headline') }, uid),
+  );
+}
+
+export async function hideBannerAction(): Promise<ActionState> {
+  return run('banner-hide', 'home-banner', (uid) => saveBanner({ headline: '' }, uid));
 }
