@@ -33,11 +33,11 @@ describe('HomePage', () => {
     );
   });
 
-  it('starts the funnel with the lead form', () => {
+  it('starts the funnel with the two names', () => {
     render(<HomePage />);
+    expect(screen.getByRole('heading', { name: 'The two of you' })).toHaveAttribute('id', 'start');
     expect(screen.getByLabelText("Bride's name")).toBeInTheDocument();
     expect(screen.getByLabelText("Groom's name")).toBeInTheDocument();
-    expect(screen.getByLabelText('WhatsApp number')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'See my invite' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Begin our story' })).toBeDisabled();
   });
 });

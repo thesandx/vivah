@@ -147,6 +147,11 @@
   --animate-flap-open: flap-open 480ms 240ms var(--ease-settle) forwards;
   --animate-petal-fall: petal-fall 14s linear infinite;
   --animate-envelope-away: envelope-away 520ms 680ms var(--ease-settle) forwards;
+  /* The sign-up card's send: the envelope pulls back, then zooms off to the
+     right as its speed lines streak behind it. `components/lead/SendMoment.tsx`
+     waits the same 760 ms before it shows the tick. */
+  --animate-fly-away: fly-away 760ms var(--ease-settle) forwards;
+  --animate-speed-line: speed-line 760ms var(--ease-settle) forwards;
   /* The home page carousels: a slow, endless drift to the left. The track
      holds the list twice and moves by half, so the loop has no seam. */
   --animate-marquee: marquee 80s linear infinite;
@@ -221,6 +226,30 @@
     }
     to {
       transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  @keyframes fly-away {
+    25% {
+      transform: translateX(-12%) rotate(-6deg);
+    }
+    100% {
+      transform: translateX(170%) scale(0.5);
+      opacity: 0;
+    }
+  }
+
+  @keyframes speed-line {
+    0% {
+      transform: scaleX(0.2);
+    }
+    35% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+    100% {
+      transform: translateX(60%) scaleX(0.3);
+      opacity: 0;
     }
   }
 

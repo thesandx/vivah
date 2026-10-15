@@ -2,9 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   countdownParts,
+  daysUntil,
+  foreverStartsLine,
   formatShortWeddingDate,
   formatWeddingDate,
   formatWeddingTime,
+  todayInIndia,
   weddingStartsAt,
 } from '@/lib/wedding-date';
 
@@ -53,5 +56,26 @@ describe('wedding time and countdown', () => {
       seconds: 5,
     });
     expect(countdownParts(start, start)).toBeNull();
+  });
+});
+
+describe('the sign-up countdown', () => {
+  it('counts whole calendar days', () => {
+    expect(daysUntil('2026-11-14', '2026-10-15')).toBe(30);
+    expect(daysUntil('2026-10-15', '2026-10-15')).toBe(0);
+    expect(daysUntil('2026-10-14', '2026-10-15')).toBe(-1);
+    expect(daysUntil('soon', '2026-10-15')).toBeNull();
+  });
+
+  it('says when forever starts', () => {
+    expect(foreverStartsLine(30)).toBe('Your forever starts in 30 days');
+    expect(foreverStartsLine(1)).toBe('Your forever starts tomorrow');
+    expect(foreverStartsLine(0)).toBe('Your forever starts today');
+    expect(foreverStartsLine(1000)).toBe('Your forever starts in 1,000 days');
+    expect(foreverStartsLine(-1)).toBeNull();
+  });
+
+  it('reads today in India', () => {
+    expect(todayInIndia(new Date('2026-10-14T20:00:00Z'))).toBe('2026-10-15');
   });
 });
