@@ -115,31 +115,32 @@ Not every card needs a shadow. A shadow says "this is an object you can press or
 
 Each primitive lives in `components/ui/`, has a colocated test, and renders on `/design`. Pick the primitive by its job.
 
-| Primitive     | Use it for                                                          |
-| ------------- | ------------------------------------------------------------------- |
-| `Button`      | An action. `buttonStyles()` styles a `Link` the same way.           |
-| `Card`        | One object the user can act on. `peek` puts a face over the edge.   |
-| `Input`       | One line of text, with a label, a hint and an error.                |
-| `Textarea`    | Several lines of text. Same label, hint and error as `Input`.       |
-| `Select`      | One choice from a long list. It is a native select.                 |
-| `RadioGroup`  | One choice from five options or fewer.                              |
-| `Checkbox`    | A yes/no value that a form submits later.                           |
-| `Switch`      | A setting that applies at once.                                     |
-| `Field`       | The label, hint and error. Use it to wrap a new form control.       |
-| `Badge`       | A short state in words: "Host", "Ready". Not pressable.             |
-| `Chip`        | A pill that names one thing, often with an `Avatar`. Not pressable. |
-| `ContactLink` | A phone number (`tel:`) or an email address (`mailto:`) to tap.     |
-| `Alert`       | A message in the interface voice: a result, a problem, a status.    |
-| `Progress`    | How far through something the user is. It shows the value in words. |
-| `Spinner`     | Work that the user asked for and that is not complete yet.          |
-| `EmptyState`  | A space with no content yet. A sleepy face, one line, one action.   |
-| `Skeleton`    | The shape of content that is loading. Use it as a loading fallback. |
-| `Tabs`        | Two to five views of the same thing. A client component.            |
-| `Dialog`      | A decision that must interrupt. A bottom sheet on a phone.          |
-| `Avatar`      | A player. The name sets the colour and the mood.                    |
-| `Face`        | The mascot face. See [Signature patterns](#signature-patterns).     |
-| `Speech`      | The mascot speaks. Moments only.                                    |
-| `Sticker`     | Decoration. Two per viewport at most.                               |
+| Primitive      | Use it for                                                             |
+| -------------- | ---------------------------------------------------------------------- |
+| `Button`       | An action. `buttonStyles()` styles a `Link` the same way.              |
+| `Card`         | One object the user can act on. `peek` puts a face over the edge.      |
+| `Input`        | One line of text, with a label, a hint and an error.                   |
+| `Textarea`     | Several lines of text. Same label, hint and error as `Input`.          |
+| `Select`       | One choice from a long list. It is a native select.                    |
+| `RadioGroup`   | One choice from five options or fewer.                                 |
+| `Checkbox`     | A yes/no value that a form submits later.                              |
+| `Switch`       | A setting that applies at once.                                        |
+| `Field`        | The label, hint and error. Use it to wrap a new form control.          |
+| `Badge`        | A short state in words: "Host", "Ready". Not pressable.                |
+| `Chip`         | A pill that names one thing, often with an `Avatar`. Not pressable.    |
+| `ContactLink`  | A phone number (`tel:`) or an email address (`mailto:`) to tap.        |
+| `Alert`        | A message in the interface voice: a result, a problem, a status.       |
+| `Progress`     | How far through something the user is. It shows the value in words.    |
+| `Spinner`      | Work that the user asked for and that is not complete yet.             |
+| `EmptyState`   | A space with no content yet. A sleepy face, one line, one action.      |
+| `Skeleton`     | The shape of content that is loading. Use it as a loading fallback.    |
+| `Tabs`         | Two to five views of the same thing. A client component.               |
+| `Dialog`       | A decision that must interrupt. A bottom sheet on a phone.             |
+| `AutoScroller` | A row of cards that drifts and loops, and takes a swipe. No scrollbar. |
+| `Avatar`       | A player. The name sets the colour and the mood.                       |
+| `Face`         | The mascot face. See [Signature patterns](#signature-patterns).        |
+| `Speech`       | The mascot speaks. Moments only.                                       |
+| `Sticker`      | Decoration. Two per viewport at most.                                  |
 
 `components/layout/` holds the page chrome:
 
@@ -196,7 +197,10 @@ Motion makes the app feel physical: a screen settles into place, a selection sli
 
 The heart thread is the one exception to rules 2 and 5. A line can only draw itself with `stroke-dashoffset`, and the moment takes 1.3s. The product owner asked for it. It plays only after a tap on a home page call to action, then the sign-up dialog opens. Reduced motion skips it and opens the dialog at once.
 
-The "How it works" steps on the home page are the one loop that runs without a tap. The product owner asked for it, so a visitor sees that there are three steps. It stops on hover, on focus and off screen. A tap on a step ends it, and reduced motion turns it off.
+Two things on the home page move without a tap, because the product owner asked for them:
+
+- **The "How it works" steps.** A visitor sees that there are three steps. The loop stops on hover, on focus and off screen. A tap on a step ends it, and reduced motion turns it off.
+- **The review and chat rows (`AutoScroller`).** Each row drifts slowly and loops, and a visitor can swipe it at any time. No scrollbar shows; from `md` up, arrow buttons appear on hover. The row stops on hover, on focus, under a finger, off screen and in a hidden tab. Reduced motion turns the drift off.
 
 ### Loading
 
@@ -225,7 +229,7 @@ The tokens in `@theme` are the Phera palette. `/design` shows them.
 - **Type.** Huninn for every heading and line of text. `font-script` is the display face here; only the invite theme gives it a real script.
 - **Logo.** `BrandMark`: the "Saath" mark. Two paisleys with fingerprint ridges meet as one heart, in sindoor rose and jamun violet. Its colours are fixed and do not follow the theme. The rules and the master files are in [`docs/brand.md`](../../docs/brand.md).
 - **Share image.** `public/og-image.png` (`SHARE_IMAGE` in `lib/seo.ts`) shows the logo when someone shares a product page. A page that sets its own `openGraph` lists `SHARE_IMAGE` again. A couple's invite makes its own image in `app/api/og/`.
-- **Home page.** A grid of equal tiles of what guests see (`GuestPreview`) with a "Watch a demo" dialog (`DemoVideo`, source in `lib/demo-video.ts`), a feature list, a paper-or-digital table, and two `Marquee` carousels of reviews and chat screenshots. Each tile, feature and table row shows a feature that is built. A review slot stays empty until a real couple sends words. See `lib/testimonials.ts`.
+- **Home page.** A grid of equal tiles of what guests see (`GuestPreview`) with a "Watch a demo" dialog (`DemoVideo`, source in `lib/demo-video.ts`), a feature list, a paper-or-digital table, a "Loved by …" banner (`LovedByBanner`), and two `AutoScroller` rows: couple photos with the review on the photo (`CoupleReviewCard`), and taped notes with a chat screenshot under each (`ChatNoteCard`). Each tile, feature and table row shows a feature that is built. The admin adds reviews, chats and the banner line from the Home page tab of `/admin`. A row with no items and a banner with no line do not show. See `lib/testimonials.ts`.
 - **Help.** `WhatsAppButton` floats in the bottom-right corner of every page of the product site.
 
 ### The invite theme
@@ -381,7 +385,7 @@ The interface speaks plainly. The mascot speaks warmly. Keep the two voices sepa
 - Rule-of-three slogans: "No login. No download. Just a key." / "Big group, one key, zero setup."
 - Words: seamless, effortless, unleash, elevate, supercharge, magic, vibe, delightful, curated, next-level, game-changer, "in seconds".
 - Meta strings joined with middle dots: "2–20 players · 10 min". Write "For 2 to 20 players, about 10 minutes" or show the numbers as separate labelled facts.
-- Fake content: invented testimonials, invented user counts, "Trusted by …", a diverse-sounding set of made-up full names. Example players use nicknames people actually type (`momo`, `captain_k`, `rajma chawal`).
+- Fake content: invented testimonials, invented user counts, a "Trusted by …" line with no real count behind it, a diverse-sounding set of made-up full names. Example players use nicknames people actually type (`momo`, `captain_k`, `rajma chawal`).
 
 ---
 

@@ -33,6 +33,11 @@ export const ADMIN_ACTIONS = [
   'preview-restored',
   'home-image-changed',
   'home-image-reset',
+  'testimonial-added',
+  'testimonial-edited',
+  'testimonial-removed',
+  'testimonial-moved',
+  'banner-changed',
 ] as const;
 
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
