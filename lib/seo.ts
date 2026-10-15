@@ -9,15 +9,73 @@
 
 import type { MetadataRoute } from 'next';
 
-import { SOCIAL } from '@/lib/business';
+import { PRICE_FROM_RUPEES, SOCIAL } from '@/lib/business';
 import { normaliseHost, resolveSiteSurface } from '@/lib/site-host';
 
 /** The date the marketing copy last changed. Shown on the page and in `dateModified`. */
-export const CONTENT_UPDATED = '2026-10-14';
+export const CONTENT_UPDATED = '2026-10-15';
 
 /** The brand line used in titles, schema and `llms.txt`. Keep them identical. */
 export const BRAND_DESCRIPTION =
-  'Online Hindu wedding invitation websites for India, sent on WhatsApp with each guest’s name.';
+  'Hindu wedding invitation websites for India, with a couple dashboard to make a named invite link for each guest and send it on WhatsApp.';
+
+/**
+ * What the product includes, in plain sentences, for `featureList` in the
+ * schema and the "What is included" part of `public/llms.txt`.
+ *
+ * AI answer engines summarise the product from these words. One once said the
+ * site "only offers WhatsApp RSVP" and has no dashboard, because the dashboard
+ * was named nowhere a crawler reads. So every built feature is named here, and
+ * the RSVP line says exactly what it does. List only what is built: an answer
+ * engine repeats an overclaim to couples as a promise.
+ */
+export const PRODUCT_FEATURES: readonly string[] = [
+  'A wedding website on its own address, such as raadha-shyam.vivah.online',
+  'A private preview on WhatsApp before you pay',
+  'A couple dashboard ("My site"), signed in with your phone number',
+  'Edit the names, date, time, venue and Google Maps link from the dashboard; every link updates',
+  'Make a personal invite link for each guest by typing their name in the dashboard',
+  'Copy each guest link, or send it on WhatsApp in one tap, from the dashboard',
+  'Delete a guest link from the dashboard',
+  'Each guest’s invite opens with their own name',
+  'A live countdown to the wedding',
+  'The venue with a Google Maps link',
+  'An envelope that guests open, with falling petals',
+  'A song for the invite, chosen at sign-up, that guests tap to play',
+  'RSVP on WhatsApp: guests reply to the couple in one tap, and the reply arrives in the couple’s WhatsApp',
+  'No app to install for the couple or the guests; no charge per guest',
+];
+
+/**
+ * The questions the home page answers, with `FAQPage` schema. They name the
+ * dashboard and the RSVP plainly, so an answer engine does not guess.
+ */
+export const PRODUCT_FAQS: readonly Faq[] = [
+  {
+    question: 'What do I get with vivah.online?',
+    answer:
+      'A wedding website on your own address, a dashboard to manage it, and a personal invite link for every guest. Each invite shows the guest’s name, a countdown, the venue map, your song and a WhatsApp RSVP button.',
+  },
+  {
+    question: 'Is there a dashboard for the couple?',
+    answer:
+      'Yes. After you pay, sign in with your phone number at vivah.online/dashboard ("My site"). There you change your wedding details, make an invite link for each guest by name, copy it or send it on WhatsApp, and delete links you no longer need.',
+  },
+  {
+    question: 'How does RSVP work?',
+    answer:
+      'Each invite has an RSVP button. The guest taps it, and WhatsApp opens with a reply to you already typed. The reply comes to your WhatsApp, so you read every answer in your chats.',
+  },
+  {
+    question: 'Can I change the details after I send the invite?',
+    answer:
+      'Yes. Change the date, time, venue or map link in your dashboard. Every guest link shows the new details at once, so you send nothing again.',
+  },
+  {
+    question: 'How much does it cost?',
+    answer: `From ₹${PRICE_FROM_RUPEES}, paid once. There is no charge per guest, and you see a free preview before you pay.`,
+  },
+];
 
 /**
  * The link preview for the product site: the logo and the brand line, from the
@@ -215,6 +273,32 @@ export function organizationSchema(origin: string, brand: string): Record<string
         publisher: { '@id': `${origin}/#organization` },
       },
     ],
+  };
+}
+
+/**
+ * schema.org `WebApplication` for the home page: what the product is, what it
+ * includes (`featureList`) and its starting price.
+ */
+export function webApplicationSchema(origin: string, brand: string): Record<string, unknown> {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    '@id': `${origin}/#app`,
+    name: brand,
+    url: origin,
+    description: BRAND_DESCRIPTION,
+    applicationCategory: 'LifestyleApplication',
+    operatingSystem: 'Any, in a web browser',
+    inLanguage: 'en-IN',
+    featureList: PRODUCT_FEATURES,
+    offers: {
+      '@type': 'Offer',
+      price: PRICE_FROM_RUPEES,
+      priceCurrency: 'INR',
+      url: origin,
+    },
+    publisher: { '@id': `${origin}/#organization` },
   };
 }
 

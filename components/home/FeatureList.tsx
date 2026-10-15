@@ -55,8 +55,8 @@ const FEATURES: readonly { icon: keyof typeof ICONS; title: string; body: string
   },
   {
     icon: 'edit',
-    title: 'Change it any time',
-    body: 'Fix the venue or the time after you send it. Every link updates.',
+    title: 'Your own dashboard',
+    body: 'Make guest links and change the venue or time any time. Every link updates.',
   },
   { icon: 'timer', title: 'Live countdown', body: 'Days, hours and minutes to your wedding.' },
   { icon: 'map', title: 'Venue with maps', body: 'One tap opens the way on Google Maps.' },

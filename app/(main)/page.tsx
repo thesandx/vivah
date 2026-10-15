@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { HomeTestimonials } from '@/app/(main)/home-testimonials';
+import { FaqList } from '@/components/guides/FaqList';
 import { DemoVideo } from '@/components/home/DemoVideo';
 import { FeatureList } from '@/components/home/FeatureList';
 import { GuestPreview } from '@/components/home/GuestPreview';
@@ -22,7 +23,13 @@ import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { DEMO_STEPS, DEMO_VIDEO } from '@/lib/demo-video';
 import { env } from '@/lib/env';
-import { organizationSchema, siteOrigin } from '@/lib/seo';
+import {
+  faqPageSchema,
+  organizationSchema,
+  PRODUCT_FAQS,
+  siteOrigin,
+  webApplicationSchema,
+} from '@/lib/seo';
 import { cn } from '@/lib/utils';
 
 /**
@@ -51,12 +58,14 @@ import { cn } from '@/lib/utils';
 
 // The title and description carry the WhatsApp keyword cluster from the PRD's
 // SEO plan: "wedding invitation for whatsapp", "digital wedding invitation".
+// They also name the couple dashboard: answer engines summarise the product
+// from this text, and once said it had none.
 export const metadata: Metadata = {
   title: {
     absolute: `Wedding Website and Digital Invitation with Guest Name | ${env.appName}`,
   },
   description:
-    'Create your personal wedding website in 5 minutes. Send a digital wedding invitation on WhatsApp, with each guest’s name. See it free before you pay.',
+    'Create your wedding website in 5 minutes. Make a named invite link for each guest in your dashboard, send it on WhatsApp, and get RSVPs there. See it free first.',
   alternates: { canonical: '/' },
 };
 
@@ -99,11 +108,14 @@ export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   const chatUrl = whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO);
+  const origin = siteOrigin(env.rootDomain, env.appUrl);
 
   return (
     <PageShell>
       <SignupDialogProvider>
-        <JsonLd data={organizationSchema(siteOrigin(env.rootDomain, env.appUrl), env.appName)} />
+        <JsonLd data={organizationSchema(origin, env.appName)} />
+        <JsonLd data={webApplicationSchema(origin, env.appName)} />
+        <JsonLd data={faqPageSchema(PRODUCT_FAQS)} />
 
         {/* The hero. Three grid items, so a phone gets words, form, promises,
           and a desktop gets the form beside the words. */}
@@ -211,6 +223,8 @@ export default function HomePage() {
         <Suspense fallback={null}>
           <HomeTestimonials />
         </Suspense>
+
+        <FaqList faqs={PRODUCT_FAQS} heading="Questions couples ask" />
 
         <section
           aria-labelledby="cta-heading"
