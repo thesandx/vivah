@@ -217,7 +217,8 @@ The tokens in `@theme` are the Phera palette. `/design` shows them.
 - **Colour.** Cream paper, plum ink, a sindoor rose `brand` with white text, and the festival tones. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so white reaches 3:1.
 - **Shadow.** The puff: hard, straight down, in soft plum. The primary button sits on a darker rose puff.
 - **Type.** Huninn for every heading and line of text. `font-script` is the display face here; only the invite theme gives it a real script.
-- **Logo.** `BrandMark`: a marigold around a heart. It replaces the mascot in the header.
+- **Logo.** `BrandMark`: the "Saath" mark. Two paisleys with fingerprint ridges meet as one heart, in sindoor rose and jamun violet. Its colours are fixed and do not follow the theme. The rules and the master files are in [`docs/brand.md`](../../docs/brand.md).
+- **Share image.** `public/og-image.png` (`SHARE_IMAGE` in `lib/seo.ts`) shows the logo when someone shares a product page. A page that sets its own `openGraph` lists `SHARE_IMAGE` again. A couple's invite makes its own image in `app/api/og/`.
 - **Home page.** A pin board (`InspirationBoard`, CSS columns), a feature list, a paper-or-digital table, and two `Marquee` carousels of reviews and chat screenshots. Each pin, feature and table row shows a feature that is built. A review slot stays empty until a real couple sends words. See `lib/testimonials.ts`.
 - **Help.** `WhatsAppButton` floats in the bottom-right corner of every page of the product site.
 
@@ -329,7 +330,7 @@ The source order is the phone order. Screen readers and the keyboard follow it a
 - **Thumb reach.** The primary action is at the end of the form, at full width.
 - **Safe areas.** The page draws under the notch (`viewportFit: 'cover'`). Fixed chrome pads itself with `env(safe-area-inset-*)`, as `WhatsAppButton` does.
 - **Press feedback, not a tap flash.** The base styles remove the grey tap highlight. `squish` and `press` answer the tap.
-- **Installable.** `app/manifest.ts` sets `display: 'standalone'`. The icons are in `public/icons/` (192px, 512px and a maskable 512px) and `app/apple-icon.png`. `THEME_COLOR` in `lib/pwa.ts` matches `--color-paper`. When you change the mark, export `app/icon.svg` again at each size.
+- **Installable.** `app/manifest.ts` sets `display: 'standalone'`. The icons are in `public/icons/` (192px, 512px and a maskable 512px) and `app/apple-icon.png`. `THEME_COLOR` in `lib/pwa.ts` matches `--color-paper`. When you change the mark, export these icons again from the brand kit. See [`docs/brand.md`](../../docs/brand.md).
 - **No service worker.** The template has none, on purpose. A browser cache keeps the old build after a deploy: the same failure as trap 26 in a CDN. Add one only with a versioned cache and an update prompt. Record that decision in an ADR.
 
 ### Never
@@ -492,12 +493,12 @@ Write an external link as a full URL. `Footer` renders it as a plain `<a>`, and 
 
 ### Page metadata
 
-| Item               | The rule                                                                                                                    | Check |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----- |
-| Page titles        | Every `page.tsx` exports `metadata` with a `title`. The layout adds `\| <app name>`. The home page may use the default.     | Test  |
-| Meta descriptions  | Every `page.tsx` exports a `description` of one sentence, under 160 characters, that says what the page is for.             | Test  |
-| A favicon          | `app/icon.svg` is the mascot face. Next.js serves it and links it on every page. Replace it with the product's own mark.    | Test  |
-| The copyright year | Never type a year. `Footer owner="…"` builds `© <year> <owner>` from the clock. A static page fixes the year at build time. | Test  |
+| Item               | The rule                                                                                                                     | Check |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ----- |
+| Page titles        | Every `page.tsx` exports `metadata` with a `title`. The layout adds `\| <app name>`. The home page may use the default.      | Test  |
+| Meta descriptions  | Every `page.tsx` exports a `description` of one sentence, under 160 characters, that says what the page is for.              | Test  |
+| A favicon          | `app/icon.svg` is the small cut of the brand mark. Next.js serves it and links it on every page. Keep it the product's mark. | Test  |
+| The copyright year | Never type a year. `Footer owner="…"` builds `© <year> <owner>` from the clock. A static page fixes the year at build time.  | Test  |
 
 A statically rendered page keeps the year of its build. Every deploy rebuilds it. Deploy at least once a year, or make the page dynamic.
 

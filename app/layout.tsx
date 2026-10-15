@@ -5,7 +5,7 @@ import localFont from 'next/font/local';
 
 import { env } from '@/lib/env';
 import { THEME_COLOR } from '@/lib/pwa';
-import { BRAND_DESCRIPTION, siteOrigin } from '@/lib/seo';
+import { BRAND_DESCRIPTION, SHARE_IMAGE, siteOrigin } from '@/lib/seo';
 
 export const metadata: Metadata = {
   // The public origin, so canonical and Open Graph URLs name vivah.online and
@@ -16,6 +16,8 @@ export const metadata: Metadata = {
     template: `%s | ${env.appName}`,
   },
   description: BRAND_DESCRIPTION,
+  openGraph: { siteName: env.appName, type: 'website', images: [SHARE_IMAGE] },
+  twitter: { card: 'summary_large_image', images: [SHARE_IMAGE.url] },
   applicationName: env.appName,
   // iOS reads these, not the manifest, when the user adds the app to the home
   // screen. The manifest in app/manifest.ts serves every other browser.
