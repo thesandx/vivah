@@ -1,14 +1,41 @@
 # vivah.online
 
-> Online Hindu wedding invitation websites for India, sent on WhatsApp with each guest's name.
+> Hindu wedding invitation websites for India, with a couple dashboard to make a named invite link for each guest and send it on WhatsApp.
 
-vivah.online makes a couple's wedding invitation into a website on its own link, such as raadha-shyam.vivah.online. The couple types the bride's and groom's names and the wedding date, gets a private preview on WhatsApp, and pays only if they like it. Each guest gets a personal link: the invite opens with their name, the date, a countdown, the venue map and a WhatsApp RSVP button. Guests need no app.
+vivah.online makes a couple's wedding invitation into a website on its own address, such as raadha-shyam.vivah.online. The couple types the bride's and groom's names and the wedding date, gets a private preview on WhatsApp, and pays only if they like it. After payment, the couple manages the site from a dashboard and sends each guest a personal invite link. Guests need no app.
 
-It is for Hindu weddings in India, in English and Hindi.
+It is for Hindu weddings in India. The price starts at ₹499, paid once, with no charge per guest.
+
+## What is included
+
+### For the couple
+
+- A wedding website on its own address, such as raadha-shyam.vivah.online.
+- A free, private preview on WhatsApp before payment.
+- A couple dashboard, called "My site", at https://vivah.online/dashboard. The couple signs in with their phone number.
+- In the dashboard, the couple edits the names, date, time, venue and Google Maps link. Every guest link shows the change at once.
+- In the dashboard, the couple types a guest's name to make that guest's personal invite link.
+- In the dashboard, the couple copies each guest link or sends it on WhatsApp in one tap, and deletes links they no longer need.
+- A song for the invite, chosen at sign-up.
+
+### For each guest
+
+- The invite opens with the guest's own name.
+- An envelope to open, with falling petals.
+- A live countdown to the wedding.
+- The venue, with a Google Maps link.
+- The couple's song, which the guest taps to play.
+- An RSVP button.
+
+## How RSVP works
+
+The RSVP button opens WhatsApp with a reply to the couple already typed. The guest sends it, and the reply arrives in the couple's WhatsApp chats. The couple reads RSVPs in WhatsApp; the dashboard is where they make and send the guest links.
 
 ## Pages
 
+- [Home](https://vivah.online/): what the product includes, how it works, questions couples ask, and the form to start
 - [Wedding invitation for WhatsApp](https://vivah.online/whatsapp-wedding-invitation): what a WhatsApp wedding invitation is, how it works, and a paper card vs digital wedding invitation comparison
 - [WhatsApp wedding invitation messages](https://vivah.online/guides/wedding-invitation-message-whatsapp): ready messages for family, friends and colleagues, in English and Hindi
 - [How to reply to a wedding invitation on WhatsApp](https://vivah.online/guides/reply-to-wedding-invitation-on-whatsapp): replies to accept, decline politely or send blessings, in English and Hindi
-- [Make an invite](https://vivah.online/): the form to start, with a preview before payment
+- [About](https://vivah.online/about): who makes vivah.online and what we believe
+- [Contact](https://vivah.online/contact): WhatsApp, phone and email support

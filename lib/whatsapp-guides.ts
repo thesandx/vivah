@@ -221,6 +221,11 @@ export const LANDING_FAQS: readonly Faq[] = [
       'Yes. Each guest gets their own link, and the invite opens with their name, for example "Hi Kartheek". You make the links from your dashboard and send each one on WhatsApp.',
   },
   {
+    question: 'How do guests RSVP?',
+    answer:
+      'The invite has an RSVP button. The guest taps it, and WhatsApp opens with a reply to the couple already typed. The reply arrives in the couple’s WhatsApp.',
+  },
+  {
     question: 'Does the guest need to install an app?',
     answer:
       'No. The invite opens in the browser that WhatsApp uses. It works on any Android phone or iPhone.',

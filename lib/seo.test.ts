@@ -7,9 +7,12 @@ import {
   formatUpdated,
   MARKETING_PAGES,
   organizationSchema,
+  PRODUCT_FAQS,
+  PRODUCT_FEATURES,
   robotsFor,
   sitemapEntries,
   siteOrigin,
+  webApplicationSchema,
   whatsAppShareUrl,
 } from '@/lib/seo';
 
@@ -101,6 +104,21 @@ describe('schema', () => {
       'https://www.instagram.com/vivah.online/',
       'https://www.facebook.com/profile.php?id=61595459818394',
     ]);
+  });
+
+  it('lists the dashboard and the WhatsApp RSVP in the app’s features', () => {
+    const app = webApplicationSchema(ORIGIN, 'vivah.online');
+    expect(app['@type']).toBe('WebApplication');
+    expect(app.featureList).toBe(PRODUCT_FEATURES);
+    expect(PRODUCT_FEATURES.some((feature) => feature.includes('dashboard'))).toBe(true);
+    expect(PRODUCT_FEATURES.some((feature) => feature.startsWith('RSVP on WhatsApp'))).toBe(true);
+    expect(app.offers).toMatchObject({ priceCurrency: 'INR', price: 499 });
+  });
+
+  it('answers the dashboard and RSVP questions on the home page', () => {
+    const questions = PRODUCT_FAQS.map((faq) => faq.question);
+    expect(questions).toContain('Is there a dashboard for the couple?');
+    expect(questions).toContain('How does RSVP work?');
   });
 });
 

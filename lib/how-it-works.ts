@@ -38,7 +38,7 @@ export const HOW_IT_WORKS_STEPS: readonly HowItWorksStep[] = [
   {
     step: 3,
     title: 'Send it to everyone',
-    body: 'Publish, then send each guest a link that greets them by name.',
+    body: 'Publish, then make each guest’s link in your dashboard and send it on WhatsApp.',
     alt: 'A WhatsApp chat on a phone with the invite link and a happy reply.',
   },
 ];
