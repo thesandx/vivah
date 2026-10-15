@@ -23,8 +23,17 @@ describe('leadRequestSchema', () => {
       groom: 'Shyam',
       weddingDate: null,
       phoneE164: '+919876543210',
+      slug: null,
       isBot: false,
     });
+  });
+
+  it('keeps a chosen address, and refuses one that cannot be an address', () => {
+    expect(leadRequestSchema.parse({ ...VALID, slug: 'virushka' }).slug).toBe('virushka');
+    const dotted = leadRequestSchema.safeParse({ ...VALID, slug: 'radha.shyam' });
+    expect(dotted.success).toBe(false);
+    expect(dotted.error?.issues[0]?.path).toEqual(['slug']);
+    expect(leadRequestSchema.safeParse({ ...VALID, slug: 'admin' }).success).toBe(false);
   });
 
   it('accepts a future wedding date', () => {

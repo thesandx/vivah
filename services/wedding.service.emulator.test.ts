@@ -30,6 +30,7 @@ const REQUEST = {
   groom: 'Shyam',
   weddingDate: null,
   phoneE164: '+919876543210',
+  slug: null,
   isBot: false,
 };
 

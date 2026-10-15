@@ -18,6 +18,35 @@ function fillDetails(): void {
   fireEvent.click(screen.getByLabelText('Send my preview on WhatsApp'));
 }
 
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status });
+}
+
+/**
+ * Answers the address calls; `lead` answers `POST /api/leads`. Two free
+ * addresses are offered, and a typed one is free.
+ */
+function serve(lead: () => Response, suggestions = ['raadha-shyam', 'shyam-raadha']): void {
+  fetchMock.mockImplementation((input) => {
+    const url = String(input);
+    if (url.startsWith('/api/addresses?slug=')) return Promise.resolve(json({ available: true }));
+    if (url.startsWith('/api/addresses')) {
+      return Promise.resolve(json({ suggestions, domainLabel: 'vivah.online' }));
+    }
+    return Promise.resolve(lead());
+  });
+}
+
+function leadCalls(): Parameters<typeof fetch>[] {
+  return fetchMock.mock.calls.filter(([url]) => String(url) === '/api/leads');
+}
+
+/** From the second step to the third, once the addresses arrive. */
+async function toAddress(): Promise<void> {
+  fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+  expect(await screen.findByLabelText('raadha-shyam.vivah.online')).toBeChecked();
+}
+
 /** Runs the "making" steps, the envelope and the tick to their end. */
 async function runTheShow(): Promise<void> {
   for (let i = 0; i < 8; i += 1) {
@@ -87,12 +116,12 @@ describe('LeadForm', () => {
     expect(screen.getByLabelText("Bride's name")).toHaveValue('Raadha');
   });
 
-  it('asks for the WhatsApp opt-in before it sends anything', () => {
+  it('asks for the WhatsApp opt-in before it moves on', () => {
     render(<LeadForm />);
     fillNames();
     fireEvent.click(screen.getByLabelText("I'll add the date later"));
     fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
 
     expect(
       screen.getByText('Tick the box so we can send your preview on WhatsApp.'),
@@ -100,19 +129,44 @@ describe('LeadForm', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('posts the form, shows the website being made, then opens the preview', async () => {
-    fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }), { status: 201 }),
-    );
+  it('offers free addresses on the third step, and checks a typed one', async () => {
+    serve(() => json({}, 500));
     render(<LeadForm />);
     fillNames();
     fillDetails();
+    await toAddress();
+    expect(screen.getByRole('heading', { name: 'Your own address' })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/addresses?bride=Raadha&groom=Shyam',
+      expect.anything(),
+    );
+
+    fireEvent.click(screen.getByLabelText('Choose my own address'));
+    const make = screen.getByRole('button', { name: 'Make my website' });
+    expect(make).toBeDisabled();
+    fireEvent.change(screen.getByLabelText('Your address'), { target: { value: 'Virushka' } });
+    expect(await screen.findByText('virushka.vivah.online is free.')).toBeInTheDocument();
+    expect(make).toBeEnabled();
+
+    // Back and forward again keeps the choice and does not ask twice.
+    fireEvent.click(screen.getByRole('button', { name: 'Back to your big day' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+    expect(screen.getByLabelText('Your address')).toHaveValue('virushka');
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('bride='))).toHaveLength(1);
+  });
+
+  it('posts the form, shows the website being made, then opens the preview', async () => {
+    serve(() => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201));
+    render(<LeadForm />);
+    fillNames();
+    fillDetails();
+    await toAddress();
     fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
 
     expect(
       screen.getByRole('heading', { name: "Making Raadha & Shyam's website" }),
     ).toBeInTheDocument();
-    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
+    const body = JSON.parse(String(leadCalls()[0]?.[1]?.body)) as Record<string, unknown>;
     expect(body).toMatchObject({
       bride: 'Raadha',
       groom: 'Shyam',
@@ -120,8 +174,10 @@ describe('LeadForm', () => {
       countryIso: 'IN',
       phone: '9876543210',
       consent: true,
+      slug: 'raadha-shyam',
     });
     expect(body).not.toHaveProperty('website');
+    expect(screen.getByText(/raadha-shyam\.vivah\.online/)).toBeInTheDocument();
 
     await runTheShow();
     expect(screen.getByRole('heading', { name: 'Your website is ready' })).toBeInTheDocument();
@@ -129,23 +185,56 @@ describe('LeadForm', () => {
   });
 
   it('returns to the step a server error belongs to', async () => {
-    fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
+    serve(() =>
+      json(
+        {
           message: 'Numbers in India have 10 digits. You entered 9.',
           fields: { phone: 'Numbers in India have 10 digits. You entered 9.' },
-        }),
-        { status: 400 },
+        },
+        400,
       ),
     );
     render(<LeadForm />);
     fillNames();
     fillDetails();
+    await toAddress();
     fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
 
     expect(await screen.findByText('Your website was not created.')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Your big day' })).toBeInTheDocument();
     expect(screen.getAllByText('Numbers in India have 10 digits. You entered 9.')).toHaveLength(2);
     expect(assign).not.toHaveBeenCalled();
+  });
+
+  it('offers fresh addresses when the chosen one was taken meanwhile', async () => {
+    let answer = json({ message: 'Taken.', fields: { slug: 'Taken.' } }, 409);
+    serve(() => answer);
+    let lists = 0;
+    const addresses = fetchMock.getMockImplementation();
+    fetchMock.mockImplementation((input, init) => {
+      // The second list no longer has the address another couple took.
+      if (String(input).includes('bride=') && (lists += 1) > 1) {
+        return Promise.resolve(
+          json({ suggestions: ['shyam-raadha'], domainLabel: 'vivah.online' }),
+        );
+      }
+      return addresses?.(input, init) ?? Promise.reject(new Error('no mock'));
+    });
+    render(<LeadForm />);
+    fillNames();
+    fillDetails();
+    await toAddress();
+    fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
+
+    expect(await screen.findByText('Your website was not created.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your own address' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('bride='))).toHaveLength(
+        2,
+      ),
+    );
+    answer = json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201);
+    expect(await screen.findByLabelText('shyam-raadha.vivah.online')).toBeChecked();
+    expect(screen.queryByLabelText('raadha-shyam.vivah.online')).not.toBeInTheDocument();
   });
 });

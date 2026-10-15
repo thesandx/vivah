@@ -6,6 +6,7 @@ import { type LeadRequest, leadRequestSchema } from '@/lib/lead-schema';
 import { logger } from '@/lib/logger';
 import { clientIp, RateLimiter } from '@/lib/rate-limit';
 import { createLead } from '@/services/lead.service';
+import { checkSlug } from '@/services/wedding.service';
 
 /**
  * `POST /api/leads` — a couple asks for their preview. NO SESSION, on purpose.
@@ -19,6 +20,8 @@ import { createLead } from '@/services/lead.service';
  *     existing document, and takes no identity field from the body.
  *   - The body is validated by `leadRequestSchema` (strict: unknown keys fail).
  *   - A filled honeypot field answers like a success and stores nothing.
+ *   - The chosen address is stored on the lead as a wish. Nothing reserves
+ *     it until publishing (ADR-0007).
  *   - Each visitor may ask for 5 previews in 10 minutes (`lib/rate-limit.ts`).
  *
  * The response is the preview path. Until the WhatsApp templates are approved,
@@ -76,6 +79,15 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
+    // The address was free when the card checked it. Check once more, so a
+    // couple whose choice was taken meanwhile chooses again here, not later.
+    if (lead.slug !== null && !(await checkSlug(lead.slug)).available) {
+      const message = 'Somebody took this address a moment ago. Choose another.';
+      return NextResponse.json(
+        { error: 'slug_taken', message, fields: { slug: message } },
+        { status: 409 },
+      );
+    }
     const id = await createLead(lead);
     // The lead id is logged so a support request can be traced. The phone
     // number is never logged — see CLAUDE.md > Authentication in brief.

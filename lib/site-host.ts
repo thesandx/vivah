@@ -63,9 +63,14 @@ export function inviteHref(slug: string, rootDomain: string): string {
   return rootDomain === '' ? `/site/${slug}` : inviteUrl(slug, rootDomain);
 }
 
+/** The part after a couple's slug, as the couple reads it: `vivah.online`. */
+export function inviteDomainLabel(rootDomain: string): string {
+  return rootDomain === '' ? 'vivah.online' : normaliseHost(rootDomain);
+}
+
 /** The address as the couple reads it: `raadha-shyam.vivah.online`. */
 export function inviteHostLabel(slug: string, rootDomain: string): string {
-  return `${slug}.${rootDomain === '' ? 'vivah.online' : normaliseHost(rootDomain)}`;
+  return `${slug}.${inviteDomainLabel(rootDomain)}`;
 }
 
 /**

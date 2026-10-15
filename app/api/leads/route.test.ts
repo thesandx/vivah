@@ -4,8 +4,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const createLead = vi.fn<(input: unknown) => Promise<string>>();
 
+const checkSlug = vi.fn<(slug: string) => Promise<{ available: boolean }>>();
+
 vi.mock('@/services/lead.service', () => ({
   createLead: (input: unknown) => createLead(input),
+}));
+vi.mock('@/services/wedding.service', () => ({
+  checkSlug: (slug: string) => checkSlug(slug),
 }));
 
 const { POST } = await import('./route');
@@ -34,6 +39,7 @@ describe('POST /api/leads', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     createLead.mockResolvedValue('AbCdEfGhIjKlMnOpQrSt');
+    checkSlug.mockResolvedValue({ available: true });
   });
 
   it('creates a lead and answers with its preview path', async () => {
@@ -45,8 +51,26 @@ describe('POST /api/leads', () => {
       groom: 'Shyam',
       weddingDate: null,
       phoneE164: '+919876543210',
+      slug: null,
       isBot: false,
     });
+    expect(checkSlug).not.toHaveBeenCalled();
+  });
+
+  it('stores the chosen address after checking it is still free', async () => {
+    const response = await POST(post({ ...VALID, slug: 'virushka' }));
+    expect(response.status).toBe(201);
+    expect(checkSlug).toHaveBeenCalledWith('virushka');
+    expect(createLead).toHaveBeenCalledWith(expect.objectContaining({ slug: 'virushka' }));
+  });
+
+  it('answers 409 on the address field when the address was taken meanwhile', async () => {
+    checkSlug.mockResolvedValue({ available: false });
+    const response = await POST(post({ ...VALID, slug: 'virushka' }));
+    expect(response.status).toBe(409);
+    const body = (await response.json()) as { fields: Record<string, string> };
+    expect(Object.keys(body.fields)).toEqual(['slug']);
+    expect(createLead).not.toHaveBeenCalled();
   });
 
   it('answers 400 with one message per field', async () => {

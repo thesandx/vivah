@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { slugProblem } from '@/lib/couple-slug';
 import { toE164 } from '@/lib/phone';
 import { todayInIndia } from '@/lib/wedding-date';
 
@@ -53,6 +54,19 @@ export const leadRequestSchema = z
     /** The consent tick. WhatsApp's policy needs an explicit opt-in. */
     consent: z.literal(true, 'Tick the box so we can send your preview on WhatsApp.'),
     /**
+     * The invite address the couple chose on step 3: `radha-shyam`. Optional,
+     * so a page cached before step 3 existed still works; the preview page
+     * then offers addresses instead. Nothing is reserved until publishing.
+     */
+    slug: z
+      .string()
+      .max(100)
+      .superRefine((value, context) => {
+        const problem = slugProblem(value);
+        if (problem !== null) context.addIssue({ code: 'custom', message: problem });
+      })
+      .optional(),
+    /**
      * A honeypot. The field is hidden from people, so only a bot fills it.
      * The route accepts the request and stores nothing, so the bot learns
      * nothing from the answer.
@@ -71,6 +85,7 @@ export const leadRequestSchema = z
       groom: body.groom,
       weddingDate: body.weddingDate,
       phoneE164: phone.e164,
+      slug: body.slug ?? null,
       isBot: body.website !== undefined && body.website.trim() !== '',
     };
   });

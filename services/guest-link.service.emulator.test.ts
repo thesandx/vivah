@@ -38,6 +38,7 @@ async function publishedWedding() {
     groom: 'Shyam',
     weddingDate: null,
     phoneE164: OWNER,
+    slug: null,
     isBot: false,
   });
   const { newToken } = await openPreviewLink(id, undefined);

@@ -50,6 +50,12 @@ export const leadSchema = z.object({
    * because leads written before publishing existed do not have it.
    */
   weddingSlug: z.string().optional(),
+  /**
+   * The address the couple chose on the sign-up card. A wish, not a claim:
+   * publishing reserves it, or the preview page offers others if it was
+   * taken meanwhile. Optional because older leads do not have it.
+   */
+  desiredSlug: z.string().optional(),
 });
 
 export type LeadPayload = z.infer<typeof leadSchema>;
@@ -88,6 +94,7 @@ export async function createLead(input: LeadRequest, now: Date = new Date()): Pr
     expiresAt: new Date(now.getTime() + PREVIEW_LIFETIME_SECONDS * 1000),
     previewTokenHash: null,
     firstOpenedAt: null,
+    ...(input.slug !== null && { desiredSlug: input.slug }),
   });
 }
 
