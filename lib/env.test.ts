@@ -44,7 +44,8 @@ async function loadEnv(overrides: Record<string, string | undefined>): Promise<E
     'FIRESTORE_EMULATOR_HOST',
     'HEALTH_DEEP_CHECKS_ENABLED',
     'LOG_LEVEL',
-    'ADMIN_PHONE_NUMBERS',
+    'ADMIN_EMAIL',
+    'ADMIN_PHONE',
   ]) {
     delete process.env[key];
   }
@@ -195,20 +196,25 @@ describe('value validation', () => {
   });
 });
 
-describe('admin phone numbers', () => {
-  it('reads a comma-separated list of E.164 numbers', async () => {
-    const env = await loadEnv({ ADMIN_PHONE_NUMBERS: '+919546342507, +6591234567' });
-    expect(env.adminPhoneNumbers).toEqual(['+919546342507', '+6591234567']);
+describe('admin sign-in factors', () => {
+  it('reads the admin email in lowercase and the admin phone', async () => {
+    const env = await loadEnv({ ADMIN_EMAIL: ' Admin@Example.com ', ADMIN_PHONE: '+919546342507' });
+    expect(env.adminEmail).toBe('admin@example.com');
+    expect(env.adminPhone).toBe('+919546342507');
+    expect(env.adminEnabled).toBe(true);
   });
 
-  it('means nobody is an admin when unset', async () => {
-    const env = await loadEnv({});
-    expect(env.adminPhoneNumbers).toEqual([]);
+  it('turns the admin dashboard off when either factor is unset', async () => {
+    expect((await loadEnv({})).adminEnabled).toBe(false);
+    expect((await loadEnv({ ADMIN_EMAIL: 'admin@example.com' })).adminEnabled).toBe(false);
+    expect((await loadEnv({ ADMIN_PHONE: '+919546342507' })).adminEnabled).toBe(false);
   });
 
-  it('refuses a number without its country code', async () => {
-    await expect(loadEnv({ ADMIN_PHONE_NUMBERS: '9546342507' })).rejects.toThrow(
-      /ADMIN_PHONE_NUMBERS/,
-    );
+  it('refuses a phone without its country code', async () => {
+    await expect(loadEnv({ ADMIN_PHONE: '9546342507' })).rejects.toThrow(/ADMIN_PHONE/);
+  });
+
+  it('refuses something that is not an email address', async () => {
+    await expect(loadEnv({ ADMIN_EMAIL: 'not-an-email' })).rejects.toThrow(/ADMIN_EMAIL/);
   });
 });

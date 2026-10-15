@@ -134,7 +134,6 @@ describeEmulator('publishWedding (emulator)', () => {
 });
 
 describeEmulator('the dashboards (emulator)', () => {
-  const ADMINS = ['+919546342507'];
   const FORM = {
     bride: 'Anushka',
     groom: 'Sandeep',
@@ -169,21 +168,20 @@ describeEmulator('the dashboards (emulator)', () => {
 
   it('lets the couple save their details, and clear one later', async () => {
     const { slug, phone } = await ownedWedding();
-    expect(await updateWeddingDetails(slug, phone, ADMINS, FORM)).toEqual({ ok: true });
+    expect(await updateWeddingDetails(slug, phone, FORM)).toEqual({ ok: true });
     expect(await getWeddingBySlug(slug)).toMatchObject({ ...FORM });
 
-    await updateWeddingDetails(slug, phone, ADMINS, { ...FORM, venueMapsUrl: '' });
+    await updateWeddingDetails(slug, phone, { ...FORM, venueMapsUrl: '' });
     expect((await getWeddingBySlug(slug))?.venueMapsUrl).toBeNull();
   });
 
-  it('lets an admin save, and answers a stranger as if the address were unknown', async () => {
+  it('answers anyone but the couple as if the address were unknown', async () => {
     const { slug } = await ownedWedding();
-    expect(await updateWeddingDetails(slug, ADMINS[0] ?? '', ADMINS, FORM)).toEqual({ ok: true });
-    expect(await updateWeddingDetails(slug, '+919000000000', ADMINS, FORM)).toEqual({
+    expect(await updateWeddingDetails(slug, '+919000000000', FORM)).toEqual({
       ok: false,
       reason: 'not-found',
     });
-    expect(await updateWeddingDetails(slug, null, ADMINS, FORM)).toEqual({
+    expect(await updateWeddingDetails(slug, null, FORM)).toEqual({
       ok: false,
       reason: 'not-found',
     });
@@ -191,7 +189,7 @@ describeEmulator('the dashboards (emulator)', () => {
 
   it('names the fields that are wrong and saves nothing', async () => {
     const { slug, phone } = await ownedWedding();
-    const result = await updateWeddingDetails(slug, phone, ADMINS, {
+    const result = await updateWeddingDetails(slug, phone, {
       ...FORM,
       ceremonyTime: '7pm',
     });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { canEditWedding, isAdminPhone, parseWeddingDetails } from '@/lib/wedding-details';
+import { canEditWedding, parseWeddingDetails } from '@/lib/wedding-details';
 
 const FORM = {
   bride: ' Anushka ',
@@ -51,18 +51,9 @@ describe('parseWeddingDetails', () => {
 });
 
 describe('who may edit', () => {
-  const admins = ['+919546342507'];
-
-  it('lets the couple and an admin edit, nobody else', () => {
-    expect(canEditWedding('+917983873235', '+917983873235', admins)).toBe(true);
-    expect(canEditWedding('+919546342507', '+917983873235', admins)).toBe(true);
-    expect(canEditWedding('+919999999999', '+917983873235', admins)).toBe(false);
-    expect(canEditWedding(null, '+917983873235', admins)).toBe(false);
-  });
-
-  it('knows an admin only by a verified number on the list', () => {
-    expect(isAdminPhone('+919546342507', admins)).toBe(true);
-    expect(isAdminPhone(null, admins)).toBe(false);
-    expect(isAdminPhone('+919546342507', [])).toBe(false);
+  it('lets only the couple edit from the couple dashboard', () => {
+    expect(canEditWedding('+917983873235', '+917983873235')).toBe(true);
+    expect(canEditWedding('+919546342507', '+917983873235')).toBe(false);
+    expect(canEditWedding(null, '+917983873235')).toBe(false);
   });
 });

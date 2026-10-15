@@ -168,23 +168,26 @@ const rootDomain = pattern(
 );
 
 /**
- * Phone numbers that may open the admin dashboard, comma-separated E.164.
- * Not a secret: a number grants nothing without its OTP. Empty means no admin.
+ * The admin's two sign-in factors: a Google account, then an OTP to a phone.
+ * See ADR-0008. Both must be set, or `/admin` answers 404 for everyone.
+ *
+ * Not secrets: neither grants anything without the Google password and the
+ * phone. The email is still set as a GitHub variable, not in the repository,
+ * because the repository is public.
  */
-function phoneList(name: string, value: string | undefined): readonly string[] {
-  const entries = optional(value, '')
-    .split(',')
-    .map((entry) => entry.trim())
-    .filter((entry) => entry !== '');
-  const bad = entries.filter((entry) => !/^\+\d{8,15}$/.test(entry));
-  if (bad.length > 0) {
-    issues.push(`${name} must be comma-separated E.164 numbers like +919876543210`);
-    return [];
-  }
-  return entries;
-}
+const adminEmail = pattern(
+  'ADMIN_EMAIL',
+  process.env.ADMIN_EMAIL?.trim().toLowerCase(),
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+  'must be one email address, like admin@example.com',
+);
 
-const adminPhoneNumbers = phoneList('ADMIN_PHONE_NUMBERS', process.env.ADMIN_PHONE_NUMBERS);
+const adminPhone = pattern(
+  'ADMIN_PHONE',
+  process.env.ADMIN_PHONE?.trim(),
+  /^\+\d{8,15}$/,
+  'must be one E.164 phone number, like +919876543210',
+);
 
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
@@ -309,11 +312,19 @@ export const env = {
   rootDomain,
 
   /**
-   * Who may open `/dashboard/admin` and edit any couple's invite: phone
-   * numbers in E.164. A signed-in session whose verified phone number is in
-   * this list is an admin. See `docs/auth.md`, "The dashboards".
+   * The Google account that is the admin's first sign-in step for `/admin`.
+   * Lowercase. Empty turns the admin dashboard off. See ADR-0008.
    */
-  adminPhoneNumbers,
+  adminEmail,
+
+  /**
+   * The phone that receives the admin's second-step OTP, in E.164. Empty
+   * turns the admin dashboard off. See ADR-0008.
+   */
+  adminPhone,
+
+  /** True when both admin factors are set, so `/admin` can exist at all. */
+  adminEnabled: adminEmail !== '' && adminPhone !== '',
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */
   appVersion: optional(process.env.NEXT_PUBLIC_APP_VERSION, 'dev'),

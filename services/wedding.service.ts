@@ -8,7 +8,7 @@ import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slu
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import { leads, tokenMatches } from '@/services/lead.service';
-import { createRepository, type Page, type StoredDocument } from '@/services/repository';
+import { createRepository, type StoredDocument } from '@/services/repository';
 
 /**
  * Weddings: one per paid couple, served at `<slug>.<root domain>`.
@@ -23,6 +23,9 @@ import { createRepository, type Page, type StoredDocument } from '@/services/rep
 
 export const WEDDING_COLLECTION = 'weddings';
 
+export const WEDDING_STATUSES = ['live', 'unavailable'] as const;
+export type WeddingStatus = (typeof WEDDING_STATUSES)[number];
+
 export const weddingSchema = z.object({
   /** The first label of the invite host. Unique; the payment step enforces it. */
   slug: z.string().refine(isValidCoupleSlug, 'Not a valid couple slug.'),
@@ -34,6 +37,12 @@ export const weddingSchema = z.object({
   ownerPhoneE164: z.string().regex(/^\+\d{8,15}$/),
   /** The lead this wedding was paid from. */
   leadId: z.string().min(1).max(128),
+  /**
+   * `unavailable` shows guests a polite "not available right now" page
+   * instead of the invite. Set from `/admin`, on a couple's request, and
+   * reversible. Optional: absent means `live`, so no backfill is needed.
+   */
+  status: z.enum(WEDDING_STATUSES).optional(),
   // The ceremony details the invite shows. Optional: a wedding is published
   // before the couple adds them, and the invite says "shared soon" until then.
   // The couple sets them in the dashboard; `null` clears one.
@@ -89,17 +98,6 @@ export async function weddingsOwnedBy(phoneE164: string): Promise<readonly Weddi
   return page.items;
 }
 
-/** Rows per page on the admin dashboard. */
-export const ADMIN_PAGE_SIZE = 50;
-
-/**
- * Every wedding, newest first, one page at a time: the admin dashboard.
- * Served by the `(deletedAt, createdAt)` index.
- */
-export async function listWeddings(cursor: string | undefined): Promise<Page<WeddingDocument>> {
-  return weddings.list({ limit: ADMIN_PAGE_SIZE, ...(cursor !== undefined && { cursor }) });
-}
-
 /** The outcome of a dashboard save. */
 export type UpdateResult =
   | { ok: true }
@@ -117,12 +115,11 @@ export type UpdateResult =
 export async function updateWeddingDetails(
   slug: string,
   callerPhoneE164: string | null,
-  adminPhones: readonly string[],
   form: Record<string, unknown>,
 ): Promise<UpdateResult> {
   const wedding = await getWeddingBySlug(slug);
   if (wedding === null) return { ok: false, reason: 'not-found' };
-  if (!canEditWedding(callerPhoneE164, wedding.ownerPhoneE164, adminPhones)) {
+  if (!canEditWedding(callerPhoneE164, wedding.ownerPhoneE164)) {
     return { ok: false, reason: 'not-found' };
   }
   const parsed = parseWeddingDetails(form);
@@ -182,7 +179,7 @@ export async function checkSlug(slug: string): Promise<SlugAvailability> {
  * claim is the lock; this is a second guard, for a wedding written without a
  * claim (by hand, or before claims existed). It never overwrites either.
  */
-function weddingAtSlugQuery(slug: string) {
+export function weddingAtSlugQuery(slug: string) {
   return weddings.ref().where('slug', '==', slug).where('deletedAt', '==', null).limit(1);
 }
 

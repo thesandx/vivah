@@ -47,7 +47,10 @@ export async function GET(
   const { slug } = await params;
   try {
     const wedding = await getWeddingBySlug(slug);
-    if (wedding === null) return new Response('Not found', { status: 404 });
+    // An unavailable invite shows no names in a link preview either.
+    if (wedding === null || wedding.status === 'unavailable') {
+      return new Response('Not found', { status: 404 });
+    }
 
     const raw = new URL(request.url).searchParams.get('guest');
     const parsed = raw === null ? null : parseGuestName(raw);

@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { cache } from 'react';
 
 import { Envelope } from '@/components/invite/Envelope';
+import { InviteUnavailable } from '@/components/invite/InviteUnavailable';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { env } from '@/lib/env';
 import { coupleInitials, parseGuestName } from '@/lib/guest-name';
@@ -30,6 +31,9 @@ export async function coupleInviteMetadata(
 ): Promise<Metadata> {
   const wedding = await loadWedding(slug);
   if (wedding === null) return { title: 'Invite not found', robots: { index: false } };
+  if (wedding.status === 'unavailable') {
+    return { title: 'Invite not available', robots: { index: false } };
+  }
 
   return inviteMetadata({
     slug: wedding.slug,
@@ -56,6 +60,7 @@ export async function CoupleInvite({
 }) {
   const wedding = await loadWedding(slug);
   if (wedding === null) notFound();
+  if (wedding.status === 'unavailable') return <InviteUnavailable />;
   const guestName = guestFrom(guestSegment);
 
   return (
