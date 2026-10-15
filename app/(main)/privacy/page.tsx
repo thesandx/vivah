@@ -34,8 +34,8 @@ export default function PrivacyPage() {
       <section>
         <h2>1. Who we are</h2>
         <p>
-          {BUSINESS.brand} is run by {BUSINESS.owner} as a sole proprietor
-          {BUSINESS.address === '' ? '' : `, ${BUSINESS.address}`}. You can reach us using the
+          {BUSINESS.brand} is run by a small team
+          {BUSINESS.address === '' ? '' : `, at ${BUSINESS.address}`}. You can reach us using the
           details at the end of this page.
         </p>
       </section>
@@ -138,10 +138,11 @@ export default function PrivacyPage() {
       </section>
 
       <section>
-        <h2>10. Grievance officer</h2>
+        <h2>10. Complaints</h2>
         <p>
-          {BUSINESS.owner} handles complaints. We acknowledge within 48 hours and resolve within 30
-          days. If we do not resolve it, you may complain to the Data Protection Board of India.
+          Our team handles complaints about your data. We acknowledge within 48 hours and resolve
+          within 30 days. If we do not resolve it, you may complain to the Data Protection Board of
+          India.
         </p>
         <SupportContacts />
       </section>

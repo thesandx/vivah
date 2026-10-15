@@ -31,9 +31,8 @@ export default function TermsPage() {
       <section>
         <h2>1. Who we are</h2>
         <p>
-          These terms are an agreement between you and {BUSINESS.owner}, a sole proprietor who runs{' '}
-          {BUSINESS.brand}
-          {BUSINESS.address === '' ? '' : `, ${BUSINESS.address}`}.
+          These terms are an agreement between you and {BUSINESS.brand}, a small team that makes
+          wedding invite websites{BUSINESS.address === '' ? '' : `, at ${BUSINESS.address}`}.
         </p>
       </section>
       <section>
