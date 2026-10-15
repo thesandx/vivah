@@ -48,6 +48,7 @@ async function published(): Promise<{ weddingId: string; leadId: string; slug: s
     groom: 'Shyam',
     weddingDate: null,
     phoneE164: '+919876543210',
+    slug: null,
     isBot: false,
   });
   const { newToken } = await openPreviewLink(leadId, undefined);
@@ -128,6 +129,7 @@ describeEmulator('admin operations (emulator)', () => {
       groom: 'Dev',
       weddingDate: null,
       phoneE164: '+919812345678',
+      slug: null,
       isBot: false,
     });
     const { newToken } = await openPreviewLink(otherLead, undefined);
@@ -144,6 +146,7 @@ describeEmulator('admin operations (emulator)', () => {
       groom: 'Sandy',
       weddingDate: null,
       phoneE164: '+919876543210',
+      slug: null,
       isBot: false,
     });
     await openPreviewLink(leadId, undefined, new Date(Date.now() - 3 * 86_400_000));

@@ -10,7 +10,7 @@ import { SignupDialogContext, type SignupDialogState } from '@/hooks/useSignupDi
 /**
  * The home page's second way in: every call to action below the hero opens
  * this, instead of scrolling back to the top. A tap plays the heart thread,
- * then a dialog rises with the same two-step sign-up card as the hero, and
+ * then a dialog rises with the same three-step sign-up card as the hero, and
  * nothing else.
  *
  * The dialog stays mounted while it is closed, so a couple who closes it

@@ -104,6 +104,30 @@ export function CalendarArt({ isoDate, className }: ArtProps & { isoDate: string
   );
 }
 
+/** Step 3: a browser window with a heart, for the website's own address. */
+export function AddressArt({ className }: ArtProps) {
+  return (
+    <svg viewBox="0 0 64 52" aria-hidden="true" className={cn('h-14 w-16', className)}>
+      <rect
+        x="3"
+        y="3"
+        width="58"
+        height="46"
+        rx="8"
+        className="fill-surface stroke-ink"
+        strokeWidth="3"
+      />
+      <path d="M3 17h58" className="stroke-ink" strokeWidth="3" />
+      <circle cx="11" cy="10" r="2.2" className="fill-brand" />
+      <circle cx="18" cy="10" r="2.2" className="fill-peach" />
+      <rect x="25" y="7.5" width="30" height="5" rx="2.5" className="fill-sunken" />
+      <g transform="translate(20.5 21) scale(0.95)" className="fill-brand">
+        <path d={HEART_PATH} />
+      </g>
+    </svg>
+  );
+}
+
 /** The envelope that zooms off once the website is made. */
 export function EnvelopeArt({ className }: ArtProps) {
   return (

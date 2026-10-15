@@ -2,9 +2,17 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import {
+  AddressChoice,
+  type AddressValue,
+  chosenSlug,
+  CUSTOM,
+  initialAddress,
+  type SlugCheck,
+} from '@/components/invite/AddressChoice';
 import { MakingProgress } from '@/components/lead/MakingProgress';
 import { SendMoment } from '@/components/lead/SendMoment';
-import { CalendarArt, HeartGlyph, HeartsArt } from '@/components/lead/SignupArt';
+import { AddressArt, CalendarArt, HeartGlyph, HeartsArt } from '@/components/lead/SignupArt';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
@@ -15,13 +23,16 @@ import { cn } from '@/lib/utils';
 import { daysUntil, foreverStartsLine, formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
 
 /**
- * The home page sign-up card, in two steps so a couple is invested before we
- * ask for a phone number:
+ * The home page sign-up card, in three steps so a couple is invested before
+ * we ask for a phone number:
  *
  * 1. The two names. The card shows them joined by a heart as they type, and
  *    the button wakes up once both are there.
  * 2. The wedding day and the WhatsApp number. A picked day turns into "Your
  *    forever starts in 30 days".
+ * 3. The address of their website: `radha-shyam.vivah.online`, or one they
+ *    type. `GET /api/addresses` offers free ones and checks a typed one. The
+ *    lead stores the choice; publishing on the preview page reserves it.
  *
  * Then the card shows the website being made, step by step, while
  * `POST /api/leads` creates the preview. An envelope zooms away, a tick takes
@@ -50,13 +61,28 @@ const SENT_MS = 1400;
  */
 const SENT_DETAIL = 'Opening your preview now.';
 
-type Step = 'names' | 'details' | 'making' | 'flying' | 'sent';
-type FieldName = 'bride' | 'groom' | 'weddingDate' | 'phone' | 'consent';
+type Step = 'names' | 'details' | 'address' | 'making' | 'flying' | 'sent';
+type FieldName = 'bride' | 'groom' | 'weddingDate' | 'phone' | 'consent' | 'slug';
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 interface ErrorBody {
   message?: string;
   fields?: Record<string, string>;
+}
+
+/** How long an address call may take. */
+const ADDRESS_TIMEOUT_MS = 8000;
+
+/** Shown until the server names the root domain. */
+const DEFAULT_DOMAIN_LABEL = 'vivah.online';
+
+/** Is this typed address free? Module level, so it is stable across renders. */
+async function checkAddress(slug: string): Promise<SlugCheck> {
+  const response = await fetch(`/api/addresses?slug=${encodeURIComponent(slug)}`, {
+    signal: AbortSignal.timeout(ADDRESS_TIMEOUT_MS),
+  });
+  if (!response.ok) throw new Error(`Checking the address failed with ${response.status}.`);
+  return (await response.json()) as SlugCheck;
 }
 
 const STEP_MOTION = { none: '', next: 'animate-slide-in-next', back: 'animate-slide-in-back' };
@@ -79,6 +105,12 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const [phone, setPhone] = useState('');
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState('');
+  const [address, setAddress] = useState<AddressValue>(() => initialAddress([]));
+  /** Free addresses for these names; `null` while they load. */
+  const [suggestions, setSuggestions] = useState<readonly string[] | null>(null);
+  const [domainLabel, setDomainLabel] = useState(DEFAULT_DOMAIN_LABEL);
+  /** The names the suggestions were made for, so a return visit does not ask again. */
+  const suggestedFor = useRef<string | null>(null);
 
   const [step, setStep] = useState<Step>('names');
   const [direction, setDirection] = useState<keyof typeof STEP_MOTION>('none');
@@ -101,11 +133,13 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const days = !dateLater && weddingDate !== '' ? daysUntil(weddingDate, todayInIndia()) : null;
   const forever = days === null ? null : foreverStartsLine(days);
   const detailsReady = (dateLater || weddingDate !== '') && phone.length === 10;
+  const slug = chosenSlug(address);
+  const addressReady = suggestions !== null && slug !== null;
 
   const makingSteps = [
     `Writing ${brideName} & ${groomName} in gold`,
     dateLater ? 'Saving a seat for your date' : 'Circling your day on the calendar',
-    'Hanging the marigolds',
+    `Putting up your nameplate at ${slug ?? 'your address'}.${domainLabel}`,
     'Sealing your invite',
   ] as const;
 
@@ -160,13 +194,58 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
     setError(null);
     if (Object.keys(errors).length > 0) return;
 
+    go('address', 'next');
+    const names = `${brideName}\n${groomName}`;
+    if (suggestedFor.current !== names) void loadSuggestions(names);
+  }
+
+  /**
+   * Asks for free addresses for these names. A ready-made choice that is no
+   * longer offered moves to the new first one; a typed address stays.
+   */
+  async function loadSuggestions(names: string): Promise<void> {
+    suggestedFor.current = names;
+    setSuggestions(null);
+    let offered: readonly string[] = [];
+    try {
+      const query = new URLSearchParams({ bride: brideName, groom: groomName });
+      const response = await fetch(`/api/addresses?${query.toString()}`, {
+        signal: AbortSignal.timeout(ADDRESS_TIMEOUT_MS),
+      });
+      if (response.ok) {
+        const body = (await response.json()) as { suggestions: string[]; domainLabel: string };
+        offered = body.suggestions;
+        setDomainLabel(body.domainLabel);
+      }
+    } catch {
+      // No suggestions: the couple types their own, and that is checked.
+    }
+    // The names changed while this was asked. A newer call answers instead.
+    if (suggestedFor.current !== names) return;
+    setSuggestions(offered);
+    setAddress((previous) =>
+      previous.choice === CUSTOM
+        ? previous.typed === ''
+          ? initialAddress(offered)
+          : previous
+        : offered.includes(previous.choice)
+          ? previous
+          : initialAddress(offered),
+    );
+  }
+
+  function handleAddress(event: React.FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    if (!addressReady || slug === null) return;
+    setFieldErrors({});
+    setError(null);
     setDone(0);
     setPreviewPath(null);
     go('making', 'next');
-    void submit();
+    void submit(slug);
   }
 
-  async function submit(): Promise<void> {
+  async function submit(chosen: string): Promise<void> {
     try {
       const response = await fetch('/api/leads', {
         method: 'POST',
@@ -178,6 +257,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           countryIso: 'IN',
           phone,
           consent,
+          slug: chosen,
           ...(website !== '' && { website }),
         }),
         signal: AbortSignal.timeout(10_000),
@@ -188,8 +268,21 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         const fields = (body.fields ?? {}) as FieldErrors;
         setFieldErrors(fields);
         setError(body.message ?? `The request failed with status ${response.status}.`);
-        // A problem with a name belongs on the first step.
-        go(fields.bride !== undefined || fields.groom !== undefined ? 'names' : 'details', 'back');
+        // Each problem goes back to the step that asked for it.
+        if (fields.bride !== undefined || fields.groom !== undefined) go('names', 'back');
+        else if (fields.slug !== undefined) {
+          go('address', 'back');
+          if (address.choice === CUSTOM) {
+            setAddress((previous) => ({
+              ...previous,
+              check: { kind: 'problem', message: fields.slug ?? 'Choose another address.' },
+            }));
+          } else {
+            // A ready-made address was taken meanwhile: offer fresh ones.
+            void loadSuggestions(`${brideName}\n${groomName}`);
+          }
+        } else if (Object.keys(fields).length > 0) go('details', 'back');
+        else go('address', 'back');
         return;
       }
 
@@ -201,8 +294,33 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           ? caught.message
           : 'The request took too long. Check your connection and try again.',
       );
-      go('details', 'back');
+      go('address', 'back');
     }
+  }
+
+  function backButton(label: string, to: Step): React.JSX.Element {
+    return (
+      <Button
+        variant="secondary"
+        size="lg"
+        className="w-14 shrink-0 px-0!"
+        aria-label={label}
+        onClick={() => {
+          setError(null);
+          go(to, 'back');
+        }}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6" fill="none">
+          <path
+            d="M19 12H5m6-6l-6 6 6 6"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Button>
+    );
   }
 
   const errorAlert = error !== null && (
@@ -222,7 +340,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         >
           <header className="flex flex-col items-center gap-2 text-center">
             <HeartsArt />
-            <p className="text-small text-ink-soft">Step 1 of 2</p>
+            <p className="text-small text-ink-soft">Step 1 of 3</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               The two of you
             </h2>
@@ -278,7 +396,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         >
           <header className="flex flex-col items-center gap-2 text-center">
             <CalendarArt isoDate={dateLater || weddingDate === '' ? null : weddingDate} />
-            <p className="text-small text-ink-soft">Step 2 of 2</p>
+            <p className="text-small text-ink-soft">Step 2 of 3</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               Your big day
             </h2>
@@ -367,27 +485,56 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           {errorAlert}
 
           <div className="flex gap-3">
-            <Button
-              variant="secondary"
-              size="lg"
-              className="w-14 shrink-0 px-0!"
-              aria-label="Back to your names"
-              onClick={() => {
-                setError(null);
-                go('names', 'back');
-              }}
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6" fill="none">
-                <path
-                  d="M19 12H5m6-6l-6 6 6 6"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </Button>
+            {backButton('Back to your names', 'names')}
             <Button type="submit" size="lg" block disabled={!detailsReady}>
+              Choose our address
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {step === 'address' && (
+        <form
+          key="address"
+          onSubmit={handleAddress}
+          className={cn('flex flex-col gap-4', STEP_MOTION[direction])}
+          noValidate
+        >
+          <header className="flex flex-col items-center gap-2 text-center">
+            <AddressArt />
+            <p className="text-small text-ink-soft">Step 3 of 3</p>
+            <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
+              Your own address
+            </h2>
+            <p className="text-small text-ink-soft">
+              Where your guests will find you. Pick one, or make it yours.
+            </p>
+          </header>
+          {suggestions === null ? (
+            <p
+              className="text-ink-soft flex min-h-26 items-center justify-center gap-3"
+              role="status"
+            >
+              <span className="border-sunken border-t-brand size-5 animate-spin rounded-full border-2" />
+              Finding a free address for {brideName} & {groomName}
+            </p>
+          ) : (
+            <AddressChoice
+              key={suggestions.join(' ')}
+              label="Your website address"
+              suggestions={suggestions}
+              domainLabel={domainLabel}
+              checkSlug={checkAddress}
+              value={address}
+              onChange={setAddress}
+            />
+          )}
+
+          {errorAlert}
+
+          <div className="flex gap-3">
+            {backButton('Back to your big day', 'details')}
+            <Button type="submit" size="lg" block disabled={!addressReady}>
               Make my website
             </Button>
           </div>

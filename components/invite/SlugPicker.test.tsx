@@ -6,13 +6,15 @@ import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/in
 const checkSlug = vi.fn<(slug: string) => Promise<SlugCheck>>();
 const publish = vi.fn<(leadId: string, slug: string) => Promise<PublishOutcome>>();
 const assign = vi.fn<(url: string) => void>();
+const reload = vi.fn<() => void>();
 
 const BOTH_FREE = ['radha-shyam', 'shyam-radha'];
 
-function renderPicker(suggestions: string[] = BOTH_FREE): void {
+function renderPicker(suggestions: string[] = BOTH_FREE, chosen?: string): void {
   render(
     <SlugPicker
       leadId="AbCdEfGhIjKlMnOpQrSt"
+      {...(chosen !== undefined && { chosen })}
       suggestions={suggestions}
       domainLabel="vivah.online"
       checkSlug={checkSlug}
@@ -23,11 +25,29 @@ function renderPicker(suggestions: string[] = BOTH_FREE): void {
 
 describe('SlugPicker', () => {
   beforeEach(() => {
-    Object.defineProperty(window, 'location', { value: { assign }, configurable: true });
+    Object.defineProperty(window, 'location', { value: { assign, reload }, configurable: true });
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('shows the address chosen at sign-up, with no list, and publishes it', async () => {
+    publish.mockResolvedValue({ ok: true, url: 'https://virushka.vivah.online' });
+    renderPicker([], 'virushka');
+    expect(screen.getByText('virushka.vivah.online')).toBeInTheDocument();
+    expect(screen.queryByLabelText('Choose my own address')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Pay and publish' }));
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('https://virushka.vivah.online'));
+    expect(publish).toHaveBeenCalledWith('AbCdEfGhIjKlMnOpQrSt', 'virushka');
+  });
+
+  it('reloads to offer other addresses when the chosen one was taken a moment ago', async () => {
+    publish.mockResolvedValue({ ok: false, message: 'Somebody took this address.', taken: true });
+    renderPicker([], 'virushka');
+    fireEvent.click(screen.getByRole('button', { name: 'Pay and publish' }));
+    await waitFor(() => expect(reload).toHaveBeenCalled());
+    expect(assign).not.toHaveBeenCalled();
   });
 
   it('offers both name orders and chooses bride first', () => {

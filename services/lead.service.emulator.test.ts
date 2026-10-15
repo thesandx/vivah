@@ -21,6 +21,7 @@ const REQUEST = {
   groom: 'Shyam',
   weddingDate: '2030-03-09',
   phoneE164: '+919876543210',
+  slug: null,
   isBot: false,
 };
 
@@ -49,6 +50,13 @@ describeEmulator('lead.service (emulator)', () => {
     const view = await getPreview(id, token);
     expect(view.state).toBe('ok');
     expect(await getPreview(id, undefined)).toEqual({ state: 'other-browser' });
+  });
+
+  it('stores the chosen address as a wish, and nothing when there is none', async () => {
+    const chosen = await leads.getOrThrow(await createLead({ ...REQUEST, slug: 'virushka' }));
+    expect(chosen.desiredSlug).toBe('virushka');
+    const none = await leads.getOrThrow(await createLead(REQUEST));
+    expect(none.desiredSlug).toBeUndefined();
   });
 
   it('expires the link after 48 hours', async () => {

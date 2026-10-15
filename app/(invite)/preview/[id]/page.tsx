@@ -11,9 +11,9 @@ import { Alert } from '@/components/ui/Alert';
 import { Face } from '@/components/ui/Face';
 import { env } from '@/lib/env';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
-import { inviteHostLabel, inviteHref, madeByUrl, normaliseHost } from '@/lib/site-host';
+import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
-import { freeSlugSuggestions } from '@/services/wedding.service';
+import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
 import { checkSlugAction, publishAction } from './actions';
 
@@ -76,7 +76,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   }
 
   const { lead } = access;
-  const domainLabel = env.rootDomain === '' ? 'vivah.online' : normaliseHost(env.rootDomain);
+  const domainLabel = inviteDomainLabel(env.rootDomain);
 
   // Already published: show where, instead of the address step.
   if (lead.status === 'paid' && lead.weddingSlug !== undefined) {
@@ -111,10 +111,15 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     );
   }
 
-  // Only free addresses are offered, so a couple never sees "taken" for an
-  // address we chose for them. The publish step checks again, so a stale
-  // answer here can never overwrite another couple.
-  const suggestions = await freeSlugSuggestions(lead.bride, lead.groom);
+  // The couple chose their address on the sign-up card. Check it is still
+  // free, so the page shows it with the publish button. Only when it was
+  // taken meanwhile, or the lead is older than that step, does the page offer
+  // addresses here. Those are free ones only, so a couple never sees "taken"
+  // for an address we chose for them. Publishing checks again either way.
+  const desired = lead.desiredSlug;
+  const chosen =
+    desired !== undefined && (await checkSlug(desired)).available ? desired : undefined;
+  const suggestions = chosen === undefined ? await freeSlugSuggestions(lead.bride, lead.groom) : [];
 
   return (
     <PageShell>
@@ -140,11 +145,18 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         <section className="flex flex-col gap-5 lg:col-span-2">
           <h2 className="text-title">This is your invite</h2>
           <p className="text-ink-soft max-w-prose">
-            Only this phone can open this preview. Choose your address and publish, and your guests
-            can open it at once. This preview stays here for 48 hours from your request.
+            Only this phone can open this preview. Publish it, and your guests can open it at once
+            at your own address. This preview stays here for 48 hours from your request.
           </p>
+          {desired !== undefined && chosen === undefined && (
+            <Alert tone="info" title="Your address was taken">
+              Another couple published {inviteHostLabel(desired, env.rootDomain)} after you chose
+              it. Choose another address below.
+            </Alert>
+          )}
           <SlugPicker
             leadId={lead.id}
+            {...(chosen !== undefined && { chosen })}
             suggestions={suggestions}
             domainLabel={domainLabel}
             checkSlug={checkSlugAction}
