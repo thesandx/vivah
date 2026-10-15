@@ -194,6 +194,10 @@ else
 fi
 
 info "Running emulator suites"
-pnpm exec vitest run "${TARGETS[@]}"
+# One file at a time. Every suite shares one emulator, and the emulator takes
+# pessimistic locks for a transaction's reads, including the slug queries in
+# publishWedding. Suites in parallel queue on each other's locks until a test
+# times out ("Transaction lock timeout" in the emulator log).
+pnpm exec vitest run --no-file-parallelism "${TARGETS[@]}"
 
 printf '%s✓%s Emulator suites passed\n' "${GREEN}" "${RESET}"

@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 import {
   createGuestLink,
@@ -25,7 +25,12 @@ const describeEmulator = emulatorHost === '' ? describe.skip : describe;
 
 const OWNER = '+919876543210';
 
-/** A published wedding at a fresh slug, so runs do not collide. */
+/**
+ * A published wedding at a fresh slug, so runs do not collide. Made once for
+ * the file: each publish is a transaction over `weddings`, and the other
+ * emulator suites publish in parallel, so fewer publishes keep the emulator's
+ * lock queue short. Each test uses its own guest names instead.
+ */
 async function publishedWedding() {
   const slug = `links-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
   const id = await createLead({
@@ -43,18 +48,21 @@ async function publishedWedding() {
 }
 
 describeEmulator('guest links (emulator)', () => {
+  let wedding: Awaited<ReturnType<typeof publishedWedding>>;
+  beforeAll(async () => {
+    wedding = await publishedWedding();
+  });
+
   it('makes a link from a name with spaces and lists it', async () => {
-    const wedding = await publishedWedding();
-    expect(await createGuestLink(wedding.slug, OWNER, 'rahul sharma')).toEqual({
+    expect(await createGuestLink(wedding.slug, OWNER, 'anil kapoor')).toEqual({
       ok: true,
-      link: { name: 'Rahul sharma', segment: 'Rahul-sharma' },
+      link: { name: 'Anil kapoor', segment: 'Anil-kapoor' },
     });
     const links = await listGuestLinks(wedding.id);
-    expect(links.map((link) => link.segment)).toEqual(['Rahul-sharma']);
+    expect(links.map((link) => link.segment)).toContain('Anil-kapoor');
   });
 
   it('numbers a second and a third guest of the same name', async () => {
-    const wedding = await publishedWedding();
     const segments = [];
     for (const name of ['Rahul', 'rahul', 'Rahul']) {
       const result = await createGuestLink(wedding.slug, OWNER, name);
@@ -64,7 +72,6 @@ describeEmulator('guest links (emulator)', () => {
   });
 
   it('never gives two taps at once the same link', async () => {
-    const wedding = await publishedWedding();
     const results = await Promise.all(
       [1, 2, 3].map(() => createGuestLink(wedding.slug, OWNER, 'Priya')),
     );
@@ -73,7 +80,6 @@ describeEmulator('guest links (emulator)', () => {
   });
 
   it('shows a deleted link as the general invite, and never reuses it', async () => {
-    const wedding = await publishedWedding();
     await createGuestLink(wedding.slug, OWNER, 'Kartheek');
     expect(await isGuestLinkDeleted(wedding.id, 'Kartheek')).toBe(false);
 
@@ -81,20 +87,19 @@ describeEmulator('guest links (emulator)', () => {
       ok: true,
     });
     expect(await isGuestLinkDeleted(wedding.id, 'kartheek')).toBe(true);
-    expect(await listGuestLinks(wedding.id)).toEqual([]);
+    const segments = (await listGuestLinks(wedding.id)).map((link) => link.segment);
+    expect(segments).not.toContain('Kartheek');
 
     const again = await createGuestLink(wedding.slug, OWNER, 'Kartheek');
     expect(again).toMatchObject({ ok: true, link: { segment: 'Kartheek-2' } });
   });
 
   it('keeps a hand-typed link working', async () => {
-    const wedding = await publishedWedding();
     expect(await isGuestLinkDeleted(wedding.id, 'Anyone')).toBe(false);
   });
 
   it('refuses a stranger and an unusable name', async () => {
-    const wedding = await publishedWedding();
-    expect(await createGuestLink(wedding.slug, '+910000000000', 'Rahul')).toMatchObject({
+    expect(await createGuestLink(wedding.slug, '+910000000000', 'Meera')).toMatchObject({
       ok: false,
       reason: 'not-found',
     });
@@ -102,10 +107,11 @@ describeEmulator('guest links (emulator)', () => {
       ok: false,
       reason: 'invalid',
     });
-    await createGuestLink(wedding.slug, OWNER, 'Rahul');
+    await createGuestLink(wedding.slug, OWNER, 'Meera');
     expect(
-      await deleteGuestLink(wedding.slug, '+910000000000', guestLinkId('rahul')),
+      await deleteGuestLink(wedding.slug, '+910000000000', guestLinkId('meera')),
     ).toMatchObject({ ok: false, reason: 'not-found' });
-    expect(await listGuestLinks(wedding.id)).toHaveLength(1);
+    const segments = (await listGuestLinks(wedding.id)).map((link) => link.segment);
+    expect(segments).toContain('Meera');
   });
 });
