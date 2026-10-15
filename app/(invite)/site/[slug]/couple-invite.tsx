@@ -81,9 +81,15 @@ export async function CoupleInvite({
     <Envelope
       guestName={guestName}
       initials={coupleInitials(wedding.bride, wedding.groom)}
+      couple={`${wedding.bride} & ${wedding.groom}`}
       rememberKey={`vivah:opened:${wedding.slug}:${guestName ?? ''}`}
+      song={
+        wedding.song === undefined
+          ? null
+          : { name: wedding.song.name, src: songUrl(wedding.song.file) }
+      }
     >
-      {/* Full width, not PageShell: the garland runs edge to edge, and the
+      {/* Full width, not PageShell: the petals run edge to edge, and the
           invite narrows its own text column. */}
       <main className="flex flex-1 flex-col">
         <ShubhVivahInvite
@@ -97,11 +103,6 @@ export async function CoupleInvite({
           venueMapsUrl={wedding.venueMapsUrl ?? null}
           rsvpPhoneE164={wedding.ownerPhoneE164}
           madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
-          song={
-            wedding.song === undefined
-              ? null
-              : { name: wedding.song.name, src: songUrl(wedding.song.file) }
-          }
           className="flex-1"
         />
       </main>

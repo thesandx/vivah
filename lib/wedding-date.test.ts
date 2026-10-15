@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addToCalendarUrl,
   countdownParts,
   daysUntil,
   foreverStartsLine,
@@ -8,6 +9,7 @@ import {
   formatWeddingDate,
   formatWeddingTime,
   todayInIndia,
+  weddingDateParts,
   weddingStartsAt,
 } from '@/lib/wedding-date';
 
@@ -77,5 +79,52 @@ describe('the sign-up countdown', () => {
 
   it('reads today in India', () => {
     expect(todayInIndia(new Date('2026-10-14T20:00:00Z'))).toBe('2026-10-15');
+  });
+});
+
+describe('weddingDateParts', () => {
+  it('splits a date into the scratch cards', () => {
+    expect(weddingDateParts('2026-12-07')).toEqual({
+      day: '07',
+      month: 'December',
+      monthNumber: '12',
+      year: '2026',
+    });
+  });
+
+  it('refuses anything that is not a date', () => {
+    expect(weddingDateParts('2026-13-01')).toBeNull();
+    expect(weddingDateParts('soon')).toBeNull();
+  });
+});
+
+describe('addToCalendarUrl', () => {
+  it('adds a three-hour event in India time when the time is known', () => {
+    const url = new URL(
+      addToCalendarUrl({
+        title: 'Riya & Arjun',
+        isoDate: '2026-12-12',
+        time: '19:00',
+        location: 'The Grand Pavilion, New Delhi',
+        details: 'Join us',
+      }),
+    );
+    expect(url.hostname).toBe('calendar.google.com');
+    expect(url.searchParams.get('dates')).toBe('20261212T133000Z/20261212T163000Z');
+    expect(url.searchParams.get('location')).toBe('The Grand Pavilion, New Delhi');
+  });
+
+  it('adds the whole day without a time', () => {
+    const url = new URL(
+      addToCalendarUrl({
+        title: 'Riya & Arjun',
+        isoDate: '2026-12-31',
+        time: null,
+        location: null,
+        details: 'Join us',
+      }),
+    );
+    expect(url.searchParams.get('dates')).toBe('20261231/20270101');
+    expect(url.searchParams.has('location')).toBe(false);
   });
 });

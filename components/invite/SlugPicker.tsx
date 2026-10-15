@@ -42,6 +42,8 @@ export interface SlugPickerProps {
   domainLabel: string;
   checkSlug: (slug: string) => Promise<SlugCheck>;
   publish: (leadId: string, slug: string) => Promise<PublishOutcome>;
+  /** The publish button's words. Default: "Pay and publish". */
+  actionLabel?: string;
   className?: string;
 }
 
@@ -52,6 +54,7 @@ export function SlugPicker({
   domainLabel,
   checkSlug,
   publish,
+  actionLabel = 'Pay and publish',
   className,
 }: SlugPickerProps): React.JSX.Element {
   const [offered, setOffered] = useState<readonly string[]>(suggestions);
@@ -113,8 +116,8 @@ export function SlugPicker({
     <div className={cn('flex flex-col gap-5', className)}>
       {chosen !== undefined ? (
         <div className="bg-sunken border-line rounded-input flex flex-col gap-1 border-2 p-4">
-          <p className="text-small text-ink-soft">Your invite address</p>
-          <p className="text-heading break-all">
+          <p className="text-small text-ink-soft">Your own address</p>
+          <p className="text-heading text-brand font-semibold break-all">
             {chosen}.{domainLabel}
           </p>
         </div>
@@ -128,9 +131,10 @@ export function SlugPicker({
         />
       )}
 
-      <Alert tone="info" title="Test payment">
-        Payment is not connected yet. This button publishes your invite without charging you.
-      </Alert>
+      <p className="text-small text-ink-soft">
+        Test payment: payment is not connected yet, so this publishes your invite without charging
+        you.
+      </p>
 
       {status === 'done' && <Alert tone="success" title="Your invite is live. Opening it now." />}
       {error !== null && (
@@ -148,7 +152,7 @@ export function SlugPicker({
           void handlePublish();
         }}
       >
-        {status === 'working' ? 'Publishing your invite' : 'Pay and publish'}
+        {status === 'working' ? 'Publishing your invite' : actionLabel}
       </Button>
     </div>
   );

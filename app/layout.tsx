@@ -101,6 +101,7 @@ const balooDevanagari = localFont({
 const cormorant = localFont({
   src: [
     { path: '../public/fonts/cormorantgaramond-500.woff2', weight: '500' },
+    { path: '../public/fonts/cormorantgaramond-500-italic.woff2', weight: '500', style: 'italic' },
     { path: '../public/fonts/cormorantgaramond-600.woff2', weight: '600' },
   ],
   variable: '--font-cormorant',

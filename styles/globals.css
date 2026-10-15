@@ -146,7 +146,17 @@
   --animate-seal-break: seal-break 360ms var(--ease-settle) forwards;
   --animate-flap-open: flap-open 480ms 240ms var(--ease-settle) forwards;
   --animate-petal-fall: petal-fall 14s linear infinite;
-  --animate-envelope-away: envelope-away 520ms 680ms var(--ease-settle) forwards;
+  /* Then the letter rises out of the pocket, and the envelope fades away to
+     the invite underneath, which settles into place. 1.9 s end to end. */
+  --animate-letter-rise: letter-rise 620ms 620ms var(--ease-settle) forwards;
+  --animate-envelope-away: envelope-away 560ms 1300ms var(--ease-settle) forwards;
+  --animate-invite-in: invite-in 900ms var(--ease-settle) backwards;
+  /* The seal breathes until it is tapped, so a guest knows where to tap. */
+  --animate-seal-pulse: seal-pulse 2.2s ease-in-out infinite;
+  /* The bars on the sound button while the song plays. */
+  --animate-sound-bar: sound-bar 900ms ease-in-out infinite;
+  /* "Scroll" under the first card: a small nudge downwards. */
+  --animate-nudge: nudge 1.8s ease-in-out infinite;
   /* The sign-up card's send: the envelope pulls back, then zooms off to the
      right as its speed lines streak behind it. `components/lead/SendMoment.tsx`
      waits the same 760 ms before it shows the tick. */
@@ -211,9 +221,21 @@
     }
   }
 
+  /* The flap turns over its top edge. Halfway, edge-on, it drops behind the
+     letter, so the letter can rise in front of it. */
   @keyframes flap-open {
-    to {
-      transform: scaleY(-1);
+    0% {
+      transform: rotateX(0deg);
+    }
+    50% {
+      z-index: 30;
+    }
+    51% {
+      z-index: 5;
+    }
+    100% {
+      transform: rotateX(180deg);
+      z-index: 5;
     }
   }
 
@@ -252,8 +274,43 @@
 
   @keyframes envelope-away {
     to {
-      transform: translateY(40%);
+      transform: scale(1.08);
       opacity: 0;
+    }
+  }
+
+  @keyframes letter-rise {
+    to {
+      transform: translateY(-58%);
+    }
+  }
+
+  @keyframes invite-in {
+    from {
+      opacity: 0.01;
+      transform: translateY(28px) scale(0.98);
+    }
+  }
+
+  @keyframes seal-pulse {
+    50% {
+      transform: scale(1.07);
+    }
+  }
+
+  @keyframes sound-bar {
+    0%,
+    100% {
+      transform: scaleY(0.35);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  @keyframes nudge {
+    50% {
+      transform: translateY(6px);
     }
   }
 
@@ -340,25 +397,33 @@
      Ceremonial, so it spends no cute budget: see design-language.md > Themes.
      Applied by `InviteTheme` to a couple's invite and the preview card. */
   [data-theme='shubh-vivah'] {
-    --color-paper: #fbf3e4; /* ivory card stock */
-    --color-surface: #fffaf0;
-    --color-sunken: #f4e4c4;
-    --color-ink: #5a1020; /* deep maroon; 11:1 on paper */
-    --color-ink-soft: #7d3a2c; /* 6.4:1 on paper */
-    --color-line: #5a1020;
-    --color-brand: #8e1b2c; /* maroon: the envelope and the seal */
-    --color-brand-soft: #f2c46d; /* marigold */
-    --color-butter: #c99a3b; /* antique gold: borders and ornaments */
-    --color-peach: #e8782a; /* marigold orange, for the flower dots */
-    --color-soda: #5f7d32; /* leaf green, for the garland */
-    --font-display: var(--font-cormorant), Georgia, 'Times New Roman', serif;
+    /* Gulabi: Phera's pink pastel, made for a wedding. Blush paper, dusty rose
+       ink, gold foil for the ornaments. See design-language.md, "The invite
+       theme". `lib/invite-palette.ts` repeats these for the link image. */
+    --color-paper: #fdf6f4; /* blush card stock */
+    --color-surface: #ffffff;
+    --color-sunken: #f9e8ea;
+    --color-ink: #6e3b45; /* dusty plum-rose; 8.4:1 on paper */
+    --color-ink-soft: #8f6670; /* 4.6:1 on paper */
+    --color-line: #efd5da; /* Phera's 2px outline, in blush */
+    --color-brand: #a84d62; /* rose; 5.1:1 on paper, white text 5.4:1 on it */
+    --color-brand-soft: #f7d6dd; /* blush */
+    --color-brand-deep: #8a3c4f; /* the puff under a rose button */
+    --color-butter: #e6c477; /* gold foil: rules, corners, the seal's letters */
+    --color-gold: #8c6a2c; /* gold you can read: small capitals; 4.7:1 on paper */
+    --color-peach: #f2b6c1; /* rose petal */
+    --color-soda: #a9bf94; /* sage leaf, for the garland */
+    --font-display:
+      var(--font-cormorant), var(--font-baloo-devanagari), Georgia, 'Times New Roman', serif;
     --font-script: var(--font-great-vibes), var(--font-cormorant), Georgia, serif;
-    --color-focus: #8e1b2c;
-    /* The invite keeps a hard base in deep maroon, as printed card stock. */
+    --color-focus: #a84d62;
+    /* Phera's hard puff, in blush, so a card sits on the page like paper. */
     --shadow-hard: 0 4px 0 0 var(--color-line);
     --shadow-hard-sm: 0 2px 0 0 var(--color-line);
     --shadow-hard-lg: 0 6px 0 0 var(--color-line);
     --shadow-hard-pressed: 0 1px 0 0 var(--color-line);
+    /* Declared again, so it reads this theme's rose and not Phera's. */
+    --shadow-brand: 0 4px 0 0 var(--color-brand-deep);
   }
 
   /* Night — dark products (map trackers, gaming companions). */

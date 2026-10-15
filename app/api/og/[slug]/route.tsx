@@ -13,7 +13,7 @@ import { getWeddingBySlug } from '@/services/wedding.service';
 /**
  * `GET /api/og/<slug>?guest=Kartheek` — the large image in a guest's
  * WhatsApp link preview: "Hi Kartheek," above the couple's names and day, in
- * maroon and gold. `lib/invite-meta.ts` puts this URL in `og:image`.
+ * rose, blush and gold. `lib/invite-meta.ts` puts this URL in `og:image`.
  *
  * Node runtime, because the fonts are read from `public/fonts`, which the
  * Dockerfile copies next to `server.js`. The image renderer (satori) reads
@@ -84,7 +84,7 @@ export async function GET(
             textAlign: 'center',
           }}
         >
-          <div style={{ display: 'flex', fontSize: 34, color: C.marigold, letterSpacing: 6 }}>
+          <div style={{ display: 'flex', fontSize: 34, color: C.blush, letterSpacing: 6 }}>
             SHUBH VIVAH
           </div>
           {guest !== null && (
@@ -93,7 +93,7 @@ export async function GET(
                 display: 'flex',
                 fontFamily: 'Great Vibes',
                 fontSize: 72,
-                color: C.marigold,
+                color: C.blush,
               }}
             >
               {`Hi ${guest},`}
@@ -124,7 +124,7 @@ export async function GET(
                 width: 14,
                 height: 14,
                 borderRadius: 7,
-                background: C.orange,
+                background: C.petal,
               }}
             />
             <div style={{ display: 'flex', width: 90, height: 3, background: C.gold }} />

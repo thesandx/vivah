@@ -103,3 +103,75 @@ export function foreverStartsLine(days: number): string | null {
   if (days === 1) return 'Your forever starts tomorrow';
   return `Your forever starts in ${new Intl.NumberFormat('en-IN').format(days)} days`;
 }
+
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+] as const;
+
+export interface WeddingDateParts {
+  /** `07`. */
+  day: string;
+  /** `March`. */
+  month: string;
+  /** `03`. */
+  monthNumber: string;
+  /** `2026`. */
+  year: string;
+}
+
+/**
+ * The day, month and year of a `YYYY-MM-DD` date, for the scratch cards and
+ * the `07 · 03 · 2026` line. Read from the string, so no zone can move the
+ * day. `null` for anything that is not a real date.
+ */
+export function weddingDateParts(isoDate: string): WeddingDateParts | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(isoDate);
+  if (match === null || Number.isNaN(Date.parse(`${isoDate}T00:00:00Z`))) return null;
+  const [, year = '', monthNumber = '', day = ''] = match;
+  const month = MONTHS[Number(monthNumber) - 1];
+  if (month === undefined) return null;
+  return { day, month, monthNumber, year };
+}
+
+/**
+ * A Google Calendar link that adds the wedding to the guest's calendar. With
+ * a time, a three-hour event in India Standard Time; without one, the whole
+ * day. Google Calendar opens on every phone, signed in or not.
+ */
+export function addToCalendarUrl(input: {
+  title: string;
+  isoDate: string;
+  time: string | null;
+  location: string | null;
+  details: string;
+}): string {
+  const compact = (iso: string) => iso.replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  let dates: string;
+  if (input.time === null) {
+    const next = new Date(Date.parse(`${input.isoDate}T00:00:00Z`) + 86_400_000);
+    dates = `${input.isoDate.replace(/-/g, '')}/${next.toISOString().slice(0, 10).replace(/-/g, '')}`;
+  } else {
+    const start = weddingStartsAt(input.isoDate, input.time);
+    dates = `${compact(new Date(start).toISOString())}/${compact(new Date(start + 3 * 3_600_000).toISOString())}`;
+  }
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: input.title,
+    dates,
+    details: input.details,
+    ctz: 'Asia/Kolkata',
+  });
+  if (input.location !== null) params.set('location', input.location);
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
