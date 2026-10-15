@@ -136,19 +136,23 @@ await getFirebaseAuth().deleteUser(uid); // the Firebase Auth account
 
 ## The couple dashboard
 
-The couple dashboard lives at `vivah.online/dashboard`. It uses the same session as the rest of the app.
+The couple dashboard lives at `vivah.online/dashboard`. The site header calls it "My site". It uses the same session as the rest of the app.
 
-| Page                     | Who sees it                                   |
-| ------------------------ | --------------------------------------------- |
-| `/dashboard`             | Any signed-in person. It lists their invites. |
-| `/dashboard/edit/<slug>` | The couple who owns the invite.               |
+| Page                     | Who sees it                                                                         |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| `/dashboard`             | Any signed-in person. It opens the couple's newest site and lists any others.       |
+| `/dashboard/edit/<slug>` | The couple who owns the site. It shows the same view for a second site on a number. |
+
+Each site view shows the details as read-only text, and "Edit details" opens the form. It also has the guest invite links and a "Sign out" button.
 
 - **Ownership is the phone number.** A couple owns a wedding when the session's verified phone number equals `wedding.ownerPhoneE164`. That is the number they paid with.
 - **Google sign-in has no phone number.** The dashboard asks that person to sign in with their phone.
 - **A stranger gets a 404, not a 403.** The edit page does not tell a stranger that an address exists.
 - **The save checks again.** `saveWeddingDetailsAction` calls `requireUser()`, and `updateWeddingDetails` checks ownership on the server. Hiding a page is not the control.
+- **Guest links check the same way.** `createGuestLinkAction` and `deleteGuestLinkAction` call `requireUser()`, and `services/guest-link.service.ts` checks ownership. A link is looked up under the caller's own wedding only.
+- **A deleted guest link shows the general invite.** The link is soft-deleted and its id stays taken, so a new guest never gets it. A link typed by hand, with no stored record, keeps greeting the guest by name.
 - **The slug is not editable here.** Guests already have links to it. Only the admin can move an invite.
-- **Logs name the slug and the uid.** Never the phone number.
+- **Logs name the slug and the uid.** Never the phone number, and never a guest's name.
 
 The dashboard needs phone sign-in enabled in Firebase, with an SMS region policy. See [SMS fraud is the real risk](#sms-fraud-is-the-real-risk).
 

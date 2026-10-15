@@ -14,22 +14,39 @@ const INITIAL = {
 };
 
 describe('WeddingDetailsForm', () => {
-  it('starts filled in with the saved details', () => {
+  it('shows the saved details as text until Edit details is pressed', () => {
     render(<WeddingDetailsForm initial={INITIAL} save={vi.fn()} inviteHref="/site/a" />);
+    expect(screen.queryByRole('textbox')).toBeNull();
+    expect(screen.getByText('Anushka')).toBeVisible();
+    expect(screen.getByText('Monday, 9 March 2026')).toBeVisible();
+    expect(screen.getAllByText('Not added yet')).toHaveLength(4);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit details' }));
     expect(screen.getByLabelText("Bride's name")).toHaveValue('Anushka');
     expect(screen.getByLabelText('Wedding date')).toHaveValue('2026-03-09');
     expect(screen.getByLabelText('Venue name')).toHaveValue('');
   });
 
-  it('confirms a save and links to the invite', async () => {
+  it('goes back to the text on Cancel', () => {
+    render(
+      <WeddingDetailsForm initial={INITIAL} save={vi.fn()} inviteHref="/site/a" startEditing />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('button', { name: 'Edit details' })).toBeVisible();
+  });
+
+  it('confirms a save, shows the text again and links to the invite', async () => {
     const save = vi.fn(async (_state: SaveState, _form: FormData): Promise<SaveState> => ({
       status: 'saved',
     }));
-    render(<WeddingDetailsForm initial={INITIAL} save={save} inviteHref="/site/anu" />);
+    render(
+      <WeddingDetailsForm initial={INITIAL} save={save} inviteHref="/site/anu" startEditing />,
+    );
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save details' }));
     });
     expect(await screen.findByText('Saved. Your guests see the new details now.')).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Edit details' })).toBeVisible();
     expect(screen.getByRole('link', { name: 'Open your invite' })).toHaveAttribute(
       'href',
       '/site/anu',
@@ -44,7 +61,7 @@ describe('WeddingDetailsForm', () => {
       message: 'Some details need a fix.',
       errors: { venueMapsUrl: 'Paste the link from Google Maps > Share.' },
     }));
-    render(<WeddingDetailsForm initial={INITIAL} save={save} inviteHref="/site/a" />);
+    render(<WeddingDetailsForm initial={INITIAL} save={save} inviteHref="/site/a" startEditing />);
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Save details' }));
     });

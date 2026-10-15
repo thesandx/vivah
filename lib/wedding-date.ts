@@ -8,13 +8,19 @@
 export function formatWeddingDate(isoDate: string): string {
   const date = new Date(`${isoDate}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return isoDate;
-  return new Intl.DateTimeFormat('en-IN', {
+  // Assembled from the parts, not `format()`: Node and browsers ship
+  // different ICU data and punctuate `en-IN` differently, and a Client
+  // Component must render the same text on the server and in the browser.
+  const parts = new Intl.DateTimeFormat('en-IN', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
     timeZone: 'UTC',
-  }).format(date);
+  }).formatToParts(date);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((entry) => entry.type === type)?.value ?? '';
+  return `${part('weekday')}, ${part('day')} ${part('month')} ${part('year')}`;
 }
 
 /** The short form for a link preview title: `9 March`. */

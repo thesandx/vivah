@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import { coupleInitials, guestPath, MAX_GUEST_NAME_LENGTH, parseGuestName } from '@/lib/guest-name';
+import {
+  coupleInitials,
+  guestLinkKey,
+  guestLinkSegment,
+  guestPath,
+  MAX_GUEST_NAME_LENGTH,
+  parseGuestName,
+} from '@/lib/guest-name';
 
 describe('parseGuestName', () => {
   it.each([
@@ -12,6 +19,8 @@ describe('parseGuestName', () => {
     ['Dr.%20Rao', 'Dr. Rao'],
     ["D'Souza", "D'Souza"],
     ['%E0%A4%B0%E0%A4%BE%E0%A4%A7%E0%A4%BE', 'राधा'],
+    ['Rahul-Sharma-2', 'Rahul Sharma'],
+    ['Rahul-12', 'Rahul'],
   ])('reads %s as %s', (segment, name) => {
     expect(parseGuestName(segment)).toBe(name);
   });
@@ -36,6 +45,38 @@ describe('guestPath', () => {
 
   it('round-trips through parseGuestName', () => {
     expect(parseGuestName(guestPath('राधा जी').slice(1))).toBe('राधा जी');
+  });
+});
+
+describe('guestLinkSegment', () => {
+  it('keeps the first link plain', () => {
+    expect(guestLinkSegment('Rahul Sharma', 1)).toBe('Rahul-Sharma');
+  });
+
+  it('numbers a second guest of the same name', () => {
+    expect(guestLinkSegment('Rahul Sharma', 2)).toBe('Rahul-Sharma-2');
+  });
+
+  it('greets the numbered guest by name only', () => {
+    expect(parseGuestName(guestLinkSegment('Rahul Sharma', 3))).toBe('Rahul Sharma');
+  });
+});
+
+describe('guestLinkKey', () => {
+  it.each(['Rahul-Sharma', 'rahul%20sharma', 'Rahul_Sharma', '-Rahul--Sharma-'])(
+    'folds %s to one key',
+    (segment) => {
+      expect(guestLinkKey(segment)).toBe('rahul-sharma');
+    },
+  );
+
+  it('keeps the duplicate marker, so each link has its own key', () => {
+    expect(guestLinkKey('Rahul-Sharma-2')).toBe('rahul-sharma-2');
+  });
+
+  it('refuses a broken encoding and an empty segment', () => {
+    expect(guestLinkKey('%E0%A4')).toBeNull();
+    expect(guestLinkKey('--')).toBeNull();
   });
 });
 

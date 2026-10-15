@@ -59,3 +59,12 @@ export function whatsAppChatUrl(phoneE164: string, text: string): string {
   if (digits.length < 8) throw new Error(`Not a phone number: "${phoneE164}"`);
   return `https://wa.me/${digits}?text=${encodeURIComponent(text)}`;
 }
+
+/**
+ * A WhatsApp share link with no number: `https://wa.me/?text=…`. On a phone
+ * it opens WhatsApp's contact picker with the message typed in. WhatsApp
+ * draws the link preview from the first URL in the text.
+ */
+export function whatsAppShareUrl(text: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+}

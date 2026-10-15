@@ -11,7 +11,7 @@ describe('SiteHeader', () => {
     pathname = '/';
     render(<SiteHeader appName="Playroom" />);
     expect(screen.getByRole('link', { name: 'Playroom' })).toHaveAttribute('href', '/');
-    for (const label of ['Home', 'My invites', 'Help']) {
+    for (const label of ['Home', 'My site', 'Help']) {
       expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
     }
   });
@@ -19,10 +19,7 @@ describe('SiteHeader', () => {
   it('marks the destination of a page below it as current', () => {
     pathname = '/dashboard/edit/raadha-shyam';
     render(<SiteHeader appName="Playroom" />);
-    expect(screen.getByRole('link', { name: 'My invites' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    expect(screen.getByRole('link', { name: 'My site' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('link', { name: 'Home' })).not.toHaveAttribute('aria-current');
   });
 
