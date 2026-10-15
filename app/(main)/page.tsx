@@ -10,6 +10,10 @@ import { PaperVsDigital } from '@/components/home/PaperVsDigital';
 import { ReviewCard } from '@/components/home/ReviewCard';
 import { PageShell } from '@/components/layout/PageShell';
 import { LeadForm } from '@/components/lead/LeadForm';
+import { SectionCta } from '@/components/lead/SectionCta';
+import { SignupButton } from '@/components/lead/SignupButton';
+import { SignupDialogProvider } from '@/components/lead/SignupDialogProvider';
+import { StickySignupBar } from '@/components/lead/StickySignupBar';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -33,6 +37,13 @@ import { cn } from '@/lib/utils';
  *
  * On a phone the form follows the heading, so it sits near the first screen.
  * From `lg` the words go on the left and the form on the right.
+ *
+ * Below the hero, each section ends with its own invitation (`SectionCta`),
+ * and a sticky bar appears once the visitor scrolls past the form. Both open
+ * the same sign-up card in a dialog, after a red thread ties a heart, rather
+ * than scrolling back up. The product owner asked for a call to action after
+ * every section, so this page is the exception to the anti-slop rule about
+ * repeating the primary call to action.
  */
 
 // The title and description carry the WhatsApp keyword cluster from the PRD's
@@ -46,8 +57,10 @@ export const metadata: Metadata = {
   alternates: { canonical: '/' },
 };
 
-/** The form's anchor, for the buttons further down the page. */
+/** The hero form's heading. */
 const FORM_ID = 'start';
+/** The hero's sign-up card: the sticky bar shows once the visitor scrolls past it. */
+const SIGNUP_CARD_ID = 'signup-card';
 
 const PROMISES = [
   'Each guest sees their own name',
@@ -97,168 +110,201 @@ export default function HomePage() {
 
   return (
     <PageShell>
-      <JsonLd data={organizationSchema(siteOrigin(env.rootDomain, env.appUrl), env.appName)} />
+      <SignupDialogProvider>
+        <JsonLd data={organizationSchema(siteOrigin(env.rootDomain, env.appUrl), env.appName)} />
 
-      {/* The hero. Three grid items, so a phone gets words, form, promises,
+        {/* The hero. Three grid items, so a phone gets words, form, promises,
           and a desktop gets the form beside the words. */}
-      <section
-        aria-labelledby="hero-heading"
-        className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-x-12"
-      >
-        <div className="flex flex-col gap-5 lg:col-start-1 lg:self-end">
-          <p className="bg-brand-soft rounded-pill text-small self-start px-4 py-1.5 font-semibold">
-            Wedding websites and digital invites
-          </p>
-          <h1 id="hero-heading" className="text-hero">
-            Create your personal wedding website in{' '}
-            <span className="font-script decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
-              5 minutes
-            </span>
-          </h1>
-          <p className="text-heading text-ink-soft max-w-prose font-normal">
-            Get your personal wedding site and send personalised digital invites to friends and
-            family.
-          </p>
-        </div>
+        <section
+          aria-labelledby="hero-heading"
+          className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-x-12"
+        >
+          <div className="flex flex-col gap-5 lg:col-start-1 lg:self-end">
+            <p className="bg-brand-soft rounded-pill text-small self-start px-4 py-1.5 font-semibold">
+              Wedding websites and digital invites
+            </p>
+            <h1 id="hero-heading" className="text-hero">
+              Create your personal wedding website in{' '}
+              <span className="font-script decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
+                5 minutes
+              </span>
+            </h1>
+            <p className="text-heading text-ink-soft max-w-prose font-normal">
+              Get your personal wedding site and send personalised digital invites to friends and
+              family.
+            </p>
+          </div>
 
-        <div className="flex flex-col gap-3 lg:col-start-2 lg:row-span-2 lg:row-start-1">
-          <p className="text-heading text-center">See it free, and pay only when you love it.</p>
-          <Card as="section" className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4">
-            <LeadForm headingId={FORM_ID} />
-          </Card>
-        </div>
-
-        <ul className="flex flex-col gap-3 lg:col-start-1 lg:self-start">
-          {PROMISES.map((promise) => (
-            <li key={promise} className="flex items-center gap-3">
-              <Tick />
-              {promise}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <section aria-labelledby="board-heading" className="flex flex-col gap-8">
-        <div className="flex flex-col gap-5">
-          <SectionHeading
-            id="board-heading"
-            eyebrow="What your guests see"
-            title="Everything about your wedding, on one link"
-            intro="Your invite, the countdown, the venue map and a WhatsApp RSVP. Every guest opens it with their own name on it."
-          />
-          <DemoVideo sources={DEMO_VIDEO.sources} poster={DEMO_VIDEO.poster} steps={DEMO_STEPS} />
-        </div>
-        <GuestPreview />
-      </section>
-
-      <section aria-labelledby="steps-heading" className="flex flex-col gap-8">
-        <SectionHeading
-          id="steps-heading"
-          eyebrow="How it works"
-          title="Three steps to your wedding website"
-          intro="No designer, no app and no waiting. You do it from your phone."
-        />
-        <HowItWorks />
-      </section>
-
-      <section aria-labelledby="features-heading" className="flex flex-col gap-8">
-        <SectionHeading
-          id="features-heading"
-          eyebrow="Everything included"
-          title="Made for Indian weddings"
-          intro="Everything your guests need, in one invite that opens on any phone."
-        />
-        <FeatureList />
-      </section>
-
-      <section aria-labelledby="compare-heading" className="flex flex-col gap-8">
-        <SectionHeading
-          id="compare-heading"
-          eyebrow="Why go digital?"
-          title="Paper cards or a wedding website"
-          intro="Keep the printed card for the elders if you like. Send everyone else a link."
-        />
-        <PaperVsDigital />
-      </section>
-
-      <section aria-labelledby="reviews-heading" className="flex flex-col gap-6">
-        <SectionHeading
-          id="reviews-heading"
-          eyebrow="Love notes"
-          title="From our couples"
-          intro="We are new. As our first couples celebrate, their words will fill these cards."
-        />
-        <Marquee
-          label="Reviews from couples"
-          className="-mx-5 sm:-mx-8"
-          items={REVIEWS.map((review) => ({
-            key: review.id,
-            node: <ReviewCard review={review} />,
-          }))}
-        />
-      </section>
-
-      <section aria-labelledby="chats-heading" className="flex flex-col gap-6">
-        <SectionHeading
-          id="chats-heading"
-          eyebrow="In the chats"
-          title="What the family group says"
-          intro="Screenshots of the messages our couples get on WhatsApp and Instagram, shared with their permission."
-        />
-        <Marquee
-          label="Messages couples received"
-          reverse
-          className="-mx-5 sm:-mx-8"
-          items={CHAT_SHOTS.map((chat, index) => ({
-            key: chat.id,
-            node: <ChatShotCard chat={chat} tilt={index % 2 === 0 ? 'left' : 'right'} />,
-          }))}
-        />
-      </section>
-
-      <section
-        aria-labelledby="cta-heading"
-        className="bg-brand-soft rounded-sheet flex flex-col items-center gap-5 px-6 py-12 text-center sm:px-12"
-      >
-        <h2 id="cta-heading" className="text-title max-w-prose">
-          Your wedding deserves its own website
-        </h2>
-        <p className="text-ink-soft max-w-prose">
-          Start with both names. Your invite is ready to see in 5 minutes.
-        </p>
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-          <a href={`#${FORM_ID}`} className={buttonStyles({ variant: 'primary', size: 'lg' })}>
-            Create my wedding website
-          </a>
-          <a
-            href={chatUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(buttonStyles({ variant: 'secondary', size: 'lg' }), 'gap-2')}
+          <div
+            id={SIGNUP_CARD_ID}
+            className="flex flex-col gap-3 lg:col-start-2 lg:row-span-2 lg:row-start-1"
           >
-            <WhatsAppIcon />
-            Ask us on WhatsApp
-          </a>
-        </div>
-      </section>
+            <p className="text-heading text-center">See it free, and pay only when you love it.</p>
+            <Card as="section" className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4">
+              <LeadForm headingId={FORM_ID} />
+            </Card>
+          </div>
 
-      <nav aria-labelledby="guides-heading" className="flex flex-col gap-3">
-        <h2 id="guides-heading" className="text-heading">
-          Inviting on WhatsApp
-        </h2>
-        <ul className="flex flex-col gap-x-6 sm:flex-row sm:flex-wrap">
-          {GUIDES.map((guide) => (
-            <li key={guide.href}>
-              <Link
-                href={guide.href}
-                className="text-ink decoration-brand inline-flex min-h-11 items-center underline decoration-2 underline-offset-4"
-              >
-                {guide.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
+          <ul className="flex flex-col gap-3 lg:col-start-1 lg:self-start">
+            {PROMISES.map((promise) => (
+              <li key={promise} className="flex items-center gap-3">
+                <Tick />
+                {promise}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section aria-labelledby="board-heading" className="flex flex-col gap-8">
+          <div className="flex flex-col gap-5">
+            <SectionHeading
+              id="board-heading"
+              eyebrow="What your guests see"
+              title="Everything about your wedding, on one link"
+              intro="Your invite, the countdown, the venue map and a WhatsApp RSVP. Every guest opens it with their own name on it."
+            />
+            <DemoVideo sources={DEMO_VIDEO.sources} poster={DEMO_VIDEO.poster} steps={DEMO_STEPS} />
+          </div>
+          <GuestPreview />
+          <SectionCta
+            line="Picture every guest opening your love story, with their own name on it."
+            action="Write our love story"
+          />
+        </section>
+
+        <section aria-labelledby="steps-heading" className="flex flex-col gap-8">
+          <SectionHeading
+            id="steps-heading"
+            eyebrow="How it works"
+            title="Three steps to your wedding website"
+            intro="No designer, no app and no waiting. You do it from your phone."
+          />
+          <HowItWorks />
+          <SectionCta
+            line="Three steps tonight. A lifetime of “remember when”."
+            action="Begin our forever"
+          />
+        </section>
+
+        <section aria-labelledby="features-heading" className="flex flex-col gap-8">
+          <SectionHeading
+            id="features-heading"
+            eyebrow="Everything included"
+            title="Made for Indian weddings"
+            intro="Everything your guests need, in one invite that opens on any phone."
+          />
+          <FeatureList />
+          <SectionCta
+            line="From the haldi to the vidaai, every moment deserves a home."
+            action="Give our wedding a home"
+          />
+        </section>
+
+        <section aria-labelledby="compare-heading" className="flex flex-col gap-8">
+          <SectionHeading
+            id="compare-heading"
+            eyebrow="Why go digital?"
+            title="Paper cards or a wedding website"
+            intro="Keep the printed card for the elders if you like. Send everyone else a link."
+          />
+          <PaperVsDigital />
+          <SectionCta
+            line="Paper cards fade. Your love story stays one tap away."
+            action="Make our invite timeless"
+          />
+        </section>
+
+        <section aria-labelledby="reviews-heading" className="flex flex-col gap-6">
+          <SectionHeading
+            id="reviews-heading"
+            eyebrow="Love notes"
+            title="From our couples"
+            intro="We are new. As our first couples celebrate, their words will fill these cards."
+          />
+          <Marquee
+            label="Reviews from couples"
+            className="-mx-5 sm:-mx-8"
+            items={REVIEWS.map((review) => ({
+              key: review.id,
+              node: <ReviewCard review={review} />,
+            }))}
+          />
+          <SectionCta
+            line="The next love note on this page could be about the two of you."
+            action="Write ours next"
+          />
+        </section>
+
+        <section aria-labelledby="chats-heading" className="flex flex-col gap-6">
+          <SectionHeading
+            id="chats-heading"
+            eyebrow="In the chats"
+            title="What the family group says"
+            intro="Screenshots of the messages our couples get on WhatsApp and Instagram, shared with their permission."
+          />
+          <Marquee
+            label="Messages couples received"
+            reverse
+            className="-mx-5 sm:-mx-8"
+            items={CHAT_SHOTS.map((chat, index) => ({
+              key: chat.id,
+              node: <ChatShotCard chat={chat} tilt={index % 2 === 0 ? 'left' : 'right'} />,
+            }))}
+          />
+          <SectionCta
+            line="Let the family group gush over the two of you next."
+            action="Make the family go aww"
+          />
+        </section>
+
+        <section
+          aria-labelledby="cta-heading"
+          className="bg-brand-soft rounded-sheet flex flex-col items-center gap-5 px-6 py-12 text-center sm:px-12"
+        >
+          <h2 id="cta-heading" className="text-title max-w-prose">
+            Your love story deserves its own website
+          </h2>
+          <p className="text-ink-soft max-w-prose">
+            Two names and five minutes. See it free, fall in love with it, and pay only then.
+          </p>
+          <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+            <SignupButton>Show us our wedding website</SignupButton>
+            <a
+              href={chatUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(buttonStyles({ variant: 'secondary', size: 'lg' }), 'gap-2')}
+            >
+              <WhatsAppIcon />
+              Ask us on WhatsApp
+            </a>
+          </div>
+        </section>
+
+        <nav aria-labelledby="guides-heading" className="flex flex-col gap-3">
+          <h2 id="guides-heading" className="text-heading">
+            Inviting on WhatsApp
+          </h2>
+          <ul className="flex flex-col gap-x-6 sm:flex-row sm:flex-wrap">
+            {GUIDES.map((guide) => (
+              <li key={guide.href}>
+                <Link
+                  href={guide.href}
+                  className="text-ink decoration-brand inline-flex min-h-11 items-center underline decoration-2 underline-offset-4"
+                >
+                  {guide.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        <StickySignupBar
+          afterId={SIGNUP_CARD_ID}
+          line="Your forever starts with two names."
+          action="Begin our love story"
+        />
+      </SignupDialogProvider>
     </PageShell>
   );
 }
