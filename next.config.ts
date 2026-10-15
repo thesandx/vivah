@@ -25,6 +25,16 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
 
+  experimental: {
+    // Puts the stylesheet in a <style> tag in the HTML instead of a <link>.
+    // The CSS is ~12 KB compressed and every page needs all of it, so on a
+    // slow phone network this saves the round trip that blocked the first
+    // paint (PageSpeed: "Render-blocking requests", ~1.2 s on mobile).
+    // The cost: each full page load carries the CSS again instead of reading
+    // it from the browser cache. Client-side navigation does not repeat it.
+    inlineCss: true,
+  },
+
   // Emitted on every response. Tightened here rather than in middleware so the
   // headers apply to static assets too.
   async headers() {

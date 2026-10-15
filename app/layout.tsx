@@ -49,7 +49,9 @@ export const viewport: Viewport = {
  * - Baloo 2 (SIL OFL) carries the weights 500-800 for numbers and badges.
  * - Baloo 2 Devanagari covers Hindi and Sanskrit text. Huninn has no
  *   Devanagari glyphs, so the browser falls through to it. It is not
- *   preloaded: it downloads only on a page that shows Devanagari.
+ *   preloaded, and its `unicode-range` names only the Devanagari blocks.
+ *   Without the range, one ₹ on a page (Huninn has no ₹) downloads 125 KB of
+ *   Devanagari fonts on a phone. The ₹ comes from the system font instead.
  */
 const huninn = localFont({
   src: '../public/fonts/huninn-400.woff2',
@@ -81,6 +83,14 @@ const balooDevanagari = localFont({
   variable: '--font-baloo-devanagari',
   display: 'swap',
   preload: false,
+  // The Devanagari block, Vedic extensions, the joiners, the dotted circle
+  // and Devanagari Extended: the range Google Fonts serves this subset with.
+  declarations: [
+    {
+      prop: 'unicode-range',
+      value: 'U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+25CC, U+A830-A839, U+A8E0-A8FF',
+    },
+  ],
 });
 
 /**
