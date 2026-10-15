@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { PolicyPage } from '@/components/legal/PolicyPage';
 import { SupportContacts } from '@/components/legal/SupportContacts';
+import { ContactLink } from '@/components/ui/ContactLink';
 import { BUSINESS } from '@/lib/business';
 
 /**
@@ -43,11 +44,12 @@ export default function ContactPage() {
         </p>
       </section>
       <section>
-        <h2>Grievance officer</h2>
+        <h2>Complaints</h2>
         <p>
-          {BUSINESS.owner}, who runs {BUSINESS.brand} as a sole proprietor
-          {BUSINESS.address === '' ? '' : `, ${BUSINESS.address}`}. We acknowledge a complaint
-          within 48 hours and resolve it within 30 days.
+          Email <ContactLink kind="email" value={BUSINESS.email} /> with what went wrong
+          {BUSINESS.address === '' ? '' : `, or write to ${BUSINESS.address}`}. We are a small team,
+          and we handle every complaint ourselves. We acknowledge it within 48 hours and resolve it
+          within 30 days.
         </p>
       </section>
     </PolicyPage>

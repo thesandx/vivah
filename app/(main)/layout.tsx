@@ -1,6 +1,7 @@
 import { Footer } from '@/components/layout/Footer';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton';
+import { BUSINESS } from '@/lib/business';
 import { env } from '@/lib/env';
 
 /**
@@ -38,7 +39,7 @@ export default function MainLayout({ children }: Readonly<{ children: React.Reac
     <div className="flex flex-1 flex-col pb-24 md:pb-0">
       <SiteHeader appName={env.appName} />
       {children}
-      <Footer owner={env.appName} links={FOOTER_LINKS} />
+      <Footer owner={env.appName} contact={{ email: BUSINESS.email }} links={FOOTER_LINKS} />
       <WhatsAppButton />
     </div>
   );

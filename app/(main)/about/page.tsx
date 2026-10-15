@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { PolicyPage } from '@/components/legal/PolicyPage';
+import { ContactLink } from '@/components/ui/ContactLink';
 import { BUSINESS } from '@/lib/business';
 
 /** `GET /about` — who makes vivah.online, and why. */
@@ -30,11 +31,10 @@ export default function AboutPage() {
       <section>
         <h2>How it started</h2>
         <p>
-          It began as the wedding website of our founder, {BUSINESS.owner}, for a wedding in
-          Darbhanga, Bihar, in March 2026. Each guest got a link that opened with their own name,
-          the date, a countdown, the venue on the map and a one-tap reply on WhatsApp. Friends and
-          family asked how they could make one too. {BUSINESS.brand} is that site, made for every
-          couple.
+          It began as the wedding website one of us made for our own wedding in Darbhanga, Bihar, in
+          March 2026. Each guest got a link that opened with their own name, the date, a countdown,
+          the venue on the map and a one-tap reply on WhatsApp. Friends and family asked how they
+          could make one too. {BUSINESS.brand} is that site, made for every couple.
         </p>
       </section>
       <section>
@@ -49,7 +49,9 @@ export default function AboutPage() {
       <section>
         <h2>Talk to us</h2>
         <p>
-          Questions, ideas, or a wedding next week? See the{' '}
+          We are a small team, and a real person answers every message. Questions, ideas, or a
+          wedding next week? Write to <ContactLink kind="email" value={BUSINESS.helloEmail} />, see
+          the{' '}
           <Link href="/contact" className={LINK}>
             contact page
           </Link>
