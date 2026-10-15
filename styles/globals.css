@@ -156,6 +156,10 @@
      holds the list twice and moves by half, so the loop has no seam. */
   --animate-marquee: marquee 80s linear infinite;
   --animate-marquee-reverse: marquee 90s linear infinite reverse;
+  /* The home page's "How it works" steps: a bar fills under the highlighted
+     step, and the next step lights up when it is full. 5 s, the same as
+     STEP_INTERVAL_MS in lib/how-it-works.ts. */
+  --animate-step-progress: step-progress 5s linear both;
 
   @keyframes page-enter {
     from {
@@ -257,6 +261,15 @@
     to {
       transform: translateY(40%);
       opacity: 0;
+    }
+  }
+
+  @keyframes step-progress {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
     }
   }
 
@@ -469,6 +482,15 @@
 @utility marquee-pause {
   &:hover > *,
   &:focus-within > * {
+    animation-play-state: paused;
+  }
+}
+
+/* The "How it works" steps: the highlighted step's bar stops filling while a
+   pointer is on the section or a step has focus. Used by HowItWorks only. */
+@utility steps-pause {
+  &:hover *,
+  &:focus-within * {
     animation-play-state: paused;
   }
 }

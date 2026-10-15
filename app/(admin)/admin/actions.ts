@@ -3,7 +3,9 @@
 import { revalidatePath } from 'next/cache';
 
 import type { ActionState } from '@/components/admin/AdminActionForm';
+import type { StepUploadStart } from '@/components/admin/StepImageUpload';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
+import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
 import {
@@ -20,6 +22,11 @@ import {
   setWeddingStatus,
 } from '@/services/admin.service';
 import { requireAdmin } from '@/services/admin-session.service';
+import {
+  createStepImageUpload,
+  resetStepImage,
+  saveStepImage,
+} from '@/services/site-content.service';
 
 /**
  * The admin dashboard's Server Actions. Each is a public endpoint, whatever
@@ -144,4 +151,42 @@ export async function deleteLeadAction(id: string): Promise<ActionState> {
 
 export async function restoreLeadAction(id: string): Promise<ActionState> {
   return run('restore-lead', id, (uid) => restoreLead(id, uid));
+}
+
+/**
+ * Step 1 of a "How it works" image upload: a signed URL the browser sends
+ * the image to. The URL is a bearer credential for ten minutes, so it goes
+ * only to an admin session.
+ */
+export async function startStepImageUploadAction(
+  rawStep: number,
+  contentType: string,
+): Promise<StepUploadStart> {
+  let adminUid: string;
+  try {
+    adminUid = (await requireAdmin()).uid;
+  } catch {
+    return { status: 'error', message: SIGN_IN_AGAIN_MESSAGE };
+  }
+  const step = parseStep(rawStep);
+  if (step === null) return { status: 'error', message: 'That step does not exist.' };
+  try {
+    return { status: 'ok', upload: await createStepImageUpload(step, contentType) };
+  } catch (error) {
+    logger.error('Signing a How it works upload failed', error, { step, uid: adminUid });
+    return { status: 'error', message: 'Use a JPEG, PNG or WebP image, then try again.' };
+  }
+}
+
+/** Step 2: checks the uploaded image and puts it on the home page. */
+export async function saveStepImageAction(rawStep: number, tmpPath: string): Promise<ActionState> {
+  const step = parseStep(rawStep);
+  if (step === null) return { status: 'error', message: 'That step does not exist.' };
+  return run('home-image', String(step), (uid) => saveStepImage(step, tmpPath, uid));
+}
+
+export async function resetStepImageAction(rawStep: number): Promise<ActionState> {
+  const step = parseStep(rawStep);
+  if (step === null) return { status: 'error', message: 'That step does not exist.' };
+  return run('home-image-reset', String(step), (uid) => resetStepImage(step, uid));
 }

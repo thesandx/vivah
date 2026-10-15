@@ -165,6 +165,7 @@ The admin dashboard lives at `vivah.online/admin`. Nothing on the site links to 
 - **`requireAdmin()` gates every admin write.** It is the first line of every Server Action in `app/(admin)/admin/actions.ts`.
 - **Every change goes to the audit log,** in `adminAudit`. The entry names the record, never a phone number or an email address.
 - **Off unless configured.** With `ADMIN_EMAIL` or `ADMIN_PHONE` unset, `/admin` is a 404.
+- **The Home page tab changes the home page's "How it works" phone screens.** The browser shrinks the image and uploads it straight to the bucket. The server checks it and stores its path in `siteContent/how-it-works-steps`. `GET /api/how-it-works/<step>` serves the image, or the placeholder in `public/how-it-works/`. A change shows on the home page within five minutes.
 - **The admin does not edit from `/dashboard`.** An admin phone number alone grants nothing.
 
 It needs Google and Phone enabled in Firebase, and `vivah.online` in the authorised domains. See [Setup](#setup).
