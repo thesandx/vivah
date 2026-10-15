@@ -34,8 +34,6 @@ function choose(file: File) {
 describe('TestimonialForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    URL.createObjectURL = vi.fn(() => 'blob:preview');
-    URL.revokeObjectURL = vi.fn();
   });
 
   it('asks for the image before adding a new item', async () => {
@@ -61,7 +59,6 @@ describe('TestimonialForm', () => {
     uploadImage.mockResolvedValue({ status: 'ok', tmpPath: 'tmp/x' });
     const save = setup(true, vi.fn().mockResolvedValue({ status: 'ok', message: 'Added.' }));
     choose(new File(['x'], 'shot.png', { type: 'image/png' }));
-    expect(document.querySelector('img')).toHaveAttribute('src', 'blob:preview');
     fireEvent.click(screen.getByRole('button', { name: 'Save it' }));
     await waitFor(() => expect(save).toHaveBeenCalledWith('tmp/x', expect.any(FormData)));
   });

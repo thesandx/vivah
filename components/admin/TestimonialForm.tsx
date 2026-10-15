@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 
 import type { ActionState } from '@/components/admin/AdminActionForm';
 import { Alert } from '@/components/ui/Alert';
@@ -23,7 +23,8 @@ import {
  * the admin session, the fields and the upload. A new item needs an image;
  * an edit keeps its image unless a new one is chosen.
  *
- * `'use client'` for the file picker, its preview and the upload.
+ * `'use client'` for the file picker and the upload. The picker shows the
+ * chosen file's name; the image itself shows on the list once it is saved.
  */
 
 export interface TestimonialFormProps {
@@ -54,19 +55,11 @@ export function TestimonialForm({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<ActionState>({ status: 'idle' });
-  const [preview, setPreview] = useState<string | null>(null);
   const uploadImage = useImageUpload({
     startUpload,
     width: TESTIMONIAL_IMAGE_WIDTH[kind],
     maxBytes: MAX_TESTIMONIAL_IMAGE_BYTES,
   });
-
-  // A preview URL holds the file in memory until it is revoked.
-  useEffect(() => {
-    return () => {
-      if (preview !== null) URL.revokeObjectURL(preview);
-    };
-  }, [preview]);
 
   async function submit(form: HTMLFormElement): Promise<void> {
     const data = new FormData(form);
@@ -96,7 +89,6 @@ export function TestimonialForm({
       setState(saved);
       if (saved.status === 'ok') {
         if (isNew) form.reset();
-        setPreview(null);
         router.refresh();
       }
     } catch {
@@ -124,15 +116,7 @@ export function TestimonialForm({
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="text-small file:bg-surface file:rounded-input file:text-ink min-h-11 file:mr-3 file:border-2 file:border-line file:px-4 file:py-2 file:font-semibold"
-          onChange={(event) => {
-            const file = event.target.files?.[0];
-            setPreview(file === undefined ? null : URL.createObjectURL(file));
-          }}
         />
-        {preview !== null && (
-          // eslint-disable-next-line @next/next/no-img-element -- a local preview of the chosen file; next/image cannot load a blob URL
-          <img src={preview} alt="" className="rounded-box bg-sunken w-32 object-cover" />
-        )}
       </div>
 
       {children}
