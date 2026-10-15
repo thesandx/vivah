@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 
 import { ChatShotCard } from '@/components/home/ChatShotCard';
+import { DemoVideo } from '@/components/home/DemoVideo';
 import { FeatureList } from '@/components/home/FeatureList';
-import { InspirationBoard } from '@/components/home/InspirationBoard';
+import { GuestPreview } from '@/components/home/GuestPreview';
 import { PaperVsDigital } from '@/components/home/PaperVsDigital';
 import { ReviewCard } from '@/components/home/ReviewCard';
 import { PageShell } from '@/components/layout/PageShell';
@@ -14,6 +15,7 @@ import { Card } from '@/components/ui/Card';
 import { Marquee } from '@/components/ui/Marquee';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
+import { DEMO_STEPS, DEMO_VIDEO } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { organizationSchema, siteOrigin } from '@/lib/seo';
 import { CHAT_SHOTS, REVIEWS } from '@/lib/testimonials';
@@ -23,8 +25,8 @@ import { cn } from '@/lib/utils';
  * Home page — a Server Component. The form is the only client part.
  *
  * It is the first page a couple sees, so it sells first: the promise (a
- * wedding website in 5 minutes), the form, then what guests get, as a pin
- * board. Two slow carousels hold reviews and chat screenshots from couples;
+ * wedding website in 5 minutes), the form, then what guests get, as a grid of
+ * tiles with a demo video. Two slow carousels hold reviews and chat screenshots from couples;
  * until real ones arrive they show open slots that claim nothing. See
  * `lib/testimonials.ts`.
  *
@@ -153,13 +155,16 @@ export default function HomePage() {
       </section>
 
       <section aria-labelledby="board-heading" className="flex flex-col gap-8">
-        <SectionHeading
-          id="board-heading"
-          eyebrow="What your guests see"
-          title="Everything about your wedding, on one link"
-          intro="Your invite, the countdown, the venue map and a WhatsApp RSVP. Every guest opens it with their own name on it."
-        />
-        <InspirationBoard />
+        <div className="flex flex-col gap-5">
+          <SectionHeading
+            id="board-heading"
+            eyebrow="What your guests see"
+            title="Everything about your wedding, on one link"
+            intro="Your invite, the countdown, the venue map and a WhatsApp RSVP. Every guest opens it with their own name on it."
+          />
+          <DemoVideo sources={DEMO_VIDEO.sources} poster={DEMO_VIDEO.poster} steps={DEMO_STEPS} />
+        </div>
+        <GuestPreview />
       </section>
 
       <section aria-labelledby="steps-heading" className="flex flex-col gap-8">

@@ -219,7 +219,7 @@ The tokens in `@theme` are the Phera palette. `/design` shows them.
 - **Type.** Huninn for every heading and line of text. `font-script` is the display face here; only the invite theme gives it a real script.
 - **Logo.** `BrandMark`: the "Saath" mark. Two paisleys with fingerprint ridges meet as one heart, in sindoor rose and jamun violet. Its colours are fixed and do not follow the theme. The rules and the master files are in [`docs/brand.md`](../../docs/brand.md).
 - **Share image.** `public/og-image.png` (`SHARE_IMAGE` in `lib/seo.ts`) shows the logo when someone shares a product page. A page that sets its own `openGraph` lists `SHARE_IMAGE` again. A couple's invite makes its own image in `app/api/og/`.
-- **Home page.** A pin board (`InspirationBoard`, CSS columns), a feature list, a paper-or-digital table, and two `Marquee` carousels of reviews and chat screenshots. Each pin, feature and table row shows a feature that is built. A review slot stays empty until a real couple sends words. See `lib/testimonials.ts`.
+- **Home page.** A grid of equal tiles of what guests see (`GuestPreview`) with a "Watch a demo" dialog (`DemoVideo`, source in `lib/demo-video.ts`), a feature list, a paper-or-digital table, and two `Marquee` carousels of reviews and chat screenshots. Each tile, feature and table row shows a feature that is built. A review slot stays empty until a real couple sends words. See `lib/testimonials.ts`.
 - **Help.** `WhatsAppButton` floats in the bottom-right corner of every page of the product site.
 
 ### The invite theme
