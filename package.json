@@ -33,7 +33,7 @@
     "clean": "rm -rf .next coverage node_modules playwright-report test-results"
   },
   "dependencies": {
-    "@google-cloud/firestore": "^9.2.0",
+    "@google-cloud/firestore": "^9.3.1",
     "@google-cloud/storage": "^8.2.0",
     "firebase": "^12.19.0",
     "firebase-admin": "^14.4.0",
