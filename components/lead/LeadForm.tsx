@@ -121,10 +121,26 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
 
   // Focus follows the step, so a screen reader hears the new heading. Not on
   // first render: the card must not steal focus when the page loads.
+  //
+  // The steps differ in height, so on a phone a shorter step can leave the
+  // card above the screen. When the card's top is out of view, or below the
+  // middle of the screen, scroll it back to the top (under the sticky header,
+  // through `scroll-mt-24`). In the dialog this scrolls the dialog instead.
   const moved = useRef(false);
+  const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!moved.current) return;
     document.getElementById(headingId)?.focus({ preventScroll: true });
+    const card = root.current;
+    if (card === null) return;
+    const top = card.getBoundingClientRect().top;
+    const margin = Number.parseFloat(window.getComputedStyle(card).scrollMarginTop) || 0;
+    if (top < margin || top > window.innerHeight / 2) {
+      card.scrollIntoView({
+        block: 'start',
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      });
+    }
   }, [step, headingId]);
 
   const brideName = bride.trim();
@@ -330,7 +346,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   );
 
   return (
-    <div className={cn('flex w-full flex-col', className)}>
+    <div ref={root} className={cn('flex w-full scroll-mt-24 flex-col', className)}>
       {step === 'names' && (
         <form
           key="names"

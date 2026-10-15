@@ -87,6 +87,30 @@ describe('LeadForm', () => {
     expect(screen.getByText('Shyam')).toBeInTheDocument();
   });
 
+  it('scrolls the card back into view when a step leaves it above the screen', () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      value: scrollIntoView,
+      configurable: true,
+    });
+    render(<LeadForm />);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    const card = screen
+      .getByRole('heading', { name: 'The two of you' })
+      .closest('form')?.parentElement;
+    if (!card) throw new Error('no card');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({ top: -400 } as DOMRect);
+    fillNames();
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'smooth' });
+
+    // Already in view: nothing moves.
+    scrollIntoView.mockClear();
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({ top: 120 } as DOMRect);
+    fireEvent.click(screen.getByRole('button', { name: 'Back to your names' }));
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it('takes Indian numbers only, as 10 digits, and drops an autofilled 0', () => {
     render(<LeadForm />);
     fillNames();
