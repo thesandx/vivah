@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import type { LeadRequest } from '@/lib/lead-schema';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
+import { type ChosenSong, chosenSongSchema } from '@/lib/wedding-songs';
 import { createRepository, type StoredDocument } from '@/services/repository';
 
 /**
@@ -56,6 +57,12 @@ export const leadSchema = z.object({
    * taken meanwhile. Optional because older leads do not have it.
    */
   desiredSlug: z.string().optional(),
+  /**
+   * The song the couple chose on the sign-up card, copied from the admin's
+   * list so a later change there does not change it. Optional: older leads
+   * and a card with no songs have none.
+   */
+  song: chosenSongSchema.optional(),
 });
 
 export type LeadPayload = z.infer<typeof leadSchema>;
@@ -83,7 +90,10 @@ export function tokenMatches(token: string | undefined, storedHash: string): boo
 }
 
 /** Saves a lead and returns its id, which is also its preview link. */
-export async function createLead(input: LeadRequest, now: Date = new Date()): Promise<string> {
+export async function createLead(
+  input: Omit<LeadRequest, 'songSlot'> & { song?: ChosenSong | null },
+  now: Date = new Date(),
+): Promise<string> {
   return leads.create({
     bride: input.bride,
     groom: input.groom,
@@ -95,6 +105,7 @@ export async function createLead(input: LeadRequest, now: Date = new Date()): Pr
     previewTokenHash: null,
     firstOpenedAt: null,
     ...(input.slug !== null && { desiredSlug: input.slug }),
+    ...(input.song !== undefined && input.song !== null && { song: input.song }),
   });
 }
 

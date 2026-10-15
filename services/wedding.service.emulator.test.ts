@@ -39,8 +39,10 @@ function uniqueSlug(label: string): string {
   return `${label}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 }
 
-async function openedLead(): Promise<{ id: string; token: string }> {
-  const id = await createLead(REQUEST);
+async function openedLead(
+  song: { name: string; file: string } | null = null,
+): Promise<{ id: string; token: string }> {
+  const id = await createLead({ ...REQUEST, song });
   const { newToken } = await openPreviewLink(id, undefined);
   return { id, token: newToken ?? '' };
 }
@@ -58,6 +60,14 @@ describeEmulator('publishWedding (emulator)', () => {
     expect(await slugClaims.get(slugClaimId(slug))).toMatchObject({ slug, leadId: id });
     expect(await leads.getOrThrow(id)).toMatchObject({ status: 'paid', weddingSlug: slug });
     expect(await checkSlug(slug)).toEqual({ available: false, reason: 'taken' });
+  });
+
+  it('carries the chosen song from the lead to the wedding', async () => {
+    const slug = uniqueSlug('song');
+    const song = { name: 'Kesariya', file: 'song-1-abc.mp3' };
+    const { id, token } = await openedLead(song);
+    await publishWedding(id, token, slug);
+    expect((await getWeddingBySlug(slug))?.song).toEqual(song);
   });
 
   it('never gives a second couple an address that is taken', async () => {

@@ -75,6 +75,23 @@ export function normaliseTyped(value: string): string {
     .replace(/[^a-z0-9-]/g, '');
 }
 
+/** A green tick in the address field, once a typed address is available. */
+function AvailableTick() {
+  return (
+    <span className="bg-success text-on-brand rounded-pill animate-pop inline-grid size-7 place-items-center">
+      <svg viewBox="0 0 24 24" className="size-4" fill="none">
+        <path
+          d="M5 12.5l4.5 4.5L19 7.5"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
 export interface AddressChoiceProps {
   /**
    * Free addresses, best first. Only free ones: the couple never sees "taken"
@@ -138,7 +155,7 @@ export function AddressChoice({
     check.kind === 'checking'
       ? 'Checking…'
       : check.kind === 'available'
-        ? `${typed}.${domainLabel} is free.`
+        ? `${typed}.${domainLabel} is available.`
         : typed === ''
           ? 'Make it yours. For example, virat-anushka could be virushka, and deepika-ranveer could be deepveer.'
           : `Your invite will be at ${typed}.${domainLabel}`;
@@ -172,6 +189,7 @@ export function AddressChoice({
             }));
           }}
           hint={hint}
+          {...(check.kind === 'available' && { suffix: <AvailableTick /> })}
           {...(check.kind === 'problem' && { error: check.message })}
         />
       )}

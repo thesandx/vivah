@@ -2,6 +2,7 @@ import { Countdown } from '@/components/invite/Countdown';
 import { FallingPetals } from '@/components/invite/FallingPetals';
 import { Toran } from '@/components/invite/Toran';
 import { ContactLink } from '@/components/ui/ContactLink';
+import { PlayButton } from '@/components/ui/PlayButton';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-contact';
 import { cn } from '@/lib/utils';
@@ -44,6 +45,11 @@ export interface ShubhVivahInviteProps {
    * at the foot of every invite. Each guest who taps it is a possible couple.
    */
   madeByUrl: string;
+  /**
+   * The couple's song, chosen on the sign-up card. Guests tap to play it;
+   * it never plays on its own. Absent or `null` shows no player.
+   */
+  song?: { name: string; src: string } | null;
   className?: string;
 }
 
@@ -83,6 +89,7 @@ export function ShubhVivahInvite({
   venueMapsUrl,
   rsvpPhoneE164,
   madeByUrl,
+  song = null,
   className,
 }: ShubhVivahInviteProps) {
   const mapsUrl = venueMapsUrl !== null && isGoogleMapsUrl(venueMapsUrl) ? venueMapsUrl : null;
@@ -128,6 +135,16 @@ export function ShubhVivahInvite({
             {venueCity !== null && <span className="text-body text-ink-soft">{venueCity}</span>}
           </div>
         </header>
+
+        {song !== null && (
+          <div className="border-butter bg-surface rounded-pill shadow-hard flex max-w-xs items-center gap-3 border-2 py-1 pr-5 pl-1">
+            <PlayButton src={song.src} title={song.name} />
+            <p className="flex min-w-0 flex-col text-left">
+              <span className={cn(SPACED, 'text-small text-ink-soft')}>Our song</span>
+              <span className="text-brand truncate font-semibold">{song.name}</span>
+            </p>
+          </div>
+        )}
 
         {weddingDate !== null && <Countdown target={weddingStartsAt(weddingDate, ceremonyTime)} />}
 

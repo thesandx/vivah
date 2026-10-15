@@ -61,6 +61,20 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getAllByRole('link')).toHaveLength(1);
   });
 
+  it("offers the couple's song to play, and never plays it on its own", () => {
+    const { container } = render(
+      <ShubhVivahInvite {...full} song={{ name: 'Kesariya', src: '/api/songs/song-1-a.mp3' }} />,
+    );
+    expect(screen.getByText('Our song')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play Kesariya' })).toBeInTheDocument();
+    expect(container.querySelector('audio')).not.toHaveAttribute('autoplay');
+  });
+
+  it('shows no player without a song', () => {
+    render(<ShubhVivahInvite {...full} />);
+    expect(screen.queryByText('Our song')).not.toBeInTheDocument();
+  });
+
   it('credits vivah.online at the foot of the invite', () => {
     render(<ShubhVivahInvite {...full} />);
     expect(screen.getByRole('link', { name: /made with love by vivah\.online/i })).toHaveAttribute(

@@ -3,8 +3,11 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  removeSongAction,
   resetStepImageAction,
+  saveSongAction,
   saveStepImageAction,
+  startSongUploadAction,
   startStepImageUploadAction,
 } from '@/app/(admin)/admin/actions';
 import { TestimonialsAdmin } from '@/app/(admin)/admin/testimonials-view';
@@ -12,6 +15,7 @@ import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminFilters } from '@/components/admin/AdminFilters';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
+import { SongSlotForm } from '@/components/admin/SongSlotForm';
 import { StateBadge } from '@/components/admin/StateBadge';
 import { StepImageUpload } from '@/components/admin/StepImageUpload';
 import { AppBar } from '@/components/layout/AppBar';
@@ -41,11 +45,13 @@ import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
 import { formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
+import { SONG_SLOTS, songUrl } from '@/lib/wedding-songs';
 import { listAllLeads, listAllWeddings } from '@/services/admin.service';
 import { recentAdminActions } from '@/services/admin-audit.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { getStepImages } from '@/services/site-content.service';
 import { createSignedReadUrl } from '@/services/storage.service';
+import { getSongSlots } from '@/services/wedding-songs.service';
 
 /**
  * `GET /admin` — the admin dashboard: every invite, every preview, and the
@@ -407,7 +413,65 @@ async function HomePageView() {
           ))}
         </ol>
       )}
+      <SongsAdmin />
       <TestimonialsAdmin />
     </>
+  );
+}
+
+/** The four songs couples choose from on step 4 of the sign-up card. */
+async function SongsAdmin() {
+  let songs: Awaited<ReturnType<typeof getSongSlots>> | null = null;
+  try {
+    songs = await getSongSlots({ fresh: true });
+  } catch (error) {
+    logger.error('Reading the wedding songs failed', error);
+  }
+  return (
+    <section className="flex flex-col gap-4">
+      <h3 className="text-heading">Wedding songs</h3>
+      <p className="text-ink-soft max-w-prose">
+        Couples choose one of these on step 4 of the sign-up card, and guests can play it on their
+        invite. Upload only songs you have the right to use. With no songs, the card skips the step.
+        A removed or replaced song stays on the sites that already chose it.
+      </p>
+      {songs === null ? (
+        <Alert tone="danger" title="The songs could not be read.">
+          Reload the page to try again.
+        </Alert>
+      ) : (
+        <ol className="grid gap-6 md:grid-cols-2">
+          {SONG_SLOTS.map((slot) => {
+            const song = songs[`slot${slot}`];
+            return (
+              <li
+                key={slot}
+                className="border-line rounded-card bg-surface flex flex-col gap-4 border-2 p-4"
+              >
+                <SongSlotForm
+                  // A new key after a save, so the form starts from the saved name.
+                  key={song?.file ?? 'empty'}
+                  slot={slot}
+                  current={song === null ? null : { name: song.name, src: songUrl(song.file) }}
+                  startUpload={startSongUploadAction.bind(null, slot)}
+                  save={saveSongAction.bind(null, slot)}
+                />
+                {song !== null && (
+                  <AdminActionForm
+                    action={removeSongAction.bind(null, slot)}
+                    label="Remove this song"
+                    confirm={{
+                      title: `Remove song ${slot}?`,
+                      body: 'New couples no longer see it. Sites that chose it keep it.',
+                      confirmLabel: 'Remove it',
+                    }}
+                  />
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
   );
 }

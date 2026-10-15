@@ -12,6 +12,7 @@ import { Face } from '@/components/ui/Face';
 import { env } from '@/lib/env';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
+import { songUrl } from '@/lib/wedding-songs';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
@@ -76,6 +77,8 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   }
 
   const { lead } = access;
+  const song =
+    lead.song === undefined ? null : { name: lead.song.name, src: songUrl(lead.song.file) };
   const domainLabel = inviteDomainLabel(env.rootDomain);
 
   // Already published: show where, instead of the address step.
@@ -96,6 +99,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
               venueMapsUrl={null}
               rsvpPhoneE164={null}
               madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+              song={song}
             />
           </InviteTheme>
           <section className="flex flex-col gap-5 lg:col-span-2">
@@ -139,6 +143,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
               venueMapsUrl={null}
               rsvpPhoneE164={null}
               madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+              song={song}
             />
           </PreviewGuard>
         </InviteTheme>

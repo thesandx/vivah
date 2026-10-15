@@ -24,11 +24,16 @@ function json(body: unknown, status = 200): Response {
 
 /**
  * Answers the address calls; `lead` answers `POST /api/leads`. Two free
- * addresses are offered, and a typed one is free.
+ * addresses are offered, and a typed one is available.
  */
-function serve(lead: () => Response, suggestions = ['raadha-shyam', 'shyam-raadha']): void {
+function serve(
+  lead: () => Response,
+  suggestions = ['raadha-shyam', 'shyam-raadha'],
+  songs: unknown[] = [],
+): void {
   fetchMock.mockImplementation((input) => {
     const url = String(input);
+    if (url === '/api/songs') return Promise.resolve(json({ songs }));
     if (url.startsWith('/api/addresses?slug=')) return Promise.resolve(json({ available: true }));
     if (url.startsWith('/api/addresses')) {
       return Promise.resolve(json({ suggestions, domainLabel: 'vivah.online' }));
@@ -87,6 +92,30 @@ describe('LeadForm', () => {
     expect(screen.getByText('Shyam')).toBeInTheDocument();
   });
 
+  it('scrolls the card back into view when a step leaves it above the screen', () => {
+    const scrollIntoView = vi.fn();
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      value: scrollIntoView,
+      configurable: true,
+    });
+    render(<LeadForm />);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    const card = screen
+      .getByRole('heading', { name: 'The two of you' })
+      .closest('form')?.parentElement;
+    if (!card) throw new Error('no card');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({ top: -400 } as DOMRect);
+    fillNames();
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'start', behavior: 'smooth' });
+
+    // Already in view: nothing moves.
+    scrollIntoView.mockClear();
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({ top: 120 } as DOMRect);
+    fireEvent.click(screen.getByRole('button', { name: 'Back to your names' }));
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it('takes Indian numbers only, as 10 digits, and drops an autofilled 0', () => {
     render(<LeadForm />);
     fillNames();
@@ -126,7 +155,7 @@ describe('LeadForm', () => {
     expect(
       screen.getByText('Tick the box so we can send your preview on WhatsApp.'),
     ).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(leadCalls()).toHaveLength(0);
   });
 
   it('offers free addresses on the third step, and checks a typed one', async () => {
@@ -145,7 +174,8 @@ describe('LeadForm', () => {
     const make = screen.getByRole('button', { name: 'Make my website' });
     expect(make).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Your address'), { target: { value: 'Virushka' } });
-    expect(await screen.findByText('virushka.vivah.online is free.')).toBeInTheDocument();
+    expect(await screen.findByText('virushka.vivah.online is available.')).toBeInTheDocument();
+    expect(screen.getByText(/goes live at this address as soon as you pay/)).toBeInTheDocument();
     expect(make).toBeEnabled();
 
     // Back and forward again keeps the choice and does not ask twice.
@@ -236,5 +266,44 @@ describe('LeadForm', () => {
     answer = json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201);
     expect(await screen.findByLabelText('shyam-raadha.vivah.online')).toBeChecked();
     expect(screen.queryByLabelText('raadha-shyam.vivah.online')).not.toBeInTheDocument();
+  });
+
+  it('adds a fourth step to choose a song when there are songs, and sends its slot', async () => {
+    serve(
+      () => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201),
+      ['raadha-shyam'],
+      [
+        { slot: 1, name: 'Kesariya', src: '/api/songs/song-1-abc.mp3' },
+        { slot: 3, name: 'Tum Hi Ho', src: '/api/songs/song-3-def.mp3' },
+      ],
+    );
+    render(<LeadForm />);
+    fillNames();
+    expect(await screen.findByText('Step 2 of 4')).toBeInTheDocument();
+    fillDetails();
+    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+    await screen.findByLabelText('raadha-shyam.vivah.online');
+    fireEvent.click(screen.getByRole('button', { name: 'Choose our song' }));
+
+    expect(screen.getByRole('heading', { name: 'Your song' })).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 4')).toBeInTheDocument();
+    expect(screen.getByLabelText('Kesariya')).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Play Tum Hi Ho' })).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Tum Hi Ho'));
+    fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
+
+    const body = JSON.parse(String(leadCalls()[0]?.[1]?.body)) as Record<string, unknown>;
+    expect(body).toMatchObject({ slug: 'raadha-shyam', songSlot: 3 });
+    expect(screen.getByText('Cueing up Tum Hi Ho')).toBeInTheDocument();
+  });
+
+  it('keeps three steps when no songs are set', async () => {
+    serve(() => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201));
+    render(<LeadForm />);
+    fillNames();
+    expect(await screen.findByText('Step 2 of 3')).toBeInTheDocument();
+    fillDetails();
+    await toAddress();
+    expect(screen.getByRole('button', { name: 'Make my website' })).toBeEnabled();
   });
 });

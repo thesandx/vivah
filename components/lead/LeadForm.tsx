@@ -12,15 +12,24 @@ import {
 } from '@/components/invite/AddressChoice';
 import { MakingProgress } from '@/components/lead/MakingProgress';
 import { SendMoment } from '@/components/lead/SendMoment';
-import { AddressArt, CalendarArt, HeartGlyph, HeartsArt } from '@/components/lead/SignupArt';
+import {
+  AddressArt,
+  CalendarArt,
+  HeartGlyph,
+  HeartsArt,
+  SongArt,
+} from '@/components/lead/SignupArt';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { FieldError } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
+import { PlayButton } from '@/components/ui/PlayButton';
+import { RadioGroup } from '@/components/ui/RadioGroup';
 import { indianMobileDigits, toE164 } from '@/lib/phone';
 import { cn } from '@/lib/utils';
 import { daysUntil, foreverStartsLine, formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
+import { parseSongSlot, type SongOption, type SongSlot } from '@/lib/wedding-songs';
 
 /**
  * The home page sign-up card, in three steps so a couple is invested before
@@ -33,6 +42,8 @@ import { daysUntil, foreverStartsLine, formatWeddingDate, todayInIndia } from '@
  * 3. The address of their website: `radha-shyam.vivah.online`, or one they
  *    type. `GET /api/addresses` offers free ones and checks a typed one. The
  *    lead stores the choice; publishing on the preview page reserves it.
+ * 4. The song guests can play on their site, from the ones an admin added
+ *    in `/admin` (`GET /api/songs`). With no songs, the card has 3 steps.
  *
  * Then the card shows the website being made, step by step, while
  * `POST /api/leads` creates the preview. An envelope zooms away, a tick takes
@@ -61,8 +72,8 @@ const SENT_MS = 1400;
  */
 const SENT_DETAIL = 'Opening your preview now.';
 
-type Step = 'names' | 'details' | 'address' | 'making' | 'flying' | 'sent';
-type FieldName = 'bride' | 'groom' | 'weddingDate' | 'phone' | 'consent' | 'slug';
+type Step = 'names' | 'details' | 'address' | 'song' | 'making' | 'flying' | 'sent';
+type FieldName = 'bride' | 'groom' | 'weddingDate' | 'phone' | 'consent' | 'slug' | 'songSlot';
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 interface ErrorBody {
@@ -109,6 +120,10 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   /** Free addresses for these names; `null` while they load. */
   const [suggestions, setSuggestions] = useState<readonly string[] | null>(null);
   const [domainLabel, setDomainLabel] = useState(DEFAULT_DOMAIN_LABEL);
+  /** The songs to choose from; `null` while they load. */
+  const [songs, setSongs] = useState<readonly SongOption[] | null>(null);
+  const [songSlot, setSongSlot] = useState<SongSlot | null>(null);
+  const songsAsked = useRef(false);
   /** The names the suggestions were made for, so a return visit does not ask again. */
   const suggestedFor = useRef<string | null>(null);
 
@@ -121,10 +136,26 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
 
   // Focus follows the step, so a screen reader hears the new heading. Not on
   // first render: the card must not steal focus when the page loads.
+  //
+  // The steps differ in height, so on a phone a shorter step can leave the
+  // card above the screen. When the card's top is out of view, or below the
+  // middle of the screen, scroll it back to the top (under the sticky header,
+  // through `scroll-mt-24`). In the dialog this scrolls the dialog instead.
   const moved = useRef(false);
+  const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!moved.current) return;
     document.getElementById(headingId)?.focus({ preventScroll: true });
+    const card = root.current;
+    if (card === null) return;
+    const top = card.getBoundingClientRect().top;
+    const margin = Number.parseFloat(window.getComputedStyle(card).scrollMarginTop) || 0;
+    if (top < margin || top > window.innerHeight / 2) {
+      card.scrollIntoView({
+        block: 'start',
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      });
+    }
   }, [step, headingId]);
 
   const brideName = bride.trim();
@@ -135,12 +166,18 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const detailsReady = (dateLater || weddingDate !== '') && phone.length === 10;
   const slug = chosenSlug(address);
   const addressReady = suggestions !== null && slug !== null;
+  // Until the list arrives, the card counts on the song step.
+  const hasSongStep = songs === null || songs.length > 0;
+  const totalSteps = hasSongStep ? 4 : 3;
+  const lastStep: Step = hasSongStep ? 'song' : 'address';
+  const song = songs?.find((option) => option.slot === songSlot) ?? null;
+  const songReady = songs !== null && (songs.length === 0 || song !== null);
 
   const makingSteps = [
     `Writing ${brideName} & ${groomName} in gold`,
     dateLater ? 'Saving a seat for your date' : 'Circling your day on the calendar',
     `Putting up your nameplate at ${slug ?? 'your address'}.${domainLabel}`,
-    'Sealing your invite',
+    song === null ? 'Sealing your invite' : `Cueing up ${song.name}`,
   ] as const;
 
   function go(next: Step, way: keyof typeof STEP_MOTION): void {
@@ -181,6 +218,26 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
     setFieldErrors({});
     setError(null);
     go('details', 'next');
+    if (!songsAsked.current) void loadSongs();
+  }
+
+  /** Asks once for the songs, early, so step 4 is ready when the couple gets there. */
+  async function loadSongs(): Promise<void> {
+    songsAsked.current = true;
+    let listed: readonly SongOption[] = [];
+    try {
+      const response = await fetch('/api/songs', {
+        signal: AbortSignal.timeout(ADDRESS_TIMEOUT_MS),
+      });
+      if (response.ok) {
+        const body = (await response.json()) as { songs?: unknown };
+        if (Array.isArray(body.songs)) listed = body.songs as SongOption[];
+      }
+    } catch {
+      // No songs: the card skips the song step.
+    }
+    setSongs(listed);
+    setSongSlot((previous) => previous ?? listed[0]?.slot ?? null);
   }
 
   function handleDetails(event: React.FormEvent<HTMLFormElement>): void {
@@ -239,13 +296,26 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
     if (!addressReady || slug === null) return;
     setFieldErrors({});
     setError(null);
+    if (hasSongStep) go('song', 'next');
+    else startMaking(slug);
+  }
+
+  function handleSong(event: React.FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    if (!songReady || slug === null) return;
+    setFieldErrors({});
+    setError(null);
+    startMaking(slug);
+  }
+
+  function startMaking(chosen: string): void {
     setDone(0);
     setPreviewPath(null);
     go('making', 'next');
-    void submit(slug);
+    void submit(chosen, song?.slot ?? null);
   }
 
-  async function submit(chosen: string): Promise<void> {
+  async function submit(chosen: string, chosenSong: SongSlot | null): Promise<void> {
     try {
       const response = await fetch('/api/leads', {
         method: 'POST',
@@ -258,6 +328,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           phone,
           consent,
           slug: chosen,
+          ...(chosenSong !== null && { songSlot: chosenSong }),
           ...(website !== '' && { website }),
         }),
         signal: AbortSignal.timeout(10_000),
@@ -281,8 +352,9 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
             // A ready-made address was taken meanwhile: offer fresh ones.
             void loadSuggestions(`${brideName}\n${groomName}`);
           }
-        } else if (Object.keys(fields).length > 0) go('details', 'back');
-        else go('address', 'back');
+        } else if (fields.songSlot !== undefined) go('song', 'back');
+        else if (Object.keys(fields).length > 0) go('details', 'back');
+        else go(lastStep, 'back');
         return;
       }
 
@@ -294,7 +366,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           ? caught.message
           : 'The request took too long. Check your connection and try again.',
       );
-      go('address', 'back');
+      go(lastStep, 'back');
     }
   }
 
@@ -330,7 +402,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   );
 
   return (
-    <div className={cn('flex w-full flex-col', className)}>
+    <div ref={root} className={cn('flex w-full scroll-mt-24 flex-col', className)}>
       {step === 'names' && (
         <form
           key="names"
@@ -340,7 +412,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         >
           <header className="flex flex-col items-center gap-2 text-center">
             <HeartsArt />
-            <p className="text-small text-ink-soft">Step 1 of 3</p>
+            <p className="text-small text-ink-soft">Step 1 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               The two of you
             </h2>
@@ -396,7 +468,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         >
           <header className="flex flex-col items-center gap-2 text-center">
             <CalendarArt isoDate={dateLater || weddingDate === '' ? null : weddingDate} />
-            <p className="text-small text-ink-soft">Step 2 of 3</p>
+            <p className="text-small text-ink-soft">Step 2 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               Your big day
             </h2>
@@ -502,7 +574,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         >
           <header className="flex flex-col items-center gap-2 text-center">
             <AddressArt />
-            <p className="text-small text-ink-soft">Step 3 of 3</p>
+            <p className="text-small text-ink-soft">Step 3 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               Your own address
             </h2>
@@ -529,12 +601,71 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
               onChange={setAddress}
             />
           )}
+          <p className="bg-brand-soft rounded-input text-small p-3 text-center">
+            Your site goes live at this address as soon as you pay. Until then, only you can see
+            your preview.
+          </p>
 
           {errorAlert}
 
           <div className="flex gap-3">
             {backButton('Back to your big day', 'details')}
             <Button type="submit" size="lg" block disabled={!addressReady}>
+              {hasSongStep ? 'Choose our song' : 'Make my website'}
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {step === 'song' && (
+        <form
+          key="song"
+          onSubmit={handleSong}
+          className={cn('flex flex-col gap-4', STEP_MOTION[direction])}
+          noValidate
+        >
+          <header className="flex flex-col items-center gap-2 text-center">
+            <SongArt />
+            <p className="text-small text-ink-soft">Step 4 of 4</p>
+            <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
+              Your song
+            </h2>
+            <p className="text-small text-ink-soft">
+              The song your guests can play on your website. Tap play to listen.
+            </p>
+          </header>
+          {songs === null ? (
+            <p
+              className="text-ink-soft flex min-h-26 items-center justify-center gap-3"
+              role="status"
+            >
+              <span className="border-sunken border-t-brand size-5 animate-spin rounded-full border-2" />
+              Finding your songs
+            </p>
+          ) : songs.length === 0 ? (
+            <p className="text-ink-soft text-center">
+              No songs right now. You can make your website without one.
+            </p>
+          ) : (
+            <RadioGroup
+              label="Choose your song"
+              name="songSlot"
+              value={songSlot === null ? '' : String(songSlot)}
+              onChange={(value) => setSongSlot(parseSongSlot(value))}
+              options={songs.map((option) => ({
+                value: String(option.slot),
+                label: option.name,
+                action: <PlayButton src={option.src} title={option.name} />,
+              }))}
+              {...(fieldErrors.songSlot !== undefined && { error: fieldErrors.songSlot })}
+            />
+          )}
+
+          {errorAlert}
+
+          <div className="flex gap-3">
+            {backButton('Back to your address', 'address')}
+            <Button type="submit" size="lg" block disabled={!songReady}>
               Make my website
             </Button>
           </div>

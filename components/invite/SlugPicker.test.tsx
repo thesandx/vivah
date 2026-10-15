@@ -87,7 +87,7 @@ describe('SlugPicker', () => {
 
     fireEvent.change(screen.getByLabelText('Your address'), { target: { value: 'Radha Weds' } });
     await waitFor(() => expect(checkSlug).toHaveBeenCalledWith('radha-weds'));
-    expect(await screen.findByText('radha-weds.vivah.online is free.')).toBeInTheDocument();
+    expect(await screen.findByText('radha-weds.vivah.online is available.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Pay and publish' })).toBeEnabled();
   });
 

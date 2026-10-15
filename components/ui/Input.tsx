@@ -15,6 +15,11 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
    * number. Not typed, not submitted.
    */
   prefix?: string;
+  /**
+   * Something fixed at the end, inside the field: a tick once a typed
+   * address is checked. Decoration only; the hint carries the words.
+   */
+  suffix?: React.ReactNode;
 }
 
 /** What an empty date field shows. iOS Safari shows nothing on its own. */
@@ -50,6 +55,7 @@ export function Input({
   error,
   code = false,
   prefix,
+  suffix,
   className,
   ...rest
 }: InputProps) {
@@ -70,13 +76,14 @@ export function Input({
                 isDate && 'peer relative pr-12',
                 emptyDate && 'focus:text-ink text-transparent',
                 prefix !== undefined && 'pl-14',
+                suffix !== undefined && 'pr-12',
                 className,
               ),
             )}
             {...rest}
           />
         );
-        if (!isDate && prefix === undefined) return input;
+        if (!isDate && prefix === undefined && suffix === undefined) return input;
         return (
           <div className="relative">
             {input}
@@ -97,6 +104,14 @@ export function Input({
               </span>
             )}
             {isDate && <CalendarIcon />}
+            {suffix !== undefined && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2"
+              >
+                {suffix}
+              </span>
+            )}
           </div>
         );
       }}

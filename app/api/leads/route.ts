@@ -7,6 +7,7 @@ import { logger } from '@/lib/logger';
 import { clientIp, RateLimiter } from '@/lib/rate-limit';
 import { createLead } from '@/services/lead.service';
 import { checkSlug } from '@/services/wedding.service';
+import { songInSlot } from '@/services/wedding-songs.service';
 
 /**
  * `POST /api/leads` — a couple asks for their preview. NO SESSION, on purpose.
@@ -20,6 +21,7 @@ import { checkSlug } from '@/services/wedding.service';
  *     existing document, and takes no identity field from the body.
  *   - The body is validated by `leadRequestSchema` (strict: unknown keys fail).
  *   - A filled honeypot field answers like a success and stores nothing.
+ *   - The chosen song is named by slot and copied from the admin's list.
  *   - The chosen address is stored on the lead as a wish. Nothing reserves
  *     it until publishing (ADR-0007).
  *   - Each visitor may ask for 5 previews in 10 minutes (`lib/rate-limit.ts`).
@@ -88,7 +90,10 @@ export async function POST(request: Request): Promise<NextResponse> {
         { status: 409 },
       );
     }
-    const id = await createLead(lead);
+    // The song by slot, as the admin set it now. A slot emptied meanwhile
+    // leaves the lead without a song rather than failing the sign-up.
+    const song = lead.songSlot === null ? null : await songInSlot(lead.songSlot);
+    const id = await createLead({ ...lead, song });
     // The lead id is logged so a support request can be traced. The phone
     // number is never logged — see CLAUDE.md > Authentication in brief.
     logger.info('Lead created', { leadId: id, hasWeddingDate: lead.weddingDate !== null });

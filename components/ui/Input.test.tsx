@@ -65,4 +65,9 @@ describe('Input', () => {
     expect(screen.getByText('+91')).toBeInTheDocument();
     expect(screen.getByLabelText('WhatsApp number')).not.toHaveAttribute('prefix');
   });
+  it('draws a suffix at the end of the field, hidden from screen readers', () => {
+    render(<Input label="Your address" suffix={<span>tick</span>} />);
+    expect(screen.getByText('tick').parentElement).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByLabelText('Your address')).toHaveClass('pr-12');
+  });
 });

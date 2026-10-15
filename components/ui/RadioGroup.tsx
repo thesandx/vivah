@@ -9,6 +9,11 @@ export interface RadioOption {
   label: string;
   hint?: string;
   disabled?: boolean;
+  /**
+   * Something to do with this option, at the end of its row: a play button
+   * for a song. Not part of the choice, so tapping it does not choose.
+   */
+  action?: React.ReactNode;
 }
 
 export interface RadioGroupProps {
@@ -82,7 +87,7 @@ export function RadioGroup({
                 className="bg-ink pointer-events-none absolute hidden size-3 rounded-full peer-checked:block peer-checked:animate-check"
               />
             </span>
-            <span className="flex flex-col pt-2.5">
+            <span className="flex min-w-0 flex-1 flex-col pt-2.5">
               <label
                 htmlFor={optionId}
                 className={cn(
@@ -98,6 +103,7 @@ export function RadioGroup({
                 </span>
               )}
             </span>
+            {option.action}
           </div>
         );
       })}
