@@ -8,7 +8,7 @@ import { MessageGroupSection } from '@/components/guides/MessageGroupSection';
 import { PageShell } from '@/components/layout/PageShell';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { env } from '@/lib/env';
-import { articleSchema, breadcrumbSchema, faqPageSchema, siteOrigin } from '@/lib/seo';
+import { articleSchema, breadcrumbSchema, faqPageSchema, SHARE_IMAGE, siteOrigin } from '@/lib/seo';
 import { REPLY_GUIDE_FAQS, REPLY_MESSAGE_GROUPS } from '@/lib/whatsapp-guides';
 
 /**
@@ -28,7 +28,13 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: PATH },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: PATH, type: 'article' },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: PATH,
+    type: 'article',
+    images: [SHARE_IMAGE],
+  },
 };
 
 export default function ReplyToWeddingInvitationPage() {

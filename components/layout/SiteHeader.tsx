@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { Header } from './Header';
 
 export interface SiteHeaderProps {
-  /** The product name, beside the mascot logo. */
+  /** The product name, beside the brand mark. */
   appName: string;
   className?: string;
 }

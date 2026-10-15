@@ -8,7 +8,7 @@ import { PageShell } from '@/components/layout/PageShell';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { env } from '@/lib/env';
-import { breadcrumbSchema, faqPageSchema, siteOrigin } from '@/lib/seo';
+import { breadcrumbSchema, faqPageSchema, SHARE_IMAGE, siteOrigin } from '@/lib/seo';
 import { LANDING_FAQS } from '@/lib/whatsapp-guides';
 
 /**
@@ -29,7 +29,13 @@ export const metadata: Metadata = {
   title: TITLE,
   description: DESCRIPTION,
   alternates: { canonical: PATH },
-  openGraph: { title: TITLE, description: DESCRIPTION, url: PATH, type: 'website' },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    url: PATH,
+    type: 'website',
+    images: [SHARE_IMAGE],
+  },
 };
 
 const STEPS = [

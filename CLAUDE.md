@@ -58,6 +58,7 @@ The production image is ~64 MB compressed, boots in ~2s, stops on `SIGTERM` in ~
 - [`docs/firestore-modeling.md`](./docs/firestore-modeling.md) — before designing a collection or writing a query.
 - [`docs/data-layer.md`](./docs/data-layer.md) — before using the repository, Cloud Storage or the emulator.
 - [`docs/data-recovery.md`](./docs/data-recovery.md) — before code that deletes data, before a bulk write, and during a data incident.
+- [`docs/brand.md`](./docs/brand.md) — before changing the logo, the favicon, the app icons or the share image.
 - [`docs/auth.md`](./docs/auth.md) — before sign-in, sessions, profiles, or anything behind a login.
 - [`docs/local-development.md`](./docs/local-development.md) — before setting up, or confused by tooling.
 - [`docs/testing.md`](./docs/testing.md) — before writing tests. Explains the Server Component limitation.

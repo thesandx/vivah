@@ -19,6 +19,18 @@ export const BRAND_DESCRIPTION =
   'Online Hindu wedding invitation websites for India, sent on WhatsApp with each guest’s name.';
 
 /**
+ * The link preview for the product site: the logo and the brand line, from the
+ * brand kit (docs/brand.md). A page that sets its own `openGraph` replaces the
+ * layout's, so it must list this image again. A couple's invite uses its own.
+ */
+export const SHARE_IMAGE = {
+  url: '/og-image.png',
+  width: 1200,
+  height: 630,
+  alt: 'vivah.online: your wedding website, with a personal invite for every guest',
+} as const;
+
+/**
  * The public origin of the product site: `https://vivah.online`.
  *
  * The root domain wins over `NEXT_PUBLIC_APP_URL`, because the app URL can be
