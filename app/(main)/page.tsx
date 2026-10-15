@@ -1,25 +1,24 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
-import { ChatShotCard } from '@/components/home/ChatShotCard';
+import { HomeTestimonials } from '@/app/(main)/home-testimonials';
 import { DemoVideo } from '@/components/home/DemoVideo';
 import { FeatureList } from '@/components/home/FeatureList';
 import { GuestPreview } from '@/components/home/GuestPreview';
 import { HowItWorks } from '@/components/home/HowItWorks';
 import { PaperVsDigital } from '@/components/home/PaperVsDigital';
-import { ReviewCard } from '@/components/home/ReviewCard';
+import { SectionHeading } from '@/components/home/SectionHeading';
 import { PageShell } from '@/components/layout/PageShell';
 import { LeadForm } from '@/components/lead/LeadForm';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { Marquee } from '@/components/ui/Marquee';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { DEMO_STEPS, DEMO_VIDEO } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { organizationSchema, siteOrigin } from '@/lib/seo';
-import { CHAT_SHOTS, REVIEWS } from '@/lib/testimonials';
 import { cn } from '@/lib/utils';
 
 /**
@@ -27,9 +26,13 @@ import { cn } from '@/lib/utils';
  *
  * It is the first page a couple sees, so it sells first: the promise (a
  * wedding website in 5 minutes), the form, then what guests get, as a grid of
- * tiles with a demo video. Two slow carousels hold reviews and chat screenshots from couples;
- * until real ones arrive they show open slots that claim nothing. See
- * `lib/testimonials.ts`.
+ * tiles with a demo video. Near the end, a banner and two drifting rows hold
+ * what couples say, which the admin adds from `/admin`
+ * (`app/(main)/home-testimonials.tsx`).
+ *
+ * It renders on each request, because the admin's changes must show without
+ * a deploy. The testimonials stream in behind a `Suspense`, so the rest of
+ * the page never waits on Firestore.
  *
  * On a phone the form follows the heading, so it sits near the first screen.
  * From `lg` the words go on the left and the form on the right.
@@ -79,18 +82,7 @@ function Tick() {
   );
 }
 
-/** A section's heading, with a small line above it. */
-function SectionHeading({ id, eyebrow, title, intro }: Record<string, string>) {
-  return (
-    <header className="flex max-w-prose flex-col gap-3">
-      <p className="text-small text-ink-soft font-semibold tracking-widest uppercase">{eyebrow}</p>
-      <h2 id={id} className="text-title">
-        {title}
-      </h2>
-      <p className="text-ink-soft">{intro}</p>
-    </header>
-  );
-}
+export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   const chatUrl = whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO);
@@ -181,40 +173,11 @@ export default function HomePage() {
         <PaperVsDigital />
       </section>
 
-      <section aria-labelledby="reviews-heading" className="flex flex-col gap-6">
-        <SectionHeading
-          id="reviews-heading"
-          eyebrow="Love notes"
-          title="From our couples"
-          intro="We are new. As our first couples celebrate, their words will fill these cards."
-        />
-        <Marquee
-          label="Reviews from couples"
-          className="-mx-5 sm:-mx-8"
-          items={REVIEWS.map((review) => ({
-            key: review.id,
-            node: <ReviewCard review={review} />,
-          }))}
-        />
-      </section>
-
-      <section aria-labelledby="chats-heading" className="flex flex-col gap-6">
-        <SectionHeading
-          id="chats-heading"
-          eyebrow="In the chats"
-          title="What the family group says"
-          intro="Screenshots of the messages our couples get on WhatsApp and Instagram, shared with their permission."
-        />
-        <Marquee
-          label="Messages couples received"
-          reverse
-          className="-mx-5 sm:-mx-8"
-          items={CHAT_SHOTS.map((chat, index) => ({
-            key: chat.id,
-            node: <ChatShotCard chat={chat} tilt={index % 2 === 0 ? 'left' : 'right'} />,
-          }))}
-        />
-      </section>
+      {/* Streams in after the rest of the page, so a slow read never holds
+          the page back. */}
+      <Suspense fallback={null}>
+        <HomeTestimonials />
+      </Suspense>
 
       <section
         aria-labelledby="cta-heading"

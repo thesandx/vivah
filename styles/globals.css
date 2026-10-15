@@ -152,10 +152,6 @@
      waits the same 760 ms before it shows the tick. */
   --animate-fly-away: fly-away 760ms var(--ease-settle) forwards;
   --animate-speed-line: speed-line 760ms var(--ease-settle) forwards;
-  /* The home page carousels: a slow, endless drift to the left. The track
-     holds the list twice and moves by half, so the loop has no seam. */
-  --animate-marquee: marquee 80s linear infinite;
-  --animate-marquee-reverse: marquee 90s linear infinite reverse;
   /* The home page's "How it works" steps: a bar fills under the highlighted
      step, and the next step lights up when it is full. 5 s, the same as
      STEP_INTERVAL_MS in lib/how-it-works.ts. */
@@ -221,15 +217,6 @@
     }
     to {
       transform: translate3d(6vw, 110vh, 0) rotate(540deg);
-    }
-  }
-
-  @keyframes marquee {
-    from {
-      transform: translate3d(0, 0, 0);
-    }
-    to {
-      transform: translate3d(-50%, 0, 0);
     }
   }
 
@@ -477,11 +464,21 @@
   }
 }
 
-/* The marquee: a carousel stops while a pointer is on it or a card has
-   focus, so a visitor can read a card. Used by Marquee only. */
-@utility marquee-pause {
-  &:hover > *,
-  &:focus-within > * {
+/* A row that scrolls sideways with no scrollbar: the home page carousels,
+   which drift by themselves and take a swipe. Used by AutoScroller only. */
+@utility scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* The "How it works" steps: the highlighted step's bar stops filling while a
+   pointer is on the section or a step has focus. Used by HowItWorks only. */
+@utility steps-pause {
+  &:hover *,
+  &:focus-within * {
     animation-play-state: paused;
   }
 }

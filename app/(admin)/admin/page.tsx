@@ -7,6 +7,7 @@ import {
   saveStepImageAction,
   startStepImageUploadAction,
 } from '@/app/(admin)/admin/actions';
+import { TestimonialsAdmin } from '@/app/(admin)/admin/testimonials-view';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminFilters } from '@/components/admin/AdminFilters';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
@@ -306,7 +307,7 @@ async function ActivityView() {
                       href="/admin?view=home"
                       className="text-brand font-semibold underline underline-offset-4"
                     >
-                      Open home page images
+                      Open the home page tab
                     </Link>
                   </>
                 )}
@@ -356,10 +357,14 @@ async function HomePageView() {
       <header className="flex flex-col gap-1">
         <h2 className="text-title">Home page</h2>
         <p className="text-ink-soft">
-          The phone screens in the How it works section. Use a phone screenshot, tall and narrow.
-          The home page shows a new image within five minutes.
+          What the home page shows that you can change without a deploy.
         </p>
       </header>
+      <h3 className="text-heading">How it works</h3>
+      <p className="text-ink-soft">
+        The phone screens in the How it works section. Use a phone screenshot, tall and narrow. The
+        home page shows a new image within five minutes.
+      </p>
       {current === null ? (
         <Alert tone="danger" title="The images could not be read.">
           Reload the page to try again.
@@ -402,6 +407,7 @@ async function HomePageView() {
           ))}
         </ol>
       )}
+      <TestimonialsAdmin />
     </>
   );
 }
