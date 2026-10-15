@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import { PhoneNumberInput } from '@/components/auth/PhoneNumberInput';
 import { MakingProgress } from '@/components/lead/MakingProgress';
 import { SendMoment } from '@/components/lead/SendMoment';
 import { CalendarArt, HeartGlyph, HeartsArt } from '@/components/lead/SignupArt';
@@ -11,7 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { FieldError } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
-import { DEFAULT_DIAL_COUNTRY, toE164 } from '@/lib/phone';
+import { indianMobileDigits, toE164 } from '@/lib/phone';
 import { cn } from '@/lib/utils';
 import { daysUntil, foreverStartsLine, formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
 
@@ -77,7 +76,6 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const [groom, setGroom] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
   const [dateLater, setDateLater] = useState(false);
-  const [country, setCountry] = useState(DEFAULT_DIAL_COUNTRY);
   const [phone, setPhone] = useState('');
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState('');
@@ -102,7 +100,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const namesReady = brideName !== '' && groomName !== '';
   const days = !dateLater && weddingDate !== '' ? daysUntil(weddingDate, todayInIndia()) : null;
   const forever = days === null ? null : foreverStartsLine(days);
-  const detailsReady = (dateLater || weddingDate !== '') && phone.trim() !== '';
+  const detailsReady = (dateLater || weddingDate !== '') && phone.length === 10;
 
   const makingSteps = [
     `Writing ${brideName} & ${groomName} in gold`,
@@ -155,7 +153,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
     event.preventDefault();
     const errors: FieldErrors = {};
     if (days !== null && days < 0) errors.weddingDate = 'Pick a date that is not in the past.';
-    const phoneResult = toE164(country, phone);
+    const phoneResult = toE164('IN', phone);
     if (!phoneResult.ok) errors.phone = phoneResult.message;
     if (!consent) errors.consent = 'Tick the box so we can send your preview on WhatsApp.';
     setFieldErrors(errors);
@@ -177,7 +175,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           bride,
           groom,
           weddingDate: dateLater || weddingDate === '' ? null : weddingDate,
-          countryIso: country,
+          countryIso: 'IN',
           phone,
           consent,
           ...(website !== '' && { website }),
@@ -229,7 +227,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
               The two of you
             </h2>
             <p className="text-small text-ink-soft">
-              Your website starts with your names. See it free, and pay only when you love it.
+              Two names, one story. Let us write it beautifully.
             </p>
           </header>
           <Input
@@ -322,16 +320,22 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
               </p>
             </div>
           )}
-          <PhoneNumberInput
+          {/* India only, so the dial code is fixed. The field keeps 10 digits and
+              drops the 0 or +91 that autofill often puts in front. */}
+          <Input
             label="WhatsApp number"
-            country={country}
-            onCountryChange={setCountry}
+            name="phone"
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel-national"
+            placeholder="98765 43210"
+            prefix="+91"
             value={phone}
-            onChange={(value) => {
-              setPhone(value);
+            onChange={(event) => {
+              setPhone(indianMobileDigits(event.target.value));
               setFieldErrors(({ phone: _, ...rest }) => rest);
             }}
-            error={fieldErrors.phone}
+            {...(fieldErrors.phone !== undefined && { error: fieldErrors.phone })}
           />
           <Checkbox
             label="Send my preview on WhatsApp"

@@ -58,6 +58,18 @@ describe('LeadForm', () => {
     expect(screen.getByText('Shyam')).toBeInTheDocument();
   });
 
+  it('takes Indian numbers only, as 10 digits, and drops an autofilled 0', () => {
+    render(<LeadForm />);
+    fillNames();
+    expect(screen.queryByLabelText('Country code')).not.toBeInTheDocument();
+    expect(screen.getByText('+91')).toBeInTheDocument();
+    const phone = screen.getByLabelText('WhatsApp number');
+    fireEvent.change(phone, { target: { value: '09876543210' } });
+    expect(phone).toHaveValue('9876543210');
+    fireEvent.change(phone, { target: { value: '98765432101' } });
+    expect(phone).toHaveValue('9876543210');
+  });
+
   it('counts down to the wedding day and goes back without losing the names', () => {
     vi.setSystemTime(new Date('2026-10-15T06:00:00Z'));
     render(<LeadForm />);

@@ -129,12 +129,12 @@ export default function HomePage() {
           </p>
         </div>
 
-        <Card
-          as="section"
-          className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4 lg:col-start-2 lg:row-span-2 lg:row-start-1"
-        >
-          <LeadForm headingId={FORM_ID} />
-        </Card>
+        <div className="flex flex-col gap-3 lg:col-start-2 lg:row-span-2 lg:row-start-1">
+          <p className="text-heading text-center">See it free, and pay only when you love it.</p>
+          <Card as="section" className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4">
+            <LeadForm headingId={FORM_ID} />
+          </Card>
+        </div>
 
         <ul className="flex flex-col gap-3 lg:col-start-1 lg:self-start">
           {PROMISES.map((promise) => (
