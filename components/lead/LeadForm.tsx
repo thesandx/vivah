@@ -313,8 +313,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
               aria-live="polite"
             >
               <p className="text-heading">
-                {forever ?? 'Your forever is on its way'}{' '}
-                <HeartGlyph className="align-middle" />
+                {forever ?? 'Your forever is on its way'} <HeartGlyph className="align-middle" />
               </p>
               <p className="text-small text-ink-soft">
                 {forever !== null
