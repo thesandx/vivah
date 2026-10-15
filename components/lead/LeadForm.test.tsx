@@ -24,7 +24,7 @@ function json(body: unknown, status = 200): Response {
 
 /**
  * Answers the address calls; `lead` answers `POST /api/leads`. Two free
- * addresses are offered, and a typed one is free.
+ * addresses are offered, and a typed one is available.
  */
 function serve(
   lead: () => Response,
@@ -174,7 +174,8 @@ describe('LeadForm', () => {
     const make = screen.getByRole('button', { name: 'Make my website' });
     expect(make).toBeDisabled();
     fireEvent.change(screen.getByLabelText('Your address'), { target: { value: 'Virushka' } });
-    expect(await screen.findByText('virushka.vivah.online is free.')).toBeInTheDocument();
+    expect(await screen.findByText('virushka.vivah.online is available.')).toBeInTheDocument();
+    expect(screen.getByText(/goes live at this address as soon as you pay/)).toBeInTheDocument();
     expect(make).toBeEnabled();
 
     // Back and forward again keeps the choice and does not ask twice.

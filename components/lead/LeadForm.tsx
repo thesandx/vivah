@@ -601,6 +601,10 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
               onChange={setAddress}
             />
           )}
+          <p className="bg-brand-soft rounded-input text-small p-3 text-center">
+            Your site goes live at this address as soon as you pay. Until then, only you can see
+            your preview.
+          </p>
 
           {errorAlert}
 
