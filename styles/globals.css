@@ -622,3 +622,15 @@
     transition-duration: 80ms;
   }
 }
+
+@layer base {
+  /* A disclosure (`<details>`) draws its own + / − icon, so hide the browser's
+     triangle. `list-style: none` covers Chrome and Firefox; Safari needs the
+     `-webkit-details-marker` rule. */
+  summary {
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
