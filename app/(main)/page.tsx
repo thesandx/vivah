@@ -133,15 +133,7 @@ export default function HomePage() {
           as="section"
           className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4 lg:col-start-2 lg:row-span-2 lg:row-start-1"
         >
-          <div className="flex flex-col gap-1">
-            <h2 id={FORM_ID} className="text-heading scroll-mt-24">
-              See your invite, free
-            </h2>
-            <p className="text-small text-ink-soft">
-              It takes 5 minutes. You pay only when you are happy with it.
-            </p>
-          </div>
-          <LeadForm />
+          <LeadForm headingId={FORM_ID} />
         </Card>
 
         <ul className="flex flex-col gap-3 lg:col-start-1 lg:self-start">

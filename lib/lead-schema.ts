@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { DEFAULT_DIAL_COUNTRY, DIAL_COUNTRIES, toE164 } from '@/lib/phone';
+import { todayInIndia } from '@/lib/wedding-date';
 
 /**
  * The body of `POST /api/leads`: what a couple types on the home page.
@@ -25,10 +26,8 @@ export const coupleNameSchema = z
   .min(1, 'Enter a name.')
   .max(MAX_NAME_LENGTH, `Keep the name under ${MAX_NAME_LENGTH} characters.`);
 
-/** Today as `YYYY-MM-DD` in India, where the couples are. */
-export function todayInIndia(now: Date = new Date()): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(now);
-}
+// Lives in `lib/wedding-date.ts` so the sign-up card can use it without zod.
+export { todayInIndia };
 
 /**
  * The wedding day, `YYYY-MM-DD`, stored as a string. A wedding day is a date
