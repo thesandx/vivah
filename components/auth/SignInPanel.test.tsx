@@ -16,6 +16,7 @@ const auth: UseFirebaseAuth = {
   sendVerificationCode: vi.fn(async () => true),
   confirmVerificationCode: vi.fn(async () => true),
   signOut: vi.fn(async () => {}),
+  signOutClient: vi.fn(async () => {}),
   reset: vi.fn(),
 };
 vi.mock('@/hooks/useFirebaseAuth', () => ({ useFirebaseAuth: () => auth }));

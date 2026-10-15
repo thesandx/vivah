@@ -137,7 +137,7 @@ function projectFor(pkgDir, typesRoot) {
 // structural props survive when inherited from React. ts-morph's getFilePath()
 // returns StandardizedFilePath (forward-slash), so the substring checks are
 // cross-platform.
-// Fork: the Mochi controls wrap native elements and inherit their API, so the
+// Fork: the design-language controls wrap native elements and inherit their API, so the
 // interaction props an app needs pass too (only where a component inherits them).
 const KEEP_PROP = /^(children|className|style|as|asChild|ref|id|onClick|onChange|onSubmit|onBlur|onFocus|onKeyDown|disabled|type|value|defaultValue|checked|defaultChecked|name|placeholder|required|readOnly|autoComplete|autoFocus|inputMode|maxLength|minLength|min|max|step|rows|href|target|rel|form|aria-label|aria-describedby)$/;
 // Style-system bases are detected by SHAPE, two-tier (canonical contract -

@@ -48,4 +48,21 @@ describe('Input', () => {
     render(<Input label="Room key" code />);
     expect(screen.getByLabelText('Room key')).toHaveClass('font-display', 'uppercase');
   });
+
+  it('shows dd/mm/yyyy and a calendar icon in an empty date field', () => {
+    const { container } = render(<Input label="Wedding date" type="date" value="" readOnly />);
+    expect(screen.getByText('dd/mm/yyyy')).toBeInTheDocument();
+    expect(container.querySelector('svg')).not.toBeNull();
+  });
+
+  it('hides the placeholder once a date is picked', () => {
+    render(<Input label="Wedding date" type="date" value="2026-11-14" readOnly />);
+    expect(screen.queryByText('dd/mm/yyyy')).not.toBeInTheDocument();
+  });
+
+  it('shows a fixed prefix inside the field', () => {
+    render(<Input label="WhatsApp number" prefix="+91" />);
+    expect(screen.getByText('+91')).toBeInTheDocument();
+    expect(screen.getByLabelText('WhatsApp number')).not.toHaveAttribute('prefix');
+  });
 });

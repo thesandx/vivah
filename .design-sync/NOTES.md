@@ -1,6 +1,6 @@
-# design-sync notes — Mochi
+# design-sync notes
 
-Synced to claude.ai/design project "Mochi Design System" (`projectId` in config.json).
+Synced to claude.ai/design project for this design language (`projectId` in config.json).
 
 ## How this repo is shaped for the converter
 
@@ -10,7 +10,7 @@ Synced to claude.ai/design project "Mochi Design System" (`projectId` in config.
 - `buildCmd` must run before the converter on every sync:
   1. `node .design-sync/build-css.mjs` compiles `.design-sync/tailwind-entry.css`
      (imports `styles/globals.css`) with the repo's own `@tailwindcss/postcss` into
-     `.design-sync/.cache/mochi.css` (= `cssEntry`).
+     `.design-sync/.cache/ui.css` (= `cssEntry`).
   2. `tsc -p .design-sync/tsconfig.dts.json` emits `.d.ts` into `.design-sync/.cache/types`.
 - `overrides/dts.mjs` is a fork (see `libOverrides`). It reads that `.d.ts` tree. It keeps
   inherited interaction props (`onClick`, `disabled`, `value`...) that upstream drops. It
@@ -23,8 +23,8 @@ Synced to claude.ai/design project "Mochi Design System" (`projectId` in config.
 - `next/link` and `next/navigation` are shimmed via `.design-sync/tsconfig.json` paths
   (`shims/`). `usePathname()` reads `document.documentElement.dataset.pathname`, default `/`.
 - Fonts: the app loads them with `next/font/local`; `fonts.css` (`extraFonts`) declares
-  the same families from `public/fonts/`, and `tailwind-entry.css` sets `--font-mochiy` /
-  `--font-zen-maru` on `:root`.
+  the same families from `public/fonts/`, and `tailwind-entry.css` sets `--font-huninn`,
+  `--font-baloo` and `--font-baloo-devanagari` on `:root`.
 - Playwright: chromium-1228 is cached locally; `playwright@1.61.1` in `.ds-sync/` matches it.
 
 ## Tailwind safelist
@@ -42,12 +42,12 @@ safelist, not to a component.
 
 ## Preview notes
 
-- Card overrides: `TabBar` single 390px (it is `fixed` and `md:hidden`), `SiteHeader`
-  column 1200px (`hidden md:block`), `Dialog` single (opens with `showModal`), and
+- Card overrides: `SiteHeader`
+  column 1200px, `Dialog` single (opens with `showModal`), and
   column cards for wide ones (Header, Footer, PageShell, AppBar, Avatar, Face).
 - MobileMenu's `Open` cell presses the menu button once on mount, because the open state
   is internal. The menu sits in a `relative` phone header row, as `Header` renders it.
-- `AppBar`'s title has `py-1`: `truncate` clips to the line box, and Mochiy Pop One's
+- `AppBar`'s title has `py-1`: `truncate` clips to the line box, and the display face's
   descenders fall below `text-title`'s 1.15 line-height.
 
 ## Re-sync risks

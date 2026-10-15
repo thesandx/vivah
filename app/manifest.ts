@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 
 import { env } from '@/lib/env';
 import { PWA_ICONS, THEME_COLOR } from '@/lib/pwa';
+import { BRAND_DESCRIPTION } from '@/lib/seo';
 
 /**
  * The web app manifest, served at `/manifest.webmanifest` and linked from
@@ -17,7 +18,7 @@ export default function manifest(): MetadataRoute.Manifest {
     id: '/',
     name: env.appName,
     short_name: env.appName,
-    description: 'Production-ready Next.js App Router template deployed on Google Cloud Run.',
+    description: BRAND_DESCRIPTION,
     start_url: '/',
     scope: '/',
     display: 'standalone',

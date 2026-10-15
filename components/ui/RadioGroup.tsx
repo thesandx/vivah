@@ -72,7 +72,7 @@ export function RadioGroup({
                 {...(option.disabled && { disabled: true })}
                 {...(required && { required: true })}
                 className={cn(
-                  'peer bg-surface shadow-mochi-sm size-7 cursor-pointer appearance-none rounded-full border-2',
+                  'peer bg-surface shadow-hard-sm size-7 cursor-pointer appearance-none rounded-full border-2',
                   error ? 'border-danger' : 'border-line',
                   'disabled:bg-sunken disabled:cursor-not-allowed disabled:border-dashed',
                 )}

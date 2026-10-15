@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
-import { DEFAULT_DIAL_COUNTRY, findDialCountry, formatPhoneForDisplay, toE164 } from './phone';
+import {
+  DEFAULT_DIAL_COUNTRY,
+  findDialCountry,
+  formatPhoneForDisplay,
+  indianMobileDigits,
+  toE164,
+} from './phone';
 
 describe('toE164', () => {
   it('prefixes the dial code to a national number', () => {
@@ -47,5 +53,24 @@ describe('formatPhoneForDisplay', () => {
 
   it('returns an unknown number unchanged', () => {
     expect(formatPhoneForDisplay('+8613800138000')).toBe('+8613800138000');
+  });
+});
+
+describe('indianMobileDigits', () => {
+  it('keeps digits only, at most 10', () => {
+    expect(indianMobileDigits('98765 43210')).toBe('9876543210');
+    expect(indianMobileDigits('9876543210123')).toBe('9876543210');
+  });
+
+  it('drops the 0 an autofilled number often starts with', () => {
+    expect(indianMobileDigits('09876543210')).toBe('9876543210');
+  });
+
+  it('drops a +91 typed or autofilled in front', () => {
+    expect(indianMobileDigits('+91 98765 43210')).toBe('9876543210');
+  });
+
+  it('leaves a short number as typed', () => {
+    expect(indianMobileDigits('0987')).toBe('0987');
   });
 });

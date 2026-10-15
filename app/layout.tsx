@@ -3,19 +3,21 @@ import '@/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 
-import { Footer } from '@/components/layout/Footer';
-import { SiteHeader } from '@/components/layout/SiteHeader';
-import { TabBar } from '@/components/layout/TabBar';
 import { env } from '@/lib/env';
 import { THEME_COLOR } from '@/lib/pwa';
+import { BRAND_DESCRIPTION, SHARE_IMAGE, siteOrigin } from '@/lib/seo';
 
 export const metadata: Metadata = {
-  metadataBase: new URL(env.appUrl),
+  // The public origin, so canonical and Open Graph URLs name vivah.online and
+  // never the Cloud Run address. See `siteOrigin` in lib/seo.ts.
+  metadataBase: new URL(siteOrigin(env.rootDomain, env.appUrl)),
   title: {
     default: env.appName,
     template: `%s | ${env.appName}`,
   },
-  description: 'Production-ready Next.js App Router template deployed on Google Cloud Run.',
+  description: BRAND_DESCRIPTION,
+  openGraph: { siteName: env.appName, type: 'website', images: [SHARE_IMAGE] },
+  twitter: { card: 'summary_large_image', images: [SHARE_IMAGE.url] },
   applicationName: env.appName,
   // iOS reads these, not the manifest, when the user adds the app to the home
   // screen. The manifest in app/manifest.ts serves every other browser.
@@ -30,40 +32,85 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  // Lets the page draw under a phone's notch and home indicator, so TabBar can
-  // pad itself with env(safe-area-inset-bottom) like a native nav bar.
+  // Lets the page draw under a phone's notch and home indicator, so fixed chrome can
+  // pad itself with env(safe-area-inset-bottom), as the WhatsApp button does.
   viewportFit: 'cover',
   // Matches --color-paper for the active theme. See lib/pwa.ts.
   themeColor: THEME_COLOR,
 };
 
 /**
- * Mochi typefaces, self-hosted from public/fonts (Latin subsets, ~72 KB total).
- * Self-hosting means the build never calls Google Fonts, so the Docker build
- * works offline. See .github/instructions/design-language.md, "Type".
+ * The Phera typefaces, self-hosted from public/fonts. Self-hosting means the
+ * build never calls a font CDN, so the Docker build works offline. See
+ * .github/instructions/design-language.md, "Type".
+ *
+ * - Huninn (SIL OFL) is the voice: every heading, label and line of body text.
+ *   It has one weight, 400.
+ * - Baloo 2 (SIL OFL) carries the weights 500-800 for numbers and badges.
+ * - Baloo 2 Devanagari covers Hindi and Sanskrit text. Huninn has no
+ *   Devanagari glyphs, so the browser falls through to it. It is not
+ *   preloaded: it downloads only on a page that shows Devanagari.
  */
-const mochiy = localFont({
-  src: '../public/fonts/mochiypopone-400.woff2',
+const huninn = localFont({
+  src: '../public/fonts/huninn-400.woff2',
   weight: '400',
-  variable: '--font-mochiy',
+  variable: '--font-huninn',
   display: 'swap',
 });
 
-const zenMaru = localFont({
+const baloo = localFont({
   src: [
-    { path: '../public/fonts/zenmarugothic-400.woff2', weight: '400' },
-    { path: '../public/fonts/zenmarugothic-500.woff2', weight: '500' },
-    { path: '../public/fonts/zenmarugothic-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-400.woff2', weight: '400' },
+    { path: '../public/fonts/baloo2-500.woff2', weight: '500' },
+    { path: '../public/fonts/baloo2-600.woff2', weight: '600' },
+    { path: '../public/fonts/baloo2-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-800.woff2', weight: '800' },
   ],
-  variable: '--font-zen-maru',
+  variable: '--font-baloo',
   display: 'swap',
+  preload: false,
+});
+
+const balooDevanagari = localFont({
+  src: [
+    { path: '../public/fonts/baloo2-devanagari-400.woff2', weight: '400' },
+    { path: '../public/fonts/baloo2-devanagari-600.woff2', weight: '600' },
+    { path: '../public/fonts/baloo2-devanagari-700.woff2', weight: '700' },
+    { path: '../public/fonts/baloo2-devanagari-800.woff2', weight: '800' },
+  ],
+  variable: '--font-baloo-devanagari',
+  display: 'swap',
+  preload: false,
 });
 
 /**
- * The product theme. 'playroom' is the default token set; 'calm' and 'night'
+ * The Shubh Vivah invite faces (SIL OFL): Cormorant Garamond for headings and
+ * Great Vibes for the couple's names. Only `[data-theme='shubh-vivah']` uses
+ * them, so they are not preloaded on the product site.
+ */
+const cormorant = localFont({
+  src: [
+    { path: '../public/fonts/cormorantgaramond-500.woff2', weight: '500' },
+    { path: '../public/fonts/cormorantgaramond-600.woff2', weight: '600' },
+  ],
+  variable: '--font-cormorant',
+  display: 'swap',
+  preload: false,
+});
+
+const greatVibes = localFont({
+  src: '../public/fonts/greatvibes-400.woff2',
+  weight: '400',
+  variable: '--font-great-vibes',
+  display: 'swap',
+  preload: false,
+});
+
+/**
+ * The product theme. 'phera' is the default token set; 'calm' and 'night'
  * re-assign tokens in styles/globals.css. Set once per product, here only.
  */
-const THEME: 'playroom' | 'calm' | 'night' = 'playroom';
+const THEME: 'phera' | 'calm' | 'night' = 'phera';
 
 /**
  * Root layout — a Server Component, and it must stay one.
@@ -72,11 +119,17 @@ const THEME: 'playroom' | 'calm' | 'night' = 'playroom';
  * bundle. Providers that need client state belong in their own
  * `'use client'` component rendered from here as a child.
  *
- * It holds the two postures of the shell. A phone gets an app: the `TabBar`
- * at the bottom. From `md` up the same destinations move to the `SiteHeader`
- * at the top, and the page reads as a website. Both are CSS breakpoints, so
- * the server sends one HTML for every screen and nothing guesses the device.
- * See design-language.md > Responsive: an app on a phone, a website on a desktop.
+ * It holds only what every surface shares: the document, the fonts and the
+ * theme. The shell is per surface, in a route group:
+ *
+ *   - `app/(main)/layout.tsx` — the product site. `SiteHeader` on every
+ *     screen (a hamburger menu on a phone), and the `Footer`.
+ *   - `app/(invite)/layout.tsx` — a couple's invite and the private preview.
+ *     No product navigation: a guest opening an invite sees the invite.
+ *
+ * The split is by route, not by `usePathname()`, because a couple's invite is
+ * reached through a rewrite in `proxy.ts`, and a rewrite makes the client and
+ * server paths differ.
  */
 export default function RootLayout({
   children,
@@ -87,28 +140,11 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${mochiy.variable} ${zenMaru.variable}`}
+      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${cormorant.variable} ${greatVibes.variable}`}
       suppressHydrationWarning
     >
-      {/*
-        pb-28 keeps the last line of every page clear of the floating TabBar,
-        on a phone only: from md up the TabBar hides. The flex column lets a
-        short page push the footer to the bottom of the screen. SiteHeader and
-        TabBar are client components rendered from this Server Component, so
-        the layout itself stays server-only.
-      */}
-      <body className="flex min-h-dvh flex-col pb-28 antialiased md:pb-0">
-        <SiteHeader appName={env.appName} />
-        {children}
-        <Footer
-          owner={env.appName}
-          links={[
-            { href: '/design', label: 'Components' },
-            { href: '/api/health', label: 'Health' },
-          ]}
-        />
-        <TabBar />
-      </body>
+      {/* The flex column lets a short page push its footer to the bottom of the screen. */}
+      <body className="flex min-h-dvh flex-col antialiased">{children}</body>
     </html>
   );
 }

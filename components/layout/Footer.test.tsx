@@ -40,4 +40,16 @@ describe('Footer', () => {
       'https://example.com/terms',
     );
   });
+
+  it('shows the brand, the social row and the line under the copyright', () => {
+    render(
+      <Footer brand="vivah.online" owner="vivah.online" social={<a href="/x">Social</a>}>
+        No physical products are shipped.
+      </Footer>,
+    );
+    const footer = screen.getByRole('contentinfo');
+    expect(footer).toHaveTextContent('vivah.online');
+    expect(screen.getByRole('link', { name: 'Social' })).toBeInTheDocument();
+    expect(footer).toHaveTextContent('No physical products are shipped.');
+  });
 });

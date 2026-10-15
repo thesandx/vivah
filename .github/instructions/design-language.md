@@ -1,4 +1,4 @@
-# Design language: Mochi
+# Design language: Phera
 
 The visual and verbal rules for every product built from this template. Read this **before you write or change any UI**. The tokens live in `styles/globals.css`. The primitives live in `components/ui/`. The living reference renders at `/design`.
 
@@ -8,7 +8,7 @@ If a rule here conflicts with your training defaults, this file wins. If it bloc
 
 ## The idea in one paragraph
 
-Mochi is soft on the outside and firm underneath. The **structure** is neo-brutalist: ink outlines, a hard shadow straight down, flat colour, clear hierarchy. The **details** are kawaii: faces, blush, rounded type, and a small bounce when something is pressed. Structure makes the product clear. Details make it friendly. When the two compete, clarity wins.
+Phera is warm, round and festive. The colours come from an Indian wedding: cream paper, plum ink, sindoor rose, haldi, marigold, peacock and lotus. The **structure** is simple: soft 2px outlines, a hard "puff" shadow straight down, flat colour and a clear hierarchy. The **details** are friendly: rounded type, faces, blush and a small bounce when you press something. Structure makes the product clear. Details make it friendly. When the two compete, clarity wins.
 
 Three words to test every decision against: **squishy, honest, playful.**
 
@@ -22,13 +22,13 @@ Three words to test every decision against: **squishy, honest, playful.**
 
 1. **Use the primitives.** `components/ui/` holds them — see [The primitives](#the-primitives). Do not re-create them inline. If one is missing a variant, add the variant to the primitive and show it on `/design`.
 2. **Use tokens only.** No raw hex, no arbitrary `shadow-[...]`, no arbitrary radius. If you need a value that does not exist, stop and ask. `pnpm lint` fails on each of these — see [Enforcement](#enforcement).
-3. **Ink is not black.** Text and outlines use `ink` / `line`. Never `black`, `#000`, `#111` or `neutral-900`.
+3. **Ink is not black.** Text uses `ink` (plum). Outlines use `line` (soft plum). Never `black`, `#000`, `#111` or `neutral-900`.
 4. **Outlines are 2px.** `border-2 border-line`. Never 1px hairlines, never 3px+.
-5. **Shadows go straight down.** `shadow-mochi` (4px), `shadow-mochi-sm` (2px), `shadow-mochi-lg` (6px). No blur, no diagonal offsets, no grey `rgba` shadows, no glows.
+5. **Shadows go straight down.** The puff: `shadow-hard` (4px), `shadow-hard-sm` (2px), `shadow-hard-lg` (6px), in soft plum. A brand fill sits on `shadow-brand`, a darker rose. No blur, no diagonal offsets, no grey `rgba` shadows, no glows.
 6. **Radius follows hierarchy.** Inputs `rounded-input`, cards `rounded-card`, sheets and modals `rounded-sheet`, buttons and chips `rounded-pill`. Never one radius for everything.
 7. **One primary action per screen.** Exactly one `Button variant="primary"` is visible in any viewport. Everything else is `secondary` or `quiet`.
-8. **Two typefaces, fixed roles.** Headings and big numbers use `font-display` (Mochiy Pop One, weight 400 only). Everything else uses `font-sans` (Zen Maru Gothic, 400/500/700). No third font. No fake bold on the display face.
-9. **Colour has a job.** `brand` means "do this". Candy tones (`butter`, `soda`, `grape`, `peach`) mean identity — this game, this player, this category. Never pick a candy tone "because it looks nice here".
+8. **Two typefaces, fixed roles.** Huninn is the voice: `font-display` and `font-sans` both start with it. It has one weight (400), so size and colour make the hierarchy. Baloo 2 is `font-weighted`: use it for bold numbers and badges. Baloo 2 also covers all Devanagari text. No third font. No fake bold: the body sets `font-synthesis-weight: none`.
+9. **Colour has a job.** `brand` means "do this". Festival tones (`butter` haldi, `peach` marigold, `soda` peacock, `grape` lotus, `gold`) mean identity — this ceremony, this guest, this category. Never pick a festival tone "because it looks nice here".
 10. **Faces are the signature — use them on purpose.** A face appears on avatars, the mascot, empty states, errors and wins. Never on buttons, form fields, navigation, or body text.
 11. **Motion answers the user.** Press, navigate, open, select, join, win, error. The only ambient motion is the mascot's blink and a loading skeleton. No scroll-triggered fade-ins, no looping decoration. See [Motion](#motion).
 12. **Mobile first, 320px up, then a real desktop.** A phone gets an app. From `md` (768px) up, the same screen is a website. Tap targets ≥ 44px (buttons are 48px or 56px). No horizontal scroll. Left-aligned text. See [Responsive](#responsive-an-app-on-a-phone-a-website-on-a-desktop).
@@ -43,22 +43,30 @@ All tokens are in `styles/globals.css`. Tailwind v4 generates the utilities.
 
 ### Colour
 
-| Token                           | Utility examples             | Use it for                                      |
-| ------------------------------- | ---------------------------- | ----------------------------------------------- |
-| `paper`                         | `bg-paper`                   | The page. Nothing else.                         |
-| `surface`                       | `bg-surface`                 | Cards, inputs, sheets, bubbles                  |
-| `sunken`                        | `bg-sunken`                  | Wells, empty slots, disabled fills              |
-| `ink`                           | `text-ink`, `fill-ink`       | Body text, headings, face features              |
-| `ink-soft`                      | `text-ink-soft`              | Secondary text. Never for anything tappable.    |
-| `line`                          | `border-line`                | Every outline                                   |
-| `brand`                         | `bg-brand`                   | The primary action, focus rings, selected state |
-| `brand-soft`                    | `bg-brand-soft`              | Highlight fills, the mascot's background        |
-| `butter` `soda` `grape` `peach` | `bg-butter` …                | Identity only (see rule 9)                      |
-| `blush`                         | `fill-blush`                 | Cheeks on faces. Nowhere else.                  |
-| `danger`                        | `bg-danger`, `border-danger` | Errors — always with words, never colour alone  |
-| `success`                       | `bg-success`                 | Confirmations — always with words               |
+| Token                           | Utility examples             | Use it for                                    |
+| ------------------------------- | ---------------------------- | --------------------------------------------- |
+| `paper`                         | `bg-paper`                   | The page. Nothing else.                       |
+| `surface`                       | `bg-surface`                 | Cards, inputs, sheets, bubbles                |
+| `sunken`                        | `bg-sunken`                  | Wells, empty slots, disabled fills            |
+| `ink`                           | `text-ink`, `fill-ink`       | Body text, headings, face features (plum)     |
+| `ink-soft`                      | `text-ink-soft`              | Secondary text. Never for anything tappable.  |
+| `line`                          | `border-line`                | Every outline, and the puff shadow            |
+| `brand`                         | `bg-brand`                   | The primary action and the selected state     |
+| `brand-soft`                    | `bg-brand-soft`              | Highlight fills, the selected tab, the mascot |
+| `brand-deep`                    | `shadow-brand`               | The puff under a brand fill. Nothing else.    |
+| `on-brand`                      | `text-on-brand`              | Text and icons on a `brand` fill              |
+| `butter` `peach` `soda` `grape` | `bg-butter` …                | Identity only (see rule 9)                    |
+| `gold`                          | `bg-gold`, `border-gold`     | Dividers and foil accents                     |
+| `blush`                         | `fill-blush`                 | Cheeks on faces. Nowhere else.                |
+| `danger`                        | `border-danger`, `bg-danger` | Errors: outlines and dots. Always with words. |
+| `danger-soft`                   | `bg-danger-soft`             | The fill of an error badge or alert           |
+| `success`                       | `border-success`             | Confirmations: outlines. Always with words.   |
+| `success-soft`                  | `bg-success-soft`            | The fill of a success badge or alert          |
+| `focus`                         | `outline-focus`              | The focus ring (peacock). Nothing else.       |
 
-Text on a coloured fill is always `text-ink`. Never white text on `brand` or a candy tone — the contrast fails.
+Text on a `brand` fill is `text-on-brand` (white, 4.8:1). Text on every other fill is `text-ink`. Never white text on a festival tone or a soft fill: the contrast fails.
+
+`brand` is rose 600, not the lighter rose 500 of the Phera file. Rose 500 gives white text only 3.6:1, which fails WCAG AA.
 
 ### Type
 
@@ -80,14 +88,16 @@ Text on a coloured fill is always `text-ink`. Never white text on `brand` or a c
 | Token              | Value                    | Use                                      |
 | ------------------ | ------------------------ | ---------------------------------------- |
 | `rounded-box`      | 8px                      | Checkboxes only                          |
-| `rounded-input`    | 14px                     | Inputs, small wells                      |
-| `rounded-card`     | 22px                     | Cards, bubbles                           |
-| `rounded-sheet`    | 32px                     | Modals, bottom sheets, hero panels       |
+| `rounded-input`    | 18px                     | Inputs, small wells                      |
+| `rounded-card`     | 28px                     | Cards, bubbles                           |
+| `rounded-sheet`    | 40px                     | Modals, bottom sheets, hero panels       |
 | `rounded-pill`     | 999px                    | Buttons, chips, avatars (`rounded-full`) |
-| `shadow-mochi-sm`  | 0 2px 0 ink              | Chips, bubbles, small pressables         |
-| `shadow-mochi`     | 0 4px 0 ink              | Cards, buttons                           |
-| `shadow-mochi-lg`  | 0 6px 0 ink              | One hero element per page, open sheets   |
+| `shadow-hard-sm`   | 0 2px 0 line             | Chips, bubbles, small pressables         |
+| `shadow-hard`      | 0 4px 0 line             | Cards, secondary buttons                 |
+| `shadow-hard-lg`   | 0 6px 0 line             | One hero element per page, open sheets   |
+| `shadow-brand`     | 0 4px 0 brand-deep       | A brand fill: the primary button         |
 | `squish` (utility) | hover lifts, press sinks | Anything pressable. Buttons have it.     |
+| `squish-brand`     | the same, on brand-deep  | The primary button only                  |
 | `ease-squish`      | overshoot curve          | Things that pop in or get pressed        |
 | `ease-settle`      | no overshoot             | Things that move from A to B             |
 | `ease-spring`      | soft overshoot           | A selection that slides into place       |
@@ -133,18 +143,17 @@ Each primitive lives in `components/ui/`, has a colocated test, and renders on `
 
 `components/layout/` holds the page chrome:
 
-| Component    | Use it for                                                                           |
-| ------------ | ------------------------------------------------------------------------------------ |
-| `PageShell`  | The page's `<main>`: the frame (`max-w-5xl`), the gutter and the rhythm.             |
-| `AppBar`     | Back arrow, title (`h1`), one action. Sticky on a phone. The page heading from `md`. |
-| `BackButton` | The back arrow alone. It returns inside the app, or goes to a fallback page.         |
-| `TabBar`     | The floating bottom bar with the top-level destinations. Phone only. In the layout.  |
-| `SiteHeader` | The same destinations in a sticky website header. `md` and up. In the layout.        |
-| `Header`     | A website header. The logo links home. The links fold into `MobileMenu` below `md`.  |
-| `MobileMenu` | The header's "Menu" button and panel below `md`, for a website with no `TabBar`.     |
-| `Footer`     | The site footer: one line, the copyright from the clock, contact links, links.       |
+| Component    | Use it for                                                                              |
+| ------------ | --------------------------------------------------------------------------------------- |
+| `PageShell`  | The page's `<main>`: the frame (`max-w-5xl`), the gutter and the rhythm.                |
+| `AppBar`     | Back arrow, title (`h1`), one action. Sticky on a phone. The page heading from `md`.    |
+| `BackButton` | The back arrow alone. It returns inside the app, or goes to a fallback page.            |
+| `SiteHeader` | The top-level destinations in a sticky header on every screen. In the layout.           |
+| `Header`     | A website header. The logo links home. The links fold into `MobileMenu` below `md`.     |
+| `MobileMenu` | The header's hamburger "Menu" button and panel below `md`.                              |
+| `Footer`     | The site footer, centred: the brand, links, social icons, the copyright from the clock. |
 
-**On a phone, behave like an app.** A user must never need the browser's back button. A screen below a tab has an `AppBar` with a back arrow. A focused task, such as sign-in, hides the `TabBar` (see `TABLESS_PATHS` in `lib/navigation.ts`). A step inside one screen, such as the OTP step, uses the back arrow to return to the step before it.
+**On a phone, behave like an app.** A user must never need the browser's back button. A screen below a tab has an `AppBar` with a back arrow. A step inside one screen, such as the OTP step, uses the back arrow to return to the step before it.
 
 **On a desktop, behave like a website.** See [Responsive](#responsive-an-app-on-a-phone-a-website-on-a-desktop).
 
@@ -164,24 +173,27 @@ Motion makes the app feel physical: a screen settles into place, a selection sli
 4. **Use `backwards` fill on anything that wraps content.** A `transform` that stays after the animation turns the element into a containing block, and every `position: fixed` child inside it breaks.
 5. **Short.** 200ms to 320ms for most motion. Up to 520ms for a win or an error.
 6. **Reduced motion stops everything.** The base layer in `styles/globals.css` cuts every animation and transition to near zero. Do not override it.
-7. **Answer at the press, not at the response.** A control moves when the user taps it, even when the result needs the network. `TabBar` slides its pill on the tap, before the next page arrives.
+7. **Answer at the press, not at the response.** A control moves when the user taps it, even when the result needs the network. `Tabs` slides its pill on the tap, before the next view arrives.
 8. **Keep motion free, and keep the page light.** Motion adds no JavaScript. A large library still costs load time, so load it with `import()` when an action needs it. See `coding-standards.md` > React for the rules and the examples.
 
 ### The motion set
 
-| Utility                                           | Where it plays                                                        |
-| ------------------------------------------------- | --------------------------------------------------------------------- |
-| `animate-page-enter`                              | Every navigation. `app/template.tsx` wraps each page in it.           |
-| `animate-slide-in-next` / `animate-slide-in-back` | A step change inside one screen, such as the sign-in steps.           |
-| `animate-rise-in`                                 | Something that appears because of an action: `Alert`, a field error.  |
-| `animate-fade-in`                                 | A panel that replaces another: the `Tabs` panel.                      |
-| `animate-check`                                   | A tick, a radio dot or a tab icon that turns on.                      |
-| `animate-wobble`                                  | A field that has an error. It plays once, when the error appears.     |
-| `animate-pop`                                     | A win, a new player joining.                                          |
-| `animate-breathe`                                 | A `Skeleton` while content loads.                                     |
-| `sheet-motion`                                    | `Dialog`: rises in, sinks out, and the backdrop fades.                |
-| `press`                                           | A pressable thing with no base: a tab. Never together with `squish`.  |
-| A sliding pill                                    | The selection in `Tabs` and `TabBar`. `transform` with `ease-spring`. |
+| Utility                                           | Where it plays                                                       |
+| ------------------------------------------------- | -------------------------------------------------------------------- |
+| `animate-page-enter`                              | Every navigation. `app/template.tsx` wraps each page in it.          |
+| `animate-slide-in-next` / `animate-slide-in-back` | A step change inside one screen, such as the sign-in steps.          |
+| `animate-rise-in`                                 | Something that appears because of an action: `Alert`, a field error. |
+| `animate-fade-in`                                 | A panel that replaces another: the `Tabs` panel.                     |
+| `animate-check`                                   | A tick, a radio dot or a tab icon that turns on.                     |
+| `animate-wobble`                                  | A field that has an error. It plays once, when the error appears.    |
+| `animate-pop`                                     | A win, a new player joining.                                         |
+| `animate-breathe`                                 | A `Skeleton` while content loads.                                    |
+| `sheet-motion`                                    | `Dialog`: rises in, sinks out, and the backdrop fades.               |
+| `animate-step-progress`                           | The home page's "How it works": a bar fills under the lit step.      |
+| `press`                                           | A pressable thing with no base: a tab. Never together with `squish`. |
+| A sliding pill                                    | The selection in `Tabs`. `transform` with `ease-spring`.             |
+
+The "How it works" steps on the home page are the one loop that runs without a tap. The product owner asked for it, so a visitor sees that there are three steps. It stops on hover, on focus and off screen. A tap on a step ends it, and reduced motion turns it off.
 
 ### Loading
 
@@ -193,26 +205,50 @@ A dynamic page that reads data shows a loading state at once on navigation, so a
 
 A product sets its theme once, with `THEME` in `app/layout.tsx`. The theme re-assigns tokens; components do not change.
 
-| Theme      | For                                            | Cute budget                                                                    |
-| ---------- | ---------------------------------------------- | ------------------------------------------------------------------------------ |
-| `playroom` | Party games, social, anything fun              | **High** — faces on every player, mascot on every key moment, stickers allowed |
-| `calm`     | Wellness, habits, focus, utilities             | **Medium** — mascot on empty states and completions only, no stickers          |
-| `night`    | Dark products: map trackers, gaming companions | **Low** — mascot on loading, empty and error states only; faces on avatars     |
+| Theme   | For                                            | Cute budget                                                                |
+| ------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
+| `phera` | This app's product site (the default `@theme`) | **Low** — `BrandMark` is the logo; faces on avatars and empty states only  |
+| `calm`  | Wellness, habits, focus, utilities             | **Medium** — mascot on empty states and completions only, no stickers      |
+| `night` | Dark products: map trackers, gaming companions | **Low** — mascot on loading, empty and error states only; faces on avatars |
 
-Products with a formal or ceremonial tone (a wedding site, a legal page, a portfolio for employers) do **not** use Mochi. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
+Products with a formal or ceremonial tone (a legal page, a portfolio for employers) do **not** use Phera. They use the same structure tokens (spacing, radius, type scale discipline) with their own palette and type. Say so in that project's `CLAUDE.md`.
+
+### The product site (`phera`)
+
+The tokens in `@theme` are the Phera palette. `/design` shows them.
+
+- **Colour.** Cream paper, plum ink, a sindoor rose `brand` with white text, and the festival tones. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so white reaches 3:1.
+- **Shadow.** The puff: hard, straight down, in soft plum. The primary button sits on a darker rose puff.
+- **Type.** Huninn for every heading and line of text. `font-script` is the display face here; only the invite theme gives it a real script.
+- **Logo.** `BrandMark`: the "Saath" mark. Two paisleys with fingerprint ridges meet as one heart, in sindoor rose and jamun violet. Its colours are fixed and do not follow the theme. The rules and the master files are in [`docs/brand.md`](../../docs/brand.md).
+- **Share image.** `public/og-image.png` (`SHARE_IMAGE` in `lib/seo.ts`) shows the logo when someone shares a product page. A page that sets its own `openGraph` lists `SHARE_IMAGE` again. A couple's invite makes its own image in `app/api/og/`.
+- **Home page.** A grid of equal tiles of what guests see (`GuestPreview`) with a "Watch a demo" dialog (`DemoVideo`, source in `lib/demo-video.ts`), a feature list, a paper-or-digital table, and two `Marquee` carousels of reviews and chat screenshots. Each tile, feature and table row shows a feature that is built. A review slot stays empty until a real couple sends words. See `lib/testimonials.ts`.
+- **Help.** `WhatsAppButton` floats in the bottom-right corner of every page of the product site.
+
+### The invite theme
+
+In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not Phera. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `phera`.
+
+- **Colour.** Ivory paper, deep maroon ink, a maroon `brand`, antique gold `butter`, marigold `brand-soft` and `peach`, and a leaf-green `soda` for the garland. Gold borders replace the ink outline. The hard shadow stays, in deep maroon.
+- **Type.** `font-display` is Cormorant Garamond (500 and 600). `font-script` is Great Vibes, for the couple's names and the guest's greeting only. Both are self-hosted under `public/fonts` (OFL) and load only where the theme applies.
+- **Cute budget.** None. No faces, no stickers, no mascot. Ornament is a marigold toran across the top (`Toran`), falling petals (`FallingPetals`, CSS only) and marigold dots.
+- **Layout.** The page follows the couple's first site: greeting, names, day and place, countdown, venue map, WhatsApp RSVP, phone, closing line. A detail the couple has not added yet says "shared soon". On a phone, the RSVP button stays in reach while the guest scrolls.
+- **No deity motif by default.** The theme is religion-neutral, as the PRD asks.
+- **The unpaid preview is watermarked.** `PreviewGuard` lays a tiled `<domain> · preview only` watermark over the invite card. It also blocks the right-click menu, selection, the iOS long-press save, Ctrl/Cmd+S, P and U, and printing. The card blanks while the window is in the background. It cannot stop a phone screenshot, so the watermark is the real control. The published invite has no watermark.
+- **The link preview image** cannot read CSS tokens. `lib/invite-palette.ts` repeats the values. Change both together.
 
 Budget limits per viewport, all themes:
 
 - One `peek` card.
 - One `Speech` bubble.
 - Two `Sticker`s (zero in `calm` and `night`).
-- One `shadow-mochi-lg` element.
+- One `shadow-hard-lg` element.
 
 ---
 
 ## Signature patterns
 
-These make Mochi recognisable. Use them; do not invent new decorative devices.
+These make the design language recognisable. Use them; do not invent new decorative devices.
 
 **The face.** `<Face mood="happy" />`. Two dot eyes, a small mouth, blush. Moods: `happy`, `wow`, `wink`, `sleepy`, `sad`. Pick the mood from the situation: `wow` for a win, `sad` for an error, `sleepy` for an empty or idle state.
 
@@ -247,24 +283,24 @@ One breakpoint changes the posture: `md`, 768px.
 
 ### The two postures side by side
 
-|                          | Phone: an app                                         | Desktop: a website                                                    |
-| ------------------------ | ----------------------------------------------------- | --------------------------------------------------------------------- |
-| Navigation               | `TabBar`, at the bottom, in thumb reach               | `SiteHeader`, sticky at the top, with the logo and the same links     |
-| A screen below a tab     | `AppBar`: sticky, with a back arrow and the title     | The same `AppBar` scrolls with the page as its heading                |
-| Page width               | The full screen, with a `px-5` gutter                 | The frame, `max-w-5xl`. The header, the page and the footer share it. |
-| Composition              | One column, top to bottom                             | Columns from `lg`: the words beside the product                       |
-| The primary action       | At the end of the form, full width (`block`)          | Natural width, next to the thing it acts on                           |
-| A focused task (sign-in) | The full screen. The `TabBar` hides.                  | One narrow column (`max-w-md`) on the frame. The header stays.        |
-| A decision (`Dialog`)    | A bottom sheet                                        | A centred modal                                                       |
-| Hover                    | None. Touch has no hover.                             | An extra cue only. Never the only way to see or do a thing.           |
-| Footer                   | The end of the scroll, above the `TabBar`             | The end of the page. On a short page, the bottom of the screen.       |
-| Install                  | "Add to Home Screen" opens it full screen, no browser | A normal browser tab                                                  |
+|                          | Phone: an app                                          | Desktop: a website                                                    |
+| ------------------------ | ------------------------------------------------------ | --------------------------------------------------------------------- |
+| Navigation               | `SiteHeader`, with a hamburger menu (`MobileMenu`)     | `SiteHeader`, sticky at the top, with the logo and the same links     |
+| A screen below a tab     | `AppBar`: a back arrow and the title, below the header | The same `AppBar` scrolls with the page as its heading                |
+| Page width               | The full screen, with a `px-5` gutter                  | The frame, `max-w-5xl`. The header, the page and the footer share it. |
+| Composition              | One column, top to bottom                              | Columns from `lg`: the words beside the product                       |
+| The primary action       | At the end of the form, full width (`block`)           | Natural width, next to the thing it acts on                           |
+| A focused task (sign-in) | The full screen, below the header.                     | One narrow column (`max-w-md`) on the frame. The header stays.        |
+| A decision (`Dialog`)    | A bottom sheet                                         | A centred modal                                                       |
+| Hover                    | None. Touch has no hover.                              | An extra cue only. Never the only way to see or do a thing.           |
+| Footer                   | The end of the scroll                                  | The end of the page. On a short page, the bottom of the screen.       |
+| Install                  | "Add to Home Screen" opens it full screen, no browser  | A normal browser tab                                                  |
 
-`APP_TABS` in `lib/navigation.ts` feeds both `TabBar` and `SiteHeader`. Add a destination there, never in only one of them.
+`APP_TABS` in `lib/navigation.ts` feeds `SiteHeader`: the inline links and the hamburger menu. Add a destination there.
 
 ### Build every screen in this order
 
-1. **Draw the phone first, at 390px.** One column. The one primary action is in thumb reach. The `TabBar` or an `AppBar` gives the way around.
+1. **Draw the phone first, at 390px.** One column. The one primary action is in thumb reach. The header's menu or an `AppBar` gives the way around.
 2. **Then draw 1440px.** Ask what goes beside what. The 1024px frame holds two or three columns.
 3. **Recompose with a grid at `lg`.** Keep the markup and its order. Change only the grid.
 4. **Keep the reading width.** Text stays `max-w-prose`. A form stays `max-w-md` to `max-w-xl`, also in a wide column. A 1000px-wide text field does not "use the width".
@@ -294,15 +330,15 @@ The source order is the phone order. Screen readers and the keyboard follow it a
 ### Phone patterns: an installable app
 
 - **Never depend on the browser.** An installed app has no back button and no address bar. Every screen below a tab has an `AppBar` with a back arrow.
-- **Thumb reach.** Navigation is at the bottom. The primary action is at the end of the form, at full width.
-- **Safe areas.** The page draws under the notch (`viewportFit: 'cover'`). Fixed chrome pads itself with `env(safe-area-inset-*)`, as `TabBar` does.
+- **Thumb reach.** The primary action is at the end of the form, at full width.
+- **Safe areas.** The page draws under the notch (`viewportFit: 'cover'`). Fixed chrome pads itself with `env(safe-area-inset-*)`, as `WhatsAppButton` does.
 - **Press feedback, not a tap flash.** The base styles remove the grey tap highlight. `squish` and `press` answer the tap.
-- **Installable.** `app/manifest.ts` sets `display: 'standalone'`. The icons are in `public/icons/` (192px, 512px and a maskable 512px) and `app/apple-icon.png`. `THEME_COLOR` in `lib/pwa.ts` matches `--color-paper`. When you change the mark, export `app/icon.svg` again at each size.
+- **Installable.** `app/manifest.ts` sets `display: 'standalone'`. The icons are in `public/icons/` (192px, 512px and a maskable 512px) and `app/apple-icon.png`. `THEME_COLOR` in `lib/pwa.ts` matches `--color-paper`. When you change the mark, export these icons again from the brand kit. See [`docs/brand.md`](../../docs/brand.md).
 - **No service worker.** The template has none, on purpose. A browser cache keeps the old build after a deploy: the same failure as trap 26 in a CDN. Add one only with a versioned cache and an update prompt. Record that decision in an ADR.
 
 ### Never
 
-- Show the `TabBar` on a desktop.
+- Add a bottom tab bar. The product site uses the header's hamburger menu on a phone.
 - Show a "Menu" button on a desktop.
 - Frame a page with a phone-width `<main>`. The frame is `max-w-5xl`. Make the content narrow inside it.
 - Put a thing only behind hover.
@@ -395,7 +431,7 @@ This is the minimum, not a goal.
 │ └──────────────────────────┘ │
 │ Hosting? Create a room       │  Button quiet
 │                              │
-│ ( Home )  Games   Profile    │  TabBar, in thumb reach
+│                              │
 └──────────────────────────────┘
 ```
 
@@ -415,7 +451,7 @@ This is the minimum, not a goal.
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Below the fold: a live, playable mini board. Then the list of games as distinct cards, each with its own candy tone.
+Below the fold: a live, playable mini board. Then the list of games as distinct cards, each with its own festival tone.
 
 **Empty state:** a `Face mood="sleepy"` at 72px, one line of interface voice saying what goes here, one button that fills it. "No rounds yet. Start round".
 
@@ -433,14 +469,14 @@ The **Check** column says what stops a regression. "Test" is `tests/site-checkli
 
 ### Layout and mobile
 
-| Item                           | The rule                                                                                                                           | Check      |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| No horizontal scroll           | Nothing is wider than the screen at 320px. Use `w-full`, `max-w-*`, `min-w-0` and `break-words`. Never a fixed `w-[…]`.            | Look, lint |
-| No mobile overflow             | Long words, URLs and ids wrap (`break-all`, `truncate`). Tables and code blocks scroll inside their own box.                       | Look       |
-| Every page is mobile optimized | Unprefixed classes are the phone layout. `sm:`/`md:`/`lg:` only add to it. Tap targets are 44px or more.                           | Look       |
-| A mobile menu                  | On a phone, the `TabBar` is the menu. A website with no tab bar uses `Header`, which folds its links into `MobileMenu` below `md`. | Test       |
-| A desktop that is a website    | From `md` up, `SiteHeader` replaces `TabBar`. Every `<main>` uses the `max-w-5xl` frame, and content goes into columns at `lg`.    | Test, look |
-| Installable on a phone         | `app/manifest.ts` is `standalone`, with 192px, 512px and maskable icons, and `app/apple-icon.png`.                                 | Test       |
+| Item                           | The rule                                                                                                                             | Check      |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ---------- |
+| No horizontal scroll           | Nothing is wider than the screen at 320px. Use `w-full`, `max-w-*`, `min-w-0` and `break-words`. Never a fixed `w-[…]`.              | Look, lint |
+| No mobile overflow             | Long words, URLs and ids wrap (`break-all`, `truncate`). Tables and code blocks scroll inside their own box.                         | Look       |
+| Every page is mobile optimized | Unprefixed classes are the phone layout. `sm:`/`md:`/`lg:` only add to it. Tap targets are 44px or more.                             | Look       |
+| A mobile menu                  | `Header` folds its links into the hamburger `MobileMenu` below `md`.                                                                 | Test       |
+| A desktop that is a website    | From `md` up, `SiteHeader` shows its links inline. Every `<main>` uses the `max-w-5xl` frame, and content goes into columns at `lg`. | Test, look |
+| Installable on a phone         | `app/manifest.ts` is `standalone`, with 192px, 512px and maskable icons, and `app/apple-icon.png`.                                   | Test       |
 
 `body` has `overflow-x: clip` in `styles/globals.css`. That is a safety net, not the fix. It hides the scroll bar, but the clipped content is still lost. Find the element that overflows and fix it.
 
@@ -460,12 +496,12 @@ Write an external link as a full URL. `Footer` renders it as a plain `<a>`, and 
 
 ### Page metadata
 
-| Item               | The rule                                                                                                                    | Check |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----- |
-| Page titles        | Every `page.tsx` exports `metadata` with a `title`. The layout adds `\| <app name>`. The home page may use the default.     | Test  |
-| Meta descriptions  | Every `page.tsx` exports a `description` of one sentence, under 160 characters, that says what the page is for.             | Test  |
-| A favicon          | `app/icon.svg` is the mascot face. Next.js serves it and links it on every page. Replace it with the product's own mark.    | Test  |
-| The copyright year | Never type a year. `Footer owner="…"` builds `© <year> <owner>` from the clock. A static page fixes the year at build time. | Test  |
+| Item               | The rule                                                                                                                     | Check |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- | ----- |
+| Page titles        | Every `page.tsx` exports `metadata` with a `title`. The layout adds `\| <app name>`. The home page may use the default.      | Test  |
+| Meta descriptions  | Every `page.tsx` exports a `description` of one sentence, under 160 characters, that says what the page is for.              | Test  |
+| A favicon          | `app/icon.svg` is the small cut of the brand mark. Next.js serves it and links it on every page. Keep it the product's mark. | Test  |
+| The copyright year | Never type a year. `Footer owner="…"` builds `© <year> <owner>` from the clock. A static page fixes the year at build time.  | Test  |
 
 A statically rendered page keeps the year of its build. Every deploy rebuilds it. Deploy at least once a year, or make the page dynamic.
 
