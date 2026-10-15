@@ -24,8 +24,15 @@ describe('leadRequestSchema', () => {
       weddingDate: null,
       phoneE164: '+919876543210',
       slug: null,
+      songSlot: null,
       isBot: false,
     });
+  });
+
+  it('keeps a chosen song slot, and refuses one that does not exist', () => {
+    expect(leadRequestSchema.parse({ ...VALID, songSlot: 2 }).songSlot).toBe(2);
+    expect(leadRequestSchema.safeParse({ ...VALID, songSlot: 5 }).success).toBe(false);
+    expect(leadRequestSchema.safeParse({ ...VALID, songSlot: '2' }).success).toBe(false);
   });
 
   it('keeps a chosen address, and refuses one that cannot be an address', () => {

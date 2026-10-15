@@ -128,6 +128,28 @@ export function AddressArt({ className }: ArtProps) {
   );
 }
 
+/** Step 4: two music notes with a small heart, for the couple's song. */
+export function SongArt({ className }: ArtProps) {
+  return (
+    <svg viewBox="0 0 64 56" aria-hidden="true" className={cn('h-14 w-16', className)}>
+      <path
+        d="M22 40V12l28-6v28"
+        className="stroke-ink"
+        fill="none"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M22 20l28-6" className="stroke-ink" strokeWidth="3" strokeLinecap="round" />
+      <ellipse cx="16" cy="41" rx="7" ry="5.5" className="fill-brand stroke-ink" strokeWidth="3" />
+      <ellipse cx="44" cy="35" rx="7" ry="5.5" className="fill-peach stroke-ink" strokeWidth="3" />
+      <g transform="translate(46 40) scale(0.55)" className="fill-brand">
+        <path d={HEART_PATH} />
+      </g>
+    </svg>
+  );
+}
+
 /** The envelope that zooms off once the website is made. */
 export function EnvelopeArt({ className }: ArtProps) {
   return (

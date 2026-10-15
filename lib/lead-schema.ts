@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { slugProblem } from '@/lib/couple-slug';
 import { toE164 } from '@/lib/phone';
 import { todayInIndia } from '@/lib/wedding-date';
+import { parseSongSlot } from '@/lib/wedding-songs';
 
 /**
  * The body of `POST /api/leads`: what a couple types on the home page.
@@ -67,6 +68,16 @@ export const leadRequestSchema = z
       })
       .optional(),
     /**
+     * The song the couple chose on step 4, by slot. Optional: the step shows
+     * only when an admin has added songs. The server copies the song itself
+     * onto the lead, so the body never names a file.
+     */
+    songSlot: z
+      .number()
+      .int()
+      .refine((value) => parseSongSlot(value) !== null, 'Choose one of the songs.')
+      .optional(),
+    /**
      * A honeypot. The field is hidden from people, so only a bot fills it.
      * The route accepts the request and stores nothing, so the bot learns
      * nothing from the answer.
@@ -86,6 +97,7 @@ export const leadRequestSchema = z
       weddingDate: body.weddingDate,
       phoneE164: phone.e164,
       slug: body.slug ?? null,
+      songSlot: body.songSlot === undefined ? null : parseSongSlot(body.songSlot),
       isBot: body.website !== undefined && body.website.trim() !== '',
     };
   });

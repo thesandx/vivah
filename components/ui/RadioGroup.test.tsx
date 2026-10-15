@@ -16,6 +16,21 @@ describe('RadioGroup', () => {
     expect(screen.getAllByRole('radio')).toHaveLength(3);
   });
 
+  it('puts an action at the end of a row without choosing it', () => {
+    const onChange = vi.fn();
+    render(
+      <RadioGroup
+        label="Song"
+        name="song"
+        onChange={onChange}
+        options={[{ value: '1', label: 'Kesariya', action: <button type="button">Play</button> }]}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('radio', { name: 'Kesariya' })).not.toBeChecked();
+  });
+
   it('starts on the default value', () => {
     render(
       <RadioGroup label="Round length" name="length" options={LENGTHS} defaultValue="standard" />,

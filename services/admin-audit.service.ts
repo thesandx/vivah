@@ -38,6 +38,8 @@ export const ADMIN_ACTIONS = [
   'testimonial-removed',
   'testimonial-moved',
   'banner-changed',
+  'song-changed',
+  'song-removed',
 ] as const;
 
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];

@@ -10,6 +10,7 @@ import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
 import { parseKind } from '@/lib/testimonials';
+import { parseSongSlot } from '@/lib/wedding-songs';
 import {
   type AdminResult,
   changeWeddingAddress,
@@ -30,6 +31,7 @@ import {
   saveStepImage,
 } from '@/services/site-content.service';
 import { createTestimonialUpload, saveBanner, storeFor } from '@/services/testimonials.service';
+import { createSongUpload, removeSong, saveSong } from '@/services/wedding-songs.service';
 
 /**
  * The admin dashboard's Server Actions. Each is a public endpoint, whatever
@@ -276,4 +278,45 @@ export async function saveBannerAction(_state: ActionState, form: FormData): Pro
 
 export async function hideBannerAction(): Promise<ActionState> {
   return run('banner-hide', 'home-banner', (uid) => saveBanner({ headline: '' }, uid));
+}
+
+/**
+ * Step 1 of a wedding song upload: a signed URL the browser sends the audio
+ * file to. Admin only, like the images.
+ */
+export async function startSongUploadAction(
+  rawSlot: number,
+  contentType: string,
+): Promise<UploadStart> {
+  let adminUid: string;
+  try {
+    adminUid = (await requireAdmin()).uid;
+  } catch {
+    return { status: 'error', message: SIGN_IN_AGAIN_MESSAGE };
+  }
+  const slot = parseSongSlot(rawSlot);
+  if (slot === null) return { status: 'error', message: 'That song does not exist.' };
+  try {
+    return { status: 'ok', upload: await createSongUpload(slot, contentType) };
+  } catch (error) {
+    logger.error('Signing a song upload failed', error, { slot, uid: adminUid });
+    return { status: 'error', message: 'Use an MP3, M4A, AAC or Ogg file, then try again.' };
+  }
+}
+
+/** Step 2: saves the name, and the uploaded file when there is one. */
+export async function saveSongAction(
+  rawSlot: number,
+  name: string,
+  tmpPath: string | null,
+): Promise<ActionState> {
+  const slot = parseSongSlot(rawSlot);
+  if (slot === null) return { status: 'error', message: 'That song does not exist.' };
+  return run('song', String(slot), (uid) => saveSong(slot, name, tmpPath, uid));
+}
+
+export async function removeSongAction(rawSlot: number): Promise<ActionState> {
+  const slot = parseSongSlot(rawSlot);
+  if (slot === null) return { status: 'error', message: 'That song does not exist.' };
+  return run('song-remove', String(slot), (uid) => removeSong(slot, uid));
 }

@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
+import { chosenSongSchema } from '@/lib/wedding-songs';
 import { leads, tokenMatches } from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
 
@@ -63,6 +64,11 @@ export const weddingSchema = z.object({
     .refine(isGoogleMapsUrl, 'Not a Google Maps link.')
     .nullable()
     .optional(),
+  /**
+   * The song guests can play on the invite, chosen on the sign-up card.
+   * Never autoplays. Optional: absent means no music.
+   */
+  song: chosenSongSchema.optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;
@@ -260,6 +266,7 @@ export async function publishWedding(
       weddingDate: lead.weddingDate,
       ownerPhoneE164: lead.phoneE164,
       leadId,
+      ...(lead.song !== undefined && { song: lead.song }),
     });
     // `tx.create` under the hood: if another request claimed the slug after
     // the read above, the whole transaction fails and retries, then sees it.

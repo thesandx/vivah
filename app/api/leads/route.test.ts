@@ -9,6 +9,10 @@ const checkSlug = vi.fn<(slug: string) => Promise<{ available: boolean }>>();
 vi.mock('@/services/lead.service', () => ({
   createLead: (input: unknown) => createLead(input),
 }));
+const songInSlot = vi.fn<(slot: number) => Promise<unknown>>();
+vi.mock('@/services/wedding-songs.service', () => ({
+  songInSlot: (slot: number) => songInSlot(slot),
+}));
 vi.mock('@/services/wedding.service', () => ({
   checkSlug: (slug: string) => checkSlug(slug),
 }));
@@ -52,9 +56,23 @@ describe('POST /api/leads', () => {
       weddingDate: null,
       phoneE164: '+919876543210',
       slug: null,
+      songSlot: null,
+      song: null,
       isBot: false,
     });
     expect(checkSlug).not.toHaveBeenCalled();
+    expect(songInSlot).not.toHaveBeenCalled();
+  });
+
+  it('copies the chosen song from its slot, never from the body', async () => {
+    songInSlot.mockResolvedValue({ name: 'Kesariya', file: 'song-2-abc.mp3' });
+    const response = await POST(post({ ...VALID, songSlot: 2 }));
+    expect(response.status).toBe(201);
+    expect(songInSlot).toHaveBeenCalledWith(2);
+    expect(createLead).toHaveBeenCalledWith(
+      expect.objectContaining({ song: { name: 'Kesariya', file: 'song-2-abc.mp3' } }),
+    );
+    expect((await POST(post({ ...VALID, song: { name: 'x', file: 'y' } }))).status).toBe(400);
   });
 
   it('stores the chosen address after checking it is still free', async () => {

@@ -26,9 +26,14 @@ function json(body: unknown, status = 200): Response {
  * Answers the address calls; `lead` answers `POST /api/leads`. Two free
  * addresses are offered, and a typed one is free.
  */
-function serve(lead: () => Response, suggestions = ['raadha-shyam', 'shyam-raadha']): void {
+function serve(
+  lead: () => Response,
+  suggestions = ['raadha-shyam', 'shyam-raadha'],
+  songs: unknown[] = [],
+): void {
   fetchMock.mockImplementation((input) => {
     const url = String(input);
+    if (url === '/api/songs') return Promise.resolve(json({ songs }));
     if (url.startsWith('/api/addresses?slug=')) return Promise.resolve(json({ available: true }));
     if (url.startsWith('/api/addresses')) {
       return Promise.resolve(json({ suggestions, domainLabel: 'vivah.online' }));
@@ -150,7 +155,7 @@ describe('LeadForm', () => {
     expect(
       screen.getByText('Tick the box so we can send your preview on WhatsApp.'),
     ).toBeInTheDocument();
-    expect(fetchMock).not.toHaveBeenCalled();
+    expect(leadCalls()).toHaveLength(0);
   });
 
   it('offers free addresses on the third step, and checks a typed one', async () => {
@@ -260,5 +265,44 @@ describe('LeadForm', () => {
     answer = json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201);
     expect(await screen.findByLabelText('shyam-raadha.vivah.online')).toBeChecked();
     expect(screen.queryByLabelText('raadha-shyam.vivah.online')).not.toBeInTheDocument();
+  });
+
+  it('adds a fourth step to choose a song when there are songs, and sends its slot', async () => {
+    serve(
+      () => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201),
+      ['raadha-shyam'],
+      [
+        { slot: 1, name: 'Kesariya', src: '/api/songs/song-1-abc.mp3' },
+        { slot: 3, name: 'Tum Hi Ho', src: '/api/songs/song-3-def.mp3' },
+      ],
+    );
+    render(<LeadForm />);
+    fillNames();
+    expect(await screen.findByText('Step 2 of 4')).toBeInTheDocument();
+    fillDetails();
+    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+    await screen.findByLabelText('raadha-shyam.vivah.online');
+    fireEvent.click(screen.getByRole('button', { name: 'Choose our song' }));
+
+    expect(screen.getByRole('heading', { name: 'Your song' })).toBeInTheDocument();
+    expect(screen.getByText('Step 4 of 4')).toBeInTheDocument();
+    expect(screen.getByLabelText('Kesariya')).toBeChecked();
+    expect(screen.getByRole('button', { name: 'Play Tum Hi Ho' })).toBeInTheDocument();
+    fireEvent.click(screen.getByLabelText('Tum Hi Ho'));
+    fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
+
+    const body = JSON.parse(String(leadCalls()[0]?.[1]?.body)) as Record<string, unknown>;
+    expect(body).toMatchObject({ slug: 'raadha-shyam', songSlot: 3 });
+    expect(screen.getByText('Cueing up Tum Hi Ho')).toBeInTheDocument();
+  });
+
+  it('keeps three steps when no songs are set', async () => {
+    serve(() => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201));
+    render(<LeadForm />);
+    fillNames();
+    expect(await screen.findByText('Step 2 of 3')).toBeInTheDocument();
+    fillDetails();
+    await toAddress();
+    expect(screen.getByRole('button', { name: 'Make my website' })).toBeEnabled();
   });
 });
