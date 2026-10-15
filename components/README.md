@@ -6,11 +6,11 @@ The visual rules are in [`.github/instructions/design-language.md`](../.github/i
 
 ## Layout
 
-| Folder                  | Contents                                                                                  |
-| ----------------------- | ----------------------------------------------------------------------------------------- |
-| `components/ui/`        | Design-language primitives. The list and when to use each one is in `design-language.md`. |
-| `components/layout/`    | Page chrome: `PageShell`, `AppBar`, `SiteHeader`, `MobileMenu`, `Header`, `Footer`.       |
-| `components/<feature>/` | Components belonging to one feature. Create the folder when the feature exists.           |
+| Folder                  | Contents                                                                                           |
+| ----------------------- | -------------------------------------------------------------------------------------------------- |
+| `components/ui/`        | Design-language primitives. The list and when to use each one is in `design-language.md`.          |
+| `components/layout/`    | Page chrome: `PageShell`, `AppBar`, `SiteHeader`, `MobileMenu`, `Header`, `Footer`, `SocialLinks`. |
+| `components/<feature>/` | Components belonging to one feature. Create the folder when the feature exists.                    |
 
 ## Rules
 

@@ -143,15 +143,15 @@ Each primitive lives in `components/ui/`, has a colocated test, and renders on `
 
 `components/layout/` holds the page chrome:
 
-| Component    | Use it for                                                                           |
-| ------------ | ------------------------------------------------------------------------------------ |
-| `PageShell`  | The page's `<main>`: the frame (`max-w-5xl`), the gutter and the rhythm.             |
-| `AppBar`     | Back arrow, title (`h1`), one action. Sticky on a phone. The page heading from `md`. |
-| `BackButton` | The back arrow alone. It returns inside the app, or goes to a fallback page.         |
-| `SiteHeader` | The top-level destinations in a sticky header on every screen. In the layout.        |
-| `Header`     | A website header. The logo links home. The links fold into `MobileMenu` below `md`.  |
-| `MobileMenu` | The header's hamburger "Menu" button and panel below `md`.                           |
-| `Footer`     | The site footer: one line, the copyright from the clock, contact links, links.       |
+| Component    | Use it for                                                                              |
+| ------------ | --------------------------------------------------------------------------------------- |
+| `PageShell`  | The page's `<main>`: the frame (`max-w-5xl`), the gutter and the rhythm.                |
+| `AppBar`     | Back arrow, title (`h1`), one action. Sticky on a phone. The page heading from `md`.    |
+| `BackButton` | The back arrow alone. It returns inside the app, or goes to a fallback page.            |
+| `SiteHeader` | The top-level destinations in a sticky header on every screen. In the layout.           |
+| `Header`     | A website header. The logo links home. The links fold into `MobileMenu` below `md`.     |
+| `MobileMenu` | The header's hamburger "Menu" button and panel below `md`.                              |
+| `Footer`     | The site footer, centred: the brand, links, social icons, the copyright from the clock. |
 
 **On a phone, behave like an app.** A user must never need the browser's back button. A screen below a tab has an `AppBar` with a back arrow. A step inside one screen, such as the OTP step, uses the back arrow to return to the step before it.
 
