@@ -2,10 +2,17 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+import {
+  resetStepImageAction,
+  saveStepImageAction,
+  startStepImageUploadAction,
+} from '@/app/(admin)/admin/actions';
+import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminFilters } from '@/components/admin/AdminFilters';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
 import { StateBadge } from '@/components/admin/StateBadge';
+import { StepImageUpload } from '@/components/admin/StepImageUpload';
 import { AppBar } from '@/components/layout/AppBar';
 import { Alert } from '@/components/ui/Alert';
 import { buttonStyles } from '@/components/ui/Button';
@@ -27,6 +34,8 @@ import {
   weddingState,
 } from '@/lib/admin-list';
 import { env } from '@/lib/env';
+import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
+import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
@@ -34,6 +43,8 @@ import { formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
 import { listAllLeads, listAllWeddings } from '@/services/admin.service';
 import { recentAdminActions } from '@/services/admin-audit.service';
 import { getAdminSession } from '@/services/admin-session.service';
+import { getStepImages } from '@/services/site-content.service';
+import { createSignedReadUrl } from '@/services/storage.service';
 
 /**
  * `GET /admin` — the admin dashboard: every invite, every preview, and the
@@ -58,6 +69,7 @@ const VIEWS = [
   { value: 'invites', label: 'Invites' },
   { value: 'previews', label: 'Previews' },
   { value: 'activity', label: 'Activity' },
+  { value: 'home', label: 'Home page' },
 ] as const;
 
 type View = (typeof VIEWS)[number]['value'];
@@ -101,6 +113,7 @@ export default async function AdminPage({
         {view === 'invites' && <InvitesView params={params} />}
         {view === 'previews' && <PreviewsView params={params} />}
         {view === 'activity' && <ActivityView />}
+        {view === 'home' && <HomePageView />}
       </main>
     </>
   );
@@ -286,6 +299,17 @@ async function ActivityView() {
                     </Link>
                   </>
                 )}
+                {entry.targetType === 'site' && (
+                  <>
+                    {' · '}
+                    <Link
+                      href="/admin?view=home"
+                      className="text-brand font-semibold underline underline-offset-4"
+                    >
+                      Open home page images
+                    </Link>
+                  </>
+                )}
                 {entry.targetType === 'lead' && (
                   <>
                     {' · '}
@@ -298,6 +322,82 @@ async function ActivityView() {
                   </>
                 )}
               </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </>
+  );
+}
+
+/** The image each step shows now: a short-lived link to the upload, or the placeholder. */
+async function currentStepImages(): Promise<{ urls: string[]; custom: boolean[] } | null> {
+  try {
+    const images = await getStepImages({ fresh: true });
+    const paths = HOW_IT_WORKS_STEPS.map((step) => images[`step${step.step}`]);
+    const urls = await Promise.all(
+      paths.map((path, index) =>
+        path === null
+          ? placeholderImageUrl(HOW_IT_WORKS_STEPS[index]?.step ?? 1)
+          : createSignedReadUrl(path),
+      ),
+    );
+    return { urls, custom: paths.map((path) => path !== null) };
+  } catch (error) {
+    logger.error('Reading the How it works images failed', error);
+    return null;
+  }
+}
+
+async function HomePageView() {
+  const current = await currentStepImages();
+  return (
+    <>
+      <header className="flex flex-col gap-1">
+        <h2 className="text-title">Home page</h2>
+        <p className="text-ink-soft">
+          The phone screens in the How it works section. Use a phone screenshot, tall and narrow.
+          The home page shows a new image within five minutes.
+        </p>
+      </header>
+      {current === null ? (
+        <Alert tone="danger" title="The images could not be read.">
+          Reload the page to try again.
+        </Alert>
+      ) : (
+        <ol className="grid gap-6 md:grid-cols-3">
+          {HOW_IT_WORKS_STEPS.map((step, index) => (
+            <li
+              key={step.step}
+              className="border-line rounded-card bg-surface flex flex-col gap-4 border-2 p-4"
+            >
+              <h3 className="text-heading">
+                Step {step.step}: {step.title}
+              </h3>
+              {/* eslint-disable-next-line @next/next/no-img-element -- a signed URL that expires; next/image would cache it */}
+              <img
+                src={current.urls[index]}
+                alt={step.alt}
+                className="rounded-card bg-sunken aspect-6/13 w-40 self-center object-cover object-top"
+              />
+              <p className="text-small text-ink-soft">
+                {current.custom[index] === true ? 'Your upload.' : 'The placeholder.'}
+              </p>
+              <StepImageUpload
+                startUpload={startStepImageUploadAction.bind(null, step.step)}
+                saveUpload={saveStepImageAction.bind(null, step.step)}
+              />
+              {current.custom[index] === true && (
+                <AdminActionForm
+                  action={resetStepImageAction.bind(null, step.step)}
+                  label="Use the placeholder"
+                  confirm={{
+                    title: `Remove the image for step ${step.step}?`,
+                    body: 'The home page shows the placeholder again. Your upload is deleted.',
+                    confirmLabel: 'Remove it',
+                  }}
+                />
+              )}
             </li>
           ))}
         </ol>

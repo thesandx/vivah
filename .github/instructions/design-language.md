@@ -189,8 +189,11 @@ Motion makes the app feel physical: a screen settles into place, a selection sli
 | `animate-pop`                                     | A win, a new player joining.                                         |
 | `animate-breathe`                                 | A `Skeleton` while content loads.                                    |
 | `sheet-motion`                                    | `Dialog`: rises in, sinks out, and the backdrop fades.               |
+| `animate-step-progress`                           | The home page's "How it works": a bar fills under the lit step.      |
 | `press`                                           | A pressable thing with no base: a tab. Never together with `squish`. |
 | A sliding pill                                    | The selection in `Tabs`. `transform` with `ease-spring`.             |
+
+The "How it works" steps on the home page are the one loop that runs without a tap. The product owner asked for it, so a visitor sees that there are three steps. It stops on hover, on focus and off screen. A tap on a step ends it, and reduced motion turns it off.
 
 ### Loading
 

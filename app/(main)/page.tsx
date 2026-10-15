@@ -5,6 +5,7 @@ import { ChatShotCard } from '@/components/home/ChatShotCard';
 import { DemoVideo } from '@/components/home/DemoVideo';
 import { FeatureList } from '@/components/home/FeatureList';
 import { GuestPreview } from '@/components/home/GuestPreview';
+import { HowItWorks } from '@/components/home/HowItWorks';
 import { PaperVsDigital } from '@/components/home/PaperVsDigital';
 import { ReviewCard } from '@/components/home/ReviewCard';
 import { PageShell } from '@/components/layout/PageShell';
@@ -52,15 +53,6 @@ const PROMISES = [
   'Each guest sees their own name',
   'Opens from WhatsApp, with no app to install',
   'See it free before you pay',
-];
-
-const STEPS = [
-  { title: 'Type your names', body: 'Both names, the wedding date and your WhatsApp number.' },
-  { title: 'See your website', body: 'Your invite opens at once. Add the venue, time and map.' },
-  {
-    title: 'Send it to everyone',
-    body: 'Publish, then send each guest a link that greets them by name.',
-  },
 ];
 
 const GUIDES = [
@@ -166,20 +158,7 @@ export default function HomePage() {
           title="Three steps to your wedding website"
           intro="No designer, no app and no waiting. You do it from your phone."
         />
-        <ol className="grid gap-4 sm:grid-cols-3 sm:gap-5">
-          {STEPS.map((step, index) => (
-            <li
-              key={step.title}
-              className="bg-surface shadow-hard rounded-card flex flex-col gap-2 p-6"
-            >
-              <span aria-hidden="true" className="font-script text-hero text-ink-soft leading-none">
-                {index + 1}
-              </span>
-              <h3 className="text-heading">{step.title}</h3>
-              <p className="text-ink-soft">{step.body}</p>
-            </li>
-          ))}
-        </ol>
+        <HowItWorks />
       </section>
 
       <section aria-labelledby="features-heading" className="flex flex-col gap-8">
