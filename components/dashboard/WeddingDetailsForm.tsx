@@ -170,7 +170,7 @@ export function WeddingDetailsForm({
           name="venueName"
           defaultValue={initial.venueName}
           maxLength={80}
-          placeholder="Laxmisagar"
+          placeholder="The Grand Pavilion, Chhatarpur"
           {...error('venueName')}
         />
         <Input
@@ -178,7 +178,7 @@ export function WeddingDetailsForm({
           name="venueCity"
           defaultValue={initial.venueCity}
           maxLength={80}
-          placeholder="Darbhanga, Bihar"
+          placeholder="New Delhi, Delhi"
           {...error('venueCity')}
         />
       </div>
