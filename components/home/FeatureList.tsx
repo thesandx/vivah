@@ -21,6 +21,22 @@ const ICONS = {
   eye: 'M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
 } as const;
 
+/**
+ * The fill behind each icon. A spread of festival tones keeps the list lively;
+ * the icon stays in ink, which reads on every one of them.
+ */
+const TONES: Record<keyof typeof ICONS, string> = {
+  name: 'bg-brand-soft',
+  guests: 'bg-butter',
+  link: 'bg-soda',
+  edit: 'bg-grape',
+  timer: 'bg-peach',
+  map: 'bg-success-soft',
+  reply: 'bg-butter',
+  envelope: 'bg-brand-soft',
+  eye: 'bg-soda',
+};
+
 const FEATURES: readonly { icon: keyof typeof ICONS; title: string; body: string }[] = [
   {
     icon: 'name',
@@ -80,7 +96,12 @@ export function FeatureList({ className }: FeatureListProps) {
           key={feature.title}
           className="bg-surface shadow-hard rounded-card flex items-start gap-4 p-5"
         >
-          <span className="bg-brand-soft rounded-input grid size-12 shrink-0 place-items-center">
+          <span
+            className={cn(
+              'rounded-input grid size-12 shrink-0 place-items-center',
+              TONES[feature.icon],
+            )}
+          >
             <Icon path={ICONS[feature.icon]} />
           </span>
           <span className="flex flex-col gap-1">

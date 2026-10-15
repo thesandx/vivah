@@ -33,8 +33,8 @@ function Mark({ yes }: { yes: boolean }) {
         {yes ? (
           <path
             d="m4.5 10.5 3.5 3.5 7.5-8"
-            className="stroke-ink fill-none"
-            strokeWidth="2.2"
+            className="stroke-success fill-none"
+            strokeWidth="2.6"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
