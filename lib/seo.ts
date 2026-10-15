@@ -9,6 +9,7 @@
 
 import type { MetadataRoute } from 'next';
 
+import { SOCIAL } from '@/lib/business';
 import { normaliseHost, resolveSiteSurface } from '@/lib/site-host';
 
 /** The date the marketing copy last changed. Shown on the page and in `dateModified`. */
@@ -203,6 +204,7 @@ export function organizationSchema(origin: string, brand: string): Record<string
         logo: `${origin}/icons/icon-512.png`,
         description: BRAND_DESCRIPTION,
         areaServed: 'IN',
+        sameAs: [SOCIAL.instagram.url, SOCIAL.facebook.url],
       },
       {
         '@type': 'WebSite',

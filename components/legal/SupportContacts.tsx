@@ -1,9 +1,9 @@
 import { ContactLink } from '@/components/ui/ContactLink';
-import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
+import { BUSINESS, SOCIAL, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { displayPhone } from '@/lib/invite-contact';
 
 /**
- * Who answers, then how to reach us: WhatsApp, phone and email, as links a phone can tap. Used
+ * Who answers, then how to reach us: WhatsApp, phone, email, Instagram and Facebook, as links a phone can tap. Used
  * by the contact page and the end of each policy. A Server Component.
  */
 export function SupportContacts(): React.JSX.Element {
@@ -31,6 +31,28 @@ export function SupportContacts(): React.JSX.Element {
         </li>
         <li>
           Anything else: <ContactLink kind="email" value={BUSINESS.helloEmail} />
+        </li>
+        <li>
+          Instagram:{' '}
+          <a
+            href={SOCIAL.instagram.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-ink decoration-brand underline decoration-2 underline-offset-4"
+          >
+            {SOCIAL.instagram.handle}
+          </a>
+        </li>
+        <li>
+          Facebook:{' '}
+          <a
+            href={SOCIAL.facebook.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-ink decoration-brand underline decoration-2 underline-offset-4"
+          >
+            vivah.online
+          </a>
         </li>
         <li>Hours: {BUSINESS.hours}</li>
       </ul>
