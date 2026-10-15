@@ -12,6 +12,11 @@ export interface DialogProps {
   onClose: () => void;
   /** Names the dialog. A question or a result: "Leave this room?" */
   title: string;
+  /**
+   * Keeps the title for screen readers only, when the content brings its own
+   * heading, such as a form card. The close button stays. Default: `false`.
+   */
+  titleHidden?: boolean;
   children?: React.ReactNode;
   /** The actions, primary last: `<Button variant="secondary">Stay</Button><Button>Leave room</Button>`. */
   actions?: React.ReactNode;
@@ -25,7 +30,15 @@ export interface DialogProps {
  *
  * Use it for a decision that must interrupt. Everything else stays in the page.
  */
-export function Dialog({ open, onClose, title, children, actions, className }: DialogProps) {
+export function Dialog({
+  open,
+  onClose,
+  title,
+  titleHidden = false,
+  children,
+  actions,
+  className,
+}: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
 
@@ -58,8 +71,8 @@ export function Dialog({ open, onClose, title, children, actions, className }: D
       )}
     >
       <div className="flex flex-col gap-4 p-5 sm:p-6">
-        <div className="flex items-start justify-between gap-4">
-          <h2 id={titleId} className="text-heading pt-2">
+        <div className={cn('flex items-start justify-between gap-4', titleHidden && 'justify-end')}>
+          <h2 id={titleId} className={cn('text-heading pt-2', titleHidden && 'sr-only')}>
             {title}
           </h2>
           <Button variant="quiet" onClick={onClose} className="shrink-0">

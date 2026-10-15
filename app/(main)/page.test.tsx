@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import HomePage from '@/app/(main)/page';
@@ -31,9 +31,28 @@ describe('HomePage', () => {
 
   it('starts the funnel with the two names', () => {
     render(<HomePage />);
-    expect(screen.getByRole('heading', { name: 'The two of you' })).toHaveAttribute('id', 'start');
-    expect(screen.getByLabelText("Bride's name")).toBeInTheDocument();
-    expect(screen.getByLabelText("Groom's name")).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Begin our story' })).toBeDisabled();
+    const heading = screen.getByRole('heading', { name: 'The two of you' });
+    expect(heading).toHaveAttribute('id', 'start');
+    const card = within(heading.closest('form') as HTMLElement);
+    expect(card.getByLabelText("Bride's name")).toBeInTheDocument();
+    expect(card.getByLabelText("Groom's name")).toBeInTheDocument();
+    expect(card.getByRole('button', { name: 'Begin our story' })).toBeDisabled();
+  });
+
+  it('ends each section with its own call to action, each opening the sign-up dialog', () => {
+    render(<HomePage />);
+    const labels = [
+      'Write our love story',
+      'Begin our forever',
+      'Give our wedding a home',
+      'Make our invite timeless',
+      'Show us our wedding website',
+    ];
+    for (const label of labels) {
+      expect(screen.getByRole('button', { name: label })).toHaveAttribute(
+        'aria-haspopup',
+        'dialog',
+      );
+    }
   });
 });

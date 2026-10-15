@@ -59,4 +59,11 @@ describe('Dialog', () => {
     );
     expect(screen.getByRole('button', { name: 'Leave room' })).toBeInTheDocument();
   });
+
+  it('keeps a hidden title as the name, with the close button', () => {
+    render(<Dialog open onClose={() => {}} title="Make your wedding website" titleHidden />);
+    expect(screen.getByRole('dialog', { name: 'Make your wedding website' })).toBeInTheDocument();
+    expect(screen.getByText('Make your wedding website')).toHaveClass('sr-only');
+    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+  });
 });

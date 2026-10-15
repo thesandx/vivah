@@ -191,8 +191,11 @@ Motion makes the app feel physical: a screen settles into place, a selection sli
 | `animate-breathe`                                 | A `Skeleton` while content loads.                                    |
 | `sheet-motion`                                    | `Dialog`: rises in, sinks out, and the backdrop fades.               |
 | `animate-step-progress`                           | The home page's "How it works": a bar fills under the lit step.      |
+| `animate-thread-draw`                             | The home page's sign-up moment: a red thread ties a heart.           |
 | `press`                                           | A pressable thing with no base: a tab. Never together with `squish`. |
 | A sliding pill                                    | The selection in `Tabs`. `transform` with `ease-spring`.             |
+
+The heart thread is the one exception to rules 2 and 5. A line can only draw itself with `stroke-dashoffset`, and the moment takes 1.3s. The product owner asked for it. It plays only after a tap on a home page call to action, then the sign-up dialog opens. Reduced motion skips it and opens the dialog at once.
 
 Two things on the home page move without a tap, because the product owner asked for them:
 
@@ -399,7 +402,7 @@ If your output contains any of these, remove it before you report the task as do
 - Icons from a generic set placed in coloured circles above feature text.
 - A monospace face for small labels.
 - Section entrances that fade and slide up on scroll.
-- Repeating the primary CTA in every section. Once in the hero, once at the end, at most.
+- Repeating the primary CTA in every section. Once in the hero, once at the end, at most. The home page is the one exception: the product owner asked for a call to action after each section and a sticky sign-up bar. Each one has its own words.
 - A static "example" of the product where a live, interactive one is possible.
 - Placeholder text used as a label.
 

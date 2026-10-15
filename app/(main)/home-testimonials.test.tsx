@@ -7,6 +7,7 @@ vi.mock('@/services/testimonials.service', () => ({
 }));
 
 const { HomeTestimonials } = await import('@/app/(main)/home-testimonials');
+const { SignupDialogProvider } = await import('@/components/lead/SignupDialogProvider');
 
 const STORED = {
   createdAt: new Date(),
@@ -17,7 +18,8 @@ const STORED = {
 
 /** An async Server Component renders by awaiting it (docs/testing.md, trap 10). */
 async function renderIt() {
-  render(await HomeTestimonials());
+  // Each row's call to action opens the sign-up dialog, so it needs the provider.
+  render(<SignupDialogProvider>{await HomeTestimonials()}</SignupDialogProvider>);
 }
 
 describe('HomeTestimonials', () => {
@@ -71,5 +73,7 @@ describe('HomeTestimonials', () => {
       'src',
       '/api/testimonials/review/Review1234567890?v=abc',
     );
+    expect(screen.getByRole('button', { name: 'Write ours next' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make the family go aww' })).toBeInTheDocument();
   });
 });

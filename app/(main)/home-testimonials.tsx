@@ -2,6 +2,7 @@ import { ChatNoteCard } from '@/components/home/ChatNoteCard';
 import { CoupleReviewCard } from '@/components/home/CoupleReviewCard';
 import { LovedByBanner } from '@/components/home/LovedByBanner';
 import { SectionHeading } from '@/components/home/SectionHeading';
+import { SectionCta } from '@/components/lead/SectionCta';
 import { AutoScroller } from '@/components/ui/AutoScroller';
 import { logger } from '@/lib/logger';
 import { testimonialImageUrl } from '@/lib/testimonials';
@@ -19,6 +20,9 @@ import {
  * and neither does a banner with no line, so the page never claims a review
  * nobody wrote. A failed read leaves the whole part out; the page still
  * works. See `lib/testimonials.ts`.
+ *
+ * Each row ends with its own invitation to sign up, as every home page
+ * section does. The home page renders this inside `SignupDialogProvider`.
  */
 
 const NONE: Content = { chats: [], reviews: [], headline: '' };
@@ -65,6 +69,10 @@ export async function HomeTestimonials() {
               ),
             }))}
           />
+          <SectionCta
+            line="The next love note here could be about the two of you."
+            action="Write ours next"
+          />
         </section>
       )}
 
@@ -91,6 +99,10 @@ export async function HomeTestimonials() {
                 />
               ),
             }))}
+          />
+          <SectionCta
+            line="Let the family group gush over the two of you next."
+            action="Make the family go aww"
           />
         </section>
       )}
