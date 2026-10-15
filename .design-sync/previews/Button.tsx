@@ -1,4 +1,4 @@
-import { Button } from 'nextjs-cloudrun-template';
+import { Button } from 'vivah';
 
 export const Variants = () => (
   <div className="flex flex-wrap items-center gap-4">

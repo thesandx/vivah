@@ -1,4 +1,4 @@
-import { Checkbox } from 'nextjs-cloudrun-template';
+import { Checkbox } from 'vivah';
 
 export const States = () => (
   <div className="flex flex-col gap-1">

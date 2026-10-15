@@ -1,13 +1,13 @@
 {
   "projectId": "93ce0681-aec9-493f-9fc8-375b3211b1d2",
   "shape": "package",
-  "pkg": "nextjs-cloudrun-template",
-  "globalName": "Mochi",
+  "pkg": "vivah",
+  "globalName": "VivahUI",
   "entry": ".design-sync/entry.ts",
   "buildCmd": "node .design-sync/build-css.mjs && ./node_modules/.bin/tsc -p .design-sync/tsconfig.dts.json",
   "srcDir": "components",
   "tsconfig": ".design-sync/tsconfig.json",
-  "cssEntry": ".design-sync/.cache/mochi.css",
+  "cssEntry": ".design-sync/.cache/ui.css",
   "extraFonts": [
     ".design-sync/fonts.css"
   ],
@@ -42,8 +42,7 @@
     "Header": "components/layout/Header.tsx",
     "MobileMenu": "components/layout/MobileMenu.tsx",
     "PageShell": "components/layout/PageShell.tsx",
-    "SiteHeader": "components/layout/SiteHeader.tsx",
-    "TabBar": "components/layout/TabBar.tsx"
+    "SiteHeader": "components/layout/SiteHeader.tsx"
   },
   "libOverrides": {
     "dts.mjs": "read the tsc-generated .d.ts tree in .design-sync/.cache/types (an app, no dist/ types), keep inherited interaction props (onClick, disabled, value...), and declare referenced helper types"
@@ -52,10 +51,6 @@
     ".github/instructions/design-language.md"
   ],
   "overrides": {
-    "TabBar": {
-      "cardMode": "single",
-      "viewport": "390x240"
-    },
     "Dialog": {
       "cardMode": "single",
       "viewport": "900x520"

@@ -1,4 +1,4 @@
-import { Textarea } from 'nextjs-cloudrun-template';
+import { Textarea } from 'vivah';
 
 export const WithHint = () => (
   <div className="max-w-md">

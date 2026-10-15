@@ -5,8 +5,8 @@ export type BadgeTone = 'neutral' | 'brand' | 'success' | 'danger';
 const TONE_CLASS: Record<BadgeTone, string> = {
   neutral: 'bg-surface',
   brand: 'bg-brand-soft',
-  success: 'bg-success',
-  danger: 'bg-danger',
+  success: 'bg-success-soft',
+  danger: 'bg-danger-soft',
 };
 
 export interface BadgeProps {
@@ -24,7 +24,7 @@ export function Badge({ children, tone = 'neutral', className }: BadgeProps) {
   return (
     <span
       className={cn(
-        'border-line text-small text-ink rounded-pill inline-flex items-center gap-1 border-2 px-2.5 font-medium',
+        'border-line text-small text-ink rounded-pill font-weighted inline-flex items-center gap-1 border-2 px-2.5 font-semibold',
         TONE_CLASS[tone],
         className,
       )}

@@ -1,4 +1,4 @@
-import { Button, Card, PageShell } from 'nextjs-cloudrun-template';
+import { Button, Card, PageShell } from 'vivah';
 
 export const Wide = () => (
   <div className="bg-paper">

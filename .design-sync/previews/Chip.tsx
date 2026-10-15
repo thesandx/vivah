@@ -1,4 +1,4 @@
-import { Avatar, Chip } from 'nextjs-cloudrun-template';
+import { Avatar, Chip } from 'vivah';
 
 export const PlayerList = () => (
   <ul className="flex flex-wrap gap-3">

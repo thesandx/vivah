@@ -88,6 +88,16 @@ Hiding a form from a signed-out user is a courtesy, not a control. The control i
 
 ---
 
+### The anonymous writes
+
+`POST /api/leads` creates a lead with no session. It is the first step of the funnel, before the couple has an account. [ADR-0006](./adr/0006-accept-anonymous-lead-capture.md) records why, and the limits that keep it narrow: it creates one document, the body schema is strict, and a honeypot catches simple bots.
+
+The preview link `GET /p/<lead id>` is not a sign-in either. It sets a `vivah_preview` cookie that ties the preview to the first browser that opened it. The lead stores only the SHA-256 hash of that token.
+
+Publishing the invite is the second write without a session. The preview page's Server Action calls `publishWedding`, which checks the `vivah_preview` cookie against the stored hash, then reserves the address in one transaction. [ADR-0007](./adr/0007-publish-from-the-bound-preview-browser.md) records why. Until Cashfree is connected, a test payment button starts it.
+
+Every other write route still starts with `requireUser()`.
+
 ## Profiles
 
 `users/{uid}` — the app's own record of a person, separate from Firebase Auth, which remains the source of truth for identity.
@@ -123,6 +133,38 @@ Deleting one half leaves the account able to sign in and recreate an empty profi
 await deleteUserProfile(uid); // the Firestore document
 await getFirebaseAuth().deleteUser(uid); // the Firebase Auth account
 ```
+
+## The couple dashboard
+
+The couple dashboard lives at `vivah.online/dashboard`. It uses the same session as the rest of the app.
+
+| Page                     | Who sees it                                   |
+| ------------------------ | --------------------------------------------- |
+| `/dashboard`             | Any signed-in person. It lists their invites. |
+| `/dashboard/edit/<slug>` | The couple who owns the invite.               |
+
+- **Ownership is the phone number.** A couple owns a wedding when the session's verified phone number equals `wedding.ownerPhoneE164`. That is the number they paid with.
+- **Google sign-in has no phone number.** The dashboard asks that person to sign in with their phone.
+- **A stranger gets a 404, not a 403.** The edit page does not tell a stranger that an address exists.
+- **The save checks again.** `saveWeddingDetailsAction` calls `requireUser()`, and `updateWeddingDetails` checks ownership on the server. Hiding a page is not the control.
+- **The slug is not editable here.** Guests already have links to it. Only the admin can move an invite.
+- **Logs name the slug and the uid.** Never the phone number.
+
+The dashboard needs phone sign-in enabled in Firebase, with an SMS region policy. See [SMS fraud is the real risk](#sms-fraud-is-the-real-risk).
+
+## The admin dashboard
+
+The admin dashboard lives at `vivah.online/admin`. Nothing on the site links to it. The decision is [ADR-0008](./adr/0008-two-step-admin-sign-in.md).
+
+- **Two steps, each a separate Firebase sign-in.** Step 1 is Google, with the account in `ADMIN_EMAIL`. Step 2 is an OTP to `ADMIN_PHONE`. `services/admin-session.service.ts` checks both ID tokens on the server.
+- **Its own cookie.** The admin session is the `vivah_admin` cookie, not `__session`. Firestore keeps the SHA-256 of its token in `adminSessions`. A session lasts 12 hours. The Google step is good for 10 minutes.
+- **`requireAdmin()` gates every admin write.** It is the first line of every Server Action in `app/(admin)/admin/actions.ts`.
+- **Every change goes to the audit log,** in `adminAudit`. The entry names the record, never a phone number or an email address.
+- **Off unless configured.** With `ADMIN_EMAIL` or `ADMIN_PHONE` unset, `/admin` is a 404.
+- **The Home page tab changes the home page's "How it works" phone screens.** The browser shrinks the image and uploads it straight to the bucket. The server checks it and stores its path in `siteContent/how-it-works-steps`. `GET /api/how-it-works/<step>` serves the image, or the placeholder in `public/how-it-works/`. A change shows on the home page within five minutes.
+- **The admin does not edit from `/dashboard`.** An admin phone number alone grants nothing.
+
+It needs Google and Phone enabled in Firebase, and `vivah.online` in the authorised domains. See [Setup](#setup).
 
 ### PII
 

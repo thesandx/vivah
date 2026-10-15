@@ -1,4 +1,4 @@
-import { Button, Card, EmptyState } from 'nextjs-cloudrun-template';
+import { Button, Card, EmptyState } from 'vivah';
 
 export const InCard = () => (
   <div className="max-w-xl">

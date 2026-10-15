@@ -13,11 +13,11 @@ const TONE_CLASS: Record<CardTone, string> = {
 
 export interface CardProps {
   children: React.ReactNode;
-  /** Candy tones are identity (this game is butter), not decoration. Default: surface. */
+  /** Festival tones are identity (this game is butter), not decoration. Default: surface. */
   tone?: CardTone;
   /**
    * Something that peeks over the top edge — usually a <Face /> or <Avatar />.
-   * The signature Mochi layout move. Maximum one peeking card per viewport.
+   * The signature layout move. Maximum one peeking card per viewport.
    */
   peek?: React.ReactNode;
   /** Render as a different element, e.g. 'article' or 'li'. */
@@ -35,7 +35,7 @@ export function Card({
   return (
     <Tag
       className={cn(
-        'border-line shadow-mochi rounded-card relative border-2 p-5 sm:p-6',
+        'border-line shadow-hard rounded-card relative border-2 p-5 sm:p-6',
         TONE_CLASS[tone],
         peek !== undefined && 'mt-8 pt-11 sm:pt-12',
         className,

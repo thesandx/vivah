@@ -1,4 +1,4 @@
-import { Speech } from 'nextjs-cloudrun-template';
+import { Speech } from 'vivah';
 
 export const Happy = () => <Speech>momo joined. That makes five of you.</Speech>;
 
