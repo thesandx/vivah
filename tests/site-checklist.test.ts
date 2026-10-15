@@ -144,6 +144,16 @@ describe('site checklist', () => {
     expect(layout).toMatch(/<Footer\b/);
     // No bottom tab bar: the phone gets the header's hamburger menu instead.
     expect(layout).not.toMatch(/<TabBar\b/);
+    // Every other screen a person can reach without a guest's invite link
+    // carries the header too, so the brand mark always leads home.
+    for (const file of [
+      'app/(admin)/layout.tsx',
+      'app/(invite)/preview/layout.tsx',
+      'app/not-found.tsx',
+      'app/error.tsx',
+    ]) {
+      expect(readFileSync(join(ROOT, file), 'utf8'), file).toMatch(/<SiteHeader\b/);
+    }
     // The posture switch is md, in CSS: the menu button hides and the links show.
     const header = readFileSync(join(ROOT, 'components/layout/Header.tsx'), 'utf8');
     expect(header).toMatch(/<MobileMenu\b[^>]*\bmd:hidden\b/s);
