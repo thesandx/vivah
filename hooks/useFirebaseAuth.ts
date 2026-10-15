@@ -50,6 +50,13 @@ export interface UseFirebaseAuthOptions {
    * sometimes used, such as a sign-out button.
    */
   warm?: boolean;
+  /**
+   * Spends the ID token a sign-in produced. Returns `null` on success, or a
+   * message to show. Defaults to `POST /api/auth/session`, which sets the
+   * couple's session cookie. The admin sign-in passes its own, to
+   * `/api/admin/session` (ADR-0008).
+   */
+  exchangeIdToken?: (idToken: string) => Promise<string | null>;
 }
 
 export interface UseFirebaseAuth {
@@ -64,6 +71,8 @@ export interface UseFirebaseAuth {
   confirmVerificationCode: (code: string) => Promise<boolean>;
   /** Clears the session cookie and the client's own auth state. */
   signOut: () => Promise<void>;
+  /** Clears only the client's own auth state. The server session stays. */
+  signOutClient: () => Promise<void>;
   reset: () => void;
 }
 
@@ -144,7 +153,25 @@ async function loadClientAuth(): Promise<ClientAuth> {
   }
 }
 
-export function useFirebaseAuth({ warm = false }: UseFirebaseAuthOptions = {}): UseFirebaseAuth {
+/** The default exchange: the couple's session cookie. */
+async function exchangeForSessionCookie(idToken: string): Promise<string | null> {
+  const response = await fetch('/api/auth/session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (response.ok) return null;
+  const detail = await readServerMessage(response);
+  return detail === null
+    ? 'Signed in, but the session could not be saved. Try again.'
+    : `Signed in, but the session could not be saved: ${detail}`;
+}
+
+export function useFirebaseAuth({
+  warm = false,
+  exchangeIdToken = exchangeForSessionCookie,
+}: UseFirebaseAuthOptions = {}): UseFirebaseAuth {
   const [step, setStep] = useState<AuthStep>('idle');
   const [error, setError] = useState<string | null>(null);
 
@@ -166,27 +193,15 @@ export function useFirebaseAuth({ warm = false }: UseFirebaseAuthOptions = {}): 
    * `localStorage` or a readable cookie — a session that script can read is a
    * session an XSS can steal.
    */
-  const establishSession = useCallback(async (user: User): Promise<boolean> => {
-    const idToken = await user.getIdToken();
-
-    const response = await fetch('/api/auth/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-      signal: AbortSignal.timeout(15_000),
-    });
-
-    if (!response.ok) {
-      const detail = await readServerMessage(response);
-      setError(
-        detail === null
-          ? 'Signed in, but the session could not be saved. Try again.'
-          : `Signed in, but the session could not be saved: ${detail}`,
-      );
+  const establishSession = useCallback(
+    async (user: User): Promise<boolean> => {
+      const message = await exchangeIdToken(await user.getIdToken());
+      if (message === null) return true;
+      setError(message);
       return false;
-    }
-    return true;
-  }, []);
+    },
+    [exchangeIdToken],
+  );
 
   const signInWithGoogle = useCallback(async (): Promise<boolean> => {
     if (!available) {
@@ -282,6 +297,12 @@ export function useFirebaseAuth({ warm = false }: UseFirebaseAuthOptions = {}): 
     await sdk.signOut(auth);
   }, [available]);
 
+  const signOutClient = useCallback(async (): Promise<void> => {
+    if (!available) return;
+    const { auth, sdk } = await loadClientAuth();
+    await sdk.signOut(auth);
+  }, [available]);
+
   const reset = useCallback((): void => {
     verifierRef.current?.clear();
     verifierRef.current = null;
@@ -298,6 +319,7 @@ export function useFirebaseAuth({ warm = false }: UseFirebaseAuthOptions = {}): 
     sendVerificationCode,
     confirmVerificationCode,
     signOut,
+    signOutClient,
     reset,
   };
 }

@@ -1,4 +1,4 @@
-import { BackButton } from 'nextjs-cloudrun-template';
+import { BackButton } from 'vivah';
 
 export const Default = () => <BackButton fallbackHref="/" />;
 

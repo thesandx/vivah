@@ -50,7 +50,7 @@ export function Dialog({ open, onClose, title, children, actions, className }: D
         if (event.target === event.currentTarget) onClose();
       }}
       className={cn(
-        'bg-surface text-ink border-line shadow-mochi-lg rounded-sheet border-2',
+        'bg-surface text-ink border-line shadow-hard-lg rounded-sheet border-2',
         'backdrop:bg-ink/40',
         'inset-x-4 mx-auto mt-auto mb-4 max-w-lg p-0 sm:my-auto',
         'sheet-motion',

@@ -12,8 +12,8 @@ describe('Face', () => {
   });
 
   it('becomes an image with a name when it carries meaning', () => {
-    render(<Face label="The Mochi mascot" />);
-    expect(screen.getByRole('img', { name: 'The Mochi mascot' })).toBeInTheDocument();
+    render(<Face label="A smiling face" />);
+    expect(screen.getByRole('img', { name: 'A smiling face' })).toBeInTheDocument();
   });
 
   it('renders at the requested size', () => {

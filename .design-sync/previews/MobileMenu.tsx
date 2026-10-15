@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Face, MobileMenu } from 'nextjs-cloudrun-template';
+import { Face, MobileMenu } from 'vivah';
 
 const LINKS = [
   { href: '/', label: 'Home' },

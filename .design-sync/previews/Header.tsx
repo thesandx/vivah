@@ -1,4 +1,4 @@
-import { Button, Header } from 'nextjs-cloudrun-template';
+import { Button, Header } from 'vivah';
 
 const LINKS = [
   { href: '/', label: 'Home' },

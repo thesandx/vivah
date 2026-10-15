@@ -31,6 +31,56 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "weddings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "slug",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deletedAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "weddings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "ownerPhoneE164",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "deletedAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "weddings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletedAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -47,6 +97,56 @@
     {
       "collectionGroup": "users",
       "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "leads",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "leads",
+      "fieldPath": "previewTokenHash",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "leads",
+      "fieldPath": "phoneE164",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "weddings",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminSessions",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminSessions",
+      "fieldPath": "expiresAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminSessions",
+      "fieldPath": "uid",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminAudit",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminAudit",
+      "fieldPath": "detail",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "adminAudit",
+      "fieldPath": "adminUid",
       "indexes": []
     }
   ]

@@ -18,7 +18,7 @@ export interface MobileMenuProps {
 /**
  * The header's links on a phone: one "Menu" button that opens a panel below
  * the header. `Header` renders it below `md` only; the desktop posture shows
- * the links inline. An app with a `TabBar` does not need it.
+ * the links inline.
  *
  * It closes when the page changes, on Escape, and when a link is chosen, so
  * it never stays open over the next page — even when `Header` sits in a
@@ -55,7 +55,7 @@ export function MobileMenu({ links, currentPath, className }: MobileMenuProps) {
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((value) => !value)}
-        className="squish border-line bg-surface shadow-mochi-sm rounded-pill inline-flex min-h-11 items-center gap-2 border-2 px-4 font-medium"
+        className="squish border-line bg-surface shadow-hard-sm rounded-pill inline-flex min-h-11 items-center gap-2 border-2 px-4 font-medium"
       >
         <svg
           viewBox="0 0 24 24"
@@ -73,7 +73,7 @@ export function MobileMenu({ links, currentPath, className }: MobileMenuProps) {
         id={panelId}
         aria-label="Main"
         hidden={!open}
-        className="bg-surface border-line shadow-mochi rounded-card animate-rise-in absolute inset-x-5 top-full z-30 border-2 p-2"
+        className="bg-surface border-line shadow-hard rounded-card animate-rise-in absolute inset-x-5 top-full z-30 border-2 p-2"
       >
         <ul className="flex flex-col">
           {links.map((link) => {

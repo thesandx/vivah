@@ -85,7 +85,7 @@ export function Tabs({ label, items, defaultTab, onChange, className }: TabsProp
         {indicator !== null && (
           <span
             aria-hidden="true"
-            className="bg-surface border-line shadow-mochi-sm rounded-pill ease-spring absolute top-1 bottom-1 left-0 border-2 transition-[transform,width] duration-300"
+            className="bg-surface border-line shadow-hard-sm rounded-pill ease-spring absolute top-1 bottom-1 left-0 border-2 transition-[transform,width] duration-300"
             style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
           />
         )}

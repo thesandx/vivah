@@ -21,7 +21,7 @@ describe('isTabActive', () => {
 describe('activeTabHref', () => {
   it('names the destination a page sits under', () => {
     expect(activeTabHref('/')).toBe('/');
-    expect(activeTabHref('/profile/photo')).toBe('/profile');
+    expect(activeTabHref('/dashboard/edit/raadha-shyam')).toBe('/dashboard');
   });
 
   it('names nothing for a page outside every destination', () => {

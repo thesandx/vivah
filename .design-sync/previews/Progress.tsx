@@ -1,4 +1,4 @@
-import { Progress } from 'nextjs-cloudrun-template';
+import { Progress } from 'vivah';
 
 export const Rounds = () => (
   <div className="max-w-md">

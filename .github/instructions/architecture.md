@@ -29,6 +29,17 @@ There is no cache or queue in the template. That is deliberate — see "What is 
 
 ---
 
+## Host routing
+
+One service serves two surfaces. The visitor's host decides which one:
+
+- `vivah.online` is the product site: the lead form, the private preview, and the dashboards at `/dashboard`. Its pages live in `app/(main)` and use the site header (a hamburger menu on a phone) and the footer.
+- `<slug>.vivah.online` is a couple's invite. `proxy.ts` rewrites it to `/site/<slug>`, in `app/(invite)`, which has no product navigation.
+- `<slug>.vivah.online/<guest>` is one guest's link, such as `/Kartheek`. `proxy.ts` rewrites it to `/site/<slug>/<guest>`. The envelope and the link preview greet the guest by name. `lib/guest-name.ts` decides which names are usable; an unusable one shows the plain invite.
+- The link preview image is `GET /api/og/<slug>?guest=<name>`. API routes skip the rewrite, so it answers on every host.
+
+The split is by route group, not by `usePathname()`. A rewrite makes the client path differ from the server path, so a client component cannot tell the two surfaces apart reliably. The full request path, with the Cloudflare Worker, is in [`cloud/domain-routing.md`](../../cloud/domain-routing.md).
+
 ## Layers
 
 Data flows **down**; dependencies point **inward**. A layer may import from the layers below it, never above.

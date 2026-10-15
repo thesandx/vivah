@@ -58,6 +58,7 @@ The production image is ~64 MB compressed, boots in ~2s, stops on `SIGTERM` in ~
 - [`docs/firestore-modeling.md`](./docs/firestore-modeling.md) — before designing a collection or writing a query.
 - [`docs/data-layer.md`](./docs/data-layer.md) — before using the repository, Cloud Storage or the emulator.
 - [`docs/data-recovery.md`](./docs/data-recovery.md) — before code that deletes data, before a bulk write, and during a data incident.
+- [`docs/brand.md`](./docs/brand.md) — before changing the logo, the favicon, the app icons or the share image.
 - [`docs/auth.md`](./docs/auth.md) — before sign-in, sessions, profiles, or anything behind a login.
 - [`docs/local-development.md`](./docs/local-development.md) — before setting up, or confused by tooling.
 - [`docs/testing.md`](./docs/testing.md) — before writing tests. Explains the Server Component limitation.
@@ -125,7 +126,7 @@ Full reasoning in [`coding-rules.md`](./.github/instructions/coding-rules.md).
 8. **Avoid unnecessary dependencies.** Check the platform first (`Intl`, `fetch`, `crypto`, `AbortSignal.timeout`, `structuredClone`). See [Dependency policy](#dependency-policy).
 9. **Update docs when architecture or behaviour changes** — same PR, not later.
 10. **Verify before claiming.** See [Verification protocol](#verification-protocol).
-11. **Design mobile-first, in the design language.** Every UI is built from the Mochi tokens and the `components/ui/` primitives — never ad-hoc styles. Read [`design-language.md`](./.github/instructions/design-language.md) before you write any UI; the living reference renders at `/design`. Every UI works on a small screen first, then scales up. Unprefixed Tailwind utilities are the phone layout; add `sm:`/`md:`/`lg:` to enhance for wider screens — never the reverse. No fixed widths that overflow a phone, no horizontal scroll on the body, touch targets ≥44px. Responsiveness is a requirement, not a finishing touch. **On a phone the app behaves like an installed app** (a bottom `TabBar`, an `AppBar` with a back arrow); **from `md` (768px) up it behaves like a website** (a sticky `SiteHeader`, the `max-w-5xl` frame, columns at `lg`). A desktop page that is one narrow column is a defect — see [Responsive](./.github/instructions/design-language.md#responsive-an-app-on-a-phone-a-website-on-a-desktop). Every site also passes [the site checklist](./.github/instructions/design-language.md#the-site-checklist): no broken links, a mobile menu, a favicon, a title and description on every page, a 404 page, success and error messages, and tappable phone and email.
+11. **Design mobile-first, in the design language.** Every UI is built from the design tokens and the `components/ui/` primitives — never ad-hoc styles. Read [`design-language.md`](./.github/instructions/design-language.md) before you write any UI; the living reference renders at `/design`. Every UI works on a small screen first, then scales up. Unprefixed Tailwind utilities are the phone layout; add `sm:`/`md:`/`lg:` to enhance for wider screens — never the reverse. No fixed widths that overflow a phone, no horizontal scroll on the body, touch targets ≥44px. Responsiveness is a requirement, not a finishing touch. **On a phone the app behaves like an installed app** (a sticky `SiteHeader` with a hamburger menu, an `AppBar` with a back arrow, no bottom tab bar); **from `md` (768px) up it behaves like a website** (the `SiteHeader` links inline, the `max-w-5xl` frame, columns at `lg`). A desktop page that is one narrow column is a defect — see [Responsive](./.github/instructions/design-language.md#responsive-an-app-on-a-phone-a-website-on-a-desktop). Every site also passes [the site checklist](./.github/instructions/design-language.md#the-site-checklist): no broken links, a mobile menu, a favicon, a title and description on every page, a 404 page, success and error messages, and tappable phone and email.
 12. **Write docs in Simplified Technical English (ASD-STE100).** Every Markdown document — this file, `.github/instructions/`, `docs/`, `cloud/`, ADRs, READMEs — follows the standard. Short sentences (≤20 words for an instruction, ≤25 for a description), one instruction per sentence, active voice, present tense, one topic per paragraph, and one approved term per concept. Write for a non-native reader; choose the plain word over the clever one. Bring a document into compliance when you touch it.
 
 ---
@@ -338,7 +339,7 @@ Violations here are defects, not style disagreements.
 - **Never point a Cloud Run probe at `/api/health?deep=1`.** Deep mode answers 503 when a dependency blips, so the platform would kill healthy containers and amplify the outage. Dashboards only.
 - **Never set `FIRESTORE_EMULATOR_HOST` in a deployed environment.** Every read and write silently routes to a host that does not exist.
 - **Never grant `roles/datastore.user` without an IAM condition.** It grants access to every database in the project, including other apps'. See [trap 13](./docs/traps.md).
-- **Never write a route that changes data without `requireUser()`.** An ungated write is an open endpoint. Hiding the form in the UI stops nobody. See [Authentication in brief](#authentication-in-brief).
+- **Never write a route that changes data without `requireUser()`.** An ungated write is an open endpoint. Hiding the form in the UI stops nobody. See [Authentication in brief](#authentication-in-brief). The exceptions are `POST /api/leads` ([ADR-0006](./docs/adr/0006-accept-anonymous-lead-capture.md)) and publishing from the preview page ([ADR-0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)). Admin writes use `requireAdmin()` instead, which is stronger ([ADR-0008](./docs/adr/0008-two-step-admin-sign-in.md)). A new exception needs its own ADR.
 - **Never take `ownerId`, `ownerName` or any identity field from a request body.** The caller chooses the body. Read identity from the session, always.
 - **Never treat a session as permission.** A session says who is asking, not what they may touch. Check ownership separately.
 - **Never rename the `__session` cookie.** Firebase Hosting strips every other cookie, so auth breaks only behind a custom domain. See [trap 20](./docs/traps.md).
@@ -451,13 +452,16 @@ Full model in [`SECURITY.md`](./SECURITY.md).
 
 Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of them.
 
-| ADR                                                                    | Decision                                                                             |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| [0001](./docs/adr/0001-use-cloud-run-for-hosting.md)                   | Cloud Run for hosting — over Vercel, GKE, App Engine, a VM                           |
-| [0002](./docs/adr/0002-use-workload-identity-federation.md)            | Workload Identity Federation — no service account keys, ever                         |
-| [0003](./docs/adr/0003-scope-workload-identity-to-the-github-owner.md) | WIF provider scoped to the GitHub owner; the repository pin lives in the IAM binding |
-| [0004](./docs/adr/0004-use-firestore-and-cloud-storage.md)             | Firestore + Cloud Storage — over Cloud SQL, over a per-app project                   |
-| [0005](./docs/adr/0005-use-firebase-auth-for-sign-in.md)               | Firebase Auth with server-side session cookies — over Auth.js, over client-only auth |
+| ADR                                                                    | Decision                                                                                     |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [0001](./docs/adr/0001-use-cloud-run-for-hosting.md)                   | Cloud Run for hosting — over Vercel, GKE, App Engine, a VM                                   |
+| [0002](./docs/adr/0002-use-workload-identity-federation.md)            | Workload Identity Federation — no service account keys, ever                                 |
+| [0003](./docs/adr/0003-scope-workload-identity-to-the-github-owner.md) | WIF provider scoped to the GitHub owner; the repository pin lives in the IAM binding         |
+| [0004](./docs/adr/0004-use-firestore-and-cloud-storage.md)             | Firestore + Cloud Storage — over Cloud SQL, over a per-app project                           |
+| [0005](./docs/adr/0005-use-firebase-auth-for-sign-in.md)               | Firebase Auth with server-side session cookies — over Auth.js, over client-only auth         |
+| [0006](./docs/adr/0006-accept-anonymous-lead-capture.md)               | `POST /api/leads` is the one write with no session, and how it stays narrow                  |
+| [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment until Cashfree |
+| [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

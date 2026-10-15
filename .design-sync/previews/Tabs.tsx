@@ -1,4 +1,4 @@
-import { Tabs } from 'nextjs-cloudrun-template';
+import { Tabs } from 'vivah';
 
 const GAME_VIEWS = [
   { id: 'board', label: 'Board', content: <p className="text-ink-soft">Numbers called so far: 12, 7, 33, 41.</p> },

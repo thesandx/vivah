@@ -181,25 +181,28 @@ Disable before destroying — disabling is reversible, destroying is not.
 
 Current inventory:
 
-| Name                         | Kind     | Required | Purpose                                                                        |
-| ---------------------------- | -------- | -------- | ------------------------------------------------------------------------------ |
-| `WIF_PROVIDER`               | secret   | yes      | Workload Identity provider resource name                                       |
-| `WIF_SERVICE_ACCOUNT`        | secret   | yes      | Deployer service account email                                                 |
-| `GCP_PROJECT_ID`             | variable | yes      | Target GCP project                                                             |
-| `GCP_REGION`                 | variable | no       | Deployment region (default `asia-south1`)                                      |
-| `ARTIFACT_REPOSITORY`        | variable | no       | Artifact Registry repository (default `containers`)                            |
-| `CLOUD_RUN_SERVICE`          | variable | no       | Service name (defaults to the repository name)                                 |
-| `APP_URL`                    | variable | no       | Public URL — **inlined at build time**                                         |
-| `APP_NAME`                   | variable | no       | Display name                                                                   |
-| `LOG_LEVEL`                  | variable | no       | Runtime verbosity (default `info`)                                             |
-| `MIN_INSTANCES`              | variable | no       | `1` removes cold starts, at a cost                                             |
-| `MAX_INSTANCES`              | variable | no       | Scaling and bill ceiling (default `10`)                                        |
-| `APP_SLUG`                   | variable | no       | Names the database, bucket and runtime identity (defaults to the service name) |
-| `RUNTIME_SERVICE_ACCOUNT`    | variable | no       | Identity the revision runs as (default `<slug>-runtime@<project>`)             |
-| `FIRESTORE_DATABASE_ID`      | variable | no       | Override only for an existing database (default `<slug>-db`)                   |
-| `GCS_BUCKET`                 | variable | no       | Override only for an existing bucket (default `<project>-<slug>-media`)        |
-| `HEALTH_DEEP_CHECKS_ENABLED` | variable | no       | Enables `/api/health?deep=1` (default `false`)                                 |
-| `DEPLOYED_AT`                | computed | no       | UTC deploy time the workflow injects; `/api/health` shows it in IST            |
+| Name                         | Kind     | Required | Purpose                                                                            |
+| ---------------------------- | -------- | -------- | ---------------------------------------------------------------------------------- |
+| `WIF_PROVIDER`               | secret   | yes      | Workload Identity provider resource name                                           |
+| `WIF_SERVICE_ACCOUNT`        | secret   | yes      | Deployer service account email                                                     |
+| `GCP_PROJECT_ID`             | variable | yes      | Target GCP project                                                                 |
+| `GCP_REGION`                 | variable | no       | Deployment region (default `asia-south1`)                                          |
+| `ARTIFACT_REPOSITORY`        | variable | no       | Artifact Registry repository (default `containers`)                                |
+| `CLOUD_RUN_SERVICE`          | variable | no       | Service name (defaults to the repository name)                                     |
+| `APP_URL`                    | variable | no       | Public URL — **inlined at build time** (default `https://<ROOT_DOMAIN>`)           |
+| `APP_NAME`                   | variable | no       | Display name, in every page title (default `vivah.online`)                         |
+| `LOG_LEVEL`                  | variable | no       | Runtime verbosity (default `info`)                                                 |
+| `ROOT_DOMAIN`                | variable | no       | Root domain for invites and canonical URLs, build and run (default `vivah.online`) |
+| `ADMIN_EMAIL`                | variable | no       | Google account for step 1 of the `/admin` sign-in. Unset turns `/admin` off        |
+| `ADMIN_PHONE`                | variable | no       | Phone for the step-2 OTP of the `/admin` sign-in (default the business number)     |
+| `MIN_INSTANCES`              | variable | no       | `1` removes cold starts, at a cost                                                 |
+| `MAX_INSTANCES`              | variable | no       | Scaling and bill ceiling (default `10`)                                            |
+| `APP_SLUG`                   | variable | no       | Names the database, bucket and runtime identity (defaults to the service name)     |
+| `RUNTIME_SERVICE_ACCOUNT`    | variable | no       | Identity the revision runs as (default `<slug>-runtime@<project>`)                 |
+| `FIRESTORE_DATABASE_ID`      | variable | no       | Override only for an existing database (default `<slug>-db`)                       |
+| `GCS_BUCKET`                 | variable | no       | Override only for an existing bucket (default `<project>-<slug>-media`)            |
+| `HEALTH_DEEP_CHECKS_ENABLED` | variable | no       | Enables `/api/health?deep=1` (default `false`)                                     |
+| `DEPLOYED_AT`                | computed | no       | UTC deploy time the workflow injects; `/api/health` shows it in IST                |
 
 > **`RUNTIME_SERVICE_ACCOUNT` matters more than it looks.** Without it Cloud Run runs the revision as the **default compute service account**, which is Editor on the whole project — the opposite of the least-privilege identity `gcp-bootstrap.sh` created. The workflow derives the right one from `APP_SLUG`, so set this only when the account has a non-default name.
 
