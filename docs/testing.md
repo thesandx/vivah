@@ -189,6 +189,8 @@ describeEmulator('createRepository (emulator)', () => {
 });
 ```
 
+`pnpm test:emulator` runs the files one at a time. They share one emulator, and its transactions take locks, so parallel files wait on each other until a test times out.
+
 Name the file `*.emulator.test.ts`, give each run a fresh collection (`notes_${Date.now()}_${random}`) so a crashed earlier run cannot fail this one, and clean up in `afterAll`.
 
 **The skip is a convenience, not permission to ignore them.** CI runs `pnpm test:emulator` in its own job. Run it yourself before pushing a change to `services/repository.ts` or a collection schema.
