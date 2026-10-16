@@ -10,10 +10,10 @@ The decision and its alternatives are in [ADR-0005](./adr/0005-use-firebase-auth
 
 Two ways to sign in, both through Firebase Auth:
 
-| Method    | Good for                                  | Costs                                                              |
-| --------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| Google    | Desktop, and anyone with a Google account | Free                                                               |
-| Phone OTP | Mobile, and the default login in India    | Real money per SMS — read [SMS fraud](#sms-fraud-is-the-real-risk) |
+| Method    | Good for                            | Costs                                                              |
+| --------- | ----------------------------------- | ------------------------------------------------------------------ |
+| Google    | `/admin` only, as its first step    | Free                                                               |
+| Phone OTP | `/sign-in` and the couple dashboard | Real money per SMS — read [SMS fraud](#sms-fraud-is-the-real-risk) |
 
 Reads are public. Writes need a session. Nothing else changes.
 
@@ -150,7 +150,8 @@ The couple dashboard lives at `vivah.online/dashboard`. The site header calls it
 Each site view shows the details as read-only text, and "Edit details" opens the form. It also has the guest invite links and a "Sign out" button.
 
 - **Ownership is the phone number.** A couple owns a wedding when the session's verified phone number equals `wedding.ownerPhoneE164`. That is the number they paid with.
-- **Google sign-in has no phone number.** The dashboard asks that person to sign in with their phone.
+- **`/sign-in` offers phone OTP only.** Google sign-in is for `/admin`. A session from an older Google sign-in has no phone number, so the dashboard asks that person to sign in with their phone.
+- **"Edit details" on a live invite opens `/dashboard?site=<slug>`.** Signed out, it goes on to `/sign-in?next=/dashboard&site=<slug>`. Sign-in then shows the last two digits of that site's owner number as a hint, and nothing else about the site. The invite already shows the full number to guests for RSVPs, so the hint reveals nothing new.
 - **A stranger gets a 404, not a 403.** The edit page does not tell a stranger that an address exists.
 - **The save checks again.** `saveWeddingDetailsAction` calls `requireUser()`, and `updateWeddingDetails` checks ownership on the server. Hiding a page is not the control.
 - **Guest links check the same way.** `createGuestLinkAction` and `deleteGuestLinkAction` call `requireUser()`, and `services/guest-link.service.ts` checks ownership. A link is looked up under the caller's own wedding only.

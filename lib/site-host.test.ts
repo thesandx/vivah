@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  editDetailsUrl,
   inviteHostLabel,
   inviteHref,
   inviteUrl,
@@ -90,6 +91,20 @@ describe('madeByUrl', () => {
     );
     expect(madeByUrl('', 'http://localhost:3000/')).toBe(
       'http://localhost:3000/?utm_source=invite&utm_medium=footer',
+    );
+  });
+});
+
+describe('editDetailsUrl', () => {
+  it('points at the dashboard on the root domain and names the site', () => {
+    expect(editDetailsUrl('radha-shyam', 'Vivah.Online', 'https://app.example')).toBe(
+      'https://vivah.online/dashboard?site=radha-shyam',
+    );
+  });
+
+  it('uses the app URL without host routing', () => {
+    expect(editDetailsUrl('radha-shyam', '', 'http://localhost:3000/')).toBe(
+      'http://localhost:3000/dashboard?site=radha-shyam',
     );
   });
 });

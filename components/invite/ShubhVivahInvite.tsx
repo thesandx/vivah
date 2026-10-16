@@ -55,6 +55,11 @@ export interface ShubhVivahInviteProps {
    */
   madeByUrl: string;
   /**
+   * The couple's way to their dashboard, under the credit: "Edit details".
+   * Only the live site passes it; the preview has its own banner.
+   */
+  editDetailsUrl?: string;
+  /**
    * Keep the RSVP button in reach while a guest scrolls on a phone (PRD).
    * The preview turns it off: its own banner holds the bottom of the screen.
    */
@@ -148,6 +153,7 @@ export function ShubhVivahInvite({
   venueMapsUrl,
   rsvpPhoneE164,
   madeByUrl,
+  editDetailsUrl,
   stickyRsvp = true,
   venuePendingNote = 'We will add the place and a map here, so you can find your way.',
   className,
@@ -399,6 +405,15 @@ export function ShubhVivahInvite({
             vivah.online
           </span>
         </a>
+        {editDetailsUrl !== undefined && (
+          <a
+            href={editDetailsUrl}
+            rel="nofollow"
+            className="text-small text-ink-soft hover:text-brand -mt-4 inline-flex min-h-11 items-center underline underline-offset-4"
+          >
+            Your wedding? Edit details
+          </a>
+        )}
       </div>
     </article>
   );

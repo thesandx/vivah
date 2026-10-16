@@ -8,7 +8,7 @@ import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { env } from '@/lib/env';
 import { parseGuestName } from '@/lib/guest-name';
 import { inviteMetadata } from '@/lib/invite-meta';
-import { madeByUrl } from '@/lib/site-host';
+import { editDetailsUrl, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
 import { isGuestLinkDeleted } from '@/services/guest-link.service';
 import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
@@ -102,6 +102,7 @@ export async function CoupleInvite({
           venueMapsUrl={wedding.venueMapsUrl ?? null}
           rsvpPhoneE164={wedding.ownerPhoneE164}
           madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+          editDetailsUrl={editDetailsUrl(wedding.slug, env.rootDomain, env.appUrl)}
           className="flex-1"
         />
       </main>
