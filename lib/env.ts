@@ -189,6 +189,49 @@ const adminPhone = pattern(
   'must be one E.164 phone number, like +919876543210',
 );
 
+/**
+ * WhatsApp Cloud API, for sending a couple their preview link after sign-up.
+ * See `services/whatsapp.service.ts` and `cloud/environment-variables.md`.
+ *
+ * Sending is on only when the token, the phone number id and the template
+ * name are all set. Leave any one empty and sign-up works as before: the
+ * preview opens on screen and nothing is sent. It fails closed, not down.
+ *
+ * The access token IS a secret. It comes from Secret Manager at runtime,
+ * never from the repository, a build arg or a `NEXT_PUBLIC_*` name.
+ */
+const whatsappAccessToken = optional(process.env.WHATSAPP_ACCESS_TOKEN, '').trim();
+
+const whatsappPhoneNumberId = pattern(
+  'WHATSAPP_PHONE_NUMBER_ID',
+  process.env.WHATSAPP_PHONE_NUMBER_ID?.trim(),
+  /^\d{6,20}$/,
+  'must be the numeric phone number id from WhatsApp Manager, not the phone number',
+);
+
+const whatsappTemplateName = pattern(
+  'WHATSAPP_PREVIEW_TEMPLATE',
+  process.env.WHATSAPP_PREVIEW_TEMPLATE?.trim(),
+  /^[a-z0-9_]{1,512}$/,
+  'must be an approved template name: lowercase letters, digits and underscores',
+);
+
+const whatsappTemplateLanguage = pattern(
+  'WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE',
+  process.env.WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE?.trim(),
+  /^[a-z]{2,3}(_[A-Z]{2})?$/,
+  'must be a WhatsApp template language code, like en or en_US',
+  'en',
+);
+
+const whatsappGraphVersion = pattern(
+  'WHATSAPP_GRAPH_API_VERSION',
+  process.env.WHATSAPP_GRAPH_API_VERSION?.trim(),
+  /^v\d{1,3}\.\d$/,
+  'must be a Graph API version, like v23.0',
+  'v23.0',
+);
+
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
 // Order matters below: the database id and bucket name default to values
@@ -325,6 +368,21 @@ export const env = {
 
   /** True when both admin factors are set, so `/admin` can exist at all. */
   adminEnabled: adminEmail !== '' && adminPhone !== '',
+
+  /**
+   * WhatsApp Cloud API settings for the preview-link message. Server only:
+   * the token is a secret. `enabled` is true only when all three of token,
+   * phone number id and template name are set.
+   */
+  whatsapp: {
+    enabled:
+      whatsappAccessToken !== '' && whatsappPhoneNumberId !== '' && whatsappTemplateName !== '',
+    accessToken: whatsappAccessToken,
+    phoneNumberId: whatsappPhoneNumberId,
+    templateName: whatsappTemplateName,
+    templateLanguage: whatsappTemplateLanguage,
+    graphVersion: whatsappGraphVersion,
+  },
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */
   appVersion: optional(process.env.NEXT_PUBLIC_APP_VERSION, 'dev'),

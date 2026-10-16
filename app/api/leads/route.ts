@@ -8,6 +8,7 @@ import { clientIp, RateLimiter } from '@/lib/rate-limit';
 import { createLead } from '@/services/lead.service';
 import { checkSlug } from '@/services/wedding.service';
 import { songInSlot } from '@/services/wedding-songs.service';
+import { sendPreviewLink } from '@/services/whatsapp.service';
 
 /**
  * `POST /api/leads` — a couple asks for their preview. NO SESSION, on purpose.
@@ -26,8 +27,11 @@ import { songInSlot } from '@/services/wedding-songs.service';
  *     it until publishing (ADR-0007).
  *   - Each visitor may ask for 5 previews in 10 minutes (`lib/rate-limit.ts`).
  *
- * The response is the preview path. Until the WhatsApp templates are approved,
- * the form opens it at once; afterwards the link goes by WhatsApp instead.
+ * The response is the preview path, and whether WhatsApp accepted the link
+ * (`services/whatsapp.service.ts`). The form opens the preview on screen
+ * either way; `whatsappSent` only changes the line under its tick. Sending is
+ * off until the Cloud API is configured, and a failed send never fails the
+ * sign-up.
  */
 
 export const runtime = 'nodejs';
@@ -77,7 +81,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   if (lead.isBot) {
     // Same shape as a success, so a bot cannot tell it was caught.
-    return NextResponse.json({ previewPath: '/' }, { status: 201 });
+    return NextResponse.json({ previewPath: '/', whatsappSent: false }, { status: 201 });
   }
 
   try {
@@ -97,7 +101,14 @@ export async function POST(request: Request): Promise<NextResponse> {
     // The lead id is logged so a support request can be traced. The phone
     // number is never logged — see CLAUDE.md > Authentication in brief.
     logger.info('Lead created', { leadId: id, hasWeddingDate: lead.weddingDate !== null });
-    return NextResponse.json({ previewPath: `/p/${id}` }, { status: 201 });
+    // Awaited, not fired after the response: Cloud Run may pause the CPU
+    // once a response is sent. It is bounded by its own timeout.
+    const whatsappSent = await sendPreviewLink({
+      phoneE164: lead.phoneE164,
+      coupleNames: `${lead.bride} & ${lead.groom}`,
+      leadId: id,
+    });
+    return NextResponse.json({ previewPath: `/p/${id}`, whatsappSent }, { status: 201 });
   } catch (error) {
     const mapped = mapHttpError(error);
     if (!mapped.exposeDetail) logger.error('Creating a lead failed', error);

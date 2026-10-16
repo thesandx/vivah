@@ -263,6 +263,9 @@ jobs:
             HEALTH_DEEP_CHECKS_ENABLED=${{ vars.HEALTH_DEEP_CHECKS_ENABLED || 'false' }}
             AUTH_SESSION_MAX_AGE_DAYS=${{ vars.AUTH_SESSION_MAX_AGE_DAYS || '14' }}
             AUTH_CHECK_REVOKED=${{ vars.AUTH_CHECK_REVOKED || 'false' }}
+            WHATSAPP_PHONE_NUMBER_ID=${{ vars.WHATSAPP_PHONE_NUMBER_ID }}
+            WHATSAPP_PREVIEW_TEMPLATE=${{ vars.WHATSAPP_PREVIEW_TEMPLATE }}
+            WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE=${{ vars.WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE || 'en' }}
             DEPLOYED_AT=${{ steps.meta.outputs.deployed_at }}
           # The runtime identity goes through `flags`, NOT a `service_account`
           # input. This action has no such input: it accepts one and warns
@@ -271,6 +274,12 @@ jobs:
           # runs as the default compute service account — Editor on the whole
           # project, the opposite of the least-privilege account bootstrap
           # created. Keep this in flags, where gcloud actually reads it.
+          #
+          # The WhatsApp access token is a secret, so it is mounted from Secret
+          # Manager, never set in env_vars. The mount is added only when the
+          # WHATSAPP_TOKEN_SECRET variable names the secret: a deploy that
+          # mounts a secret which does not exist fails. See
+          # cloud/environment-variables.md > WhatsApp.
           flags: >-
             --service-account=${{ vars.RUNTIME_SERVICE_ACCOUNT || format('{0}-runtime@{1}.iam.gserviceaccount.com', env.APP_SLUG, env.GCP_PROJECT_ID) }}
             --allow-unauthenticated
@@ -284,6 +293,7 @@ jobs:
             --execution-environment=gen2
             --cpu-boost
             --revision-suffix=${{ steps.meta.outputs.revision_suffix }}
+            ${{ vars.WHATSAPP_TOKEN_SECRET && format('--set-secrets=WHATSAPP_ACCESS_TOKEN={0}:latest', vars.WHATSAPP_TOKEN_SECRET) || '' }}
 
       - name: Verify the deployment serves traffic
         # The deploy step succeeding only means Cloud Run accepted the revision.

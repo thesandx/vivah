@@ -66,11 +66,12 @@ const FLY_MS = 760;
 const SENT_MS = 1400;
 
 /*
- * The line under the tick. The preview opens on screen until the WhatsApp
- * templates are approved, so it promises only that. When the link goes by
- * WhatsApp, this becomes "Sent to your WhatsApp".
+ * The line under the tick. The preview always opens on screen. The WhatsApp
+ * line shows only when the server says WhatsApp accepted the link, so the
+ * card never promises a message that was not sent.
  */
 const SENT_DETAIL = 'Opening your preview now.';
+const SENT_DETAIL_WHATSAPP = 'Sent to your WhatsApp. Opening your preview now.';
 
 type Step = 'names' | 'details' | 'address' | 'song' | 'making' | 'flying' | 'sent';
 const PAST_DATE_ERROR = 'Pick today or a later date.';
@@ -132,6 +133,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const [direction, setDirection] = useState<keyof typeof STEP_MOTION>('none');
   const [done, setDone] = useState(0);
   const [previewPath, setPreviewPath] = useState<string | null>(null);
+  const [whatsappSent, setWhatsappSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
@@ -360,7 +362,8 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         return;
       }
 
-      const body = (await response.json()) as { previewPath: string };
+      const body = (await response.json()) as { previewPath: string; whatsappSent?: boolean };
+      setWhatsappSent(body.whatsappSent === true);
       setPreviewPath(body.previewPath);
     } catch (caught) {
       setError(
@@ -700,7 +703,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           phase={view}
           headingId={headingId}
           title="Your website is ready"
-          detail={SENT_DETAIL}
+          detail={whatsappSent ? SENT_DETAIL_WHATSAPP : SENT_DETAIL}
         />
       )}
     </div>
