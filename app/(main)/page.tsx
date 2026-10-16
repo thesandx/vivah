@@ -165,7 +165,7 @@ export default function HomePage() {
               id="board-heading"
               eyebrow="What your guests see"
               title="Everything about your wedding, on one link"
-              intro="Your invite, the countdown, the venue map and a WhatsApp RSVP. Every guest opens it with their own name on it."
+              intro="Shri Ganesh greets every guest by name. Then your song, a date to scratch open, the countdown, the venue map and a WhatsApp RSVP."
             />
             <DemoVideo sources={DEMO_VIDEO.sources} poster={DEMO_VIDEO.poster} steps={DEMO_STEPS} />
           </div>

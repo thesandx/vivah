@@ -1,6 +1,6 @@
 /**
  * The home page's demo video: a guest gets the invite on WhatsApp, taps the
- * link, opens the envelope and replies. Pure data, no I/O.
+ * link, opens the Shri Ganesh card and replies. Pure data, no I/O.
  *
  * To publish the video, add its files to `sources`. That is the only change.
  * List WebM first and MP4 second: the browser plays the first type it can.
@@ -32,6 +32,6 @@ export const DEMO_VIDEO: DemoVideo = {
 export const DEMO_STEPS: readonly string[] = [
   'A WhatsApp message arrives with your invite link.',
   'The guest taps the link. Your website opens with their name on it.',
-  'They tap the seal, and the envelope opens.',
-  'They see the countdown and the venue map, then reply to you on WhatsApp.',
+  'A Shri Ganesh card says “Hi” with their name. One tap opens the invite and starts your song.',
+  'They scratch to reveal the date, see the countdown and the venue map, then reply to you on WhatsApp.',
 ];
