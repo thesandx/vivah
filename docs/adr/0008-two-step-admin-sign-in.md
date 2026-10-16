@@ -32,4 +32,4 @@ The admin signs in twice, with two separate Firebase sign-ins. The server joins 
 - Google must be enabled in Firebase, and `vivah.online` must be an authorised domain.
 - A pending or ended session stays as a soft-deleted document. The volume is a few per day. A Firestore TTL policy on `expiresAt` can remove them later.
 - One admin account. A second admin needs a list in place of `ADMIN_EMAIL`, and a phone per email.
-- Releasing a deleted invite's address deletes its `slugClaims` document permanently. A claim is a lock, not data. The wedding itself stays soft-deleted.
+- Deleting an invite frees its address: it deletes the `slugClaims` document permanently. A claim is a lock, not data. The wedding itself stays soft-deleted, and a restore claims a free address again.

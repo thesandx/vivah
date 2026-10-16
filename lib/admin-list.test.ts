@@ -67,7 +67,21 @@ describe('wedding filters', () => {
       when: 'all',
       sort: 'newest',
     });
-    expect(parseWeddingFilters({ state: ['deleted', 'live'] }).state).toBe('deleted');
+    expect(parseWeddingFilters({ state: ['unavailable', 'live'] }).state).toBe('unavailable');
+    // Deleted is a tab of its own now, not a state on the Invites tab.
+    expect(parseWeddingFilters({ state: 'deleted' }).state).toBe('all');
+    expect(parseWeddingFilters({ sort: 'recently-deleted' }).sort).toBe('newest');
+  });
+
+  it('reads the Deleted tab: no state menu, newest delete first', () => {
+    const filters = parseWeddingFilters({ state: 'live' }, 'deleted');
+    expect(filters).toMatchObject({ state: 'all', sort: 'recently-deleted' });
+    const rows = [
+      wedding({ id: 'early', deletedAt: at('2026-10-01T00:00:00Z') }),
+      wedding({ id: 'late', deletedAt: at('2026-10-09T00:00:00Z') }),
+    ];
+    expect(ids(filterWeddings(rows, filters, '2026-10-15'))).toEqual(['late', 'early']);
+    expect(parseWeddingFilters({ sort: 'names' }, 'deleted').sort).toBe('names');
   });
 
   it('names each state', () => {

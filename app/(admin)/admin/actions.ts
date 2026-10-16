@@ -138,8 +138,13 @@ export async function deleteWeddingAction(id: string): Promise<ActionState> {
   return run('delete-wedding', id, (uid) => deleteWedding(id, uid));
 }
 
-export async function restoreWeddingAction(id: string): Promise<ActionState> {
-  return run('restore-wedding', id, (uid) => restoreWedding(id, uid));
+export async function restoreWeddingAction(
+  id: string,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const slug = text(form, 'slug').toLowerCase();
+  return run('restore-wedding', id, (uid) => restoreWedding(id, slug, uid));
 }
 
 export async function releaseAddressAction(id: string): Promise<ActionState> {
