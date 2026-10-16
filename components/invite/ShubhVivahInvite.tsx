@@ -1,10 +1,7 @@
 import Image from 'next/image';
 
 import { Countdown } from '@/components/invite/Countdown';
-import { FallingPetals } from '@/components/invite/FallingPetals';
-import { Ganesha } from '@/components/invite/Ganesha';
 import { ScratchCard } from '@/components/invite/ScratchCard';
-import { ContactLink } from '@/components/ui/ContactLink';
 import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-contact';
 import { cn } from '@/lib/utils';
 import {
@@ -16,15 +13,15 @@ import {
 } from '@/lib/wedding-date';
 
 /**
- * The couple's invite page, in the pink-pastel invite theme. It reads like a
- * printed card that comes alive: Shri Ganesh and his shloka over the names,
- * as on an offline Hindu wedding card, a scratch-to-reveal date, the day with
- * a countdown, the venue with a Google Maps button, a WhatsApp RSVP and a
- * closing line.
+ * The couple's invite page, built to the product owner's jewel design spec:
+ * a 430px column of jewel-toned blocks on ivory. Shri Ganesh in a mehrab arch
+ * over the names, a scratch-to-reveal date, the day in a peacock block with
+ * a countdown, the venue card, a vermilion RSVP block and a rani-pink close.
+ * Marigold garlands hang between the blocks.
  *
  * A Server Component. Only the scratch cards and the countdown run in the
- * browser. Colours come from the `shubh-vivah` theme tokens, which
- * `InviteTheme` applies.
+ * browser. The colours, faces and sizes are the `jewel-*` tokens and
+ * utilities in `styles/globals.css`, the spec's own values.
  *
  * The couple's preview renders this same component with the couple's own
  * details, so the preview is exactly what guests will see.
@@ -50,7 +47,7 @@ export interface ShubhVivahInviteProps {
   /** The couple's WhatsApp number for RSVPs and calls. `null` hides both. */
   rsvpPhoneE164: string | null;
   /**
-   * The product's home page, for the "Made with ❤️ by vivah.online" credit
+   * The product's home page, for the "Made with ♥ by vivah.online" credit
    * at the foot of every invite. Each guest who taps it is a possible couple.
    */
   madeByUrl: string;
@@ -72,30 +69,6 @@ export interface ShubhVivahInviteProps {
   className?: string;
 }
 
-/** A map pin, for the venue button. */
-function PinIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5 fill-current">
-      <path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z" />
-    </svg>
-  );
-}
-
-/** A calendar, for "Add to calendar". */
-function CalendarIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="none">
-      <rect x="3.5" y="5" width="17" height="15" rx="3" stroke="currentColor" strokeWidth="2" />
-      <path
-        d="M3.5 10h17M8 3v4M16 3v4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
 /**
  * The Ganesh shloka every offline card opens with: "O Lord Ganesha, of the
  * curved trunk and mighty body, as bright as a million suns, remove every
@@ -103,44 +76,112 @@ function CalendarIcon() {
  */
 const SHLOKA = [
   '॥ श्री गणेशाय नमः ॥',
-  'वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ।',
+  'वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ ।',
   'निर्विघ्नं कुरु मे देव सर्वकार्येषु सर्वदा ॥',
 ] as const;
 
-/** A gold rule with a small diamond: the divider between sections. */
-function Divider() {
+const TOGETHERNESS = 'A lifetime of togetherness begins with one sacred step';
+
+/** The stroked icons on the buttons. */
+function Icon({ name, className }: { name: 'calendar' | 'pin' | 'check'; className: string }) {
   return (
-    <div aria-hidden="true" className="flex items-center justify-center gap-3">
-      <span className="bg-butter h-0.5 w-16 rounded-pill" />
-      <span className="bg-butter size-2 rotate-45" />
-      <span className="bg-butter h-0.5 w-16 rounded-pill" />
-    </div>
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      {name === 'calendar' && (
+        <>
+          <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+          <path d="M3.5 10h17M8 3v4M16 3v4" />
+        </>
+      )}
+      {name === 'pin' && (
+        <>
+          <path d="M12 21s-6.5-6.2-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 14.8 12 21 12 21Z" />
+          <circle cx="12" cy="9.8" r="2.4" />
+        </>
+      )}
+      {name === 'check' && <path d="M5 12.5l4.5 4.5L19 7.5" />}
+    </svg>
   );
 }
 
-/** Small capitals with wide spacing, as on a printed card. */
-const SPACED = 'font-display uppercase tracking-widest';
-
-/** A section's eyebrow and title: "Where / The Venue". */
-function SectionTitle({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <p className={cn(SPACED, 'text-small text-gold')}>{eyebrow}</p>
-      <h2 className="font-script text-hero text-brand">{title}</h2>
-    </div>
-  );
+/** The pierced-screen lattice over a block. Decoration. */
+function Jaali() {
+  return <span aria-hidden="true" className="jewel-jaali" />;
 }
-
-/** The card every section sits on: white, a blush outline, Phera's hard puff. */
-const CARD =
-  'bg-surface border-line rounded-sheet shadow-hard flex w-full flex-col items-center border-2 px-5 py-10 sm:px-10';
 
 /**
- * A rounded pill button, full width on a phone, as on the couple's own
- * hand-made invites: the colour comes from the call site.
+ * The marigold garland that hangs between two blocks: a green vine with
+ * marigolds and rosebuds. A sibling of the blocks, so no block clips it.
  */
-const BUTTON =
-  'squish shadow-hard inline-flex min-h-12 w-full max-w-xs items-center justify-center gap-3 rounded-pill px-6 font-display text-heading font-bold tracking-widest uppercase';
+function Garland() {
+  const marigolds = [
+    [60, 18],
+    [120, 10],
+    [180, 7],
+    [240, 7],
+    [300, 10],
+    [360, 18],
+  ] as const;
+  const rosebuds = [
+    [90, 13],
+    [150, 7.5],
+    [210, 5.5],
+    [270, 7.5],
+    [330, 13],
+  ] as const;
+  return (
+    <svg
+      viewBox="0 0 430 44"
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+      className="bg-jewel-ivory block h-11 w-full"
+    >
+      <path
+        d="M20 24 Q215 -2 410 24"
+        stroke="var(--color-jewel-emerald)"
+        strokeWidth="2"
+        fill="none"
+      />
+      {rosebuds.map(([x, y]) => (
+        <circle key={x} cx={x} cy={y + 4} r="5.3" fill="var(--color-jewel-rani)" />
+      ))}
+      {marigolds.map(([x, y]) => (
+        <g key={x}>
+          <circle cx={x} cy={y + 4} r="7.5" fill="var(--color-jewel-marigold)" />
+          <circle cx={x} cy={y + 4} r="3.2" fill="var(--color-jewel-haldi)" />
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/** A section's micro-label and title: "Where / The Venue". */
+function SectionTitle({
+  label,
+  title,
+  labelClassName,
+  titleClassName,
+}: {
+  label: string;
+  title: React.ReactNode;
+  labelClassName: string;
+  titleClassName: string;
+}) {
+  return (
+    <>
+      <p className={cn('jewel-label', labelClassName)}>{label}</p>
+      <h2 className={cn('jewel-title', titleClassName)}>{title}</h2>
+    </>
+  );
+}
 
 export function ShubhVivahInvite({
   bride,
@@ -174,247 +215,272 @@ export function ShubhVivahInvite({
         });
 
   return (
-    <article
-      className={cn(
-        'relative isolate flex flex-col items-center overflow-hidden pb-16 text-center',
-        className,
-      )}
-    >
-      <FallingPetals className="-z-10" />
+    <div className={cn('bg-jewel-maroon-deep flex flex-col', className)}>
+      <article className="jewel-page flex-1">
+        {/* Shri Ganesh in the mehrab arch, over the couple's names. */}
+        <header className="jewel-section jewel-bg-hero">
+          <Jaali />
+          <div className="relative">
+            <div className="jewel-arch">
+              <Image
+                src="/invite/ganesha.png"
+                alt=""
+                width={480}
+                height={480}
+                priority
+                className="mx-auto mb-3.5 block h-auto w-33"
+              />
+              <p lang="sa" className="jewel-om" aria-hidden="true">
+                ॥ ॐ ॥
+              </p>
+              <p lang="sa" className="jewel-shloka flex flex-col">
+                {SHLOKA.map((line) => (
+                  <span key={line}>{line}</span>
+                ))}
+              </p>
+            </div>
 
-      <div className="flex w-full max-w-xl flex-col items-center gap-16 px-4 pt-16 sm:px-8">
-        {/* The names, on a card framed by gold corners. */}
-        <header className="relative w-full p-3">
-          <span
-            aria-hidden="true"
-            className="border-butter absolute top-0 left-0 size-14 border-t-2 border-l-2"
-          />
-          <span
-            aria-hidden="true"
-            className="border-butter absolute top-0 right-0 size-14 border-t-2 border-r-2"
-          />
-          <span
-            aria-hidden="true"
-            className="border-butter absolute bottom-0 left-0 size-14 border-b-2 border-l-2"
-          />
-          <span
-            aria-hidden="true"
-            className="border-butter absolute right-0 bottom-0 size-14 border-r-2 border-b-2"
-          />
-          <div className={cn(CARD, 'gap-5')}>
-            <Ganesha />
-            <p lang="sa" className="font-shloka text-heading text-brand flex flex-col italic">
-              {SHLOKA.map((line) => (
-                <span key={line}>{line}</span>
-              ))}
-            </p>
-            {guestName !== null && (
-              <p className="font-script text-title text-brand">Dear {guestName},</p>
-            )}
-            <p className="font-display text-heading text-ink-soft max-w-sm italic">
-              With hearts full of joy, we
-            </p>
-            <h1 className="flex flex-col items-center gap-1">
-              <span className="font-script text-hero text-brand">{bride}</span>
-              <span className="flex items-center gap-3" aria-hidden="false">
-                <span aria-hidden="true" className="bg-butter h-0.5 w-12 rounded-pill" />
-                <span className="font-script text-title text-gold">&amp;</span>
-                <span aria-hidden="true" className="bg-butter h-0.5 w-12 rounded-pill" />
+            {guestName !== null && <p className="jewel-dear">Dear {guestName},</p>}
+            <p className="jewel-withhearts">With hearts full of joy, we</p>
+            <h1 className="flex flex-col items-center gap-0.5">
+              <span className="jewel-name jewel-foil-light">{bride}</span>
+              <span className="text-jewel-sindoor flex items-center gap-3.5">
+                <svg viewBox="0 0 40 20" aria-hidden="true" className="w-8.5 opacity-90">
+                  <path d="M2 10h12" stroke="currentColor" strokeWidth="1.3" fill="none" />
+                </svg>
+                <span className="jewel-amp">&amp;</span>
+                <svg viewBox="0 0 40 20" aria-hidden="true" className="w-8.5 opacity-90">
+                  <path d="M26 10h12" stroke="currentColor" strokeWidth="1.3" fill="none" />
+                </svg>
               </span>
-              <span className="font-script text-hero text-brand">{groom}</span>
+              <span className="jewel-name jewel-foil-light">{groom}</span>
             </h1>
-            <p className="font-display text-heading text-ink-soft italic">
-              invite you to our wedding
-            </p>
+            <p className="jewel-invite-line">invite you to our wedding</p>
             {/* With a date, the day waits under the scratch cards below. */}
-            {weddingDate === null && (
-              <p className={cn(SPACED, 'text-small text-ink')}>Date to be shared soon</p>
+            {parts === null && (
+              <p className="jewel-label text-jewel-gold mt-4">Date to be shared soon</p>
             )}
+            <p aria-hidden="true" className="jewel-scroll-cue flex flex-col items-center gap-1.75">
+              Scroll down for the details
+              <svg viewBox="0 0 20 12" className="jewel-chevron h-2.5 w-4.5" fill="none">
+                <path
+                  d="M1.5 1.5l8.5 8.5 8.5-8.5"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </p>
           </div>
         </header>
-
-        <p
-          aria-hidden="true"
-          className={cn(SPACED, 'text-small text-ink-soft -mt-10 flex flex-col items-center gap-1')}
-        >
-          Scroll down for the details
-          <span className="animate-nudge block">
-            <svg viewBox="0 0 24 24" className="size-5" fill="none">
-              <path
-                d="M6 9l6 6 6-6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </span>
-        </p>
+        <Garland />
 
         {/* Save the date: scratch to reveal. */}
         {parts !== null && (
-          <section aria-label="Save the date" className="flex w-full flex-col items-center gap-6">
-            <SectionTitle eyebrow="Mark your calendar" title="Save the Date" />
-            <p className="font-display text-heading text-ink-soft italic">
-              Scratch below to reveal our wedding date
-            </p>
-            <div className="grid w-full max-w-md grid-cols-3 gap-3 sm:gap-5">
-              {(
-                [
-                  ['Day', parts.day],
-                  ['Month', parts.month.slice(0, 3)],
-                  ['Year', parts.year],
-                ] as const
-              ).map(([label, value]) => (
-                <div key={label} className="flex flex-col items-center gap-2">
-                  <p className={cn(SPACED, 'text-small text-gold')}>{label}</p>
-                  <ScratchCard value={value} label={label} />
-                </div>
-              ))}
+          <section aria-label="Save the date" className="jewel-section jewel-bg-save">
+            <Jaali />
+            <div className="relative">
+              <SectionTitle
+                label="Mark your calendar"
+                title="Save the Date"
+                labelClassName="text-jewel-gold"
+                titleClassName="text-jewel-sindoor"
+              />
+              <p className="jewel-note mt-6.5">Scratch below to reveal our wedding date</p>
+              <div className="mt-9 flex justify-center gap-3.25">
+                <ScratchCard label="Day" value={parts.day} className="jewel-scratch-day" />
+                <ScratchCard
+                  label="Month"
+                  value={parts.monthNumber}
+                  className="jewel-scratch-month"
+                />
+                <ScratchCard
+                  label="Year"
+                  value={parts.year.slice(2)}
+                  className="jewel-scratch-year"
+                />
+              </div>
+              <p className="jewel-note mt-8 max-w-50">{TOGETHERNESS}</p>
             </div>
           </section>
         )}
 
         {/* The day, and how long until it. */}
-        <section aria-label="The wedding" className={cn(CARD, 'gap-6')}>
-          <p className="font-display text-heading text-ink-soft max-w-xs italic">
-            A lifetime of togetherness begins with one sacred step
-          </p>
-          <h2 className="font-script text-hero text-brand">The Wedding</h2>
-          {parts === null ? (
-            <p className={cn(SPACED, 'text-heading text-ink')}>Date to be shared soon</p>
-          ) : (
-            <p className={cn(SPACED, 'text-heading text-ink flex flex-col gap-1 lining-nums')}>
-              <span aria-hidden="true">
-                {parts.day} · {parts.monthNumber} · {parts.year}
-              </span>
-              <span className="sr-only">{formatWeddingDate(weddingDate ?? '')}</span>
-              {time !== null && <span className="text-small text-ink-soft">{time} onwards</span>}
-            </p>
-          )}
-          {weddingDate !== null && (
-            <Countdown target={weddingStartsAt(weddingDate, ceremonyTime)} />
-          )}
-          {calendarUrl !== null && (
-            <a
-              href={calendarUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="squish border-line bg-surface text-brand shadow-hard-sm rounded-pill inline-flex min-h-12 items-center gap-2 border-2 px-5 font-semibold"
-            >
-              <CalendarIcon />
-              Add to calendar
-            </a>
-          )}
-        </section>
-
-        {/* Where. */}
-        <section aria-label="The venue" className="flex w-full flex-col items-center gap-6">
-          <SectionTitle eyebrow="Where" title="The Venue" />
-          <div className={cn(CARD, 'gap-4')}>
-            <span className="bg-brand-soft text-brand rounded-pill inline-grid size-12 place-items-center">
-              <PinIcon />
-            </span>
-            {venueName === null ? (
-              <>
-                <p className="font-display text-title text-ink-soft italic">
-                  Venue to be shared soon
-                </p>
-                <p className="font-display text-heading text-ink-soft max-w-sm">
-                  {venuePendingNote}
-                </p>
-              </>
+        <section aria-label="The wedding" className="jewel-section jewel-bg-wedding">
+          <Jaali />
+          <div className="relative flex flex-col items-center">
+            <p className="jewel-lede text-jewel-light/80 max-w-55">{TOGETHERNESS}</p>
+            <h2 className="jewel-title mt-2 text-jewel-light">The Wedding</h2>
+            {parts === null ? (
+              <p className="jewel-time mt-4">Date to be shared soon</p>
             ) : (
-              <p className="font-display text-title text-ink font-semibold">{venueName}</p>
+              <>
+                <p className="jewel-date mt-4.5 lining-nums">
+                  <span aria-hidden="true">
+                    {parts.day} · {parts.monthNumber} · {parts.year}
+                  </span>
+                  <span className="sr-only">{formatWeddingDate(weddingDate ?? '')}</span>
+                </p>
+                {time !== null && <p className="jewel-time">{time} onwards</p>}
+              </>
             )}
-            {venueCity !== null && (
-              <p className="font-display text-heading text-ink-soft italic">{venueCity}</p>
+            {weddingDate !== null && (
+              <Countdown target={weddingStartsAt(weddingDate, ceremonyTime)} />
             )}
-            {mapsUrl !== null && (
+            {calendarUrl !== null && (
               <a
-                href={mapsUrl}
+                href={calendarUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn(BUTTON, 'bg-surface text-maps border-line mt-4 border-2')}
+                className="jewel-btn jewel-btn-cal"
               >
-                <Image src="/icons/google-maps.png" alt="" width={24} height={24} />
-                Wedding venue
+                <Icon name="calendar" className="size-3.5" />
+                Add to calendar
               </a>
             )}
           </div>
         </section>
+        <Garland />
+
+        {/* Where. */}
+        <section aria-label="The venue" className="jewel-section jewel-bg-venue">
+          <Jaali />
+          <div className="relative">
+            <SectionTitle
+              label="Where"
+              title="The Venue"
+              labelClassName="text-jewel-emerald"
+              titleClassName="text-jewel-emerald"
+            />
+            <div className="jewel-venue-card">
+              <span className="jewel-pin">
+                <Icon name="pin" className="size-5" />
+              </span>
+              {venueName === null ? (
+                <>
+                  <p className="jewel-venue-name">Venue to be shared soon</p>
+                  <p className="jewel-venue-loc">{venuePendingNote}</p>
+                </>
+              ) : (
+                <p className="jewel-venue-name">{venueName}</p>
+              )}
+              {venueCity !== null && <p className="jewel-venue-loc">{venueCity}</p>}
+              {mapsUrl !== null && (
+                <a
+                  href={mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="jewel-btn jewel-btn-map"
+                >
+                  <Icon name="pin" className="size-3.5" />
+                  Wedding venue
+                </a>
+              )}
+            </div>
+          </div>
+        </section>
+        <Garland />
 
         {rsvpPhoneE164 !== null && (
-          <section aria-label="RSVP" className="flex w-full flex-col items-center gap-6">
-            <SectionTitle eyebrow="Kindly reply" title="Will you join us?" />
-            <p className="font-display text-heading text-ink-soft max-w-sm italic">
-              We would love to have you with us. Please confirm your presence.
-            </p>
-            {/* Sticky on a phone, so the RSVP stays in reach while the guest
-                scrolls (PRD). In place from md up. */}
-            <a
-              href={rsvpWhatsAppUrl(rsvpPhoneE164, bride, groom, guestName)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                BUTTON,
-                'bg-whatsapp text-surface',
-                stickyRsvp && 'sticky bottom-4 z-10 md:static',
-              )}
-            >
-              <Image src="/icons/whatsapp.png" alt="" width={24} height={24} />
-              RSVP now
-            </a>
-            <p className="text-ink-soft font-display text-heading">
-              Just a call away for any questions:{' '}
-              <ContactLink
-                kind="phone"
-                value={displayPhone(rsvpPhoneE164)}
-                className="text-brand decoration-butter"
+          <section aria-label="RSVP" className="jewel-section jewel-bg-rsvp">
+            <Jaali />
+            <div className="relative flex flex-col items-center">
+              <SectionTitle
+                label="Kindly reply"
+                title="Will you join us?"
+                labelClassName="text-jewel-haldi"
+                titleClassName="text-jewel-light"
               />
-            </p>
+              <p className="jewel-lede text-jewel-light/85 mt-3 max-w-70">
+                We would love to have you with us. Please confirm your presence.
+              </p>
+              {/* Sticky on a phone, so the RSVP stays in reach while the guest
+                  scrolls (PRD). In place from md up. */}
+              <a
+                href={rsvpWhatsAppUrl(rsvpPhoneE164, bride, groom, guestName)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  'jewel-btn jewel-btn-rsvp',
+                  stickyRsvp && 'sticky bottom-4 z-10 md:static',
+                )}
+              >
+                <Icon name="check" className="size-4" />
+                RSVP now
+              </a>
+              <p className="jewel-call">
+                Just a call away for any questions:{' '}
+                <a
+                  href={`tel:${rsvpPhoneE164}`}
+                  className="text-jewel-haldi tracking-wide whitespace-nowrap"
+                >
+                  {displayPhone(rsvpPhoneE164)}
+                </a>
+              </p>
+            </div>
           </section>
         )}
 
-        <footer className="flex flex-col items-center gap-4">
-          <Divider />
-          <p className="font-script text-hero text-brand">Join us in our happiness!</p>
-          <p className="font-display text-heading text-ink-soft max-w-sm italic">
-            Your presence will mean the world to us as we begin this new chapter together.
-          </p>
-          <p className={cn(SPACED, 'text-small text-gold mt-2')}>With love</p>
-          <p className="font-script text-title text-brand">
-            {bride} &amp; {groom}
-          </p>
+        <footer className="jewel-section jewel-bg-closing">
+          <Jaali />
+          <div className="relative flex flex-col items-center">
+            <svg
+              viewBox="0 0 120 22"
+              aria-hidden="true"
+              className="w-30"
+              fill="none"
+              stroke="var(--color-jewel-haldi)"
+              strokeWidth="1.1"
+            >
+              <path d="M4 11h34" />
+              <path d="M82 11h34" />
+              <path
+                d="M60 4l3.6 4.4L60 18l-3.6-9.6z"
+                fill="var(--color-jewel-haldi)"
+                stroke="none"
+              />
+              <circle cx="49" cy="11" r="2.6" />
+              <circle cx="71" cy="11" r="2.6" />
+            </svg>
+            <h2 className="jewel-title mt-4 text-jewel-light">
+              Join us in our
+              <br />
+              happiness!
+            </h2>
+            <p className="jewel-msg">
+              Your presence will mean the world to us as we begin this new chapter together.
+            </p>
+            <p className="jewel-withlove">With love</p>
+            <p className="jewel-sign jewel-foil-dark">
+              {bride} &amp; {groom}
+            </p>
+            {/* Small and quiet on purpose (PRD): the couple's invite is the
+                hero, and a credit they would pay to remove helps nobody. */}
+            <a
+              href={madeByUrl}
+              target="_blank"
+              rel="noopener"
+              className="jewel-credit inline-flex min-h-11 items-center gap-1"
+            >
+              Made with{' '}
+              <span role="img" aria-label="love" className="text-jewel-haldi">
+                ♥
+              </span>{' '}
+              by <span className="text-jewel-haldi">vivah.online</span>
+            </a>
+            {editDetailsUrl !== undefined && (
+              <a
+                href={editDetailsUrl}
+                rel="nofollow"
+                className="jewel-editlink inline-flex min-h-11 items-center"
+              >
+                Your wedding? Edit details
+              </a>
+            )}
+          </div>
         </footer>
-
-        {/* Small and quiet on purpose (PRD): the couple's invite is the hero,
-            and a credit they would pay to remove helps nobody. */}
-        <a
-          href={madeByUrl}
-          target="_blank"
-          rel="noopener"
-          className="text-small text-ink-soft hover:text-brand inline-flex min-h-11 items-center"
-        >
-          Made with{' '}
-          <span role="img" aria-label="love" className="mx-1">
-            ❤️
-          </span>{' '}
-          by{' '}
-          <span className="text-brand decoration-butter ml-1 font-semibold underline decoration-2 underline-offset-4">
-            vivah.online
-          </span>
-        </a>
-        {editDetailsUrl !== undefined && (
-          <a
-            href={editDetailsUrl}
-            rel="nofollow"
-            className="text-small text-ink-soft hover:text-brand -mt-4 inline-flex min-h-11 items-center underline underline-offset-4"
-          >
-            Your wedding? Edit details
-          </a>
-        )}
-      </div>
-    </article>
+      </article>
+    </div>
   );
 }

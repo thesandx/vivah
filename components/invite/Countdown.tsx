@@ -42,25 +42,22 @@ export function Countdown({ target }: CountdownProps): React.JSX.Element {
   const parts = now === null ? null : countdownParts(target, now);
 
   if (now !== null && parts === null) {
-    return (
-      <p className="font-script text-title text-brand text-center">
-        Bless the married couple with a happy life!
-      </p>
-    );
+    return <p className="jewel-count-label">Bless the married couple with a happy life!</p>;
   }
 
   return (
     <>
-      <p className="font-script text-title text-brand">Our forever starts in…</p>
-      <dl className="grid w-full max-w-sm grid-cols-4 gap-2 sm:gap-4">
+      <p className="jewel-count-label">Our forever starts in…</p>
+      <dl className="flex justify-center gap-2.5">
         {UNITS.map(([key, label]) => (
-          <div key={key} className="flex flex-col items-center gap-2">
-            <dt className="font-display text-small text-gold order-last tracking-widest uppercase">
-              {label}
-            </dt>
-            <dd className="font-display text-key text-ink flex flex-col items-center gap-2 lining-nums tabular-nums">
-              {parts === null ? '–' : String(parts[key]).padStart(2, '0')}
-              <span aria-hidden="true" className="bg-brand-soft block h-0.5 w-10 rounded-pill" />
+          <div key={key} className="jewel-count-cell flex flex-col items-center">
+            <dt className="jewel-count-u order-last">{label}</dt>
+            <dd className="jewel-count-n lining-nums tabular-nums">
+              {parts === null
+                ? '–'
+                : key === 'days'
+                  ? parts[key]
+                  : String(parts[key]).padStart(2, '0')}
             </dd>
           </div>
         ))}

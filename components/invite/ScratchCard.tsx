@@ -6,7 +6,8 @@ import { cn } from '@/lib/utils';
 
 /**
  * A scratch card: rose foil, thick with pink and gold glitter, over one part
- * of the wedding date. The guest rubs it away with a finger or the mouse, and
+ * of the wedding date. Under the foil is a jewel-toned card (`jewel-scratch`)
+ * with the part's name and value. The guest rubs it away with a finger or the mouse, and
  * the glitter dust they rub off falls from under the finger and fades. Once
  * enough is gone, the rest of the foil sheds its dust and falls away by
  * itself. A keyboard user gets a "Reveal" button instead, so nobody is stuck
@@ -22,10 +23,11 @@ import { cn } from '@/lib/utils';
  */
 
 export interface ScratchCardProps {
-  /** What is under the foil, e.g. `07` or `March`. */
+  /** What is under the foil, e.g. `07` or `12`. */
   value: string;
-  /** What the card is, e.g. `Day`. Names the reveal button. */
+  /** What the card is, e.g. `Day`. Printed over the value, and names the reveal button. */
   label: string;
+  /** The card's face under the foil, e.g. `jewel-scratch-day`. */
   className?: string;
 }
 
@@ -258,16 +260,11 @@ export function ScratchCard({ value, label, className }: ScratchCardProps): Reac
   }
 
   return (
-    <div className={cn('relative w-full', className)}>
-      <div className="bg-surface border-line rounded-card shadow-hard relative grid aspect-3/4 w-full place-items-center overflow-hidden border-2">
-        <span
-          className={cn(
-            'font-display text-brand px-1 text-center font-semibold lining-nums',
-            value.length > 2 ? 'text-title' : 'text-key',
-          )}
-        >
-          {value}
-        </span>
+    <div className="relative">
+      <div className={cn('jewel-scratch', className)}>
+        <span className="jewel-scratch-k">{label}</span>
+        <span className="jewel-scratch-v lining-nums">{value}</span>
+        <span aria-hidden="true" className="jewel-sheen" />
         <canvas
           ref={canvas}
           aria-hidden="true"
