@@ -7,11 +7,11 @@ import { AppBar } from '@/components/layout/AppBar';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
-import { Input } from '@/components/ui/Input';
 import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
 import { DEFAULT_DIAL_COUNTRY, formatPhoneForDisplay, toE164 } from '@/lib/phone';
 import { cn } from '@/lib/utils';
 
+import { OtpInput } from './OtpInput';
 import { PhoneNumberInput } from './PhoneNumberInput';
 
 /**
@@ -35,6 +35,7 @@ const RECAPTCHA_CONTAINER_ID = 'firebase-recaptcha';
 /** How long before "Resend OTP" unlocks. Each SMS costs money; see docs/auth.md. */
 export const RESEND_AFTER_SECONDS = 30;
 
+/** Firebase phone auth always sends a 6-digit code. */
 const OTP_LENGTH = 6;
 
 const STEP_MOTION = {
@@ -208,24 +209,18 @@ export function SignInPanel({
                   verify(otp);
                 }}
               >
-                <Input
+                <OtpInput
                   label="OTP"
-                  {...(auth.error !== null && { error: auth.error })}
-                  name="otp"
+                  length={OTP_LENGTH}
                   value={otp}
-                  onChange={(event) => {
-                    const digits = event.target.value.replace(/\D/g, '').slice(0, OTP_LENGTH);
+                  onChange={(digits) => {
                     setOtp(digits);
                     // Verify as soon as the last digit lands, as an SMS autofill expects.
                     if (digits.length === OTP_LENGTH) verify(digits);
                   }}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  maxLength={OTP_LENGTH}
-                  pattern="\d{6}"
+                  error={auth.error ?? undefined}
+                  disabled={busy}
                   autoFocus
-                  required
-                  code
                 />
                 <Button type="submit" size="lg" block disabled={busy || otp.length !== OTP_LENGTH}>
                   {busy ? 'Verifying…' : 'Verify OTP'}
