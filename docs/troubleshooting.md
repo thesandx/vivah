@@ -447,7 +447,15 @@ The bucket does not allow your origin. A signed-URL PUT is a cross-origin reques
 gcloud storage buckets describe gs://BUCKET --format='value(cors_config)'   # verify
 ```
 
-The script is idempotent, so re-run it with the flags added. The signed URL in the error message is good news: the server made it, so the signing binding and the bucket name are correct. Only the browser's preflight was refused.
+The script is idempotent, so re-run it with the flags added.
+
+This app keeps its origins in [`cloud/storage-cors.json`](../cloud/storage-cors.json). To apply that file alone, without the full bootstrap, run:
+
+```bash
+gcloud storage buckets update gs://BUCKET --cors-file=cloud/storage-cors.json
+```
+
+The deploy workflow sends the same preflight for each origin in that file. A deploy that fails on "Verify browser uploads are allowed" names this command. In the admin panel, the symptom is "That image did not upload. Try another one." The signed URL in the error message is good news: the server made it, so the signing binding and the bucket name are correct. Only the browser's preflight was refused.
 
 ### `UploadRejectedError: no object at tmp/...`
 
