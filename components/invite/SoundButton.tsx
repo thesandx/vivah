@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 /**
- * The round button in the corner of an open invite that pauses and plays the
+ * The round rose button pinned to the top right of an open invite that pauses and plays the
  * couple's song. While the song plays, three bars move inside it. A plain
  * component: `Envelope` holds the audio and passes the state in.
  */
@@ -27,7 +27,7 @@ export function SoundButton({
       aria-label={`${playing ? 'Pause' : 'Play'} our song, ${title}`}
       aria-pressed={playing}
       className={cn(
-        'squish border-line bg-surface text-brand shadow-hard rounded-pill inline-grid size-14 place-items-center border-2',
+        'squish bg-brand text-on-brand shadow-brand rounded-pill inline-grid size-12 place-items-center',
         className,
       )}
     >
@@ -36,7 +36,7 @@ export function SoundButton({
           {[0, 300, 150].map((delay) => (
             <span
               key={delay}
-              className="bg-brand animate-sound-bar block h-5 w-1 origin-bottom rounded-pill"
+              className="bg-on-brand animate-sound-bar block h-5 w-1 origin-bottom rounded-pill"
               style={{ animationDelay: `${delay}ms` }}
             />
           ))}

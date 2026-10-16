@@ -219,20 +219,25 @@ export function Envelope({
         />
       )}
 
-      {showDock && (song !== null || dock !== undefined) && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex flex-col items-stretch gap-3 pb-[env(safe-area-inset-bottom)]">
-          {song !== null && (
-            <div className="animate-pop flex justify-end px-4">
-              <SoundButton
-                playing={playing}
-                title={song.name}
-                onToggle={toggleSong}
-                className="pointer-events-auto"
-              />
-            </div>
+      {showDock && song !== null && (
+        // Pinned to the top right, so the guest can turn the song off or on
+        // from anywhere on the page. Below the preview notch when there is one.
+        <SoundButton
+          playing={playing}
+          title={song.name}
+          onToggle={toggleSong}
+          className={cn(
+            'animate-pop fixed right-4 z-40',
+            top === undefined
+              ? 'top-[max(0.75rem,env(safe-area-inset-top))]'
+              : 'top-[calc(env(safe-area-inset-top)+4rem)]',
           )}
-          {dock !== undefined && <div className="animate-rise-in pointer-events-auto">{dock}</div>}
-          {dock === undefined && <span className="h-2" />}
+        />
+      )}
+
+      {showDock && dock !== undefined && (
+        <div className="animate-rise-in fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)]">
+          {dock}
         </div>
       )}
 

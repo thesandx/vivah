@@ -81,6 +81,19 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getAllByRole('link')).toHaveLength(1);
   });
 
+  it('tells the couple, on their preview, that they can add the venue later', () => {
+    render(
+      <ShubhVivahInvite
+        {...full}
+        venueName={null}
+        venueCity={null}
+        venueMapsUrl={null}
+        venuePendingNote="Add your venue from your dashboard."
+      />,
+    );
+    expect(screen.getByText('Add your venue from your dashboard.')).toBeInTheDocument();
+  });
+
   it('keeps the RSVP in reach on a phone, unless the page asks it not to', () => {
     const { rerender } = render(<ShubhVivahInvite {...full} />);
     expect(screen.getByRole('link', { name: /rsvp now/i })).toHaveClass('sticky');
