@@ -287,10 +287,7 @@ export function ShubhVivahInvite({
             </p>
           )}
           {weddingDate !== null && (
-            <>
-              <p className="font-script text-title text-brand">Our forever starts in…</p>
-              <Countdown target={weddingStartsAt(weddingDate, ceremonyTime)} />
-            </>
+            <Countdown target={weddingStartsAt(weddingDate, ceremonyTime)} />
           )}
           {calendarUrl !== null && (
             <a

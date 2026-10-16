@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 import { countdownParts } from '@/lib/wedding-date';
 
 /**
- * Days, hours, minutes and seconds to the wedding. A Client Component: it
- * ticks every second.
+ * "Our forever starts in…" with the days, hours, minutes and seconds to the
+ * wedding. Once the wedding has started, a blessing takes its place: one or
+ * the other, never both. A Client Component: it ticks every second.
  *
  * The server does not know the guest's clock, so the first render shows
  * dashes and the numbers appear after hydration. That keeps the server and
@@ -49,18 +50,21 @@ export function Countdown({ target }: CountdownProps): React.JSX.Element {
   }
 
   return (
-    <dl className="grid w-full max-w-sm grid-cols-4 gap-2 sm:gap-4">
-      {UNITS.map(([key, label]) => (
-        <div key={key} className="flex flex-col items-center gap-2">
-          <dt className="font-display text-small text-gold order-last tracking-widest uppercase">
-            {label}
-          </dt>
-          <dd className="font-display text-key text-ink flex flex-col items-center gap-2 lining-nums tabular-nums">
-            {parts === null ? '–' : String(parts[key]).padStart(2, '0')}
-            <span aria-hidden="true" className="bg-brand-soft block h-0.5 w-10 rounded-pill" />
-          </dd>
-        </div>
-      ))}
-    </dl>
+    <>
+      <p className="font-script text-title text-brand">Our forever starts in…</p>
+      <dl className="grid w-full max-w-sm grid-cols-4 gap-2 sm:gap-4">
+        {UNITS.map(([key, label]) => (
+          <div key={key} className="flex flex-col items-center gap-2">
+            <dt className="font-display text-small text-gold order-last tracking-widest uppercase">
+              {label}
+            </dt>
+            <dd className="font-display text-key text-ink flex flex-col items-center gap-2 lining-nums tabular-nums">
+              {parts === null ? '–' : String(parts[key]).padStart(2, '0')}
+              <span aria-hidden="true" className="bg-brand-soft block h-0.5 w-10 rounded-pill" />
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </>
   );
 }
