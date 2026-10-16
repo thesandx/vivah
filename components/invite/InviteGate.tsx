@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { SoundButton } from '@/components/invite/SoundButton';
 import { cn } from '@/lib/utils';
@@ -29,10 +29,9 @@ import { cn } from '@/lib/utils';
  * it is in the HTML from the first byte (for search engines and slow phones)
  * and only covered until the guest taps.
  *
- * A guest who opened this invite before skips the card: the browser remembers
- * it under `rememberKey`. Storage can be blocked (private mode), so every
- * access is guarded and the card simply shows again. The couple's preview
- * passes no key, so the card shows every time.
+ * The card shows on every visit, a refresh too, and always waits for the
+ * tap. The song needs that tap, and a card that showed and then vanished by
+ * itself read as a bug.
  */
 
 /** How long the opening runs: the card's lift ends at 120 + 1400 ms. */
@@ -45,8 +44,6 @@ export interface InviteGateProps {
   guestName: string | null;
   /** The couple's names, for the screen reader's label: `Riya & Arjun`. */
   couple: string;
-  /** The storage key that remembers this guest opened this invite. Omit to always show it. */
-  rememberKey?: string;
   /** The couple's song. The tap that opens the invite starts it. */
   song?: { name: string; src: string } | null;
   /** Pinned to the top of the screen at every phase, over the card too. */
@@ -54,29 +51,6 @@ export interface InviteGateProps {
   /** Pinned to the bottom of the screen once the invite is open. */
   dock?: React.ReactNode;
   children: React.ReactNode;
-}
-
-function remembered(key: string | undefined): boolean {
-  if (key === undefined) return false;
-  try {
-    return window.localStorage.getItem(key) === '1';
-  } catch {
-    return false;
-  }
-}
-
-function remember(key: string | undefined): void {
-  if (key === undefined) return;
-  try {
-    window.localStorage.setItem(key, '1');
-  } catch {
-    // Storage is blocked. The card shows again next time; nothing breaks.
-  }
-}
-
-/** The remembered visit only changes when this component writes it. */
-function subscribeToNothing(): () => void {
-  return () => {};
 }
 
 function prefersReducedMotion(): boolean {
@@ -88,27 +62,18 @@ const CARD = { src: '/invite/ganesha-card.webp', width: 475, height: 662 };
 export function InviteGate({
   guestName,
   couple,
-  rememberKey,
   song = null,
   top,
   dock,
   children,
 }: InviteGateProps): React.JSX.Element {
-  // `null` until the guest acts: then the phase follows whether this browser
-  // remembers an earlier visit. The server always renders the card.
-  const [chosen, setChosen] = useState<Phase | null>(null);
-  const seen = useSyncExternalStore(
-    subscribeToNothing,
-    () => remembered(rememberKey),
-    () => false,
-  );
-  const phase: Phase = chosen ?? (seen ? 'open' : 'closed');
+  const [phase, setPhase] = useState<Phase>('closed');
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
     if (phase !== 'opening') return;
-    const timer = setTimeout(() => setChosen('open'), prefersReducedMotion() ? 0 : OPENING_MS);
+    const timer = setTimeout(() => setPhase('open'), prefersReducedMotion() ? 0 : OPENING_MS);
     return () => clearTimeout(timer);
   }, [phase]);
 
@@ -134,8 +99,7 @@ export function InviteGate({
   function open(): void {
     // Start the song inside the tap: it is the gesture that allows sound.
     audio.current?.play().catch(() => setPlaying(false));
-    remember(rememberKey);
-    setChosen('opening');
+    setPhase('opening');
   }
 
   function toggleSong(): void {
@@ -208,7 +172,7 @@ export function InviteGate({
           type="button"
           onClick={open}
           disabled={opening}
-          aria-label={`${greeting}. Tap to open the wedding invite of ${couple}`}
+          aria-label={`${greeting}. Please tap to open your invitation from ${couple}`}
           className="fixed inset-0 z-50 block overflow-hidden"
         >
           <span
@@ -247,48 +211,46 @@ export function InviteGate({
             }}
           />
 
-          {/* The card fills what the greeting leaves, so the two never
-              overlap on a short phone. */}
-          <span className="absolute inset-0 flex flex-col">
-            <span
-              className={cn(
-                'flex min-h-0 flex-1 items-center justify-center px-4',
-                top === undefined ? 'pt-6' : 'pt-20',
-                opening && 'animate-gate-card-rise',
-              )}
-            >
-              <span className="animate-card-bob flex size-full items-center justify-center">
-                <Image
-                  src={CARD.src}
-                  alt=""
-                  width={CARD.width}
-                  height={CARD.height}
-                  priority
-                  // Served as is: the file is already small, and Next's
-                  // density srcset would halve its natural size, which the
-                  // auto width and height below would then show at half size.
-                  unoptimized
-                  draggable={false}
-                  className="rounded-input block h-auto max-h-full w-auto max-w-full select-none"
-                />
-              </span>
+          {/* On a phone the card art fills the screen, as an app's splash
+              screen does; it is cropped at the sides only, so Shri Ganesh and
+              the words under him stay in view. From `md` up it stands as a
+              card on the blurred backdrop, as stretching it to a desktop
+              screen would blur it and crop the arch. */}
+          <span
+            className={cn(
+              'absolute inset-0 md:flex md:items-center md:justify-center md:px-4 md:pb-36',
+              top === undefined ? 'md:pt-6' : 'md:pt-20',
+              opening && 'animate-gate-card-rise',
+            )}
+          >
+            <span className="block size-full md:animate-card-bob md:flex md:items-center md:justify-center">
+              <Image
+                src={CARD.src}
+                alt=""
+                width={CARD.width}
+                height={CARD.height}
+                priority
+                // Served as is: the file is already small, and Next's
+                // density srcset would halve its natural size, which the
+                // auto width and height on a desktop would then show at half size.
+                unoptimized
+                draggable={false}
+                className="md:rounded-input block size-full object-cover select-none md:h-auto md:max-h-full md:w-auto md:max-w-full md:object-contain"
+              />
             </span>
+          </span>
 
-            <span
-              className={cn(
-                'flex flex-col items-center gap-1 px-6 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] text-center',
-                opening && 'animate-gate-hint-out',
-              )}
-            >
-              <span className="font-script text-title text-surface">{greeting}</span>
-              <span className="font-display text-small text-surface animate-breathe tracking-widest uppercase">
-                Tap to open
-              </span>
-              {song !== null && (
-                <span className="text-small text-surface font-display italic">
-                  Turn your sound on. Our song plays as it opens.
-                </span>
-              )}
+          {/* The greeting, over the foot of the art, on a dark fade so it
+              reads on the light card. */}
+          <span
+            className={cn(
+              'from-plum-night/90 absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-linear-to-t to-transparent px-6 pt-32 pb-[max(2rem,env(safe-area-inset-bottom))] text-center',
+              opening && 'animate-gate-hint-out',
+            )}
+          >
+            <span className="font-script text-hero text-surface">{greeting}</span>
+            <span className="font-display text-heading text-surface">
+              Please tap to open your invitation
             </span>
           </span>
         </button>

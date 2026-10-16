@@ -8,12 +8,7 @@ function renderGate(
   extra: Partial<React.ComponentProps<typeof InviteGate>> = {},
 ) {
   return render(
-    <InviteGate
-      guestName={guestName}
-      couple="Sara & Kabir"
-      rememberKey="vivah:opened:test"
-      {...extra}
-    >
+    <InviteGate guestName={guestName} couple="Sara & Kabir" {...extra}>
       <h1>The invite</h1>
     </InviteGate>,
   );
@@ -22,7 +17,6 @@ function renderGate(
 describe('InviteGate', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    window.localStorage.clear();
     vi.stubGlobal('matchMedia', () => ({ matches: false }));
   });
 
@@ -42,7 +36,7 @@ describe('InviteGate', () => {
     expect(screen.getByText('You are invited')).toBeInTheDocument();
   });
 
-  it('opens on a tap, then remembers the guest', () => {
+  it('opens on a tap', () => {
     renderGate();
     fireEvent.click(screen.getByRole('button', { name: /tap to open/i }));
     act(() => {
@@ -50,13 +44,21 @@ describe('InviteGate', () => {
     });
     expect(screen.queryByText('Hi Kartheek')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'The invite' })).toBeInTheDocument();
-    expect(window.localStorage.getItem('vivah:opened:test')).toBe('1');
   });
 
-  it('skips the card for a guest who opened it before', () => {
-    window.localStorage.setItem('vivah:opened:test', '1');
+  it('shows the card again on the next visit and waits for the tap', () => {
+    const first = renderGate();
+    fireEvent.click(screen.getByRole('button', { name: /tap to open/i }));
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    first.unmount();
     renderGate();
-    expect(screen.queryByText('Hi Kartheek')).not.toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+    expect(screen.getByText('Hi Kartheek')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /tap to open/i })).toBeInTheDocument();
   });
 
   it('starts the song on the tap that opens it, then offers a sound button', () => {
@@ -80,8 +82,7 @@ describe('InviteGate', () => {
     pause.mockRestore();
   });
 
-  it('always shows the card without a remember key, and shows the top and the dock', () => {
-    window.localStorage.setItem('vivah:opened:test', '1');
+  it('shows the top over the card, and the dock once open', () => {
     render(
       <InviteGate
         guestName={null}

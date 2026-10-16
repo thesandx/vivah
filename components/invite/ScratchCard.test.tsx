@@ -39,6 +39,15 @@ describe('ScratchCard', () => {
     expect(container.querySelector('canvas')).not.toHaveClass('opacity-0');
   });
 
+  it('writes no label on the foil, so a half-scratched card never shows stray letters', () => {
+    const fillText = vi.fn();
+    vi.mocked(HTMLCanvasElement.prototype.getContext).mockImplementation(
+      () => ({ ...fakeContext(), fillText }) as never,
+    );
+    render(<ScratchCard value="Oct" label="Month" />);
+    expect(fillText).not.toHaveBeenCalled();
+  });
+
   it('gives a keyboard user a way to reveal it', () => {
     const { container } = render(<ScratchCard value="Dec" label="Month" />);
     fireEvent.click(screen.getByRole('button', { name: 'Reveal the month' }));
