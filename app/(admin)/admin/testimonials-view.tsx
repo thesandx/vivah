@@ -40,7 +40,27 @@ const STAR_OPTIONS = [5, 4, 3, 2, 1].map((stars) => ({
   label: `${stars} star${stars === 1 ? '' : 's'}`,
 }));
 
-function ChatFields({ chat }: { chat?: ChatItem }) {
+/** A form's starting values by input name. Each field's `defaultValue` reads them too. */
+type FieldValues = Readonly<Record<string, string>>;
+
+function chatValues(chat?: ChatItem): FieldValues {
+  return {
+    message: chat?.message ?? '',
+    caption: chat?.caption ?? '',
+    app: chat?.app ?? 'whatsapp',
+  };
+}
+
+function reviewValues(review?: ReviewItem): FieldValues {
+  return {
+    quote: review?.quote ?? '',
+    names: review?.names ?? '',
+    relation: review?.relation ?? '',
+    stars: String(review?.stars ?? 5),
+  };
+}
+
+function ChatFields({ values }: { values: FieldValues }) {
   return (
     <>
       <Textarea
@@ -49,27 +69,22 @@ function ChatFields({ chat }: { chat?: ChatItem }) {
         rows={3}
         maxLength={240}
         required
-        defaultValue={chat?.message ?? ''}
+        defaultValue={values.message}
         hint="The line that matters, as the couple wrote it. It shows in quotes above the screenshot."
       />
       <Input
         label="Caption (optional)"
         name="caption"
         maxLength={80}
-        defaultValue={chat?.caption ?? ''}
+        defaultValue={values.caption}
         hint="Under the screenshot, such as “WhatsApp, after the haldi”."
       />
-      <Select
-        label="From"
-        name="app"
-        options={APP_OPTIONS}
-        defaultValue={chat?.app ?? 'whatsapp'}
-      />
+      <Select label="From" name="app" options={APP_OPTIONS} defaultValue={values.app} />
     </>
   );
 }
 
-function ReviewFields({ review }: { review?: ReviewItem }) {
+function ReviewFields({ values }: { values: FieldValues }) {
   return (
     <>
       <Textarea
@@ -78,32 +93,37 @@ function ReviewFields({ review }: { review?: ReviewItem }) {
         rows={4}
         maxLength={400}
         required
-        defaultValue={review?.quote ?? ''}
-        hint="Their words, as sent. It shows on the photo."
+        defaultValue={values.quote}
+        hint="Their words, as sent. It shows on the photo. The preview shows where a long review stops."
       />
       <Input
         label="Names"
         name="names"
         maxLength={60}
         required
-        defaultValue={review?.names ?? ''}
+        defaultValue={values.names}
         hint="Such as “Riya & Aman”."
       />
       <Input
         label="Who wrote it (optional)"
         name="relation"
         maxLength={60}
-        defaultValue={review?.relation ?? ''}
+        defaultValue={values.relation}
         hint="Such as “Bride and groom” or “Bride’s sister”."
       />
-      <Select
-        label="Stars"
-        name="stars"
-        options={STAR_OPTIONS}
-        defaultValue={String(review?.stars ?? 5)}
-      />
+      <Select label="Stars" name="stars" options={STAR_OPTIONS} defaultValue={values.stars} />
     </>
   );
+}
+
+/** The starting values and the fields of one form, for an item or a new one. */
+function formParts(kind: TestimonialKind, item?: ChatItem | ReviewItem) {
+  if (kind === 'chat') {
+    const values = chatValues(item !== undefined && 'message' in item ? item : undefined);
+    return { values, fields: <ChatFields values={values} /> };
+  }
+  const values = reviewValues(item !== undefined && 'quote' in item ? item : undefined);
+  return { values, fields: <ReviewFields values={values} /> };
 }
 
 const LISTS = {
@@ -117,7 +137,7 @@ const LISTS = {
   review: {
     title: 'Couple reviews',
     intro:
-      'The “From our couples” row. A tall photo works best; the words sit on its lower half. Add only real reviews, with the couple’s permission.',
+      'The “From our couples” row. A tall photo works best; the words sit on its lower half. Check the preview before you save. Add only real reviews, with the couple’s permission.',
     imageLabel: 'Photo',
     noun: 'review',
   },
@@ -170,6 +190,7 @@ function ListSection({
 }) {
   const list = LISTS[kind];
   const startUpload = startTestimonialUploadAction.bind(null, kind);
+  const newForm = formParts(kind);
 
   return (
     <section className="flex flex-col gap-4">
@@ -181,18 +202,13 @@ function ListSection({
       </header>
 
       <ol className="flex flex-col gap-4">
-        {items.map((item, index) => (
-          <li
-            key={item.id}
-            className="border-line rounded-card bg-surface flex flex-col gap-4 border-2 p-4 md:flex-row"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element -- the same route the home page uses */}
-            <img
-              src={testimonialImageUrl(kind, item.id, item.image)}
-              alt=""
-              className="rounded-box bg-sunken aspect-3/4 w-32 shrink-0 object-cover object-top"
-            />
-            <div className="flex flex-1 flex-col gap-4">
+        {items.map((item, index) => {
+          const { values, fields } = formParts(kind, item);
+          return (
+            <li
+              key={item.id}
+              className="border-line rounded-card bg-surface flex flex-col gap-4 border-2 p-4"
+            >
               <TestimonialForm
                 kind={kind}
                 startUpload={startUpload}
@@ -200,8 +216,10 @@ function ListSection({
                 isNew={false}
                 imageLabel={list.imageLabel}
                 submitLabel="Save changes"
+                image={testimonialImageUrl(kind, item.id, item.image)}
+                initialValues={values}
               >
-                {'message' in item ? <ChatFields chat={item} /> : <ReviewFields review={item} />}
+                {fields}
               </TestimonialForm>
               <ItemControls
                 kind={kind}
@@ -209,9 +227,9 @@ function ListSection({
                 first={index === 0}
                 last={index === items.length - 1}
               />
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ol>
 
       {items.length < MAX_TESTIMONIALS ? (
@@ -224,8 +242,10 @@ function ListSection({
             isNew
             imageLabel={list.imageLabel}
             submitLabel={`Add the ${list.noun}`}
+            image={null}
+            initialValues={newForm.values}
           >
-            {kind === 'chat' ? <ChatFields /> : <ReviewFields />}
+            {newForm.fields}
           </TestimonialForm>
         </div>
       ) : (
