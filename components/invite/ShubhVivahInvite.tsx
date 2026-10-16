@@ -206,8 +206,7 @@ export function ShubhVivahInvite({
               <p className="font-script text-title text-brand">Dear {guestName},</p>
             )}
             <p className="font-display text-heading text-ink-soft max-w-sm italic">
-              With the blessings of Shri Ganesh and our beloved families, we joyfully invite you to
-              celebrate the union of
+              With hearts full of joy, we
             </p>
             <h1 className="flex flex-col items-center gap-1">
               <span className="font-script text-hero text-brand">{bride}</span>
@@ -218,6 +217,9 @@ export function ShubhVivahInvite({
               </span>
               <span className="font-script text-hero text-brand">{groom}</span>
             </h1>
+            <p className="font-display text-heading text-ink-soft italic">
+              invite you to our wedding
+            </p>
             {/* With a date, the day waits under the scratch cards below. */}
             {weddingDate === null && (
               <p className={cn(SPACED, 'text-small text-ink')}>Date to be shared soon</p>

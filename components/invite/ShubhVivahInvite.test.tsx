@@ -30,7 +30,8 @@ describe('ShubhVivahInvite', () => {
   it('opens with the Ganesh shloka, as a printed card does', () => {
     render(<ShubhVivahInvite {...full} />);
     expect(screen.getByText('॥ श्री गणेशाय नमः ॥')).toBeInTheDocument();
-    expect(screen.getByText(/blessings of Shri Ganesh/)).toBeInTheDocument();
+    expect(screen.getByText('With hearts full of joy, we')).toBeInTheDocument();
+    expect(screen.getByText('invite you to our wedding')).toBeInTheDocument();
   });
 
   it('hides the date under three scratch cards', () => {
