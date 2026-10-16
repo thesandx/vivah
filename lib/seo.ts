@@ -13,7 +13,7 @@ import { PRICE_FROM_RUPEES, SOCIAL } from '@/lib/business';
 import { normaliseHost, resolveSiteSurface } from '@/lib/site-host';
 
 /** The date the marketing copy last changed. Shown on the page and in `dateModified`. */
-export const CONTENT_UPDATED = '2026-10-15';
+export const CONTENT_UPDATED = '2026-10-16';
 
 /** The brand line used in titles, schema and `llms.txt`. Keep them identical. */
 export const BRAND_DESCRIPTION =
@@ -34,14 +34,18 @@ export const PRODUCT_FEATURES: readonly string[] = [
   'A private preview on WhatsApp before you pay',
   'A couple dashboard ("My site"), signed in with your phone number',
   'Edit the names, date, time, venue and Google Maps link from the dashboard; every link updates',
+  'Change the invite’s song from the dashboard',
   'Make a personal invite link for each guest by typing their name in the dashboard',
   'Copy each guest link, or send it on WhatsApp in one tap, from the dashboard',
   'Delete a guest link from the dashboard',
-  'Each guest’s invite opens with their own name',
-  'A live countdown to the wedding',
+  'Each guest’s invite opens with a Shri Ganesh card that greets them by name (“Hi Kartheek”) and waits for their tap',
+  'A link preview card in WhatsApp with the guest’s name, the couple’s names and the date',
+  'The Vakratunda shloka and Shri Ganesh over the couple’s names',
+  'The wedding date hidden under gold foil cards that guests scratch to reveal',
+  'A live countdown to the wedding, and a blessing for the couple after the day',
+  'Add the wedding to Google Calendar in one tap',
   'The venue with a Google Maps link',
-  'An envelope that guests open, with falling petals',
-  'A song for the invite, chosen at sign-up, that guests tap to play',
+  'A song for the invite, chosen at sign-up: it starts when the guest taps to open the invite, never by itself, and a speaker button pauses it',
   'RSVP on WhatsApp: guests reply to the couple in one tap, and the reply arrives in the couple’s WhatsApp',
   'No app to install for the couple or the guests; no charge per guest',
 ];
@@ -54,12 +58,17 @@ export const PRODUCT_FAQS: readonly Faq[] = [
   {
     question: 'What do I get with vivah.online?',
     answer:
-      'A wedding website on your own address, a dashboard to manage it, and a personal invite link for every guest. Each invite shows the guest’s name, a countdown, the venue map, your song and a WhatsApp RSVP button.',
+      'A wedding website on your own address, a dashboard to manage it, and a personal invite link for every guest. Each invite opens with Shri Ganesh and the guest’s name, then shows your song, a date to scratch open, a countdown, the venue map and a WhatsApp RSVP button.',
   },
   {
     question: 'Is there a dashboard for the couple?',
     answer:
-      'Yes. After you pay, sign in with your phone number at vivah.online/dashboard ("My site"). There you change your wedding details, make an invite link for each guest by name, copy it or send it on WhatsApp, and delete links you no longer need.',
+      'Yes. After you pay, sign in with your phone number at vivah.online/dashboard ("My site"). There you change your wedding details and your song, make an invite link for each guest by name, copy it or send it on WhatsApp, and delete links you no longer need.',
+  },
+  {
+    question: 'What do guests see when they open the link?',
+    answer:
+      'A Shri Ganesh card says “Hi” with the guest’s name and asks them to tap. The tap opens your invite and starts your song, which they can pause. They scratch gold foil to reveal the date, then see the countdown, the venue on Google Maps and the RSVP button.',
   },
   {
     question: 'How does RSVP work?',

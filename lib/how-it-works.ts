@@ -26,20 +26,20 @@ export const HOW_IT_WORKS_STEPS: readonly HowItWorksStep[] = [
   {
     step: 1,
     title: 'Type your names',
-    body: 'Both names, the wedding date and your WhatsApp number.',
+    body: 'Both names, the date and your WhatsApp number. Then pick your address and a song.',
     alt: 'The sign-up card on a phone, with the bride’s and groom’s names typed in.',
   },
   {
     step: 2,
     title: 'See your website',
-    body: 'Your invite opens at once. Add the venue, time and map.',
-    alt: 'A wedding invite on a phone that greets the guest by name.',
+    body: 'Your invite opens at once, with your song. Add the venue, time and map from your dashboard.',
+    alt: 'A wedding invite on a phone that opens with Shri Ganesh and greets the guest by name.',
   },
   {
     step: 3,
     title: 'Send it to everyone',
     body: 'Publish, then make each guest’s link in your dashboard and send it on WhatsApp.',
-    alt: 'A WhatsApp chat on a phone with the invite link and a happy reply.',
+    alt: 'A WhatsApp chat on a phone with the invite card, the guest’s link and a happy reply.',
   },
 ];
 

@@ -42,30 +42,41 @@ function Tile({ title, note, className, children }: TileProps) {
   );
 }
 
-function Envelope() {
+/** Three date cards: the day scratched open, the month and year still under gold foil. */
+function ScratchDate() {
   return (
-    <svg viewBox="0 0 120 84" className="h-16 sm:h-20">
-      <rect
-        x="2"
-        y="2"
-        width="116"
-        height="80"
-        rx="6"
-        className="fill-surface stroke-ink"
-        strokeWidth="2.5"
-      />
-      <path
-        d="M2 8 L 60 50 L 118 8"
-        className="fill-brand-soft stroke-ink"
-        strokeWidth="2.5"
-        strokeLinejoin="round"
-      />
-      <circle cx="60" cy="48" r="13" className="fill-danger stroke-ink" strokeWidth="2.5" />
-      <path
-        d="M60 54s-6-3.6-6-7.6a3.4 3.4 0 0 1 6-2.2 3.4 3.4 0 0 1 6 2.2c0 4-6 7.6-6 7.6Z"
-        className="fill-brand-soft"
-      />
-    </svg>
+    <span className="flex items-center gap-2">
+      <span className="bg-surface shadow-hard rounded-input font-weighted text-heading grid size-10 place-items-center font-bold sm:size-12">
+        14
+      </span>
+      <span className="bg-butter shadow-hard rounded-input grid size-10 place-items-center sm:size-12">
+        ✨
+      </span>
+      <span className="bg-butter shadow-hard rounded-input grid size-10 place-items-center sm:size-12">
+        ✨
+      </span>
+    </span>
+  );
+}
+
+/** Music notes beside the round speaker button that plays and pauses the song. */
+function SongButton() {
+  return (
+    <span className="flex items-center gap-3">
+      <span className="font-script text-title leading-none">♪ ♫</span>
+      <span className="bg-surface shadow-hard grid size-11 place-items-center rounded-full">
+        <svg
+          viewBox="0 0 24 24"
+          className="stroke-ink size-6 fill-none"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4v-5Z" />
+          <path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+        </svg>
+      </span>
+    </span>
   );
 }
 
@@ -102,43 +113,47 @@ export function GuestPreview({ className }: GuestPreviewProps) {
     <ul className={cn('grid grid-cols-2 gap-x-4 gap-y-5 sm:gap-x-5 lg:grid-cols-4', className)}>
       <Tile
         title="Your wedding site"
-        note="Names, date and venue, on your own link"
+        note="Shri Ganesh, your names, the date and the venue"
         className="bg-brand-soft flex-col gap-1"
       >
-        <span className="text-small text-ink-soft tracking-widest uppercase">Shubh Vivah</span>
+        <span className="text-small text-ink-soft">॥ श्री गणेशाय नमः ॥</span>
         <span className="font-script text-heading leading-tight">Raadha &amp; Shyam</span>
       </Tile>
 
       <Tile
-        title="Each guest by name"
-        note="Every guest gets a link that greets them"
-        className="bg-surface flex-col gap-1"
+        title="Opens with their name"
+        note="A Shri Ganesh card says “Hi” and waits for a tap"
+        className="bg-peach flex-col gap-1"
       >
-        <span className="text-small text-ink-soft">Dear</span>
         <span className="font-script text-heading decoration-butter leading-tight underline decoration-2 underline-offset-4">
-          Sharma ji
+          Hi Sharma ji
         </span>
+        <span className="text-small">Tap to open your invitation</span>
       </Tile>
 
-      <Tile title="Opens from WhatsApp" note="No app to install, for anyone" className="bg-sunken">
+      <Tile
+        title="Opens from WhatsApp"
+        note="A card with your names shows in the chat"
+        className="bg-sunken"
+      >
         <span className="bg-soda rounded-input text-small flex flex-col px-3 py-2 text-left">
           <span className="font-semibold">Raadha weds Shyam</span>
-          <span>Tap to open 💌</span>
+          <span>Hi Sharma ji 🙏</span>
         </span>
       </Tile>
 
       <Tile
-        title="An envelope to open"
-        note="Guests tap the seal, and petals fall"
-        className="bg-peach"
+        title="Scratch to see the date"
+        note="Gold foil cards hide the day, month and year"
+        className="bg-grape"
       >
-        <Envelope />
+        <ScratchDate />
       </Tile>
 
       <Tile
         title="A live countdown"
-        note="Days to go, ticking on every invite"
-        className="bg-grape flex-col"
+        note="Days to go, then a blessing after the wedding"
+        className="bg-butter flex-col"
       >
         <span className="font-weighted text-title leading-none font-bold">120</span>
         <span className="text-small">days to go</span>
@@ -148,25 +163,20 @@ export function GuestPreview({ className }: GuestPreviewProps) {
         <VenueMap />
       </Tile>
 
+      <Tile title="Your song" note="It plays when the guest taps to open" className="bg-blush">
+        <SongButton />
+      </Tile>
+
       <Tile
         title="RSVP on WhatsApp"
-        note="Guests answer you in one tap"
-        className="bg-butter flex-col gap-2"
+        note="A reply to you, already typed"
+        className="bg-surface flex-col gap-2"
       >
-        <span className="font-script text-heading leading-tight">Will you come?</span>
+        <span className="font-script text-heading leading-tight">Will you join us?</span>
         <span className="bg-whatsapp text-surface rounded-pill text-small flex items-center gap-1.5 px-3 py-1 font-semibold">
           <WhatsAppIcon className="size-4" />
           Reply
         </span>
-      </Tile>
-
-      <Tile
-        title="Your own link"
-        note="Easy to type, easy to remember"
-        className="bg-surface flex-col"
-      >
-        <span className="font-display text-body sm:text-heading leading-tight">raadha-shyam</span>
-        <span className="text-small text-ink-soft">.vivah.online</span>
       </Tile>
     </ul>
   );
