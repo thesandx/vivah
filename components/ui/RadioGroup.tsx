@@ -82,10 +82,23 @@ export function RadioGroup({
                   'disabled:bg-sunken disabled:cursor-not-allowed disabled:border-dashed',
                 )}
               />
-              <span
-                aria-hidden="true"
-                className="bg-ink pointer-events-none absolute hidden size-3 rounded-full peer-checked:block peer-checked:animate-check"
-              />
+              {value === undefined ? (
+                <span
+                  aria-hidden="true"
+                  className="bg-ink pointer-events-none absolute hidden size-3 rounded-full peer-checked:block peer-checked:animate-check"
+                />
+              ) : (
+                // Controlled: draw the dot from `value`, not from `:checked`.
+                // iOS Safari does not always restyle `input:checked ~ span`
+                // when a radio is checked from script, or unchecked because
+                // another one was chosen, so one list could show no dot or two.
+                value === option.value && (
+                  <span
+                    aria-hidden="true"
+                    className="bg-ink animate-check pointer-events-none absolute size-3 rounded-full"
+                  />
+                )
+              )}
             </span>
             <span className="flex min-w-0 flex-1 flex-col pt-2.5">
               <label

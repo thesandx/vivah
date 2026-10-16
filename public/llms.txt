@@ -16,16 +16,19 @@ It is for Hindu weddings in India. The price starts at ₹499, paid once, with n
 - In the dashboard, the couple edits the names, date, time, venue and Google Maps link. Every guest link shows the change at once.
 - In the dashboard, the couple types a guest's name to make that guest's personal invite link.
 - In the dashboard, the couple copies each guest link or sends it on WhatsApp in one tap, and deletes links they no longer need.
-- A song for the invite, chosen at sign-up.
+- A song for the invite, chosen at sign-up. The couple can change it in the dashboard.
 
 ### For each guest
 
-- The invite opens with the guest's own name.
-- An envelope to open, with falling petals.
-- A live countdown to the wedding.
+- A link preview card in WhatsApp with the guest's name, the couple's names and the date.
+- A Shri Ganesh opening card that says "Hi" with the guest's own name and waits for a tap.
+- The couple's song. It starts with that tap, never by itself, and a speaker button pauses it.
+- Shri Ganesh and the Vakratunda shloka over the couple's names.
+- The wedding date under gold foil cards that the guest scratches to reveal.
+- A live countdown to the wedding. After the day, a blessing for the couple.
+- A one-tap link to add the wedding to Google Calendar.
 - The venue, with a Google Maps link.
-- The couple's song, which the guest taps to play.
-- An RSVP button.
+- An RSVP button, and a button to call the couple.
 
 ## How RSVP works
 
