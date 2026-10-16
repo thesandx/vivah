@@ -59,6 +59,7 @@
   /* WhatsApp's own green, for the WhatsApp button only. People know it on
      sight, so it stays the same in every theme. */
   --color-whatsapp: #1da851; /* a shade darker than #25d366, so white reaches 3:1 */
+  --color-plum-night: #2a0d1c; /* the dark cover behind the invite's Ganesh card */
   --color-maps: #1a73e8; /* Google's link blue: the Maps button's words, 4.5:1 on white */
 
   /* Focus — peacock, so a focus ring never reads as the brand */
@@ -162,6 +163,14 @@
   --animate-nudge: nudge 1.8s ease-in-out infinite;
   /* Shri Ganesh on the invite floats, barely: 4px up and down, slowly. */
   --animate-float: float 4s ease-in-out infinite;
+  /* The invite's opening card: it bobs while it waits. On the tap the dark
+     cover dissolves, the card lifts up and off, and a gold light blooms behind
+     it. InviteGate removes the cover at OPENING_MS, after the last of these. */
+  --animate-card-bob: card-bob 7s ease-in-out infinite;
+  --animate-gate-wash-out: gate-wash-out 1100ms 50ms cubic-bezier(0.45, 0, 0.55, 1) forwards;
+  --animate-gate-card-rise: gate-card-rise 1400ms 120ms cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  --animate-gate-glow: gate-glow 1400ms 120ms ease-out forwards;
+  --animate-gate-hint-out: gate-hint-out 300ms ease-out forwards;
   /* The sign-up card's send: the envelope pulls back, then zooms off to the
      right as its speed lines streak behind it. `components/lead/SendMoment.tsx`
      waits the same 760 ms before it shows the tick. */
@@ -310,6 +319,46 @@
     }
     50% {
       transform: scaleY(1);
+    }
+  }
+
+  @keyframes card-bob {
+    50% {
+      transform: translateY(-9px);
+    }
+  }
+
+  @keyframes gate-wash-out {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes gate-card-rise {
+    to {
+      transform: translateY(-150%) scale(0.92);
+    }
+  }
+
+  @keyframes gate-glow {
+    0% {
+      opacity: 0;
+      transform: scale(1);
+    }
+    55% {
+      opacity: 0.85;
+      transform: scale(1.3);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.3);
+    }
+  }
+
+  @keyframes gate-hint-out {
+    to {
+      opacity: 0;
+      transform: translateY(14px);
     }
   }
 

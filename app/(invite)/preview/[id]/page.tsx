@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
-import { Envelope } from '@/components/invite/Envelope';
+import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteTheme } from '@/components/invite/InviteTheme';
 import { PreviewNotch } from '@/components/invite/PreviewNotch';
 import { PublishBanner } from '@/components/invite/PublishBanner';
@@ -13,7 +13,6 @@ import { Alert } from '@/components/ui/Alert';
 import { Face } from '@/components/ui/Face';
 import { PRICE_FROM_RUPEES } from '@/lib/business';
 import { env } from '@/lib/env';
-import { coupleInitials } from '@/lib/guest-name';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
@@ -152,9 +151,8 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
 
   return (
     <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
-      <Envelope
+      <InviteGate
         guestName={null}
-        initials={coupleInitials(lead.bride, lead.groom)}
         couple={`${lead.bride} & ${lead.groom}`}
         song={song}
         top={<PreviewNotch note={published ? 'your invite is live' : 'only you can see this'} />}
@@ -178,7 +176,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
             className="flex-1"
           />
         </main>
-      </Envelope>
+      </InviteGate>
     </InviteTheme>
   );
 }
