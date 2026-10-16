@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 
 import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/invite/SlugPicker';
 import { BrandMark } from '@/components/layout/BrandMark';
+import { Alert } from '@/components/ui/Alert';
+import { usePublishInvite } from '@/hooks/usePublishInvite';
 import { PAPER_CARDS, PAYMENT_LIVE, PAYMENT_METHODS, PAYMENT_PROVIDER } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
@@ -13,9 +15,14 @@ import { cn } from '@/lib/utils';
  * Closed, it is a one-line bar (the price and "Continue") while the couple
  * reads their invite. At the foot of the page it grows to the full sheet: the
  * price against what paper cards cost, one green button and the trust lines.
- * Scrolling up shrinks it back. Open, it is the checkout: what
- * publishing gives them, their address, an order summary, the ways to pay,
- * and the pay button.
+ * Scrolling up shrinks it back. The green button on either goes straight to
+ * payment (the product owner, 2026-10-16): the couple chose their address on
+ * the sign-up card, so there is nothing left to ask. Only "See everything you
+ * get" opens the checkout: what publishing gives them, their address, an
+ * order summary, the pay button, then the ways to pay. The pay button sits
+ * above the ways to pay so that a small phone shows it without a scroll. With
+ * no chosen address (taken meanwhile), the green button opens the checkout
+ * too, where the couple picks one.
  *
  * It is a transaction surface, so it is set apart from the invite behind it:
  * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
@@ -189,7 +196,36 @@ export function PublishBanner({
     };
   }, []);
 
+  // The closed sheet's green button pays at once, for the address the couple
+  // chose. Without one, it opens the checkout, where they pick an address.
+  const direct = usePublishInvite(leadId, publish);
+  const directWorking = direct.status !== 'idle';
+  function payNow(): void {
+    if (chosen === undefined) {
+      setOpen(true);
+      return;
+    }
+    void direct.run(chosen);
+  }
+
   const continueLabel = PAYMENT_LIVE ? `Continue to payment · ${price}` : 'Continue to publish';
+  const directLabel =
+    direct.status === 'done'
+      ? 'Opening your invite'
+      : PAYMENT_LIVE
+        ? 'Opening payment'
+        : 'Publishing your invite';
+  const directError = direct.error !== null && (
+    <Alert tone="danger" title="Your invite was not published.">
+      {direct.error}
+    </Alert>
+  );
+  const spinner = (
+    <span
+      aria-hidden="true"
+      className="border-on-brand/30 border-t-on-brand inline-block size-5 shrink-0 animate-spin rounded-full border-2"
+    />
+  );
 
   return (
     <>
@@ -211,20 +247,32 @@ export function PublishBanner({
         )}
       >
         {!open && !atFoot ? (
-          <div className="animate-fade-in flex items-center justify-between gap-3">
-            <div className="flex min-w-0 flex-col">
-              <p className="text-body text-pay-ink font-semibold">Your invite is ready</p>
-              <p className="text-small text-pay-body tabular-nums">
-                {price} once · No charge per guest
-              </p>
+          <div className="animate-fade-in flex flex-col gap-3">
+            {directError}
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex min-w-0 flex-col">
+                <p className="text-body text-pay-ink font-semibold">Your invite is ready</p>
+                <p className="text-small text-pay-body tabular-nums">
+                  {price} once · No charge per guest
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={payNow}
+                disabled={directWorking}
+                aria-busy={directWorking}
+                aria-label={directWorking ? directLabel : undefined}
+                className={cn(
+                  'text-on-brand rounded-input text-body inline-flex min-h-12 shrink-0 items-center justify-center gap-2 px-5 font-semibold transition-colors select-none',
+                  directWorking
+                    ? 'bg-pay-action-deep cursor-wait'
+                    : 'bg-pay-action hover:bg-pay-action-deep active:translate-y-px',
+                )}
+              >
+                {directWorking && spinner}
+                Continue
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="bg-pay-action hover:bg-pay-action-deep text-on-brand rounded-input text-body inline-flex min-h-12 shrink-0 items-center justify-center px-5 font-semibold transition-colors select-none active:translate-y-px"
-            >
-              Continue
-            </button>
           </div>
         ) : !open ? (
           <div className="animate-rise-in flex flex-col gap-3">
@@ -256,12 +304,28 @@ export function PublishBanner({
               </div>
             </div>
 
+            {directError}
+
             <button
               type="button"
-              onClick={() => setOpen(true)}
-              className="bg-pay-action hover:bg-pay-action-deep text-on-brand rounded-input text-body inline-flex min-h-14 w-full items-center justify-center px-5 font-semibold tabular-nums transition-colors select-none active:translate-y-px"
+              onClick={payNow}
+              disabled={directWorking}
+              aria-busy={directWorking}
+              className={cn(
+                'text-on-brand rounded-input text-body inline-flex min-h-14 w-full items-center justify-center gap-3 px-5 font-semibold tabular-nums transition-colors select-none',
+                directWorking
+                  ? 'bg-pay-action-deep cursor-wait'
+                  : 'bg-pay-action hover:bg-pay-action-deep active:translate-y-px',
+              )}
             >
-              {continueLabel}
+              {directWorking ? (
+                <>
+                  {spinner}
+                  {directLabel}
+                </>
+              ) : (
+                continueLabel
+              )}
             </button>
 
             <div className="text-small text-pay-body flex flex-wrap items-center justify-between gap-x-3">
@@ -335,6 +399,10 @@ export function PublishBanner({
               workingLabel={PAYMENT_LIVE ? 'Opening payment' : 'Publishing your invite'}
               footer={
                 <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-2">
+                    <p className="text-small text-pay-body">Pay with</p>
+                    <PaymentMethods />
+                  </div>
                   <PaymentNote />
                   <TrustLines />
                 </div>
@@ -354,10 +422,6 @@ export function PublishBanner({
                   <dd className="text-heading">{price}</dd>
                 </div>
               </dl>
-              <div className="flex flex-col gap-2">
-                <p className="text-small text-pay-body">Pay with</p>
-                <PaymentMethods />
-              </div>
             </SlugPicker>
           </>
         )}

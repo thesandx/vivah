@@ -37,14 +37,27 @@ describe('PublishBanner', () => {
     expect(screen.queryByText(/money-back/i)).not.toBeInTheDocument();
   });
 
-  it('opens to the summary and the publish button, and says the test payment charges nothing', () => {
+  it('goes straight to payment from the green button, without the checkout', async () => {
     const { publish } = renderBanner();
     fireEvent.click(screen.getByRole('button', { name: 'Continue to publish' }));
+    expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun');
+    expect(screen.queryByText('Total, paid once')).not.toBeInTheDocument();
+    const working = await screen.findByRole('button', { name: 'Publishing your invite' });
+    expect(working).toBeDisabled();
+    fireEvent.click(working);
+    expect(publish).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the checkout from "See everything you get", with the pay button above the ways to pay', () => {
+    const { publish } = renderBanner();
+    fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     expect(screen.getByText('riya-arjun.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('Total, paid once')).toBeInTheDocument();
     expect(screen.getByText(/nothing is charged/)).toBeInTheDocument();
     expect(screen.queryByText(/refund/i)).not.toBeInTheDocument();
     const button = screen.getByRole('button', { name: 'Publish our invite' });
+    const methods = screen.getByRole('list', { name: 'Ways to pay' });
+    expect(button.compareDocumentPosition(methods) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.click(button);
     expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun');
   });
@@ -65,7 +78,7 @@ describe('PublishBanner', () => {
       value: 5000,
       configurable: true,
     });
-    renderBanner();
+    const { publish } = renderBanner();
     expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
     expect(screen.queryByText('₹5,000 to ₹50,000+')).not.toBeInTheDocument();
     Object.defineProperty(document.documentElement, 'scrollHeight', {
@@ -76,14 +89,29 @@ describe('PublishBanner', () => {
       window.dispatchEvent(new Event('scroll'));
     });
     expect(await screen.findByText('₹5,000 to ₹50,000+')).toBeInTheDocument();
+    expect(publish).not.toHaveBeenCalled();
+  });
+
+  it('pays at once from the short bar too', () => {
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      value: 5000,
+      configurable: true,
+    });
+    const { publish } = renderBanner();
+    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun');
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      value: 0,
+      configurable: true,
+    });
   });
 
   it('closes again, with the button or Escape', () => {
     renderBanner();
-    fireEvent.click(screen.getByRole('button', { name: 'Continue to publish' }));
+    fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Continue to publish' }));
+    fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     fireEvent.keyDown(window, { key: 'Escape' });
-    expect(screen.getByRole('button', { name: 'Continue to publish' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'See everything you get' })).toBeInTheDocument();
   });
 });

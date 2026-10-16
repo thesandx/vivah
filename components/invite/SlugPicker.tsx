@@ -11,9 +11,10 @@ import {
   type SlugCheck,
 } from '@/components/invite/AddressChoice';
 import { Alert } from '@/components/ui/Alert';
+import { type PublishOutcome, usePublishInvite } from '@/hooks/usePublishInvite';
 import { cn } from '@/lib/utils';
 
-export type { SlugCheck };
+export type { PublishOutcome, SlugCheck };
 
 /**
  * The publish step on the preview page.
@@ -27,9 +28,6 @@ export type { SlugCheck };
  * publish run on the server, through the two functions the page passes in
  * (Server Actions), so this file imports nothing from `services/`.
  */
-
-export type PublishOutcome =
-  { ok: true; url: string } | { ok: false; message: string; taken?: boolean };
 
 export interface SlugPickerProps {
   leadId: string;
@@ -67,58 +65,44 @@ export function SlugPicker({
 }: SlugPickerProps): React.JSX.Element {
   const [offered, setOffered] = useState<readonly string[]>(suggestions);
   const [address, setAddress] = useState<AddressValue>(() => initialAddress(suggestions));
-  const [status, setStatus] = useState<'idle' | 'working' | 'done'>('idle');
-  const [error, setError] = useState<string | null>(null);
+  // Another couple published the address after we offered it. A chosen
+  // address reloads the page instead (the hook's default), which checks again.
+  const onTaken = useCallback(
+    (message: string): string => {
+      if (address.choice === CUSTOM) {
+        setAddress((previous) => ({
+          ...previous,
+          check: { kind: 'problem', message: 'This address is taken. Try another.' },
+        }));
+        return message;
+      }
+      // Our own suggestion went a moment ago. Drop it quietly and move to
+      // the next one, rather than say "taken".
+      const remaining = offered.filter((item) => item !== address.choice);
+      setOffered(remaining);
+      setAddress(initialAddress(remaining));
+      return 'That address was just published by another couple. Choose again.';
+    },
+    [address.choice, offered],
+  );
+
+  const { status, error, setError, run } = usePublishInvite(
+    leadId,
+    publish,
+    chosen === undefined ? onTaken : undefined,
+  );
 
   // Stable, because AddressChoice runs its availability check from an effect.
-  const changeAddress = useCallback((next: React.SetStateAction<AddressValue>) => {
-    setAddress(next);
-    setError(null);
-  }, []);
+  const changeAddress = useCallback(
+    (next: React.SetStateAction<AddressValue>) => {
+      setAddress(next);
+      setError(null);
+    },
+    [setError],
+  );
 
   const slug = chosen ?? chosenSlug(address);
   const ready = status === 'idle' && slug !== null;
-
-  async function handlePublish(): Promise<void> {
-    if (slug === null) return;
-    setStatus('working');
-    setError(null);
-    try {
-      const result = await publish(leadId, slug);
-      if (result.ok) {
-        setStatus('done');
-        window.location.assign(result.url);
-        return;
-      }
-      if (result.taken === true) {
-        if (chosen !== undefined) {
-          // Another couple published this address after the sign-up. The page
-          // checks again on load and offers free addresses instead.
-          window.location.reload();
-          return;
-        }
-        if (address.choice === CUSTOM) {
-          setAddress((previous) => ({
-            ...previous,
-            check: { kind: 'problem', message: 'This address is taken. Try another.' },
-          }));
-          setError(result.message);
-        } else {
-          // Another couple published our suggestion a moment ago. Drop it
-          // quietly and move to the next one, rather than say "taken".
-          const remaining = offered.filter((item) => item !== address.choice);
-          setOffered(remaining);
-          setAddress(initialAddress(remaining));
-          setError('That address was just published by another couple. Choose again.');
-        }
-      } else {
-        setError(result.message);
-      }
-    } catch {
-      setError('Your invite was not published. Check your connection and try again.');
-    }
-    setStatus('idle');
-  }
 
   const working = status !== 'idle';
 
@@ -158,7 +142,7 @@ export function SlugPicker({
         disabled={!ready}
         aria-busy={working}
         onClick={() => {
-          void handlePublish();
+          if (slug !== null) void run(slug);
         }}
         className={cn(
           'rounded-input text-body inline-flex min-h-14 w-full items-center justify-center gap-3 px-5 font-semibold tabular-nums transition-colors select-none',
