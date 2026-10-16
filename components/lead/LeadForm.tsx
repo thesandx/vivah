@@ -73,6 +73,8 @@ const SENT_MS = 1400;
 const SENT_DETAIL = 'Opening your preview now.';
 
 type Step = 'names' | 'details' | 'address' | 'song' | 'making' | 'flying' | 'sent';
+const PAST_DATE_ERROR = 'Pick today or a later date.';
+
 type FieldName = 'bride' | 'groom' | 'weddingDate' | 'phone' | 'consent' | 'slug' | 'songSlot';
 type FieldErrors = Partial<Record<FieldName, string>>;
 
@@ -243,7 +245,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
     event.preventDefault();
     const errors: FieldErrors = {};
     if (weddingDate === '') errors.weddingDate = 'Choose your wedding date.';
-    else if (days !== null && days < 0) errors.weddingDate = 'Pick a date that is not in the past.';
+    else if (days !== null && days < 0) errors.weddingDate = PAST_DATE_ERROR;
     const phoneResult = toE164('IN', phone);
     if (!phoneResult.ok) errors.phone = phoneResult.message;
     if (!consent) errors.consent = 'Tick the box so we can send your preview on WhatsApp.';
@@ -484,7 +486,14 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
             required
             value={weddingDate}
             onChange={(event) => {
-              setWeddingDate(event.target.value);
+              const value = event.target.value;
+              // iOS Safari ignores `min` in its date wheel, so a past day can
+              // still be picked there. Refuse it: the field keeps its last date.
+              if (value !== '' && value < todayInIndia()) {
+                setFieldErrors((errors) => ({ ...errors, weddingDate: PAST_DATE_ERROR }));
+                return;
+              }
+              setWeddingDate(value);
               setFieldErrors(({ weddingDate: _, ...rest }) => rest);
             }}
             {...(fieldErrors.weddingDate !== undefined && { error: fieldErrors.weddingDate })}

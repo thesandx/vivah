@@ -40,7 +40,7 @@ export { todayInIndia };
  */
 export const weddingDateSchema = z.iso
   .date('Enter the date as YYYY-MM-DD.')
-  .refine((value) => value >= todayInIndia(), 'Pick a date that is not in the past.')
+  .refine((value) => value >= todayInIndia(), 'Pick today or a later date.')
   .refine(
     (value) => Number(value.slice(0, 4)) <= Number(todayInIndia().slice(0, 4)) + MAX_YEARS_AHEAD,
     `Pick a date in the next ${MAX_YEARS_AHEAD} years.`,
