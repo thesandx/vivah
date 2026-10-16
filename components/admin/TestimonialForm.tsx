@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useId, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 
 import type { ActionState } from '@/components/admin/AdminActionForm';
+import { TestimonialPreview } from '@/components/admin/TestimonialPreview';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { type UploadStart, useImageUpload } from '@/hooks/useImageUpload';
@@ -23,8 +24,12 @@ import {
  * the admin session, the fields and the upload. A new item needs an image;
  * an edit keeps its image unless a new one is chosen.
  *
- * `'use client'` for the file picker and the upload. The picker shows the
- * chosen file's name; the image itself shows on the list once it is saved.
+ * Beside the fields, a live preview draws the card exactly as the home page
+ * will, from the unsaved fields and the chosen photo. The photo shows from
+ * the admin's own device, before any upload, so a bad crop or a review that
+ * runs too long is fixed before it goes live.
+ *
+ * `'use client'` for the file picker, the upload and the preview's state.
  */
 
 export interface TestimonialFormProps {
@@ -38,8 +43,20 @@ export interface TestimonialFormProps {
   /** The label of the image picker, such as `Screenshot`. */
   imageLabel: string;
   submitLabel: string;
+  /** The saved image's URL. `null` for a new item. */
+  image: string | null;
+  /** The fields' starting values by input name, the same as their `defaultValue`. */
+  initialValues: Readonly<Record<string, string>>;
   /** The fields: inputs named as the Server Action reads them. */
   children: React.ReactNode;
+}
+
+function fieldValues(form: HTMLFormElement): Record<string, string> {
+  const values: Record<string, string> = {};
+  for (const [name, value] of new FormData(form)) {
+    if (typeof value === 'string') values[name] = value;
+  }
+  return values;
 }
 
 export function TestimonialForm({
@@ -49,12 +66,27 @@ export function TestimonialForm({
   isNew,
   imageLabel,
   submitLabel,
+  image,
+  initialValues,
   children,
 }: TestimonialFormProps): React.JSX.Element {
   const inputId = useId();
+  const previewId = useId();
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [state, setState] = useState<ActionState>({ status: 'idle' });
+  const [values, setValues] = useState(initialValues);
+  // The chosen photo, read from the admin's device: nothing is uploaded yet.
+  const [chosenImage, setChosenImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (chosenImage === null) return undefined;
+    return () => URL.revokeObjectURL(chosenImage);
+  }, [chosenImage]);
+
+  function choose(file: File | undefined): void {
+    setChosenImage(file !== undefined && file.size > 0 ? URL.createObjectURL(file) : null);
+  }
   const uploadImage = useImageUpload({
     startUpload,
     width: TESTIMONIAL_IMAGE_WIDTH[kind],
@@ -99,34 +131,57 @@ export function TestimonialForm({
   }
 
   return (
-    <form
-      className="flex flex-col gap-4"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void submit(event.currentTarget);
-      }}
-    >
-      <div className="flex flex-col gap-2">
-        <label htmlFor={inputId} className="font-semibold">
-          {isNew ? imageLabel : `New ${imageLabel.toLowerCase()} (optional)`}
-        </label>
-        <input
-          id={inputId}
-          name="image"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          className="text-small file:bg-surface file:rounded-input file:text-ink min-h-11 file:mr-3 file:border-2 file:border-line file:px-4 file:py-2 file:font-semibold"
-        />
-      </div>
+    <div className="flex flex-col gap-6 md:flex-row md:items-start">
+      <section
+        aria-labelledby={previewId}
+        className="flex flex-col items-center gap-3 md:sticky md:top-24 md:shrink-0"
+      >
+        <header className="flex flex-col items-center gap-1 text-center">
+          <p id={previewId} className="font-semibold">
+            Preview
+          </p>
+          <p className="text-small text-ink-soft max-w-64">
+            As it shows on the home page. It changes as you type.
+          </p>
+        </header>
+        <TestimonialPreview kind={kind} values={values} image={chosenImage ?? image} />
+      </section>
 
-      {children}
+      <form
+        className="flex flex-1 flex-col gap-4"
+        onChange={(event) => setValues(fieldValues(event.currentTarget))}
+        onReset={() => {
+          setValues(initialValues);
+          setChosenImage(null);
+        }}
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit(event.currentTarget);
+        }}
+      >
+        <div className="flex flex-col gap-2">
+          <label htmlFor={inputId} className="font-semibold">
+            {isNew ? imageLabel : `New ${imageLabel.toLowerCase()} (optional)`}
+          </label>
+          <input
+            id={inputId}
+            name="image"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={(event) => choose(event.currentTarget.files?.[0])}
+            className="text-small file:bg-surface file:rounded-input file:text-ink min-h-11 file:mr-3 file:border-2 file:border-line file:px-4 file:py-2 file:font-semibold"
+          />
+        </div>
 
-      <Button type="submit" variant="primary" disabled={pending} className="sm:self-start">
-        {pending ? 'Saving…' : submitLabel}
-      </Button>
-      {state.status !== 'idle' && (
-        <Alert tone={state.status === 'ok' ? 'success' : 'danger'} title={state.message} />
-      )}
-    </form>
+        {children}
+
+        <Button type="submit" variant="primary" disabled={pending} className="sm:self-start">
+          {pending ? 'Saving…' : submitLabel}
+        </Button>
+        {state.status !== 'idle' && (
+          <Alert tone={state.status === 'ok' ? 'success' : 'danger'} title={state.message} />
+        )}
+      </form>
+    </div>
   );
 }

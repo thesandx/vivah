@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const refresh = vi.fn();
@@ -18,11 +18,40 @@ function setup(isNew: boolean, save = vi.fn()) {
       isNew={isNew}
       imageLabel="Screenshot"
       submitLabel="Save it"
+      image={isNew ? null : '/api/testimonials/chat/c1?v=1'}
+      initialValues={{ message: 'Thank you' }}
     >
       <input name="message" defaultValue="Thank you" aria-label="Message" />
     </TestimonialForm>,
   );
   return save;
+}
+
+function setupReview() {
+  render(
+    <TestimonialForm
+      kind="review"
+      startUpload={vi.fn()}
+      save={vi.fn()}
+      isNew={false}
+      imageLabel="Photo"
+      submitLabel="Save it"
+      image="/api/testimonials/review/r1?v=1"
+      initialValues={{ quote: 'So special', names: 'Aman & Payal', relation: '', stars: '5' }}
+    >
+      <textarea name="quote" defaultValue="So special" aria-label="Review" />
+      <input name="names" defaultValue="Aman & Payal" aria-label="Names" />
+      <input name="relation" defaultValue="" aria-label="Who wrote it" />
+      <select name="stars" defaultValue="5" aria-label="Stars">
+        <option value="5">5</option>
+        <option value="3">3</option>
+      </select>
+    </TestimonialForm>,
+  );
+}
+
+function preview(): HTMLElement {
+  return screen.getByRole('region', { name: 'Preview' });
 }
 
 function choose(file: File) {
@@ -34,6 +63,41 @@ function choose(file: File) {
 describe('TestimonialForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    URL.createObjectURL = vi.fn(() => 'blob:chosen');
+    URL.revokeObjectURL = vi.fn();
+  });
+
+  it('previews a review as the home page card, with the saved photo', () => {
+    setupReview();
+    const card = within(preview()).getByRole('figure');
+    expect(within(card).getByText('So special')).toBeInTheDocument();
+    expect(within(card).getByText('Aman & Payal')).toBeInTheDocument();
+    expect(within(card).getByText('5 out of 5 stars')).toBeInTheDocument();
+    expect(card.querySelector('img')).toHaveAttribute('src', '/api/testimonials/review/r1?v=1');
+  });
+
+  it('updates the preview as the fields change, before anything is saved', () => {
+    setupReview();
+    fireEvent.change(screen.getByLabelText('Review'), { target: { value: 'Guests loved it' } });
+    fireEvent.change(screen.getByLabelText('Who wrote it'), { target: { value: 'Bride' } });
+    fireEvent.change(screen.getByLabelText('Stars'), { target: { value: '3' } });
+    const region = preview();
+    expect(within(region).getByText('Guests loved it')).toBeInTheDocument();
+    expect(within(region).getByText('(Bride)')).toBeInTheDocument();
+    expect(within(region).getByText('3 out of 5 stars')).toBeInTheDocument();
+  });
+
+  it('previews a chosen photo from the device, without uploading it', () => {
+    setupReview();
+    choose(new File(['x'], 'us.jpg', { type: 'image/jpeg' }));
+    expect(preview().querySelector('img')).toHaveAttribute('src', 'blob:chosen');
+    expect(uploadImage).not.toHaveBeenCalled();
+  });
+
+  it('keeps the card shape while a new item is empty', () => {
+    setup(true);
+    fireEvent.change(screen.getByLabelText('Message'), { target: { value: '' } });
+    expect(within(preview()).getByText(/The message shows here\./)).toBeInTheDocument();
   });
 
   it('asks for the image before adding a new item', async () => {
