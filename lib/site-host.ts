@@ -83,3 +83,15 @@ export function madeByUrl(rootDomain: string, appUrl: string): string {
     rootDomain === '' ? appUrl.replace(/\/$/, '') : `https://${normaliseHost(rootDomain)}`;
   return `${home}/?utm_source=invite&utm_medium=footer`;
 }
+
+/**
+ * The couple's dashboard, from the foot of their live invite:
+ * `https://vivah.online/dashboard?site=raadha-shyam`. The `site` lets the
+ * sign-in screen hint which phone number to use. Without host routing, the
+ * app's own URL.
+ */
+export function editDetailsUrl(slug: string, rootDomain: string, appUrl: string): string {
+  const home =
+    rootDomain === '' ? appUrl.replace(/\/$/, '') : `https://${normaliseHost(rootDomain)}`;
+  return `${home}/dashboard?site=${encodeURIComponent(slug)}`;
+}

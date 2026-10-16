@@ -38,6 +38,18 @@ describe('SignInPanel', () => {
     expect(screen.getByLabelText('Phone number')).toHaveValue('');
   });
 
+  it('offers phone OTP only, with no Google button', () => {
+    render(<SignInPanel />);
+    expect(screen.queryByRole('button', { name: /google/i })).not.toBeInTheDocument();
+  });
+
+  it('hints the last two digits of the number when it knows the site', () => {
+    const { rerender } = render(<SignInPanel />);
+    expect(screen.queryByText(/It ends in/)).not.toBeInTheDocument();
+    rerender(<SignInPanel phoneHintDigits="35" />);
+    expect(screen.getByText(/It ends in/)).toHaveTextContent('It ends in ••35.');
+  });
+
   it('sends the OTP to the number in E.164', async () => {
     render(<SignInPanel />);
     await reachOtpStep();

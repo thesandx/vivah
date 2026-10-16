@@ -15,7 +15,10 @@ import { cn } from '@/lib/utils';
 import { PhoneNumberInput } from './PhoneNumberInput';
 
 /**
- * The sign-in screen, built to behave like an app's: an on-screen back arrow,
+ * The sign-in screen, phone OTP only. Google sign-in is for `/admin`
+ * alone (ADR-0008), so it is not offered here.
+ *
+ * Built to behave like an app's: an on-screen back arrow,
  * one task per step, and the country code already filled in.
  *
  * Two steps — the phone number, then the OTP — on one route. The back arrow
@@ -43,9 +46,17 @@ const STEP_MOTION = {
 export interface SignInPanelProps {
   /** Where to send the user after a successful sign-in. */
   redirectTo?: string;
+  /**
+   * The last two digits of the number to use, when the person arrived from
+   * "Edit details" on their live invite: "Use the number ending in 35".
+   */
+  phoneHintDigits?: string;
 }
 
-export function SignInPanel({ redirectTo = '/' }: SignInPanelProps): React.JSX.Element {
+export function SignInPanel({
+  redirectTo = '/',
+  phoneHintDigits,
+}: SignInPanelProps): React.JSX.Element {
   const router = useRouter();
   const auth = useFirebaseAuth({ warm: true });
 
@@ -137,6 +148,12 @@ export function SignInPanel({ redirectTo = '/' }: SignInPanelProps): React.JSX.E
               <header className="flex flex-col gap-2">
                 <h2 className="text-title">Enter your phone number</h2>
                 <p className="text-ink-soft">We send a one-time password (OTP) to it by SMS.</p>
+                {phoneHintDigits !== undefined && (
+                  <p className="text-ink">
+                    Use the number you paid with. It ends in{' '}
+                    <span className="font-semibold">••{phoneHintDigits}</span>.
+                  </p>
+                )}
               </header>
 
               <form
@@ -170,23 +187,6 @@ export function SignInPanel({ redirectTo = '/' }: SignInPanelProps): React.JSX.E
                   {busy ? 'Sending OTP…' : 'Send OTP'}
                 </Button>
               </form>
-
-              <div className="flex items-center gap-3" aria-hidden="true">
-                <span className="bg-line h-0.5 flex-1" />
-                <span className="text-small text-ink-soft">or</span>
-                <span className="bg-line h-0.5 flex-1" />
-              </div>
-
-              <Button
-                variant="secondary"
-                block
-                disabled={busy}
-                onClick={() => {
-                  void auth.signInWithGoogle().then(finish);
-                }}
-              >
-                Continue with Google
-              </Button>
             </div>
           ) : (
             <div key="otp" className={cn('flex flex-col gap-8', STEP_MOTION[direction])}>

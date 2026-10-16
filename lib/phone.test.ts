@@ -5,6 +5,7 @@ import {
   findDialCountry,
   formatPhoneForDisplay,
   indianMobileDigits,
+  phoneHintDigits,
   toE164,
 } from './phone';
 
@@ -72,5 +73,15 @@ describe('indianMobileDigits', () => {
 
   it('leaves a short number as typed', () => {
     expect(indianMobileDigits('0987')).toBe('0987');
+  });
+});
+
+describe('phoneHintDigits', () => {
+  it('keeps only the last two digits', () => {
+    expect(phoneHintDigits('+917983873235')).toBe('35');
+  });
+
+  it('refuses a number too short to hint', () => {
+    expect(phoneHintDigits('+')).toBeNull();
   });
 });

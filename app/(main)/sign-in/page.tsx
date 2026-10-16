@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 
 import { SignInPanel } from '@/components/auth/SignInPanel';
 import { getCurrentUser } from '@/services/auth.service';
+import { ownerPhoneHint } from '@/services/wedding.service';
 
 /**
  * `GET /sign-in`.
@@ -14,7 +15,7 @@ import { getCurrentUser } from '@/services/auth.service';
 
 export const metadata: Metadata = {
   title: 'Sign in',
-  description: 'Sign in with Google or with a code sent to your phone.',
+  description: 'Sign in with a code sent to your phone.',
   robots: { index: false, follow: false },
 };
 
@@ -36,15 +37,20 @@ function safeRedirect(value: string | undefined): string {
 export default async function SignInPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; site?: string | string[] }>;
 }): Promise<React.JSX.Element> {
-  const { next } = await searchParams;
+  const { next, site } = await searchParams;
   const destination = safeRedirect(next);
 
   const user = await getCurrentUser();
   if (user !== null) redirect(destination);
 
+  // From "Edit details" on a live invite: the last two digits of the number
+  // the couple paid with, so they know which one to type. Nothing else about
+  // the site reaches the page.
+  const hint = typeof site === 'string' ? await ownerPhoneHint(site) : null;
+
   // The panel renders the whole screen, AppBar included, because the back
   // arrow depends on which step the user is on.
-  return <SignInPanel redirectTo={destination} />;
+  return <SignInPanel redirectTo={destination} {...(hint !== null && { phoneHintDigits: hint })} />;
 }
