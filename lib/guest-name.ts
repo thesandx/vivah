@@ -89,13 +89,6 @@ export function guestLinkKey(segment: string): string | null {
   return key === '' ? null : key;
 }
 
-/** The seal's initials: `Radha`, `Shyam` → `R & S`. */
-export function coupleInitials(bride: string, groom: string): string {
-  const first = (name: string): string =>
-    Array.from(name.trim())[0]?.toLocaleUpperCase('en-IN') ?? '';
-  return [first(bride), first(groom)].filter((letter) => letter !== '').join(' & ');
-}
-
 /**
  * A couple's name as it is saved and shown: each word starts with a capital
  * and the rest is small, however it was typed. `riya SHARMA` → `Riya Sharma`,

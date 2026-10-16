@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 /**
  * The round rose button pinned to the top right of an open invite that pauses and plays the
  * couple's song. While the song plays, three bars move inside it. A plain
- * component: `Envelope` holds the audio and passes the state in.
+ * component: `InviteGate` holds the audio and passes the state in.
  */
 
 export interface SoundButtonProps {

@@ -27,6 +27,8 @@ describe('Countdown', () => {
       vi.advanceTimersByTime(1000);
     });
     expect(screen.getByText('Secs').nextSibling).toHaveTextContent('4');
+    expect(screen.getByText('Our forever starts in…')).toBeInTheDocument();
+    expect(screen.queryByText(/Bless the married couple/)).not.toBeInTheDocument();
   });
 
   it('blesses the couple after the wedding', () => {
@@ -36,5 +38,8 @@ describe('Countdown', () => {
       vi.advanceTimersByTime(0);
     });
     expect(screen.getByText('Bless the married couple with a happy life!')).toBeInTheDocument();
+    // One or the other, never both.
+    expect(screen.queryByText('Our forever starts in…')).not.toBeInTheDocument();
+    expect(screen.queryByText('Days')).not.toBeInTheDocument();
   });
 });
