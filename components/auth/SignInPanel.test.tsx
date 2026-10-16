@@ -74,10 +74,18 @@ describe('SignInPanel', () => {
     render(<SignInPanel redirectTo="/profile" />);
     await reachOtpStep();
     await act(async () => {
-      fireEvent.change(screen.getByLabelText('OTP'), { target: { value: '12a3456' } });
+      // An SMS autofill puts the whole code in the box that has focus.
+      fireEvent.change(screen.getByLabelText('Digit 1 of 6'), { target: { value: '12a3456' } });
     });
     expect(auth.confirmVerificationCode).toHaveBeenCalledWith('123456');
     expect(router.replace).toHaveBeenCalledWith('/profile');
+  });
+
+  it('asks for the OTP in six boxes', async () => {
+    render(<SignInPanel />);
+    await reachOtpStep();
+    const group = screen.getByRole('group', { name: 'OTP' });
+    expect(group.querySelectorAll('input')).toHaveLength(6);
   });
 
   it('has an on-screen back arrow that returns from the OTP step to the number', async () => {
