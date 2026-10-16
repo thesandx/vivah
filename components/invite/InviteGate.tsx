@@ -1,14 +1,14 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+import { GaneshCover } from '@/components/invite/GaneshCover';
 import { SoundButton } from '@/components/invite/SoundButton';
 import { cn } from '@/lib/utils';
 
 /**
  * The opening of a couple's invite: the Shri Ganesh card stands over the
- * invite on a dark, blurred copy of itself, and greets the guest by name
+ * invite on a dark rose glow, and greets the guest by name
  * ("Hi Kartheek"). A tap starts the couple's song, the dark cover dissolves,
  * and the card lifts up and off the screen with a soft gold light behind it.
  *
@@ -16,9 +16,9 @@ import { cn } from '@/lib/utils';
  * more and more as the cover fades. Nothing has to "appear" at the end, which
  * is a whole class of reveal bugs that cannot happen.
  *
- * The card art is 475 by 662. It is shown at its own size or smaller, never
- * stretched to fill the screen: a stretched card goes soft on a desktop and
- * loses its arch on a tall phone. The blurred backdrop fills the rest.
+ * The card is drawn in code (`GaneshCover`), not a photo, so it is sharp on
+ * every screen and in the first bytes of the page. On a phone it fills the
+ * screen; from `md` up it stands as a phone-shaped card on a dark rose glow.
  *
  * The tap is the browser's "user gesture", so the song may start with sound.
  * Browsers refuse audio that starts on its own, and the PRD forbids autoplay
@@ -56,8 +56,6 @@ export interface InviteGateProps {
 function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
-
-const CARD = { src: '/invite/ganesha-card.webp', width: 475, height: 662 };
 
 export function InviteGate({
   guestName,
@@ -178,18 +176,11 @@ export function InviteGate({
           <span
             aria-hidden="true"
             className={cn('bg-plum-night absolute inset-0', opening && 'animate-gate-wash-out')}
+            style={{
+              backgroundImage:
+                'radial-gradient(ellipse 60% 55% at 50% 45%, var(--color-rani-deep) 0%, transparent 100%)',
+            }}
           >
-            {/* The same card art, blown up, blurred and dimmed, as the
-                backdrop. Blurred, a 64px copy looks the same as a full one. */}
-            <Image
-              src={CARD.src}
-              alt=""
-              fill
-              sizes="64px"
-              priority
-              className="scale-125 object-cover"
-              style={{ filter: 'blur(46px) saturate(1.25) brightness(0.6)' }}
-            />
             {/* A vignette, so the card reads as lit from the front. */}
             <span
               className="absolute inset-0"
@@ -211,11 +202,9 @@ export function InviteGate({
             }}
           />
 
-          {/* On a phone the card art fills the screen, as an app's splash
-              screen does; it is cropped at the sides only, so Shri Ganesh and
-              the words under him stay in view. From `md` up it stands as a
-              card on the blurred backdrop, as stretching it to a desktop
-              screen would blur it and crop the arch. */}
+          {/* On a phone the card fills the screen, as an app's splash screen
+              does. From `md` up it stands as a phone-shaped card on the glow,
+              as a full-width card would crop Shri Ganesh on a wide screen. */}
           <span
             className={cn(
               'absolute inset-0 md:flex md:items-center md:justify-center md:px-4 md:pb-36',
@@ -224,19 +213,7 @@ export function InviteGate({
             )}
           >
             <span className="block size-full md:animate-card-bob md:flex md:items-center md:justify-center">
-              <Image
-                src={CARD.src}
-                alt=""
-                width={CARD.width}
-                height={CARD.height}
-                priority
-                // Served as is: the file is already small, and Next's
-                // density srcset would halve its natural size, which the
-                // auto width and height on a desktop would then show at half size.
-                unoptimized
-                draggable={false}
-                className="md:rounded-input block size-full object-cover select-none md:h-auto md:max-h-full md:w-auto md:max-w-full md:object-contain"
-              />
+              <GaneshCover className="size-full md:rounded-input md:overflow-hidden md:aspect-5/9 md:h-full md:max-h-full md:w-auto md:max-w-full" />
             </span>
           </span>
 
@@ -244,7 +221,7 @@ export function InviteGate({
               reads on the light card. */}
           <span
             className={cn(
-              'from-plum-night/90 absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-linear-to-t to-transparent px-6 pt-32 pb-[max(2rem,env(safe-area-inset-bottom))] text-center',
+              'from-plum-night/90 absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-linear-to-t to-transparent px-6 pt-24 pb-[max(2rem,env(safe-area-inset-bottom))] text-center',
               opening && 'animate-gate-hint-out',
             )}
           >
