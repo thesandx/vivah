@@ -40,7 +40,7 @@ describe('ShubhVivahInvite', () => {
     expect(section).toHaveTextContent('09');
     expect(section).toHaveTextContent('Mar');
     expect(section).toHaveTextContent('2026');
-    expect(section.querySelectorAll('canvas')).toHaveLength(3);
+    expect(section.querySelectorAll('canvas.cursor-grab')).toHaveLength(3);
   });
 
   it('links the venue map, the calendar, the WhatsApp RSVP and the phone', () => {
