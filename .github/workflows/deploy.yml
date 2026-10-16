@@ -347,6 +347,39 @@ jobs:
             --non-interactive \
             --message "Cloud Run ${GITHUB_SHA}"
 
+      # -----------------------------------------------------------------------
+      # Every browser upload is a cross-origin PUT to a signed URL on
+      # storage.googleapis.com. The bucket refuses the preflight unless its
+      # CORS lists the site's origin, and the upload then fails in the browser
+      # with no server log. That is how admin uploads broke silently once.
+      #
+      # This step sends the same preflight a browser sends, for each origin in
+      # cloud/storage-cors.json. It needs no credentials and changes nothing.
+      # The deployer cannot set bucket CORS (it holds no Storage role, by
+      # design), so a failure here names the one command a human runs.
+      # -----------------------------------------------------------------------
+      - name: Verify browser uploads are allowed (bucket CORS)
+        env:
+          BUCKET: ${{ steps.data.outputs.bucket }}
+        run: |
+          set -euo pipefail
+          failed=0
+          for origin in $(jq -r '.[].origin[]' cloud/storage-cors.json); do
+            allowed="$(curl -sS --max-time 10 -o /dev/null -D - -X OPTIONS \
+              "https://storage.googleapis.com/${BUCKET}/tmp/cors-check" \
+              -H "Origin: ${origin}" \
+              -H 'Access-Control-Request-Method: PUT' \
+              -H 'Access-Control-Request-Headers: content-type,x-goog-content-length-range' \
+              | tr -d '\r' | awk -F': ' 'tolower($1)=="access-control-allow-origin" {print $2}')"
+            if [[ "$allowed" == "$origin" ]]; then
+              echo "Uploads allowed from ${origin}"
+            else
+              echo "::error::gs://${BUCKET} refuses browser uploads from ${origin}. Run: gcloud storage buckets update gs://${BUCKET} --cors-file=cloud/storage-cors.json"
+              failed=1
+            fi
+          done
+          exit $failed
+
       - name: Summary
         if: always()
         run: |

@@ -30,6 +30,8 @@ The script enables APIs, creates the Artifact Registry repository, sets up Workl
 
 `--cors-origin` is optional and can wait. It takes the origin your **app** is served from, which enables direct browser uploads. Run `./scripts/gcp-bootstrap.sh --help` for the format. **List the `*.run.app` URL too** — it is an origin like any other, and the one people forget.
 
+This app keeps its origins in [`cloud/storage-cors.json`](./storage-cors.json). Apply it with `gcloud storage buckets update gs://BUCKET --cors-file=cloud/storage-cors.json`. Each deploy checks the live bucket against that file and fails if it refuses an origin.
+
 `--skip-auth` turns off the Firebase Auth steps. Without it the script enables the Identity Platform APIs and grants the runtime account `roles/firebaseauth.admin`, which is what lets it mint session cookies.
 
 > **Run this before the first merge to `main`.** The deploy publishes Firestore indexes _before_ it builds the image, so a missing database fails the whole pipeline — no image, no revision.
