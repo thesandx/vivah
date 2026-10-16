@@ -2,6 +2,7 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { SONGS_DOC_ID } from '@/lib/wedding-songs';
 import { createLead, leads, openPreviewLink } from '@/services/lead.service';
 import {
   checkSlug,
@@ -11,9 +12,11 @@ import {
   slugClaimId,
   slugClaims,
   updateWeddingDetails,
+  updateWeddingSong,
   weddings,
   weddingsOwnedBy,
 } from '@/services/wedding.service';
+import { resetSongsCache, weddingSongs } from '@/services/wedding-songs.service';
 
 /**
  * Publishing, against the real Firestore emulator: one address, one couple.
@@ -196,6 +199,28 @@ describeEmulator('the dashboards (emulator)', () => {
       ok: false,
       reason: 'not-found',
     });
+  });
+
+  it('lets the couple change their song from the list, and nobody else', async () => {
+    const song = { name: 'Kesariya', file: 'song-2-dash.mp3' };
+    const slots = { slot1: null, slot2: song, slot3: null, slot4: null };
+    if ((await weddingSongs.get(SONGS_DOC_ID)) === null) {
+      await weddingSongs.createWithId(SONGS_DOC_ID, slots, { minLength: SONGS_DOC_ID.length });
+    } else {
+      await weddingSongs.update(SONGS_DOC_ID, slots);
+    }
+    resetSongsCache();
+
+    const { slug, phone } = await ownedWedding();
+    expect(await updateWeddingSong(slug, '+919000000000', 2)).toEqual({
+      ok: false,
+      reason: 'not-found',
+    });
+    expect(await updateWeddingSong(slug, phone, 1)).toEqual({ ok: false, reason: 'invalid' });
+    expect((await getWeddingBySlug(slug))?.song).toBeUndefined();
+
+    expect(await updateWeddingSong(slug, phone, 2)).toEqual({ ok: true, name: 'Kesariya' });
+    expect((await getWeddingBySlug(slug))?.song).toEqual(song);
   });
 
   it('names the fields that are wrong and saves nothing', async () => {

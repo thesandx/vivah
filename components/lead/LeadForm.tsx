@@ -655,10 +655,22 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
               options={songs.map((option) => ({
                 value: String(option.slot),
                 label: option.name,
-                action: <PlayButton src={option.src} title={option.name} />,
+                // Playing a song chooses it, so the last one heard is the one picked.
+                action: (
+                  <PlayButton
+                    src={option.src}
+                    title={option.name}
+                    onPlay={() => setSongSlot(option.slot)}
+                  />
+                ),
               }))}
               {...(fieldErrors.songSlot !== undefined && { error: fieldErrors.songSlot })}
             />
+          )}
+          {songs !== null && songs.length > 0 && (
+            <p className="bg-brand-soft rounded-input text-small p-3 text-center">
+              No pressure to get it perfect. You can change your song anytime from your dashboard.
+            </p>
           )}
 
           {errorAlert}
