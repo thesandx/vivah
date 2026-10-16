@@ -27,7 +27,7 @@ import {
  *
  * Every function takes the admin's uid, from `requireAdmin()`, and writes an
  * entry to the audit log. Deletes are soft. The one permanent delete is a
- * slug claim, which is a lock, not data: see `releaseWeddingAddress`.
+ * slug claim, which is a lock, not data: see `deleteWedding`.
  */
 
 /** The most rows an admin list loads. Far above today's volume. */
@@ -232,65 +232,104 @@ export async function changeWeddingAddress(
 }
 
 /**
- * Soft-deletes a wedding. Guests see "no invite at this address". The address
- * stays reserved for this wedding, so `restoreWedding` brings it back as it
- * was, until `releaseWeddingAddress` frees it.
+ * Soft-deletes a wedding and frees its address, in one transaction. Guests
+ * see "no invite at this address", and another couple can publish there.
+ * The wedding keeps every field and shows in the Deleted tab, so
+ * `restoreWedding` can bring it back at any address that is free then.
  */
 export async function deleteWedding(id: string, adminUid: string): Promise<AdminResult> {
-  const wedding = await getWeddingForAdmin(id);
-  if (wedding === null || wedding.deletedAt !== null) return NOT_FOUND;
-  await weddings.softDelete(id);
-  await audit(
-    'wedding-deleted',
-    'wedding',
-    id,
-    `Deleted ${wedding.slug}. Address still reserved.`,
-    adminUid,
-  );
-  return { ok: true, message: 'Deleted. You can restore it, or release the address.' };
-}
-
-/**
- * Restores a deleted wedding at its address. Refuses if another wedding took
- * the address after it was released.
- */
-export async function restoreWedding(id: string, adminUid: string): Promise<AdminResult> {
   return weddings.runTransaction(async (weddingsTx, tx) => {
     const claimsTx = slugClaims.inTransaction(tx);
     const wedding = await weddingsTx.get(id);
-    if (wedding === null) return NOT_FOUND;
-    if (wedding.deletedAt === null)
-      return { ok: true, message: 'It is not deleted.' } as AdminResult;
+    if (wedding === null || wedding.deletedAt !== null) return NOT_FOUND;
     const claim = await claimsTx.get(slugClaimId(wedding.slug));
-    const existing = await tx.get(weddingAtSlugQuery(wedding.slug));
-    if ((claim !== null && claim.weddingId !== id) || !existing.empty) {
-      return {
-        ok: false,
-        message: `Another invite now uses ${wedding.slug}. Move this one to a new address first.`,
-      } as AdminResult;
+    tx.update(weddings.ref().doc(id), {
+      deletedAt: FieldValue.serverTimestamp(),
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    if (claim !== null && claim.weddingId === id) {
+      // A claim is a lock on an address, not a record of anything: the
+      // wedding keeps its history. Freeing the address needs it gone,
+      // because `createWithId` refuses an id that exists, deleted or not.
+      // eslint-disable-next-line data-safety/no-permanent-delete -- releasing a slug lock; the wedding itself is soft-deleted, not erased
+      tx.delete(slugClaims.ref().doc(slugClaimId(wedding.slug)));
     }
-    if (claim === null) {
-      claimsTx.createWithId(slugClaimId(wedding.slug), {
-        slug: wedding.slug,
-        weddingId: id,
-        leadId: wedding.leadId,
-      });
-    }
-    tx.update(weddings.ref().doc(id), { deletedAt: null, updatedAt: FieldValue.serverTimestamp() });
     recordAdminActionIn(tx, {
-      action: 'wedding-restored',
+      action: 'wedding-deleted',
       targetType: 'wedding',
       targetId: id,
-      detail: `Restored ${wedding.slug}.`,
+      detail: `Deleted ${wedding.slug} and freed the address.`,
       adminUid,
     });
-    return { ok: true, message: 'Restored. Guests see the invite again.' } as AdminResult;
+    return {
+      ok: true,
+      message: `Deleted. ${wedding.slug} is free for another couple now.`,
+    } as AdminResult;
   });
 }
 
 /**
- * Frees a DELETED wedding's address, so another couple can publish there.
- * The wedding stays soft-deleted and readable here.
+ * Restores a deleted wedding at `newSlug`, which must be free: no claim by
+ * another wedding and no live wedding there. Its old address is fine when it
+ * is still free. Updates the lead too, so the couple's preview link points to
+ * the new address.
+ */
+export async function restoreWedding(
+  id: string,
+  newSlug: string,
+  adminUid: string,
+): Promise<AdminResult> {
+  const problem = slugProblem(newSlug);
+  if (problem !== null) return { ok: false, message: problem };
+
+  return weddings.runTransaction(async (weddingsTx, tx) => {
+    const claimsTx = slugClaims.inTransaction(tx);
+    const leadsTx = leads.inTransaction(tx);
+    const wedding = await weddingsTx.get(id);
+    if (wedding === null) return NOT_FOUND;
+    if (wedding.deletedAt === null)
+      return { ok: true, message: 'It is not deleted.' } as AdminResult;
+    const claim = await claimsTx.get(slugClaimId(newSlug));
+    const existing = await tx.get(weddingAtSlugQuery(newSlug));
+    const lead = await leadsTx.get(wedding.leadId);
+    if ((claim !== null && claim.weddingId !== id) || !existing.empty) {
+      return { ok: false, message: `${newSlug} is taken. Pick another address.` } as AdminResult;
+    }
+    if (claim === null) {
+      claimsTx.createWithId(slugClaimId(newSlug), {
+        slug: newSlug,
+        weddingId: id,
+        leadId: wedding.leadId,
+      });
+    }
+    tx.update(weddings.ref().doc(id), {
+      slug: newSlug,
+      deletedAt: null,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+    if (lead !== null && lead.weddingSlug !== newSlug) {
+      leadsTx.update(wedding.leadId, { weddingSlug: newSlug });
+    }
+    recordAdminActionIn(tx, {
+      action: 'wedding-restored',
+      targetType: 'wedding',
+      targetId: id,
+      detail:
+        wedding.slug === newSlug
+          ? `Restored at ${newSlug}.`
+          : `Restored at ${newSlug} (was ${wedding.slug}).`,
+      adminUid,
+    });
+    return {
+      ok: true,
+      message: `Restored at ${newSlug}. Send the couple the link.`,
+    } as AdminResult;
+  });
+}
+
+/**
+ * Frees the address of a wedding deleted BEFORE delete freed it on its own.
+ * A wedding deleted now has no claim left, so this is a no-op for it.
  */
 export async function releaseWeddingAddress(id: string, adminUid: string): Promise<AdminResult> {
   return weddings.runTransaction(async (weddingsTx, tx) => {
@@ -318,6 +357,12 @@ export async function releaseWeddingAddress(id: string, adminUid: string): Promi
     });
     return { ok: true, message: `${wedding.slug} is free for another couple now.` } as AdminResult;
   });
+}
+
+/** True while a deleted wedding still holds its address (deleted before delete freed it). */
+export async function weddingHoldsAddress(wedding: WeddingDocument): Promise<boolean> {
+  const claim = await slugClaims.get(slugClaimId(wedding.slug));
+  return claim !== null && claim.weddingId === wedding.id;
 }
 
 /**

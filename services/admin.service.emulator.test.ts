@@ -26,7 +26,7 @@ import {
 
 /**
  * What `/admin` does to the data, against the real Firestore emulator: the
- * address moves and releases are transactions over three collections, so a
+ * address moves, deletes and restores are transactions over three collections, so a
  * mock would prove nothing.
  *
  * Skipped without `FIRESTORE_EMULATOR_HOST`. Run with `pnpm test:emulator`.
@@ -98,31 +98,39 @@ describeEmulator('admin operations (emulator)', () => {
     expect((await getWeddingForAdmin(first.weddingId))?.slug).toBe(first.slug);
   });
 
-  it('deletes softly, keeps the address, restores, and releases only when deleted', async () => {
-    const { weddingId, slug } = await published();
+  it('deletes softly, frees the address at once, and restores at a free address', async () => {
+    const { weddingId, leadId, slug } = await published();
     expect((await releaseWeddingAddress(weddingId, ADMIN)).ok).toBe(false);
 
-    await deleteWedding(weddingId, ADMIN);
+    expect((await deleteWedding(weddingId, ADMIN)).ok).toBe(true);
     expect(await getWeddingBySlug(slug)).toBeNull();
-    expect(await checkSlug(slug)).toEqual({ available: false, reason: 'taken' });
-    expect((await listAllWeddings()).items.some((row) => row.id === weddingId)).toBe(true);
-
-    expect((await restoreWedding(weddingId, ADMIN)).ok).toBe(true);
-    expect((await getWeddingBySlug(slug))?.id).toBe(weddingId);
-
-    await deleteWedding(weddingId, ADMIN);
-    expect((await releaseWeddingAddress(weddingId, ADMIN)).ok).toBe(true);
     expect(await checkSlug(slug)).toEqual({ available: true });
+    expect(await slugClaims.get(slugClaimId(slug))).toBeNull();
+    // Archived, not erased: the admin still lists it, with every field.
+    const archived = (await listAllWeddings()).items.find((row) => row.id === weddingId);
+    expect(archived).toMatchObject({ slug, bride: 'Radha' });
+    expect(archived?.deletedAt).not.toBeNull();
 
-    // Released, then restored while still free: the claim comes back.
-    expect((await restoreWedding(weddingId, ADMIN)).ok).toBe(true);
+    // Restored at its old address while that is still free.
+    expect((await restoreWedding(weddingId, slug, ADMIN)).ok).toBe(true);
+    expect((await getWeddingBySlug(slug))?.id).toBe(weddingId);
     expect(await slugClaims.get(slugClaimId(slug))).toMatchObject({ weddingId });
+
+    // Deleted again, then restored at a different address.
+    await deleteWedding(weddingId, ADMIN);
+    const next = uniqueSlug('restored');
+    expect((await restoreWedding(weddingId, next, ADMIN)).ok).toBe(true);
+    expect((await getWeddingBySlug(next))?.id).toBe(weddingId);
+    expect(await checkSlug(slug)).toEqual({ available: true });
+    expect((await leads.getOrThrow(leadId)).weddingSlug).toBe(next);
+    expect(await auditFor(weddingId)).toEqual(
+      expect.arrayContaining(['wedding-deleted', 'wedding-restored']),
+    );
   });
 
-  it('refuses to restore onto an address another couple took after the release', async () => {
+  it('refuses to restore onto an address another couple took after the delete', async () => {
     const { weddingId, slug } = await published();
     await deleteWedding(weddingId, ADMIN);
-    await releaseWeddingAddress(weddingId, ADMIN);
 
     const otherLead = await createLead({
       bride: 'Mira',
@@ -137,7 +145,12 @@ describeEmulator('admin operations (emulator)', () => {
       state: 'published',
     });
 
-    expect(await restoreWedding(weddingId, ADMIN)).toMatchObject({ ok: false });
+    expect(await restoreWedding(weddingId, slug, ADMIN)).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/taken/),
+    });
+    expect((await getWeddingForAdmin(weddingId))?.deletedAt).not.toBeNull();
+    expect((await restoreWedding(weddingId, 'Not A Slug!', ADMIN)).ok).toBe(false);
   });
 
   it('reactivates a preview for any phone, and deletes and restores it', async () => {

@@ -62,7 +62,6 @@ export const WEDDING_STATE_CHOICES = [
   { value: 'all', label: 'All' },
   { value: 'live', label: 'Live' },
   { value: 'unavailable', label: 'Unavailable' },
-  { value: 'deleted', label: 'Deleted' },
 ] as const satisfies readonly Choice<string>[];
 
 export const WEDDING_WHEN_CHOICES = [
@@ -79,6 +78,12 @@ export const WEDDING_SORT_CHOICES = [
   { value: 'wedding-latest', label: 'Wedding date, latest' },
   { value: 'names', label: 'Names, A to Z' },
   { value: 'address', label: 'Address, A to Z' },
+] as const satisfies readonly Choice<string>[];
+
+/** The Deleted tab sorts by when an invite was deleted first, then as the Invites tab. */
+export const DELETED_SORT_CHOICES = [
+  { value: 'recently-deleted', label: 'Deleted most recently' },
+  ...WEDDING_SORT_CHOICES,
 ] as const satisfies readonly Choice<string>[];
 
 export const LEAD_STATE_CHOICES = [
@@ -103,7 +108,7 @@ export interface WeddingFilters {
   q: string;
   state: Values<typeof WEDDING_STATE_CHOICES>;
   when: Values<typeof WEDDING_WHEN_CHOICES>;
-  sort: Values<typeof WEDDING_SORT_CHOICES>;
+  sort: Values<typeof DELETED_SORT_CHOICES>;
 }
 
 export interface LeadFilters {
@@ -126,13 +131,22 @@ function pick<T extends readonly Choice<string>[]>(choices: T, value: string): V
   return (found?.value ?? '') as Values<T>;
 }
 
-/** Reads the filters from the URL. An unknown value falls back to the first choice. */
-export function parseWeddingFilters(params: SearchParams): WeddingFilters {
+/**
+ * Reads the filters from the URL. An unknown value falls back to the first
+ * choice. The Deleted tab has no state menu, and sorts by delete time first.
+ */
+export function parseWeddingFilters(
+  params: SearchParams,
+  tab: 'invites' | 'deleted' = 'invites',
+): WeddingFilters {
   return {
     q: first(params, 'q').slice(0, 80),
-    state: pick(WEDDING_STATE_CHOICES, first(params, 'state')),
+    state: tab === 'deleted' ? 'all' : pick(WEDDING_STATE_CHOICES, first(params, 'state')),
     when: pick(WEDDING_WHEN_CHOICES, first(params, 'when')),
-    sort: pick(WEDDING_SORT_CHOICES, first(params, 'sort')),
+    sort:
+      tab === 'deleted'
+        ? pick(DELETED_SORT_CHOICES, first(params, 'sort'))
+        : pick(WEDDING_SORT_CHOICES, first(params, 'sort')),
   };
 }
 
@@ -197,6 +211,7 @@ export function filterWeddings<T extends WeddingRow>(
     'wedding-latest': byWeddingDate(-1),
     names: byNames,
     address: (a, b) => a.slug.localeCompare(b.slug),
+    'recently-deleted': (a, b) => (b.deletedAt?.getTime() ?? 0) - (a.deletedAt?.getTime() ?? 0),
   };
   return kept.sort(sorters[filters.sort]);
 }
