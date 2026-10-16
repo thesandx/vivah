@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { PolicyPage } from '@/components/legal/PolicyPage';
 import { SupportContacts } from '@/components/legal/SupportContacts';
+import { REFUND_WINDOW_DAYS } from '@/lib/business';
 
 /** `GET /refund-policy` — refunds and cancellation, from the PRD's draft. */
 
@@ -15,8 +16,7 @@ export const metadata: Metadata = {
 const CASES: ReadonlyArray<{ situation: string; refund: string }> = [
   { situation: 'Charged twice, or charged but no invite link received', refund: 'Full refund' },
   {
-    situation:
-      'Paid, but you have not shared the invite or sent any guest link, within 7 days of payment',
+    situation: `Paid, but you have not shared the invite or sent any guest link, within ${REFUND_WINDOW_DAYS} days of payment`,
     refund: 'Full refund on request (cancellation)',
   },
   {

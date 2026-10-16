@@ -11,7 +11,6 @@ import {
   type SlugCheck,
 } from '@/components/invite/AddressChoice';
 import { Alert } from '@/components/ui/Alert';
-import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
 export type { SlugCheck };
@@ -44,6 +43,12 @@ export interface SlugPickerProps {
   publish: (leadId: string, slug: string) => Promise<PublishOutcome>;
   /** The publish button's words. Default: "Pay and publish". */
   actionLabel?: string;
+  /** The button's words while it works. Default: "Publishing your invite". */
+  workingLabel?: string;
+  /** Shown between the address and the button: the order summary. */
+  children?: React.ReactNode;
+  /** Shown under the button: who takes the payment, and the refund promise. */
+  footer?: React.ReactNode;
   className?: string;
 }
 
@@ -55,6 +60,9 @@ export function SlugPicker({
   checkSlug,
   publish,
   actionLabel = 'Pay and publish',
+  workingLabel = 'Publishing your invite',
+  children,
+  footer,
   className,
 }: SlugPickerProps): React.JSX.Element {
   const [offered, setOffered] = useState<readonly string[]>(suggestions);
@@ -112,12 +120,14 @@ export function SlugPicker({
     setStatus('idle');
   }
 
+  const working = status !== 'idle';
+
   return (
-    <div className={cn('flex flex-col gap-5', className)}>
+    <div className={cn('flex flex-col gap-4', className)}>
       {chosen !== undefined ? (
-        <div className="bg-sunken border-line rounded-input flex flex-col gap-1 border-2 p-4">
-          <p className="text-small text-ink-soft">Your own address</p>
-          <p className="text-heading text-brand font-semibold break-all">
+        <div className="bg-pay-well border-pay-line rounded-input flex flex-col border-2 px-4 py-3">
+          <p className="text-small text-pay-body">Your invite address</p>
+          <p className="text-body text-pay-ink font-semibold break-all">
             {chosen}.{domainLabel}
           </p>
         </div>
@@ -131,10 +141,7 @@ export function SlugPicker({
         />
       )}
 
-      <p className="text-small text-ink-soft">
-        Test payment: payment is not connected yet, so this publishes your invite without charging
-        you.
-      </p>
+      {children}
 
       {status === 'done' && <Alert tone="success" title="Your invite is live. Opening it now." />}
       {error !== null && (
@@ -143,17 +150,39 @@ export function SlugPicker({
         </Alert>
       )}
 
-      <Button
+      {/* The one green thing on the sheet. Three looks: ready, working (a
+          spinner, the words say what is happening, and a second tap does
+          nothing), and not ready (grey, until an address is chosen). */}
+      <button
         type="button"
-        variant="primary"
-        block
         disabled={!ready}
+        aria-busy={working}
         onClick={() => {
           void handlePublish();
         }}
+        className={cn(
+          'rounded-input text-body inline-flex min-h-14 w-full items-center justify-center gap-3 px-5 font-semibold tabular-nums transition-colors select-none',
+          working && 'bg-pay-action-deep text-on-brand cursor-wait',
+          !working &&
+            ready &&
+            'bg-pay-action text-on-brand hover:bg-pay-action-deep active:translate-y-px',
+          !working && !ready && 'bg-pay-disabled text-pay-body cursor-not-allowed',
+        )}
       >
-        {status === 'working' ? 'Publishing your invite' : actionLabel}
-      </Button>
+        {working ? (
+          <>
+            <span
+              aria-hidden="true"
+              className="border-on-brand/30 border-t-on-brand inline-block size-5 shrink-0 animate-spin rounded-full border-2"
+            />
+            {status === 'done' ? 'Opening your invite' : workingLabel}
+          </>
+        ) : (
+          actionLabel
+        )}
+      </button>
+
+      {footer}
     </div>
   );
 }

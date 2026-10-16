@@ -1,4 +1,4 @@
-import { PRICE_FROM_RUPEES } from '@/lib/business';
+import { PAPER_CARDS, PRICE_FROM_RUPEES } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
 /**
@@ -13,10 +13,10 @@ type Cell = string | boolean;
 const ROWS: readonly { feature: string; paper: Cell; digital: Cell }[] = [
   {
     feature: 'Cost',
-    paper: '₹5,000 to ₹50,000+',
+    paper: PAPER_CARDS.cost,
     digital: `₹${PRICE_FROM_RUPEES.toLocaleString('en-IN')}, one time`,
   },
-  { feature: 'Ready in', paper: '2 to 4 weeks', digital: '5 minutes' },
+  { feature: 'Ready in', paper: PAPER_CARDS.readyIn, digital: '5 minutes' },
   { feature: 'Each guest’s name', paper: 'Written by hand', digital: 'On every link' },
   { feature: 'Change it after sending', paper: false, digital: true },
   { feature: 'Venue on Google Maps', paper: false, digital: true },

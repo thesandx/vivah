@@ -47,6 +47,37 @@ export const SOCIAL = {
  */
 export const PRICE_FROM_RUPEES = 499;
 
+/**
+ * What paper cards cost and how long they take, as the home page's "paper or
+ * digital" table and the publish banner print it. A typical range for a
+ * printed set with a box, posted to every guest; not a quote.
+ */
+export const PAPER_CARDS = {
+  cost: '₹5,000 to ₹50,000+',
+  readyIn: '2 to 4 weeks',
+} as const;
+
+/**
+ * The days after payment in which a couple who has not shared the invite yet
+ * gets a full refund on request. The refund policy and the publish banner
+ * both read it, so they cannot disagree.
+ */
+export const REFUND_WINDOW_DAYS = 7;
+
+/**
+ * Whether a real payment runs when a couple publishes. False while publishing
+ * is a test payment (ADR-0007): the banner then says no money is taken, and
+ * its button says "Publish", not "Pay". Set it to true in the pull request
+ * that connects Cashfree.
+ */
+export const PAYMENT_LIVE = false;
+
+/** The payment provider the banner names once payment is live. */
+export const PAYMENT_PROVIDER = 'Cashfree';
+
+/** The ways to pay, in the order Indian buyers look for them. Text only, no brand logos. */
+export const PAYMENT_METHODS = ['UPI', 'Visa', 'Mastercard', 'RuPay', 'Net banking'] as const;
+
 /** The first message the floating WhatsApp button types for the visitor. */
 export const WHATSAPP_HELLO = 'Hi';
 
