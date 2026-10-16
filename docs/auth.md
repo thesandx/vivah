@@ -94,7 +94,7 @@ Hiding a form from a signed-out user is a courtesy, not a control. The control i
 
 The couple chooses the invite address on step 3 of the sign-up card. `GET /api/addresses` offers free addresses and checks a typed one. It is a read, so it needs no session. `POST /api/leads` checks the address again and stores it on the lead as `desiredSlug`. That is a wish, not a reservation. Publishing reserves it. If another couple publishes it first, the preview page offers other addresses.
 
-Step 4 asks for a song, from the four an admin uploads in `/admin`. `GET /api/songs` lists them, and `GET /api/songs/<file>` redirects to a short-lived signed URL. The body names the song by slot only. `POST /api/leads` copies the song's name and file onto the lead, and publishing copies them onto the wedding.
+Step 4 asks for a song, from the four an admin uploads in `/admin`. `GET /api/songs` lists them, and `GET /api/songs/<file>` redirects to a short-lived signed URL. The body names the song by slot only. `POST /api/leads` copies the song's name and file onto the lead, and publishing copies them onto the wedding. Playing a song also chooses it. Later, the couple can change the song in `/dashboard`. The dashboard action calls `requireUser()`, checks that the session's number owns the wedding, and copies the song from the admin's list by slot.
 
 The preview link `GET /p/<lead id>` is not a sign-in either. It sets a `vivah_preview` cookie that ties the preview to the first browser that opened it. The lead stores only the SHA-256 hash of that token.
 
