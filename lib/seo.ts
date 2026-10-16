@@ -152,7 +152,6 @@ const PRIVATE_PATHS = [
   '/profile',
   '/sign-in',
   '/design',
-  '/example',
 ];
 
 /**

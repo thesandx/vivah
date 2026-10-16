@@ -329,7 +329,7 @@ The source order is the phone order. Screen readers and the keyboard follow it a
 
 - **A two-column hero.** The words go on the left, the live product on the right. See `app/page.tsx`.
 - **A heading beside its content.** The heading and a short intro take two of five columns. The content takes three.
-- **A form beside what it makes.** The form stays in view (`lg:sticky lg:top-24`) while the list grows. See `app/example/page.tsx`.
+- **A form beside what it makes.** The form stays in view (`lg:sticky lg:top-24`) while the list grows.
 - **An identity beside the details.** The profile card stays in view while the details scroll. See `app/profile/page.tsx`.
 - **A section list on a long page.** A sticky list of section links goes on the left. See `app/design/page.tsx`.
 - **A grid of distinct objects.** `sm:grid-cols-2 lg:grid-cols-3`, only when each card is an object the user acts on.

@@ -145,7 +145,7 @@ Four console steps have no `gcloud` equivalent. Full detail in [Firebase setup, 
 - [ ] **Authorized domains:** `localhost`, `<project>.web.app`, your `*.run.app` URL, and your domain. Google sign-in is refused from anything missing
 - [ ] Set `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_APP_ID` as **variables**, not secrets
 - [ ] **Rebuild.** These are `NEXT_PUBLIC_*` and are inlined at build time — setting them on the service does nothing ([trap 8](./docs/traps.md#8-next_public_-is-inlined-at-build-time-and-is-public))
-- [ ] Sign in at `/sign-in`, then check `/example` and confirm a `users/{uid}` document appears in Firestore
+- [ ] Sign in at `/sign-in`, then open `/profile` and confirm a `users/{uid}` document appears in Firestore
 
 ### 6 · Custom domain
 
@@ -164,7 +164,6 @@ Cloud Run domain mapping is unavailable in several regions, so this uses Firebas
 
 ### 7 · Before real users
 
-- [ ] **Delete the example** — `app/example/`, `app/api/example/`, `components/example/`, `services/example.service.ts`, and the `examples` entries in `firestore.indexes.json`. A demo write path on a public URL is still a write path
 - [ ] Restrict the Firebase API key by HTTP referrer (Google Cloud console → APIs & Services → Credentials)
 - [ ] **Add rate limiting.** There is none. `--max-instances` caps your Cloud Run bill, not your Firestore bill
 - [ ] Add a Content-Security-Policy once you know your origins
@@ -224,7 +223,7 @@ Step 4b needs the Firebase console: add Firebase to the project, register a web 
 
 Step 6 needs two manual pieces: **Firebase console → Hosting → Add custom domain**, then copy the DNS records it prints into your registrar. [`cloud/deployment.md` > First deploy, end to end](./cloud/deployment.md#first-deploy-end-to-end) walks all of it, with the checks to run between each step.
 
-Then `pnpm install && pnpm dev`, and open <http://localhost:3000/example> — a working page showing the whole data layer: create a document, list a bounded page, upload an image, display it from a signed URL. Copy the pattern and delete it.
+Then `pnpm install && pnpm dev`, and open <http://localhost:3000>.
 
 > **Run step 3 before step 5.** The pipeline publishes Firestore indexes _before_ it builds the image, so merging without a database fails the whole deploy — no image, no revision.
 
@@ -271,7 +270,7 @@ pnpm install
 pnpm dev               # .env.local was written by step 2
 ```
 
-<http://localhost:3000>, and <http://localhost:3000/example> for the data layer.
+Open <http://localhost:3000>.
 
 Want data without a Google Cloud account? Run the Firestore emulator:
 
@@ -341,7 +340,7 @@ URL=$(gcloud run services describe my-app --region asia-south1 --format='value(s
 curl -s "$URL/api/health" | jq
 ```
 
-Check `status` is `ok` and `version` matches the commit you pushed. Open `$URL/example` too — it exercises Firestore and Cloud Storage end to end.
+Check `status` is `ok` and `version` matches the commit you pushed.
 
 **Nothing public has changed yet.** Your domain is untouched until the next step, so everything so far is reversible.
 
@@ -475,7 +474,7 @@ gh workflow run deploy.yml -f reason="Inline the Firebase web config"
 
 ### 8. Verify
 
-Open `/sign-in`. You should get a Google button and a phone field. Sign in with your test number, then open `/example`: you want the create form, your name in the "Signed in as" strip, and a `users/{uid}` document appearing in Firestore.
+Open `/sign-in`. You should get a Google button and a phone field. Sign in with your test number, then open `/profile`: you want your profile, and a `users/{uid}` document appearing in Firestore.
 
 ### Putting a domain in front
 
@@ -523,8 +522,6 @@ Full runbook, including moving a domain that is already serving traffic: [`cloud
 .
 ├── app/                    # Routes, layouts, route handlers (App Router)
 │   ├── api/health/         #   Liveness probe for Docker + Cloud Run
-│   ├── api/example/        #   EXAMPLE — data layer endpoints, delete these
-│   ├── example/            #   EXAMPLE — the page that uses them
 │   ├── layout.tsx          #   Root layout — a Server Component, keep it that way
 │   ├── page.tsx            #   Template home page — proves the deploy, shows the primitives
 │   ├── design/             #   Living reference for the design language
@@ -790,14 +787,13 @@ The bucket enforces public access prevention and uniform bucket-level access, so
 
 The template is a safe default, not a finished posture. These are real, and none is fixed for you:
 
-| Gap                              | What it means                                                                                                                                                                                 |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **No rate limiting, anywhere**   | A signed-in user can call a write route as fast as they like. `--max-instances` caps your Cloud Run bill, not your Firestore bill. Add limits before launch.                                  |
-| **No Content-Security-Policy**   | Set one once you know your origins. It must allow Firebase Auth and, for phone sign-in, reCAPTCHA.                                                                                            |
-| **No Firebase App Check**        | Nothing binds a request to _your_ app. Worth adding for a consumer product.                                                                                                                   |
-| **Anyone can sign up**           | Google and phone sign-in create an account for any member of the public. Intended for B2C. If you need an allowlist, that is yours to write.                                                  |
-| **`/example` is still deployed** | A demo write path on a public URL is still a write path. Delete `app/example/`, `app/api/example/`, `components/example/` and `services/example.service.ts` once you have copied the pattern. |
-| **SMS costs money**              | Covered above, and it is the one that shows up on a bill.                                                                                                                                     |
+| Gap                            | What it means                                                                                                                                                |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **No rate limiting, anywhere** | A signed-in user can call a write route as fast as they like. `--max-instances` caps your Cloud Run bill, not your Firestore bill. Add limits before launch. |
+| **No Content-Security-Policy** | Set one once you know your origins. It must allow Firebase Auth and, for phone sign-in, reCAPTCHA.                                                           |
+| **No Firebase App Check**      | Nothing binds a request to _your_ app. Worth adding for a consumer product.                                                                                  |
+| **Anyone can sign up**         | Google and phone sign-in create an account for any member of the public. Intended for B2C. If you need an allowlist, that is yours to write.                 |
+| **SMS costs money**            | Covered above, and it is the one that shows up on a bill.                                                                                                    |
 
 The full model and the pre-production checklist are in [SECURITY.md](./SECURITY.md).
 

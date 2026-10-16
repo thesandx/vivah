@@ -59,7 +59,7 @@ COPY . .
 # client bundle at build time, so they must be present here and not only at
 # runtime. Pass them with `--build-arg` from CI.
 ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
-ARG NEXT_PUBLIC_APP_NAME="Next.js on Cloud Run"
+ARG NEXT_PUBLIC_APP_NAME="vivah.online"
 ARG NEXT_PUBLIC_APP_VERSION=dev
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 ENV NEXT_PUBLIC_APP_NAME=${NEXT_PUBLIC_APP_NAME}

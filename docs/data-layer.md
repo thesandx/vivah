@@ -16,7 +16,7 @@ Every app from this template gets two resources, created by `scripts/gcp-bootstr
 | Cloud Storage | `<project-id>-<app-slug>-media` | Same as the Cloud Run service |
 | Dev bucket    | `...-media-dev`                 | Same                          |
 
-Two collections ship with the template: `examples`, which you delete, and `users`, which holds a profile per signed-in person. See [auth.md](./auth.md).
+The `users` collection holds a profile per signed-in person. See [auth.md](./auth.md).
 
 Both are reached with the Cloud Run runtime service account through Application Default Credentials. There is no key file.
 

@@ -12,7 +12,6 @@ The template ships the data layer in this folder — Firestore, Cloud Storage, a
 | `storage.service.ts`  | Signed upload and read URLs, upload verification         |
 | `sharded-counter.ts`  | Counters above one write per second                      |
 | `health.service.ts`   | The opt-in dependency checks behind `/api/health?deep=1` |
-| `example.service.ts`  | **Example.** Delete it once you have copied the pattern  |
 
 ## Why this layer exists
 

@@ -70,7 +70,7 @@ Read [Firestore data modeling](./firestore-modeling.md) first. Then, in one pull
 5. Store the returned **path** on the document, never the signed URL
 6. Render with `createSignedReadUrl(path)`, freshly signed per request
 
-`app/example/` does all six. Copy it, then delete it.
+`services/wedding-songs.service.ts` and the admin song upload do all six. Copy them.
 
 ## Change the Dockerfile
 
