@@ -11,7 +11,7 @@ The steps live in one place: [`docs/recipes.md` > Add a page](../../../docs/reci
 
 1. `docs/recipes.md` — the "Add a page" section.
 2. `.github/instructions/design-language.md` — the twelve rules, [Responsive](../../../.github/instructions/design-language.md#responsive-an-app-on-a-phone-a-website-on-a-desktop) and [the site checklist](../../../.github/instructions/design-language.md#the-site-checklist).
-3. An existing page with the same posture: `app/profile/page.tsx` (behind a login) or `app/example/page.tsx` (public, with a form).
+3. An existing page with the same posture: `app/profile/page.tsx` (behind a login) or `app/(main)/contact/page.tsx` (public).
 
 ## Rules that are easy to miss
 

@@ -158,7 +158,6 @@ The template is a safe default, not a finished security posture. Before producti
 - [ ] Confirm every route that writes calls `requireUser()`, and that each one checks ownership as well
 - [ ] Decide whether `AUTH_CHECK_REVOKED` should be on — it makes "sign out everywhere" immediate, at one Identity Platform call per request
 - [ ] Consider narrowing `roles/firebaseauth.admin` to a custom role with only the session-minting permission
-- [ ] Delete the `/example` route, `services/example.service.ts` and `components/example/` once the pattern is copied — a demo write path on a public URL is still a write path
 
 ## What is out of scope
 

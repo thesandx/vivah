@@ -11,7 +11,7 @@ The steps live in one place: [`docs/recipes.md` > Protect a route](../../../docs
 
 1. `CLAUDE.md` > Authentication in brief.
 2. `docs/auth.md` if the route behaves unusually.
-3. `app/api/example/route.ts` and `app/api/example/finalize/route.ts` — the pattern to copy.
+3. `app/api/profile/route.ts` — the pattern to copy.
 
 ## The checklist
 

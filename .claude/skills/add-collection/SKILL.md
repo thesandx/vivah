@@ -11,7 +11,7 @@ The steps live in one place: [`docs/recipes.md` > Add a Firestore collection](..
 
 1. `docs/firestore-modeling.md` — all of it. Write the queries first, then the documents.
 2. `docs/data-layer.md` — how the repository is used.
-3. `services/example.service.ts` — the shape to copy.
+3. `services/lead.service.ts` — the shape to copy.
 
 ## Rules that are easy to miss
 

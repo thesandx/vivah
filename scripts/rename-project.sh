@@ -191,7 +191,4 @@ Done. Next steps:
 
   6. Check .env.local, then: pnpm dev
 
-  The example at /example shows the data layer end to end. Delete it once you
-  have copied the pattern — see services/example.service.ts.
-
 EOF

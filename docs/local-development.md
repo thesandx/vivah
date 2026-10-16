@@ -27,7 +27,7 @@ pnpm install
 pnpm dev
 ```
 
-Open <http://localhost:3000>, and <http://localhost:3000/example> for the data layer.
+Open <http://localhost:3000>.
 
 `scripts/rename-project.sh` writes `.env.local` when you generate a project from the template. Working on the template itself, or cloned instead of generated? `cp .env.example .env.local` and fill in `APP_SLUG`.
 

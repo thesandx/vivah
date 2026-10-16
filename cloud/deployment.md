@@ -273,8 +273,6 @@ curl -s "$URL/api/health" | jq
 
 Check `status` is `ok` and `version` matches the commit you merged. A mismatch means the deploy did not land.
 
-Open `$URL/example` too. It creates a document, lists a page and uploads an image, so it exercises Firestore and Cloud Storage end to end. Delete that route once you trust the setup.
-
 **Nothing public has changed yet.** Everything so far is reversible.
 
 ### 6. Put a domain in front
@@ -331,7 +329,6 @@ Skip all of it and the app still deploys. Sign-in is unavailable, and every writ
 ### Afterwards
 
 - Add `--cors-origin https://app.example.com` and re-run bootstrap, if the app uploads files from the browser.
-- Delete the `/example` route, `services/example.service.ts` and `components/example/`. A demo write path on a public URL is still a write path.
 - Work through the [pre-production checklist](../SECURITY.md#hardening-checklist-for-a-real-deployment).
 
 ---
