@@ -60,6 +60,15 @@
      sight, so it stays the same in every theme. */
   --color-whatsapp: #1da851; /* a shade darker than #25d366, so white reaches 3:1 */
   --color-plum-night: #2a0d1c; /* the dark cover behind the invite's Ganesh card */
+  /* The Shri Ganesh opening card, drawn in code (components/invite/GaneshCover.tsx).
+     Bright festival colours, fixed in every theme, as printed card stock is. */
+  --color-rani: #e0287a; /* the rani-pink band at the top */
+  --color-rani-deep: #b8135f; /* the band's lower edge, for depth */
+  --color-ganesh: #a3106e; /* Shri Ganesh, the shloka and the lotus */
+  --color-marigold: #ff7d12; /* the orange flowers and the arch's outer line */
+  --color-haldi: #ffc21a; /* the arch's gold band */
+  --color-arch: #fff9ee; /* the cream inside the arch */
+  --color-lattice: #f0dfbd; /* the faint lattice on the cream */
   --color-maps: #1a73e8; /* Google's link blue: the Maps button's words, 4.5:1 on white */
 
   /* Focus — peacock, so a focus ring never reads as the brand */
