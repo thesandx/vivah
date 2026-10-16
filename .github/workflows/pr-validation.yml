@@ -67,7 +67,7 @@ jobs:
         # `next typegen`, so the order of these two steps no longer matters.
         run: pnpm build
         env:
-          NEXT_PUBLIC_APP_NAME: ${{ vars.APP_NAME || 'Next.js on Cloud Run' }}
+          NEXT_PUBLIC_APP_NAME: ${{ vars.APP_NAME || 'vivah.online' }}
           NEXT_PUBLIC_APP_VERSION: ${{ github.sha }}
 
       - name: Type check

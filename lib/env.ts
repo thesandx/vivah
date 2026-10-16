@@ -301,7 +301,7 @@ export const env = {
   appUrl: optional(process.env.NEXT_PUBLIC_APP_URL, 'http://localhost:3000'),
 
   /** Human-readable name shown in the UI and in page titles. */
-  appName: optional(process.env.NEXT_PUBLIC_APP_NAME, 'Next.js on Cloud Run'),
+  appName: optional(process.env.NEXT_PUBLIC_APP_NAME, 'vivah.online'),
 
   /**
    * Root domain for couple invites, e.g. `vivah.online`. A request for

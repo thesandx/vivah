@@ -46,6 +46,7 @@ async function loadEnv(overrides: Record<string, string | undefined>): Promise<E
     'LOG_LEVEL',
     'ADMIN_EMAIL',
     'ADMIN_PHONE',
+    'NEXT_PUBLIC_APP_NAME',
   ]) {
     delete process.env[key];
   }
@@ -216,5 +217,14 @@ describe('admin sign-in factors', () => {
 
   it('refuses something that is not an email address', async () => {
     await expect(loadEnv({ ADMIN_EMAIL: 'not-an-email' })).rejects.toThrow(/ADMIN_EMAIL/);
+  });
+});
+
+describe('brand name', () => {
+  // A link preview reads the page title. The template default once named the
+  // site "Next.js on Cloud Run" in a cached Telegram card, so an unset value
+  // must still name the brand.
+  it('defaults to vivah.online when the build sets no name', async () => {
+    expect((await loadEnv({})).appName).toBe('vivah.online');
   });
 });

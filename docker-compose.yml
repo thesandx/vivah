@@ -16,7 +16,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_APP_URL: http://localhost:8080
-        NEXT_PUBLIC_APP_NAME: Next.js on Cloud Run
+        NEXT_PUBLIC_APP_NAME: vivah.online
         NEXT_PUBLIC_APP_VERSION: local
     image: vivah:local
     container_name: vivah
