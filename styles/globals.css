@@ -160,6 +160,8 @@
   --animate-sound-bar: sound-bar 900ms ease-in-out infinite;
   /* "Scroll" under the first card: a small nudge downwards. */
   --animate-nudge: nudge 1.8s ease-in-out infinite;
+  /* Shri Ganesh on the invite floats, barely: 4px up and down, slowly. */
+  --animate-float: float 4s ease-in-out infinite;
   /* The sign-up card's send: the envelope pulls back, then zooms off to the
      right as its speed lines streak behind it. `components/lead/SendMoment.tsx`
      waits the same 760 ms before it shows the tick. */
@@ -308,6 +310,12 @@
     }
     50% {
       transform: scaleY(1);
+    }
+  }
+
+  @keyframes float {
+    50% {
+      transform: translateY(-4px);
     }
   }
 

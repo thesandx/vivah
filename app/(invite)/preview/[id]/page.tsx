@@ -174,6 +174,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
             rsvpPhoneE164={lead.phoneE164}
             madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
             stickyRsvp={false}
+            venuePendingNote="Once your invite is yours, you can add your venue, time and map from your own dashboard whenever you are ready. It will appear right here for every guest, with directions to find you."
             className="flex-1"
           />
         </main>

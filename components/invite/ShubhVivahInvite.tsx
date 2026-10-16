@@ -59,6 +59,11 @@ export interface ShubhVivahInviteProps {
    * The preview turns it off: its own banner holds the bottom of the screen.
    */
   stickyRsvp?: boolean;
+  /**
+   * What the venue card says while there is no venue. The couple's preview
+   * tells them they can add it from their dashboard; guests get the default.
+   */
+  venuePendingNote?: string;
   className?: string;
 }
 
@@ -144,6 +149,7 @@ export function ShubhVivahInvite({
   rsvpPhoneE164,
   madeByUrl,
   stickyRsvp = true,
+  venuePendingNote = 'We will add the place and a map here, so you can find your way.',
   className,
 }: ShubhVivahInviteProps) {
   const mapsUrl = venueMapsUrl !== null && isGoogleMapsUrl(venueMapsUrl) ? venueMapsUrl : null;
@@ -200,8 +206,7 @@ export function ShubhVivahInvite({
               <p className="font-script text-title text-brand">Dear {guestName},</p>
             )}
             <p className="font-display text-heading text-ink-soft max-w-sm italic">
-              With the blessings of Shri Ganesh and our beloved families, we joyfully invite you to
-              celebrate the union of
+              With hearts full of joy, we
             </p>
             <h1 className="flex flex-col items-center gap-1">
               <span className="font-script text-hero text-brand">{bride}</span>
@@ -212,6 +217,9 @@ export function ShubhVivahInvite({
               </span>
               <span className="font-script text-hero text-brand">{groom}</span>
             </h1>
+            <p className="font-display text-heading text-ink-soft italic">
+              invite you to our wedding
+            </p>
             {/* With a date, the day waits under the scratch cards below. */}
             {weddingDate === null && (
               <p className={cn(SPACED, 'text-small text-ink')}>Date to be shared soon</p>
@@ -223,7 +231,7 @@ export function ShubhVivahInvite({
           aria-hidden="true"
           className={cn(SPACED, 'text-small text-ink-soft -mt-10 flex flex-col items-center gap-1')}
         >
-          Scroll to see the magic
+          Scroll down for the details
           <span className="animate-nudge block">
             <svg viewBox="0 0 24 24" className="size-5" fill="none">
               <path
@@ -309,8 +317,8 @@ export function ShubhVivahInvite({
                 <p className="font-display text-title text-ink-soft italic">
                   Venue to be shared soon
                 </p>
-                <p className="font-display text-heading text-ink-soft">
-                  We will add the place and a map here, so you can find your way.
+                <p className="font-display text-heading text-ink-soft max-w-sm">
+                  {venuePendingNote}
                 </p>
               </>
             ) : (
@@ -337,8 +345,7 @@ export function ShubhVivahInvite({
           <section aria-label="RSVP" className="flex w-full flex-col items-center gap-6">
             <SectionTitle eyebrow="Kindly reply" title="Will you join us?" />
             <p className="font-display text-heading text-ink-soft max-w-sm italic">
-              We would love to have you with us. Please confirm your presence, so we can arrange a
-              comfortable stay for you.
+              We would love to have you with us. Please confirm your presence.
             </p>
             {/* Sticky on a phone, so the RSVP stays in reach while the guest
                 scrolls (PRD). In place from md up. */}
