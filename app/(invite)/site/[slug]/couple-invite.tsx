@@ -81,7 +81,6 @@ export async function CoupleInvite({
     <InviteGate
       guestName={guestName}
       couple={`${wedding.bride} & ${wedding.groom}`}
-      rememberKey={`vivah:opened:${wedding.slug}:${guestName ?? ''}`}
       song={
         wedding.song === undefined
           ? null
