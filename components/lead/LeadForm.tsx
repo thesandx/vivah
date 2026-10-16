@@ -112,7 +112,6 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const [bride, setBride] = useState('');
   const [groom, setGroom] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
-  const [dateLater, setDateLater] = useState(false);
   const [phone, setPhone] = useState('');
   const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState('');
@@ -161,9 +160,9 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const brideName = bride.trim();
   const groomName = groom.trim();
   const namesReady = brideName !== '' && groomName !== '';
-  const days = !dateLater && weddingDate !== '' ? daysUntil(weddingDate, todayInIndia()) : null;
+  const days = weddingDate !== '' ? daysUntil(weddingDate, todayInIndia()) : null;
   const forever = days === null ? null : foreverStartsLine(days);
-  const detailsReady = (dateLater || weddingDate !== '') && phone.length === 10;
+  const detailsReady = weddingDate !== '' && phone.length === 10;
   const slug = chosenSlug(address);
   const addressReady = suggestions !== null && slug !== null;
   // Until the list arrives, the card counts on the song step.
@@ -175,7 +174,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
 
   const makingSteps = [
     `Writing ${brideName} & ${groomName} in gold`,
-    dateLater ? 'Saving a seat for your date' : 'Circling your day on the calendar',
+    'Circling your day on the calendar',
     `Putting up your nameplate at ${slug ?? 'your address'}.${domainLabel}`,
     song === null ? 'Sealing your invite' : `Cueing up ${song.name}`,
   ] as const;
@@ -243,7 +242,8 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   function handleDetails(event: React.FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     const errors: FieldErrors = {};
-    if (days !== null && days < 0) errors.weddingDate = 'Pick a date that is not in the past.';
+    if (weddingDate === '') errors.weddingDate = 'Choose your wedding date.';
+    else if (days !== null && days < 0) errors.weddingDate = 'Pick a date that is not in the past.';
     const phoneResult = toE164('IN', phone);
     if (!phoneResult.ok) errors.phone = phoneResult.message;
     if (!consent) errors.consent = 'Tick the box so we can send your preview on WhatsApp.';
@@ -323,7 +323,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
         body: JSON.stringify({
           bride,
           groom,
-          weddingDate: dateLater || weddingDate === '' ? null : weddingDate,
+          weddingDate,
           countryIso: 'IN',
           phone,
           consent,
@@ -467,7 +467,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
-            <CalendarArt isoDate={dateLater || weddingDate === '' ? null : weddingDate} />
+            <CalendarArt isoDate={weddingDate === '' ? null : weddingDate} />
             <p className="text-small text-ink-soft">Step 2 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               Your big day
@@ -481,33 +481,24 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
             name="weddingDate"
             type="date"
             min={todayInIndia()}
-            value={dateLater ? '' : weddingDate}
-            disabled={dateLater}
+            required
+            value={weddingDate}
             onChange={(event) => {
               setWeddingDate(event.target.value);
               setFieldErrors(({ weddingDate: _, ...rest }) => rest);
             }}
             {...(fieldErrors.weddingDate !== undefined && { error: fieldErrors.weddingDate })}
           />
-          <Checkbox
-            label="I'll add the date later"
-            checked={dateLater}
-            onChange={(event) => setDateLater(event.target.checked)}
-          />
-          {(forever !== null || dateLater) && (
+          {forever !== null && (
             <div
-              key={forever ?? 'later'}
+              key={forever}
               className="bg-brand-soft border-line rounded-input animate-rise-in flex flex-col items-center gap-1 border-2 p-4 text-center"
               aria-live="polite"
             >
               <p className="text-heading">
-                {forever ?? 'Your forever is on its way'} <HeartGlyph className="align-middle" />
+                {forever} <HeartGlyph className="align-middle" />
               </p>
-              <p className="text-small text-ink-soft">
-                {forever !== null
-                  ? formatWeddingDate(weddingDate)
-                  : 'Add the date whenever you are ready.'}
-              </p>
+              <p className="text-small text-ink-soft">{formatWeddingDate(weddingDate)}</p>
             </div>
           )}
           {/* India only, so the dial code is fixed. The field keeps 10 digits and
