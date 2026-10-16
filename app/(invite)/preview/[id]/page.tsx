@@ -159,7 +159,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         dock={dock}
       >
         {/* Room at the foot, so the banner never covers the last lines. */}
-        <main className="flex flex-1 flex-col pb-56">
+        <main className="bg-jewel-maroon-deep flex flex-1 flex-col pb-56">
           <ShubhVivahInvite
             bride={lead.bride}
             groom={lead.groom}

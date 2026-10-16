@@ -136,6 +136,47 @@ const tiroDevanagari = localFont({
 });
 
 /**
+ * The jewel invite's faces (SIL OFL), from the product owner's design spec:
+ * Playfair Display 600 for the couple's names (and 400 italic for the "&"),
+ * DM Serif Display 400 and italic for everything else, and Martel for the
+ * Devanagari shloka. Only the invite uses them, so none is preloaded.
+ * Martel is the Devanagari subset only, with its `unicode-range`.
+ */
+const playfair = localFont({
+  src: [
+    { path: '../public/fonts/playfairdisplay-600.woff2', weight: '600' },
+    { path: '../public/fonts/playfairdisplay-400-italic.woff2', weight: '400', style: 'italic' },
+  ],
+  variable: '--font-playfair',
+  display: 'swap',
+  preload: false,
+});
+
+const dmSerif = localFont({
+  src: [
+    { path: '../public/fonts/dmserifdisplay-400.woff2', weight: '400' },
+    { path: '../public/fonts/dmserifdisplay-400-italic.woff2', weight: '400', style: 'italic' },
+  ],
+  variable: '--font-dm-serif',
+  display: 'swap',
+  preload: false,
+});
+
+const martel = localFont({
+  src: '../public/fonts/martel-400-devanagari.woff2',
+  weight: '400',
+  variable: '--font-martel',
+  display: 'swap',
+  preload: false,
+  declarations: [
+    {
+      prop: 'unicode-range',
+      value: 'U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+25CC, U+A830-A839, U+A8E0-A8FF',
+    },
+  ],
+});
+
+/**
  * The product theme. 'phera' is the default token set; 'calm' and 'night'
  * re-assign tokens in styles/globals.css. Set once per product, here only.
  */
@@ -169,7 +210,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${arvo.variable} ${dancingScript.variable} ${tiroDevanagari.variable}`}
+      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${arvo.variable} ${dancingScript.variable} ${tiroDevanagari.variable} ${playfair.variable} ${dmSerif.variable} ${martel.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}

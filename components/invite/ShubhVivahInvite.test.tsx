@@ -37,9 +37,9 @@ describe('ShubhVivahInvite', () => {
   it('hides the date under three scratch cards', () => {
     render(<ShubhVivahInvite {...full} />);
     const section = screen.getByRole('region', { name: 'Save the date' });
-    expect(section).toHaveTextContent('09');
-    expect(section).toHaveTextContent('Mar');
-    expect(section).toHaveTextContent('2026');
+    expect(section).toHaveTextContent('Day09');
+    expect(section).toHaveTextContent('Month03');
+    expect(section).toHaveTextContent('Year26');
     expect(section.querySelectorAll('canvas.cursor-grab')).toHaveLength(3);
   });
 
