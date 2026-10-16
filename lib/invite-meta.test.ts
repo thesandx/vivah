@@ -60,7 +60,7 @@ describe('invite link preview', () => {
     const guest = inviteMetadata({ ...base, guestName: 'Kartheek ji' });
     expect(guest.openGraph).toMatchObject({
       url: 'https://sara.vivah.online/Kartheek-ji',
-      images: [{ width: 1200, height: 630 }],
+      images: [{ width: 1080, height: 1350 }],
     });
     expect(guest.description).toMatch(/^Hi Kartheek ji, /);
     expect(guest.robots).toEqual({ index: false, follow: false });

@@ -3,9 +3,10 @@
  * image that WhatsApp shows when a guest's link is shared. Pure, so it is
  * tested without a request.
  *
- * WhatsApp reads Open Graph tags. A large image card needs an absolute
- * `og:image` of at least 300 px wide; 1200 × 630 is the size every app crops
- * well. The image itself is drawn by `app/api/og/[slug]/route.tsx`.
+ * WhatsApp reads Open Graph tags. It needs an absolute `og:image` at least
+ * 300 px wide and under about 300 KB, or it falls back to a small thumbnail.
+ * The image is a 4:5 portrait card: WhatsApp shows a tall image as a tall
+ * card, at its real size. It is drawn by `app/api/og/[slug]/route.tsx`.
  */
 
 import type { Metadata } from 'next';
@@ -14,8 +15,8 @@ import { encodeGuestSegment, guestPath } from '@/lib/guest-name';
 import { inviteUrl } from '@/lib/site-host';
 import { formatShortWeddingDate, formatWeddingDate } from '@/lib/wedding-date';
 
-export const OG_IMAGE_WIDTH = 1200;
-export const OG_IMAGE_HEIGHT = 630;
+export const OG_IMAGE_WIDTH = 1080;
+export const OG_IMAGE_HEIGHT = 1350;
 
 export interface InviteMetaInput {
   slug: string;
