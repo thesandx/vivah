@@ -1,22 +1,22 @@
 /**
- * The Shubh Vivah colours as plain values, for the one place that cannot read
- * CSS tokens: the link preview image (`app/api/og/[slug]/route.tsx`), which is
+ * The invite colours as plain values, for the one place that cannot read CSS
+ * tokens: the link preview image (`app/api/og/[slug]/route.tsx`), which is
  * drawn on the server without a stylesheet. Keep each value equal to its
  * token in `styles/globals.css`, `[data-theme='shubh-vivah']`.
  */
 export const INVITE_PALETTE = {
-  /** `--color-paper`: ivory card stock. */
-  paper: '#fbf3e4',
-  /** `--color-ink`: deep maroon. */
-  ink: '#5a1020',
-  /** `--color-brand`: maroon. */
-  brand: '#8e1b2c',
-  /** `--color-brand-soft`: marigold. */
-  marigold: '#f2c46d',
-  /** `--color-butter`: antique gold. */
-  gold: '#c99a3b',
-  /** `--color-peach`: marigold orange. */
-  orange: '#e8782a',
+  /** `--color-paper`: blush card stock. */
+  paper: '#fdf6f4',
+  /** `--color-ink`: dusty plum-rose. */
+  ink: '#6e3b45',
+  /** `--color-brand`: rose. */
+  brand: '#a84d62',
+  /** `--color-brand-soft`: blush. */
+  blush: '#f7d6dd',
+  /** `--color-butter`: gold foil. */
+  gold: '#e6c477',
+  /** `--color-peach`: rose petal. */
+  petal: '#f2b6c1',
 } as const;
 
 /**

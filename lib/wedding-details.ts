@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 
+import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 
 /** An empty field clears the value: `''` becomes `null`. */
@@ -22,8 +23,8 @@ const optionalText = (max: number) =>
  * guests.
  */
 export const weddingDetailsSchema = z.object({
-  bride: z.string().trim().min(1, "Enter the bride's name.").max(60),
-  groom: z.string().trim().min(1, "Enter the groom's name.").max(60),
+  bride: z.string().trim().min(1, "Enter the bride's name.").max(60).transform(capitalizeName),
+  groom: z.string().trim().min(1, "Enter the groom's name.").max(60).transform(capitalizeName),
   weddingDate: z
     .union([z.literal(''), z.iso.date('Enter a date like 2026-03-09.')])
     .transform((value) => (value === '' ? null : value)),

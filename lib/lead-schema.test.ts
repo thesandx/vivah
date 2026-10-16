@@ -29,6 +29,11 @@ describe('leadRequestSchema', () => {
     });
   });
 
+  it('saves each name with a capital first letter, however it was typed', () => {
+    const parsed = leadRequestSchema.parse({ ...VALID, bride: 'rIYA', groom: 'ARJUN singh' });
+    expect([parsed.bride, parsed.groom]).toEqual(['Riya', 'Arjun Singh']);
+  });
+
   it('keeps a chosen song slot, and refuses one that does not exist', () => {
     expect(leadRequestSchema.parse({ ...VALID, songSlot: 2 }).songSlot).toBe(2);
     expect(leadRequestSchema.safeParse({ ...VALID, songSlot: 5 }).success).toBe(false);

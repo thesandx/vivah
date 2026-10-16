@@ -1,18 +1,12 @@
-import { SiteHeader } from '@/components/layout/SiteHeader';
-import { env } from '@/lib/env';
-
 /**
  * The private preview, `/preview/<id>`. A Server Component.
  *
- * Only the couple sees a preview, so it carries the product `SiteHeader`: the
- * brand mark leads back to the home page. A guest never sees this page. The
- * couple's published invite keeps no product header (`app/(invite)/layout.tsx`).
+ * The couple sees their invite exactly as a guest will: the whole screen, in
+ * the invite theme, with no product header. The page adds only a "Preview"
+ * notch at the top and a banner at the foot. When a preview cannot be shown,
+ * the page draws the product `SiteHeader` itself, so the brand mark leads
+ * home.
  */
 export default function PreviewLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <div className="flex flex-1 flex-col">
-      <SiteHeader appName={env.appName} />
-      {children}
-    </div>
-  );
+  return <div className="flex flex-1 flex-col">{children}</div>;
 }

@@ -95,3 +95,20 @@ export function coupleInitials(bride: string, groom: string): string {
     Array.from(name.trim())[0]?.toLocaleUpperCase('en-IN') ?? '';
   return [first(bride), first(groom)].filter((letter) => letter !== '').join(' & ');
 }
+
+/**
+ * A couple's name as it is saved and shown: each word starts with a capital
+ * and the rest is small, however it was typed. `riya SHARMA` → `Riya Sharma`,
+ * `anne-marie` → `Anne-Marie`. Scripts without case, such as Devanagari, pass
+ * through unchanged. Extra spaces fold to one.
+ */
+export function capitalizeName(name: string): string {
+  return name
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('en-IN')
+    .replace(
+      /(^|[\s-])(\p{L})/gu,
+      (_match, before: string, letter: string) => `${before}${letter.toLocaleUpperCase('en-IN')}`,
+    );
+}

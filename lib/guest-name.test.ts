@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  capitalizeName,
   coupleInitials,
   guestLinkKey,
   guestLinkSegment,
@@ -87,5 +88,18 @@ describe('coupleInitials', () => {
 
   it('keeps one initial when a name is empty', () => {
     expect(coupleInitials('Radha', ' ')).toBe('R');
+  });
+});
+
+describe('capitalizeName', () => {
+  it('starts each word with a capital and keeps the rest small', () => {
+    expect(capitalizeName('riya')).toBe('Riya');
+    expect(capitalizeName('ARJUN')).toBe('Arjun');
+    expect(capitalizeName('  riya   SHARMA ')).toBe('Riya Sharma');
+    expect(capitalizeName('anne-marie')).toBe('Anne-Marie');
+  });
+
+  it('leaves a name in a script without case as typed', () => {
+    expect(capitalizeName('राधा')).toBe('राधा');
   });
 });
