@@ -3,12 +3,15 @@
 import { revalidatePath } from 'next/cache';
 
 import type { CreateLinkState, DeleteLinkResult } from '@/components/dashboard/GuestLinks';
+import type { SongSaveResult } from '@/components/dashboard/SongPicker';
 import { logger } from '@/lib/logger';
+import { parseSongSlot } from '@/lib/wedding-songs';
 import { requireUser } from '@/services/auth.service';
 import { createGuestLink, deleteGuestLink } from '@/services/guest-link.service';
+import { updateWeddingSong } from '@/services/wedding.service';
 
 /**
- * The dashboard's guest-link writes.
+ * The dashboard's guest-link and song writes.
  *
  * `requireUser()` first: a Server Action is a public endpoint, whatever page
  * shows the form. The caller's phone number comes from the verified session,
@@ -59,5 +62,29 @@ export async function deleteGuestLinkAction(
   } catch (error) {
     logger.error('Deleting a guest link failed', error, { slug, uid: user.uid });
     return { ok: false, message: 'The link was not deleted. Try again.' };
+  }
+}
+
+export async function saveSongAction(slug: string, rawSlot: unknown): Promise<SongSaveResult> {
+  const user = await requireUser();
+  const slot = parseSongSlot(rawSlot);
+  if (slot === null) return { ok: false, message: 'Choose one of the songs.' };
+  try {
+    const result = await updateWeddingSong(slug, user.phoneNumber, slot);
+    if (!result.ok) {
+      return {
+        ok: false,
+        message:
+          result.reason === 'invalid'
+            ? 'That song is no longer on the list. Choose another.'
+            : 'This invite is not on your number.',
+      };
+    }
+    logger.info('Wedding song changed', { slug, uid: user.uid, slot });
+    refreshDashboard(slug);
+    return { ok: true, message: `${result.name} is now your song.` };
+  } catch (error) {
+    logger.error('Changing the wedding song failed', error, { slug, uid: user.uid });
+    return { ok: false, message: 'Your song was not saved. Try again.' };
   }
 }

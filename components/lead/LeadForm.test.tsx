@@ -83,6 +83,7 @@ describe('LeadForm', () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('wakes the first button only when both names are there, and joins them', () => {
@@ -324,8 +325,13 @@ describe('LeadForm', () => {
     expect(screen.getByRole('heading', { name: 'Your song' })).toBeInTheDocument();
     expect(screen.getByText('Step 4 of 4')).toBeInTheDocument();
     expect(screen.getByLabelText('Kesariya')).toBeChecked();
-    expect(screen.getByRole('button', { name: 'Play Tum Hi Ho' })).toBeInTheDocument();
-    fireEvent.click(screen.getByLabelText('Tum Hi Ho'));
+    expect(
+      screen.getByText(/You can change your song anytime from your dashboard\./),
+    ).toBeInTheDocument();
+    // Playing a song chooses it.
+    vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
+    fireEvent.click(screen.getByRole('button', { name: 'Play Tum Hi Ho' }));
+    expect(screen.getByLabelText('Tum Hi Ho')).toBeChecked();
     fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
 
     const body = JSON.parse(String(leadCalls()[0]?.[1]?.body)) as Record<string, unknown>;
