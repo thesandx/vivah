@@ -53,6 +53,26 @@ describe('RadioGroup', () => {
     expect(onChange).toHaveBeenCalledWith('short');
   });
 
+  it('draws exactly one dot, on the controlled value, as the value moves', () => {
+    const { container, rerender } = render(
+      <RadioGroup label="Round length" name="length" options={LENGTHS} value="short" />,
+    );
+    const dots = () => container.querySelectorAll('.animate-check');
+    expect(dots()).toHaveLength(1);
+    expect(screen.getByRole('radio', { name: 'Short' }).parentElement).toContainElement(
+      dots()[0] as HTMLElement,
+    );
+
+    rerender(<RadioGroup label="Round length" name="length" options={LENGTHS} value="standard" />);
+    expect(dots()).toHaveLength(1);
+    expect(screen.getByRole('radio', { name: 'Standard' }).parentElement).toContainElement(
+      dots()[0] as HTMLElement,
+    );
+
+    rerender(<RadioGroup label="Round length" name="length" options={LENGTHS} value="" />);
+    expect(dots()).toHaveLength(0);
+  });
+
   it('describes an option with its hint and disables on request', () => {
     render(<RadioGroup label="Round length" name="length" options={LENGTHS} />);
     expect(screen.getByRole('radio', { name: 'Short' })).toHaveAccessibleDescription(
