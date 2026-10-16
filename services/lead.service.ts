@@ -93,7 +93,12 @@ export function tokenMatches(token: string | undefined, storedHash: string): boo
 
 /** Saves a lead and returns its id, which is also its preview link. */
 export async function createLead(
-  input: Omit<LeadRequest, 'songSlot'> & { song?: ChosenSong | null },
+  // `weddingDate` stays nullable here: the sign-up card requires it now, but
+  // leads stored before that have none, and the store keeps one shape.
+  input: Omit<LeadRequest, 'songSlot' | 'weddingDate'> & {
+    weddingDate: string | null;
+    song?: ChosenSong | null;
+  },
   now: Date = new Date(),
 ): Promise<string> {
   return leads.create({

@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { LeadForm } from '@/components/lead/LeadForm';
+import { todayInIndia } from '@/lib/wedding-date';
 
 const fetchMock = vi.fn<typeof fetch>();
 const assign = vi.fn<(url: string) => void>();
@@ -12,8 +13,14 @@ function fillNames(): void {
   fireEvent.click(screen.getByRole('button', { name: 'Begin our story' }));
 }
 
+const DATE = `${Number(todayInIndia().slice(0, 4)) + 1}-06-15`;
+
+function fillDate(): void {
+  fireEvent.change(screen.getByLabelText('Wedding date'), { target: { value: DATE } });
+}
+
 function fillDetails(): void {
-  fireEvent.click(screen.getByLabelText("I'll add the date later"));
+  fillDate();
   fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
   fireEvent.click(screen.getByLabelText('Send my preview on WhatsApp'));
 }
@@ -138,17 +145,28 @@ describe('LeadForm', () => {
     expect(screen.getByText('Your forever starts in 30 days')).toBeInTheDocument();
     expect(screen.getByText('Saturday, 14 November 2026')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByLabelText("I'll add the date later"));
-    expect(screen.getByText('Your forever is on its way')).toBeInTheDocument();
-
     fireEvent.click(screen.getByRole('button', { name: 'Back to your names' }));
     expect(screen.getByLabelText("Bride's name")).toHaveValue('Raadha');
+  });
+
+  it('needs the wedding date before it moves on', () => {
+    render(<LeadForm />);
+    fillNames();
+    fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
+    fireEvent.click(screen.getByLabelText('Send my preview on WhatsApp'));
+    expect(screen.getByLabelText('Wedding date')).toBeRequired();
+    expect(screen.queryByLabelText("I'll add the date later")).not.toBeInTheDocument();
+    const next = screen.getByRole('button', { name: 'Choose our address' });
+    expect(next).toBeDisabled();
+
+    fillDate();
+    expect(next).toBeEnabled();
   });
 
   it('asks for the WhatsApp opt-in before it moves on', () => {
     render(<LeadForm />);
     fillNames();
-    fireEvent.click(screen.getByLabelText("I'll add the date later"));
+    fillDate();
     fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
     fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
 
@@ -200,7 +218,7 @@ describe('LeadForm', () => {
     expect(body).toMatchObject({
       bride: 'Raadha',
       groom: 'Shyam',
-      weddingDate: null,
+      weddingDate: DATE,
       countryIso: 'IN',
       phone: '9876543210',
       consent: true,

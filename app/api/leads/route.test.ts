@@ -2,6 +2,10 @@
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { todayInIndia } from '@/lib/wedding-date';
+
+const DATE = `${Number(todayInIndia().slice(0, 4)) + 1}-06-15`;
+
 const createLead = vi.fn<(input: unknown) => Promise<string>>();
 
 const checkSlug = vi.fn<(slug: string) => Promise<{ available: boolean }>>();
@@ -33,7 +37,7 @@ function post(body: unknown, ip = `10.0.0.${(visitor += 1)}`): Request {
 const VALID = {
   bride: 'Raadha',
   groom: 'Shyam',
-  weddingDate: null,
+  weddingDate: DATE,
   countryIso: 'IN',
   phone: '98765 43210',
   consent: true,
@@ -53,7 +57,7 @@ describe('POST /api/leads', () => {
     expect(createLead).toHaveBeenCalledWith({
       bride: 'Raadha',
       groom: 'Shyam',
-      weddingDate: null,
+      weddingDate: DATE,
       phoneE164: '+919876543210',
       slug: null,
       songSlot: null,

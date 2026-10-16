@@ -3,14 +3,15 @@ import { describe, expect, it } from 'vitest';
 import { leadRequestSchema, todayInIndia } from '@/lib/lead-schema';
 
 function nextYear(): string {
-  const today = todayInIndia();
-  return `${Number(today.slice(0, 4)) + 1}${today.slice(4)}`;
+  return `${Number(todayInIndia().slice(0, 4)) + 1}-06-15`;
 }
+
+const DATE = nextYear();
 
 const VALID = {
   bride: ' Raadha ',
   groom: 'Shyam',
-  weddingDate: null,
+  weddingDate: DATE,
   countryIso: 'IN',
   phone: '98765 43210',
   consent: true,
@@ -21,7 +22,7 @@ describe('leadRequestSchema', () => {
     expect(leadRequestSchema.parse(VALID)).toEqual({
       bride: 'Raadha',
       groom: 'Shyam',
-      weddingDate: null,
+      weddingDate: DATE,
       phoneE164: '+919876543210',
       slug: null,
       songSlot: null,
@@ -51,6 +52,17 @@ describe('leadRequestSchema', () => {
   it('accepts a future wedding date', () => {
     const date = nextYear();
     expect(leadRequestSchema.parse({ ...VALID, weddingDate: date }).weddingDate).toBe(date);
+  });
+
+  it('requires the wedding date, so every preview has a countdown', () => {
+    for (const weddingDate of [null, undefined, '']) {
+      const result = leadRequestSchema.safeParse({ ...VALID, weddingDate });
+      expect(result.success).toBe(false);
+      expect(result.error?.issues[0]?.path).toEqual(['weddingDate']);
+    }
+    expect(
+      leadRequestSchema.safeParse({ ...VALID, weddingDate: null }).error?.issues[0]?.message,
+    ).toBe('Choose your wedding date.');
   });
 
   it('refuses a past date, a date far ahead, and a malformed date', () => {

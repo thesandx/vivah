@@ -37,7 +37,6 @@ export { todayInIndia };
 /**
  * The wedding day, `YYYY-MM-DD`, stored as a string. A wedding day is a date
  * on a calendar, not an instant, so it carries no time and no zone.
- * `null` means "I'll add this later".
  */
 export const weddingDateSchema = z.iso
   .date('Enter the date as YYYY-MM-DD.')
@@ -51,7 +50,11 @@ export const leadRequestSchema = z
   .object({
     bride: coupleNameSchema,
     groom: coupleNameSchema,
-    weddingDate: weddingDateSchema.nullable(),
+    /**
+     * Required, so every preview has a date to scratch and a countdown.
+     * Leads stored before this rule may still have `null`.
+     */
+    weddingDate: z.string('Choose your wedding date.').pipe(weddingDateSchema),
     /** Indian numbers only: the couples and our WhatsApp templates are in India. */
     countryIso: z.literal('IN', 'We accept Indian (+91) numbers only.').default('IN'),
     phone: z.string().trim().min(1, 'Enter your WhatsApp number.').max(20),
