@@ -462,6 +462,7 @@ Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of
 | [0006](./docs/adr/0006-accept-anonymous-lead-capture.md)               | `POST /api/leads` is the one write with no session, and how it stays narrow                  |
 | [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment until Cashfree |
 | [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                |
+| [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks               |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

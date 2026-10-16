@@ -47,6 +47,14 @@ export const leadSchema = z.object({
    * enough to open somebody's preview.
    */
   previewTokenHash: z.string().length(64).nullable(),
+  /**
+   * SHA-256 of the token in the SECOND browser's cookie. The sign-up card
+   * opens the preview on screen, and the WhatsApp link usually opens in
+   * another browser (WhatsApp's own, or the phone when sign-up was on a
+   * laptop). So a preview opens in two browsers, then locks. Optional and
+   * nullable: older leads do not have it, and it stays `null` until used.
+   */
+  secondTokenHash: z.string().length(64).nullable().optional(),
   firstOpenedAt: z.date().nullable(),
   /**
    * The address the couple published at, set with `status: 'paid'`. Optional
@@ -91,6 +99,16 @@ export function tokenMatches(token: string | undefined, storedHash: string): boo
   return presented.length === stored.length && timingSafeEqual(presented, stored);
 }
 
+/** True when `token` opens this lead: it is the first or the second browser's. */
+export function leadTokenMatches(
+  token: string | undefined,
+  lead: Pick<LeadPayload, 'previewTokenHash' | 'secondTokenHash'>,
+): boolean {
+  return [lead.previewTokenHash, lead.secondTokenHash].some(
+    (hash) => typeof hash === 'string' && tokenMatches(token, hash),
+  );
+}
+
 /** Saves a lead and returns its id, which is also its preview link. */
 export async function createLead(
   // `weddingDate` stays nullable here: the sign-up card requires it now, but
@@ -126,8 +144,9 @@ export type PreviewAccess =
 
 /**
  * Opens a preview link. The FIRST call binds the lead to a new random token
- * and returns it, for the caller to set as a cookie. Later calls only report
- * whether the presented token matches.
+ * and returns it, for the caller to set as a cookie. The first call from
+ * another browser binds a second token the same way. After that, calls only
+ * report whether the presented token matches one of the two.
  *
  * A transaction, so two taps on the link at the same moment cannot bind two
  * different browsers.
@@ -156,12 +175,15 @@ export async function openPreviewLink(
       return { access: 'ok' as const, newToken: token };
     }
 
-    return {
-      access: tokenMatches(presentedToken, lead.previewTokenHash)
-        ? ('ok' as const)
-        : ('other-browser' as const),
-      newToken: null,
-    };
+    if (leadTokenMatches(presentedToken, lead)) return { access: 'ok' as const, newToken: null };
+
+    if (lead.secondTokenHash === undefined || lead.secondTokenHash === null) {
+      const token = randomBytes(32).toString('base64url');
+      repo.update(leadId, { secondTokenHash: hashToken(token) });
+      return { access: 'ok' as const, newToken: token };
+    }
+
+    return { access: 'other-browser' as const, newToken: null };
   });
 }
 
@@ -182,6 +204,6 @@ export async function getPreview(
     return { state: 'expired' };
   }
   if (lead.previewTokenHash === null) return { state: 'unopened' };
-  if (!tokenMatches(token, lead.previewTokenHash)) return { state: 'other-browser' };
+  if (!leadTokenMatches(token, lead)) return { state: 'other-browser' };
   return { state: 'ok', lead };
 }

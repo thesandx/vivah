@@ -49,7 +49,7 @@ const FAILURE: Record<string, string> = {
   taken: 'Somebody took this address a moment ago. Choose another.',
   'not-found': 'This preview link does not work. Start again on the home page.',
   expired: 'This preview has expired. Start again on the home page.',
-  'other-browser': 'Open this preview on the phone that opened it first.',
+  'other-browser': 'Open this preview on the phone you opened it on first.',
 };
 
 /**

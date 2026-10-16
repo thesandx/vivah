@@ -47,6 +47,11 @@ async function loadEnv(overrides: Record<string, string | undefined>): Promise<E
     'ADMIN_EMAIL',
     'ADMIN_PHONE',
     'NEXT_PUBLIC_APP_NAME',
+    'WHATSAPP_ACCESS_TOKEN',
+    'WHATSAPP_PHONE_NUMBER_ID',
+    'WHATSAPP_PREVIEW_TEMPLATE',
+    'WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE',
+    'WHATSAPP_GRAPH_API_VERSION',
   ]) {
     delete process.env[key];
   }
@@ -226,5 +231,44 @@ describe('brand name', () => {
   // must still name the brand.
   it('defaults to vivah.online when the build sets no name', async () => {
     expect((await loadEnv({})).appName).toBe('vivah.online');
+  });
+});
+
+describe('WhatsApp preview sending', () => {
+  const ALL = {
+    WHATSAPP_ACCESS_TOKEN: 'EAAG-token',
+    WHATSAPP_PHONE_NUMBER_ID: '123456789012345',
+    WHATSAPP_PREVIEW_TEMPLATE: 'preview_ready',
+  };
+
+  it('turns sending on when the token, number id and template are all set', async () => {
+    const env = await loadEnv(ALL);
+    expect(env.whatsapp).toEqual({
+      enabled: true,
+      accessToken: 'EAAG-token',
+      phoneNumberId: '123456789012345',
+      templateName: 'preview_ready',
+      templateLanguage: 'en',
+      graphVersion: 'v23.0',
+    });
+  });
+
+  it('keeps sending off when any one of the three is unset', async () => {
+    expect((await loadEnv({})).whatsapp.enabled).toBe(false);
+    expect((await loadEnv({ ...ALL, WHATSAPP_ACCESS_TOKEN: '' })).whatsapp.enabled).toBe(false);
+    expect((await loadEnv({ ...ALL, WHATSAPP_PHONE_NUMBER_ID: '' })).whatsapp.enabled).toBe(false);
+    expect((await loadEnv({ ...ALL, WHATSAPP_PREVIEW_TEMPLATE: '' })).whatsapp.enabled).toBe(false);
+  });
+
+  it('refuses the phone number in place of its id', async () => {
+    await expect(loadEnv({ WHATSAPP_PHONE_NUMBER_ID: '+919546342507' })).rejects.toThrow(
+      /WHATSAPP_PHONE_NUMBER_ID/,
+    );
+  });
+
+  it('refuses a template name WhatsApp would never accept', async () => {
+    await expect(loadEnv({ WHATSAPP_PREVIEW_TEMPLATE: 'Preview Ready' })).rejects.toThrow(
+      /WHATSAPP_PREVIEW_TEMPLATE/,
+    );
   });
 });

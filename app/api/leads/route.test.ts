@@ -20,6 +20,10 @@ vi.mock('@/services/wedding-songs.service', () => ({
 vi.mock('@/services/wedding.service', () => ({
   checkSlug: (slug: string) => checkSlug(slug),
 }));
+const sendPreviewLink = vi.fn<(message: unknown) => Promise<boolean>>();
+vi.mock('@/services/whatsapp.service', () => ({
+  sendPreviewLink: (message: unknown) => sendPreviewLink(message),
+}));
 
 const { POST } = await import('./route');
 
@@ -48,12 +52,16 @@ describe('POST /api/leads', () => {
     vi.clearAllMocks();
     createLead.mockResolvedValue('AbCdEfGhIjKlMnOpQrSt');
     checkSlug.mockResolvedValue({ available: true });
+    sendPreviewLink.mockResolvedValue(false);
   });
 
   it('creates a lead and answers with its preview path', async () => {
     const response = await POST(post(VALID));
     expect(response.status).toBe(201);
-    expect(await response.json()).toEqual({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' });
+    expect(await response.json()).toEqual({
+      previewPath: '/p/AbCdEfGhIjKlMnOpQrSt',
+      whatsappSent: false,
+    });
     expect(createLead).toHaveBeenCalledWith({
       bride: 'Raadha',
       groom: 'Shyam',
@@ -66,6 +74,18 @@ describe('POST /api/leads', () => {
     });
     expect(checkSlug).not.toHaveBeenCalled();
     expect(songInSlot).not.toHaveBeenCalled();
+  });
+
+  it('sends the preview link to the WhatsApp number on the lead', async () => {
+    sendPreviewLink.mockResolvedValue(true);
+    const response = await POST(post(VALID));
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ whatsappSent: true });
+    expect(sendPreviewLink).toHaveBeenCalledWith({
+      phoneE164: '+919876543210',
+      coupleNames: 'Raadha & Shyam',
+      leadId: 'AbCdEfGhIjKlMnOpQrSt',
+    });
   });
 
   it('copies the chosen song from its slot, never from the body', async () => {
@@ -93,6 +113,7 @@ describe('POST /api/leads', () => {
     const body = (await response.json()) as { fields: Record<string, string> };
     expect(Object.keys(body.fields)).toEqual(['slug']);
     expect(createLead).not.toHaveBeenCalled();
+    expect(sendPreviewLink).not.toHaveBeenCalled();
   });
 
   it('answers 400 with one message per field', async () => {

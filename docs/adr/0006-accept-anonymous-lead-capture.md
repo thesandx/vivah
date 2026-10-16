@@ -1,6 +1,6 @@
 # ADR-0006: Accept one anonymous write, for lead capture
 
-- **Status:** Accepted
+- **Status:** Accepted. Amended by [ADR-0009](./0009-open-a-preview-in-two-browsers.md): a preview now binds two browsers.
 - **Date:** 2026-10-14
 - **Deciders:** Sandeep
 

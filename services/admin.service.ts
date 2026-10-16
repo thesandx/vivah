@@ -383,6 +383,7 @@ export async function reactivatePreview(
   await leads.update(id, {
     expiresAt: new Date(now.getTime() + PREVIEW_LIFETIME_SECONDS * 1000),
     previewTokenHash: null,
+    secondTokenHash: null,
     firstOpenedAt: null,
     status: 'preview-sent',
   });
