@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import {
   capitalizeName,
-  coupleInitials,
   guestLinkKey,
   guestLinkSegment,
   guestPath,
@@ -78,16 +77,6 @@ describe('guestLinkKey', () => {
   it('refuses a broken encoding and an empty segment', () => {
     expect(guestLinkKey('%E0%A4')).toBeNull();
     expect(guestLinkKey('--')).toBeNull();
-  });
-});
-
-describe('coupleInitials', () => {
-  it('joins the first letters', () => {
-    expect(coupleInitials('radha', 'Shyam')).toBe('R & S');
-  });
-
-  it('keeps one initial when a name is empty', () => {
-    expect(coupleInitials('Radha', ' ')).toBe('R');
   });
 });
 

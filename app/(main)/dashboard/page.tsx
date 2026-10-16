@@ -38,9 +38,19 @@ export const metadata: Metadata = {
 // Reads the session cookie, so it can never be statically rendered.
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage(): Promise<React.JSX.Element> {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ site?: string | string[] }>;
+}): Promise<React.JSX.Element> {
   const user = await getCurrentUser();
-  if (user === null) redirect('/sign-in?next=/dashboard');
+  if (user === null) {
+    // `?site=` arrives from "Edit details" on a live invite. Sign-in uses it
+    // to hint which number to use.
+    const { site } = await searchParams;
+    const query = typeof site === 'string' ? `&site=${encodeURIComponent(site)}` : '';
+    redirect(`/sign-in?next=/dashboard${query}`);
+  }
 
   const phone = user.phoneNumber;
   // Newest first: the repository orders by `createdAt` descending.

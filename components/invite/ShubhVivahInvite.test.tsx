@@ -110,6 +110,18 @@ describe('ShubhVivahInvite', () => {
     );
   });
 
+  it('gives the couple an Edit details link only when the live site passes one', () => {
+    const { rerender } = render(<ShubhVivahInvite {...full} />);
+    expect(screen.queryByRole('link', { name: /edit details/i })).not.toBeInTheDocument();
+    rerender(
+      <ShubhVivahInvite {...full} editDetailsUrl="https://vivah.online/dashboard?site=anu" />,
+    );
+    expect(screen.getByRole('link', { name: /edit details/i })).toHaveAttribute(
+      'href',
+      'https://vivah.online/dashboard?site=anu',
+    );
+  });
+
   it('ignores a venue link that is not Google Maps', () => {
     render(<ShubhVivahInvite {...full} venueMapsUrl="https://evil.example/maps" />);
     expect(screen.queryByRole('link', { name: /wedding venue/i })).not.toBeInTheDocument();

@@ -2,13 +2,13 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 
-import { Envelope } from '@/components/invite/Envelope';
+import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteUnavailable } from '@/components/invite/InviteUnavailable';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { env } from '@/lib/env';
-import { coupleInitials, parseGuestName } from '@/lib/guest-name';
+import { parseGuestName } from '@/lib/guest-name';
 import { inviteMetadata } from '@/lib/invite-meta';
-import { madeByUrl } from '@/lib/site-host';
+import { editDetailsUrl, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
 import { isGuestLinkDeleted } from '@/services/guest-link.service';
 import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
@@ -78,9 +78,8 @@ export async function CoupleInvite({
   const guestName = await guestFrom(wedding, guestSegment);
 
   return (
-    <Envelope
+    <InviteGate
       guestName={guestName}
-      initials={coupleInitials(wedding.bride, wedding.groom)}
       couple={`${wedding.bride} & ${wedding.groom}`}
       rememberKey={`vivah:opened:${wedding.slug}:${guestName ?? ''}`}
       song={
@@ -103,9 +102,10 @@ export async function CoupleInvite({
           venueMapsUrl={wedding.venueMapsUrl ?? null}
           rsvpPhoneE164={wedding.ownerPhoneE164}
           madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+          editDetailsUrl={editDetailsUrl(wedding.slug, env.rootDomain, env.appUrl)}
           className="flex-1"
         />
       </main>
-    </Envelope>
+    </InviteGate>
   );
 }

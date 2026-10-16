@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
 import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
+import { phoneHintDigits } from '@/lib/phone';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import { chosenSongSchema, type SongSlot } from '@/lib/wedding-songs';
 import { leads, tokenMatches } from '@/services/lead.service';
@@ -90,6 +91,16 @@ export async function getWeddingBySlug(slug: string): Promise<WeddingDocument | 
   if (!isValidCoupleSlug(slug)) return null;
   const page = await weddings.list({ limit: 1, where: [['slug', '==', slug]] });
   return page.items[0] ?? null;
+}
+
+/**
+ * The sign-in hint for a live site: the last two digits of its owner number,
+ * and nothing else about the wedding. `null` for an unknown or paused site.
+ */
+export async function ownerPhoneHint(slug: string): Promise<string | null> {
+  const wedding = await getWeddingBySlug(slug);
+  if (wedding === null || wedding.status === 'unavailable') return null;
+  return phoneHintDigits(wedding.ownerPhoneE164);
 }
 
 /** A couple has one wedding; a few allows a second without a schema change. */

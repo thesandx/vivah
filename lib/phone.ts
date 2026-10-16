@@ -100,3 +100,13 @@ export function indianMobileDigits(typed: string): string {
   if (digits.length === 12 && digits.startsWith('91')) digits = digits.slice(2);
   return digits.slice(0, 10);
 }
+
+/**
+ * The last two digits of a number, for a sign-in hint: `+917983873235` →
+ * `35`. Two digits name nobody, and the couple's invite already shows the
+ * whole number to guests for RSVPs. `null` for fewer than two digits.
+ */
+export function phoneHintDigits(e164: string): string | null {
+  const digits = e164.replace(/\D/g, '');
+  return digits.length < 2 ? null : digits.slice(-2);
+}
