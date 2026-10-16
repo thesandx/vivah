@@ -94,26 +94,45 @@ const balooDevanagari = localFont({
 });
 
 /**
- * The Shubh Vivah invite faces (SIL OFL): Cormorant Garamond for headings and
- * Great Vibes for the couple's names. Only `[data-theme='shubh-vivah']` uses
- * them, so they are not preloaded on the product site.
+ * The Shubh Vivah invite faces (SIL OFL), as on a printed card: Dancing Script
+ * for the couple's names and Arvo, a slab serif, for everything else. Tiro
+ * Devanagari Sanskrit sets the Ganesh shloka; its `unicode-range` names only
+ * the Devanagari blocks, so a page without Devanagari never downloads it.
+ * Only `[data-theme='shubh-vivah']` uses them, so none is preloaded on the
+ * product site.
  */
-const cormorant = localFont({
+const arvo = localFont({
   src: [
-    { path: '../public/fonts/cormorantgaramond-500.woff2', weight: '500' },
-    { path: '../public/fonts/cormorantgaramond-600.woff2', weight: '600' },
+    { path: '../public/fonts/arvo-400.woff2', weight: '400' },
+    { path: '../public/fonts/arvo-400-italic.woff2', weight: '400', style: 'italic' },
+    { path: '../public/fonts/arvo-700.woff2', weight: '700' },
   ],
-  variable: '--font-cormorant',
+  variable: '--font-arvo',
   display: 'swap',
   preload: false,
 });
 
-const greatVibes = localFont({
-  src: '../public/fonts/greatvibes-400.woff2',
-  weight: '400',
-  variable: '--font-great-vibes',
+const dancingScript = localFont({
+  src: '../public/fonts/dancingscript-700.woff2',
+  weight: '700',
+  variable: '--font-dancing-script',
   display: 'swap',
   preload: false,
+});
+
+const tiroDevanagari = localFont({
+  src: '../public/fonts/tirodevanagarisanskrit-400-italic.woff2',
+  weight: '400',
+  style: 'italic',
+  variable: '--font-tiro-devanagari',
+  display: 'swap',
+  preload: false,
+  declarations: [
+    {
+      prop: 'unicode-range',
+      value: 'U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+25CC, U+A830-A839, U+A8E0-A8FF',
+    },
+  ],
 });
 
 /**
@@ -150,7 +169,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${cormorant.variable} ${greatVibes.variable}`}
+      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${arvo.variable} ${dancingScript.variable} ${tiroDevanagari.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}

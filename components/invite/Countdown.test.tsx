@@ -26,7 +26,7 @@ describe('Countdown', () => {
     act(() => {
       vi.advanceTimersByTime(1000);
     });
-    expect(screen.getByText('Seconds').nextSibling).toHaveTextContent('4');
+    expect(screen.getByText('Secs').nextSibling).toHaveTextContent('4');
   });
 
   it('blesses the couple after the wedding', () => {

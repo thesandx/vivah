@@ -21,8 +21,8 @@ export interface CountdownProps {
 const UNITS = [
   ['days', 'Days'],
   ['hours', 'Hours'],
-  ['minutes', 'Minutes'],
-  ['seconds', 'Seconds'],
+  ['minutes', 'Mins'],
+  ['seconds', 'Secs'],
 ] as const;
 
 export function Countdown({ target }: CountdownProps): React.JSX.Element {
@@ -49,21 +49,18 @@ export function Countdown({ target }: CountdownProps): React.JSX.Element {
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-4">
-      <p className="font-script text-title text-brand">Our forever starts in…</p>
-      <dl className="grid w-full max-w-sm grid-cols-4 gap-2 sm:gap-3">
-        {UNITS.map(([key, label]) => (
-          <div
-            key={key}
-            className="border-butter bg-surface flex flex-col items-center gap-1 rounded-input border-2 py-3"
-          >
-            <dt className="text-small text-ink-soft order-last">{label}</dt>
-            <dd className="font-display text-title text-brand tabular-nums">
-              {parts === null ? '–' : parts[key]}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </div>
+    <dl className="grid w-full max-w-sm grid-cols-4 gap-2 sm:gap-4">
+      {UNITS.map(([key, label]) => (
+        <div key={key} className="flex flex-col items-center gap-2">
+          <dt className="font-display text-small text-gold order-last tracking-widest uppercase">
+            {label}
+          </dt>
+          <dd className="font-display text-key text-ink flex flex-col items-center gap-2 lining-nums tabular-nums">
+            {parts === null ? '–' : String(parts[key]).padStart(2, '0')}
+            <span aria-hidden="true" className="bg-brand-soft block h-0.5 w-10 rounded-pill" />
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }

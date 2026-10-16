@@ -2,14 +2,18 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { Envelope } from '@/components/invite/Envelope';
 import { InviteTheme } from '@/components/invite/InviteTheme';
-import { PreviewGuard } from '@/components/invite/PreviewGuard';
+import { PreviewNotch } from '@/components/invite/PreviewNotch';
+import { PublishBanner } from '@/components/invite/PublishBanner';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
-import { SlugPicker } from '@/components/invite/SlugPicker';
 import { PageShell } from '@/components/layout/PageShell';
+import { SiteHeader } from '@/components/layout/SiteHeader';
 import { Alert } from '@/components/ui/Alert';
 import { Face } from '@/components/ui/Face';
+import { PRICE_FROM_RUPEES } from '@/lib/business';
 import { env } from '@/lib/env';
+import { coupleInitials } from '@/lib/guest-name';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
@@ -49,6 +53,13 @@ const PROBLEM: Record<
 /**
  * `/preview/<lead id>` — the couple's private preview, before payment.
  *
+ * It is the couple's invite exactly as guests will see it: the same envelope,
+ * the same song, the same page, from the same components, with the couple's
+ * own details. Only two things are added: a "Preview" notch at the top, and
+ * the banner at the foot that publishes it. No watermark: the preview opens
+ * only in the couple's own browser and expires in 48 hours, and a couple who
+ * sees a clean invite wants to send it.
+ *
  * An async Server Component: it reads the lead and the browser's preview
  * cookie on the server, so nothing about the lead reaches a browser that may
  * not see it. The cookie is set by `GET /p/<id>`; a visit straight to this
@@ -64,15 +75,18 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   if (access.state !== 'ok') {
     const problem = PROBLEM[access.state];
     return (
-      <PageShell className="flex-1 justify-center">
-        <section className="flex max-w-prose flex-col gap-6">
-          <span className="bg-sunken border-line inline-grid size-20 place-items-center rounded-full border-2">
-            <Face mood="sleepy" size={64} />
-          </span>
-          <h1 className="text-title">{problem.title}</h1>
-          <p className="text-ink-soft">{problem.body}</p>
-        </section>
-      </PageShell>
+      <>
+        <SiteHeader appName={env.appName} />
+        <PageShell className="flex-1 justify-center">
+          <section className="flex max-w-prose flex-col gap-6">
+            <span className="bg-sunken border-line inline-grid size-20 place-items-center rounded-full border-2">
+              <Face mood="sleepy" size={64} />
+            </span>
+            <h1 className="text-title">{problem.title}</h1>
+            <p className="text-ink-soft">{problem.body}</p>
+          </section>
+        </PageShell>
+      </>
     );
   }
 
@@ -80,95 +94,90 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
   const song =
     lead.song === undefined ? null : { name: lead.song.name, src: songUrl(lead.song.file) };
   const domainLabel = inviteDomainLabel(env.rootDomain);
-
-  // Already published: show where, instead of the address step.
-  if (lead.status === 'paid' && lead.weddingSlug !== undefined) {
-    const href = inviteHref(lead.weddingSlug, env.rootDomain);
-    return (
-      <PageShell>
-        <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
-          <InviteTheme className="bg-paper border-butter rounded-card overflow-hidden border-2 lg:col-span-3">
-            <ShubhVivahInvite
-              bride={lead.bride}
-              groom={lead.groom}
-              weddingDate={lead.weddingDate}
-              guestName={null}
-              ceremonyTime={null}
-              venueName={null}
-              venueCity={null}
-              venueMapsUrl={null}
-              rsvpPhoneE164={null}
-              madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
-              song={song}
-            />
-          </InviteTheme>
-          <section className="flex flex-col gap-5 lg:col-span-2">
-            <h2 className="text-title">Your invite is live</h2>
-            <Alert tone="success" title="Share this link with your guests">
-              <a href={href} className="font-medium underline">
-                {inviteHostLabel(lead.weddingSlug, env.rootDomain)}
-              </a>
-            </Alert>
-          </section>
-        </div>
-      </PageShell>
-    );
-  }
+  const published = lead.status === 'paid' && lead.weddingSlug !== undefined;
 
   // The couple chose their address on the sign-up card. Check it is still
-  // free, so the page shows it with the publish button. Only when it was
-  // taken meanwhile, or the lead is older than that step, does the page offer
-  // addresses here. Those are free ones only, so a couple never sees "taken"
+  // free, so the banner shows it with the publish button. Only when it was
+  // taken meanwhile, or the lead is older than that step, does the banner
+  // offer addresses. Those are free ones only, so a couple never sees "taken"
   // for an address we chose for them. Publishing checks again either way.
   const desired = lead.desiredSlug;
   const chosen =
-    desired !== undefined && (await checkSlug(desired)).available ? desired : undefined;
-  const suggestions = chosen === undefined ? await freeSlugSuggestions(lead.bride, lead.groom) : [];
+    published || desired === undefined
+      ? undefined
+      : (await checkSlug(desired)).available
+        ? desired
+        : undefined;
+  const suggestions =
+    published || chosen !== undefined ? [] : await freeSlugSuggestions(lead.bride, lead.groom);
+
+  let dock: React.ReactNode;
+  if (published && lead.weddingSlug !== undefined) {
+    dock = (
+      <section className="bg-surface border-line rounded-t-sheet mx-auto flex w-full max-w-xl flex-col items-center gap-3 border-2 border-b-0 px-5 py-5 text-center">
+        <p className="font-script text-title text-brand">Your invite is live</p>
+        <a
+          href={inviteHref(lead.weddingSlug, env.rootDomain)}
+          className="text-heading text-brand decoration-butter font-semibold break-all underline decoration-2 underline-offset-4"
+        >
+          {inviteHostLabel(lead.weddingSlug, env.rootDomain)}
+        </a>
+      </section>
+    );
+  } else {
+    dock = (
+      <PublishBanner
+        bride={lead.bride}
+        groom={lead.groom}
+        leadId={lead.id}
+        {...(chosen !== undefined && { chosen })}
+        suggestions={suggestions}
+        domainLabel={domainLabel}
+        priceRupees={PRICE_FROM_RUPEES}
+        hasSong={song !== null}
+        {...(desired !== undefined &&
+          chosen === undefined && {
+            notice: (
+              <Alert tone="info" title="Your address was taken">
+                Another couple published {inviteHostLabel(desired, env.rootDomain)} after you chose
+                it. Choose another address below.
+              </Alert>
+            ),
+          })}
+        checkSlug={checkSlugAction}
+        publish={publishAction}
+      />
+    );
+  }
 
   return (
-    <PageShell>
-      <div className="grid gap-10 lg:grid-cols-5 lg:items-start lg:gap-12">
-        <InviteTheme className="bg-paper border-butter rounded-card overflow-hidden border-2 lg:col-span-3">
-          {/* Unpaid, so watermarked and hard to save. The published invite
-              (above) and the couple's site carry no watermark. */}
-          <PreviewGuard label={`${domainLabel} · preview only`}>
-            <ShubhVivahInvite
-              bride={lead.bride}
-              groom={lead.groom}
-              weddingDate={lead.weddingDate}
-              guestName={null}
-              ceremonyTime={null}
-              venueName={null}
-              venueCity={null}
-              venueMapsUrl={null}
-              rsvpPhoneE164={null}
-              madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
-              song={song}
-            />
-          </PreviewGuard>
-        </InviteTheme>
-        <section className="flex flex-col gap-5 lg:col-span-2">
-          <h2 className="text-title">This is your invite</h2>
-          <p className="text-ink-soft max-w-prose">
-            Only this phone can open this preview. Publish it, and your guests can open it at once
-            at your own address. This preview stays here for 48 hours from your request.
-          </p>
-          {desired !== undefined && chosen === undefined && (
-            <Alert tone="info" title="Your address was taken">
-              Another couple published {inviteHostLabel(desired, env.rootDomain)} after you chose
-              it. Choose another address below.
-            </Alert>
-          )}
-          <SlugPicker
-            leadId={lead.id}
-            {...(chosen !== undefined && { chosen })}
-            suggestions={suggestions}
-            domainLabel={domainLabel}
-            checkSlug={checkSlugAction}
-            publish={publishAction}
+    <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
+      <Envelope
+        guestName={null}
+        initials={coupleInitials(lead.bride, lead.groom)}
+        couple={`${lead.bride} & ${lead.groom}`}
+        song={song}
+        top={<PreviewNotch note={published ? 'your invite is live' : 'only you can see this'} />}
+        dock={dock}
+      >
+        {/* Room at the foot, so the banner never covers the last lines. */}
+        <main className="flex flex-1 flex-col pb-56">
+          <ShubhVivahInvite
+            bride={lead.bride}
+            groom={lead.groom}
+            guestName={null}
+            weddingDate={lead.weddingDate}
+            ceremonyTime={null}
+            venueName={null}
+            venueCity={null}
+            venueMapsUrl={null}
+            rsvpPhoneE164={lead.phoneE164}
+            madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+            stickyRsvp={false}
+            className="flex-1"
           />
-        </section>
-      </div>
-    </PageShell>
+        </main>
+      </Envelope>
+    </InviteTheme>
   );
 }

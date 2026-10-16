@@ -145,10 +145,12 @@ describe('site checklist', () => {
     // No bottom tab bar: the phone gets the header's hamburger menu instead.
     expect(layout).not.toMatch(/<TabBar\b/);
     // Every other screen a person can reach without a guest's invite link
-    // carries the header too, so the brand mark always leads home.
+    // carries the header too, so the brand mark always leads home. The
+    // couple's preview is the invite as guests see it, so only its problem
+    // pages (expired, wrong browser) draw the header, from the page itself.
     for (const file of [
       'app/(admin)/layout.tsx',
-      'app/(invite)/preview/layout.tsx',
+      'app/(invite)/preview/[id]/page.tsx',
       'app/not-found.tsx',
       'app/error.tsx',
     ]) {

@@ -224,7 +224,7 @@ Products with a formal or ceremonial tone (a legal page, a portfolio for employe
 
 The tokens in `@theme` are the Phera palette. `/design` shows them.
 
-- **Colour.** Cream paper, plum ink, a sindoor rose `brand` with white text, and the festival tones. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so white reaches 3:1.
+- **Colour.** Cream paper, plum ink, a sindoor rose `brand` with white text, and the festival tones. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so white reaches 3:1. `maps` is Google's link blue, for the words on the invite's Google Maps button only.
 - **Shadow.** The puff: hard, straight down, in soft plum. The primary button sits on a darker rose puff.
 - **Type.** Huninn for every heading and line of text. `font-script` is the display face here; only the invite theme gives it a real script.
 - **Logo.** `BrandMark`: the "Saath" mark. Two paisleys with fingerprint ridges meet as one heart, in sindoor rose and jamun violet. Its colours are fixed and do not follow the theme. The rules and the master files are in [`docs/brand.md`](../../docs/brand.md).
@@ -234,14 +234,15 @@ The tokens in `@theme` are the Phera palette. `/design` shows them.
 
 ### The invite theme
 
-In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme, not Phera. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the invite card on the preview page. The product site keeps `phera`.
+In this app, a couple's invite is the ceremonial surface. It uses the `shubh-vivah` theme: Phera's pink pastel, made for a wedding. `components/invite/InviteTheme.tsx` applies it. It wraps the couple's site (`app/(invite)/site/[slug]/layout.tsx`) and the whole preview page. The product site keeps `phera`.
 
-- **Colour.** Ivory paper, deep maroon ink, a maroon `brand`, antique gold `butter`, marigold `brand-soft` and `peach`, and a leaf-green `soda` for the garland. Gold borders replace the ink outline. The hard shadow stays, in deep maroon.
-- **Type.** `font-display` is Cormorant Garamond (500 and 600). `font-script` is Great Vibes, for the couple's names and the guest's greeting only. Both are self-hosted under `public/fonts` (OFL) and load only where the theme applies.
-- **Cute budget.** None. No faces, no stickers, no mascot. Ornament is a marigold toran across the top (`Toran`), falling petals (`FallingPetals`, CSS only) and marigold dots.
-- **Layout.** The page follows the couple's first site: greeting, names, day and place, countdown, venue map, WhatsApp RSVP, phone, closing line. A detail the couple has not added yet says "shared soon". On a phone, the RSVP button stays in reach while the guest scrolls.
-- **No deity motif by default.** The theme is religion-neutral, as the PRD asks.
-- **The unpaid preview is watermarked.** `PreviewGuard` lays a tiled `<domain> · preview only` watermark over the invite card. It also blocks the right-click menu, selection, the iOS long-press save, Ctrl/Cmd+S, P and U, and printing. The card blanks while the window is in the background. It cannot stop a phone screenshot, so the watermark is the real control. The published invite has no watermark.
+- **Colour.** Blush paper, white cards, dusty plum-rose ink, a rose `brand`, blush `brand-soft`, rose-petal `peach`, sage `soda`, gold foil `butter` for rules and corners, and a darker readable `gold` for small capitals. The outline is Phera's 2px line in blush, and the hard shadow is blush too.
+- **Type.** Two faces, as on a printed card. `font-script` is Dancing Script (700), for the couple's names, the section titles, the guest's greeting and a few warm lines. `font-display` is Arvo (400, 400 italic and 700), a slab serif, for everything else. `font-shloka` is Tiro Devanagari Sanskrit (italic), for the Ganesh shloka only. All three are self-hosted under `public/fonts` (OFL) and load only where the theme applies. Numbers that count use `lining-nums`.
+- **Cute budget.** None. No faces, no stickers, no mascot. Ornament is Shri Ganesh on a lotus (`Ganesha`, line art drawn for Vivah), gold corner brackets, falling petals (`FallingPetals`, CSS only) and gold rules.
+- **Layout.** A card with Shri Ganesh, the shloka and the names, a scratch-to-reveal date (`ScratchCard`), "The Wedding" with a countdown and "Add to calendar", "The Venue" with a white "Wedding venue" button that carries the Google Maps icon, a WhatsApp-green "RSVP now" button with the WhatsApp icon, the phone, and a closing line. A detail the couple has not added yet says "shared soon". On a phone, the RSVP button stays in reach while the guest scrolls.
+- **The opening.** `Envelope` covers the invite with a sealed envelope and a wax stamp of the couple's initials. The tap starts the couple's song (the tap is the user gesture that allows sound), breaks the seal, lifts the letter out, and fades to the invite. A round `SoundButton` then pauses and plays the song. A guest who opened the invite before skips the envelope.
+- **Shri Ganesh opens the card.** The invite matches the offline Hindu wedding card: Ganesh line art, then "॥ श्री गणेशाय नमः ॥" and the Vakratunda shloka. The product owner chose this over the religion-neutral default in the PRD (2026-10-15).
+- **The preview is the invite.** `/preview/<id>` renders the same `Envelope` and `ShubhVivahInvite` with the couple's own details, full screen, with no product header and no watermark. It adds a gold `PreviewNotch` at the top and the `PublishBanner` at the foot. The banner speaks to the couple ("it's almost yours"); it shows the price once, inside, next to the publish button. The preview stays private because it opens only in the first browser and expires after 48 hours.
 - **The link preview image** cannot read CSS tokens. `lib/invite-palette.ts` repeats the values. Change both together.
 
 Budget limits per viewport, all themes:

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { slugProblem } from '@/lib/couple-slug';
+import { capitalizeName } from '@/lib/guest-name';
 import { toE164 } from '@/lib/phone';
 import { todayInIndia } from '@/lib/wedding-date';
 import { parseSongSlot } from '@/lib/wedding-songs';
@@ -26,7 +27,9 @@ export const coupleNameSchema = z
   .string()
   .trim()
   .min(1, 'Enter a name.')
-  .max(MAX_NAME_LENGTH, `Keep the name under ${MAX_NAME_LENGTH} characters.`);
+  .max(MAX_NAME_LENGTH, `Keep the name under ${MAX_NAME_LENGTH} characters.`)
+  // Saved as `Riya`, however it was typed (`riya`, `RIYA`).
+  .transform(capitalizeName);
 
 // Lives in `lib/wedding-date.ts` so the sign-up card can use it without zod.
 export { todayInIndia };

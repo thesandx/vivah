@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
+import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import { chosenSongSchema } from '@/lib/wedding-songs';
@@ -30,8 +31,9 @@ export type WeddingStatus = (typeof WEDDING_STATUSES)[number];
 export const weddingSchema = z.object({
   /** The first label of the invite host. Unique; the payment step enforces it. */
   slug: z.string().refine(isValidCoupleSlug, 'Not a valid couple slug.'),
-  bride: z.string().trim().min(1).max(60),
-  groom: z.string().trim().min(1).max(60),
+  /** Read through `capitalizeName`, so a name saved as `riya` shows as `Riya`. */
+  bride: z.string().trim().min(1).max(60).transform(capitalizeName),
+  groom: z.string().trim().min(1).max(60).transform(capitalizeName),
   /** `YYYY-MM-DD`, or `null` until the couple adds it in the dashboard. */
   weddingDate: z.iso.date().nullable(),
   /** E.164. The couple's WhatsApp number and their dashboard login. Never logged. */
