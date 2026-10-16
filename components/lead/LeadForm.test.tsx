@@ -149,6 +149,24 @@ describe('LeadForm', () => {
     expect(screen.getByLabelText("Bride's name")).toHaveValue('Raadha');
   });
 
+  it('refuses a past wedding date as soon as it is picked', () => {
+    vi.setSystemTime(new Date('2026-10-15T06:00:00Z'));
+    render(<LeadForm />);
+    fillNames();
+    const date = screen.getByLabelText('Wedding date');
+    expect(date).toHaveAttribute('min', '2026-10-15');
+
+    fireEvent.change(date, { target: { value: '2026-11-14' } });
+    fireEvent.change(date, { target: { value: '2026-10-14' } });
+    expect(date).toHaveValue('2026-11-14');
+    expect(screen.getByText('Pick today or a later date.')).toBeInTheDocument();
+
+    fireEvent.change(date, { target: { value: '2026-10-15' } });
+    expect(date).toHaveValue('2026-10-15');
+    expect(screen.queryByText('Pick today or a later date.')).not.toBeInTheDocument();
+    expect(screen.getByText('Your forever starts today')).toBeInTheDocument();
+  });
+
   it('needs the wedding date before it moves on', () => {
     render(<LeadForm />);
     fillNames();
