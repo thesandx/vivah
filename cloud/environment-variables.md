@@ -277,6 +277,41 @@ On, every authenticated request asks Identity Platform whether the underlying re
 
 ---
 
+## WhatsApp configuration
+
+After sign-up, the app sends the couple their preview link on WhatsApp. `services/whatsapp.service.ts` calls the Meta Cloud API with an approved template. Sending is on only when the token, the phone number id and the template name are all set. If one is empty, nothing is sent and the preview opens on screen, as before.
+
+| Variable                             | Where it comes from                                    | Secret |
+| ------------------------------------ | ------------------------------------------------------ | ------ |
+| `WHATSAPP_ACCESS_TOKEN`              | Secret Manager, mounted by `deploy.yml`                | Yes    |
+| `WHATSAPP_PHONE_NUMBER_ID`           | GitHub variable of the same name                       | No     |
+| `WHATSAPP_PREVIEW_TEMPLATE`          | GitHub variable of the same name                       | No     |
+| `WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE` | GitHub variable of the same name. Default `en`         | No     |
+| `WHATSAPP_GRAPH_API_VERSION`         | Not set by `deploy.yml`. Default `v23.0` in the code   | No     |
+| `WHATSAPP_TOKEN_SECRET`              | GitHub variable. The name of the Secret Manager secret | No     |
+
+The template must have this shape. Any other shape makes Meta refuse each message, and the app logs the refusal.
+
+- Category: Utility.
+- Body: one variable, `{{1}}`, the couple's names, for example `Riya & Aman`.
+- One URL button with a dynamic suffix: `https://vivah.online/p/{{1}}`. The app sends the lead id as `{{1}}`.
+
+To turn sending on:
+
+```bash
+gcloud secrets create whatsapp-access-token --replication-policy=automatic
+printf '%s' "$TOKEN" | gcloud secrets versions add whatsapp-access-token --data-file=-
+gcloud secrets add-iam-policy-binding whatsapp-access-token \
+  --member="serviceAccount:vivah-runtime@<project>.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+```
+
+Then set the GitHub variables `WHATSAPP_TOKEN_SECRET=whatsapp-access-token`, `WHATSAPP_PHONE_NUMBER_ID` and `WHATSAPP_PREVIEW_TEMPLATE`, and deploy. Grant access before you set `WHATSAPP_TOKEN_SECRET`. A deploy that mounts a secret the runtime account cannot read fails.
+
+To turn sending off, clear `WHATSAPP_PREVIEW_TEMPLATE` and deploy. The token can stay where it is.
+
+---
+
 ## Platform-injected variables
 
 Cloud Run sets these; do not define them yourself.

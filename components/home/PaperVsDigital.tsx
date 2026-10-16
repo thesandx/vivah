@@ -21,6 +21,7 @@ const ROWS: readonly { feature: string; paper: Cell; digital: Cell }[] = [
   { feature: 'Change it after sending', paper: false, digital: true },
   { feature: 'Venue on Google Maps', paper: false, digital: true },
   { feature: 'Live countdown', paper: false, digital: true },
+  { feature: 'Your song on the invite', paper: false, digital: true },
   { feature: 'RSVP on WhatsApp', paper: false, digital: true },
   { feature: 'Reaches family abroad at once', paper: false, digital: true },
   { feature: 'No paper, no courier', paper: false, digital: true },

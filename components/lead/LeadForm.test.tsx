@@ -248,6 +248,22 @@ describe('LeadForm', () => {
 
     await runTheShow();
     expect(screen.getByRole('heading', { name: 'Your website is ready' })).toBeInTheDocument();
+    expect(screen.getByText('Opening your preview now.')).toBeInTheDocument();
+    await waitFor(() => expect(assign).toHaveBeenCalledWith('/p/AbCdEfGhIjKlMnOpQrSt'));
+  });
+
+  it('says the link went to WhatsApp only when the server sent it', async () => {
+    serve(() => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt', whatsappSent: true }, 201));
+    render(<LeadForm />);
+    fillNames();
+    fillDetails();
+    await toAddress();
+    fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
+
+    await runTheShow();
+    expect(
+      screen.getByText('Sent to your WhatsApp. Opening your preview now.'),
+    ).toBeInTheDocument();
     await waitFor(() => expect(assign).toHaveBeenCalledWith('/p/AbCdEfGhIjKlMnOpQrSt'));
   });
 

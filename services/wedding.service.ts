@@ -10,7 +10,7 @@ import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { phoneHintDigits } from '@/lib/phone';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import { chosenSongSchema, type SongSlot } from '@/lib/wedding-songs';
-import { leads, tokenMatches } from '@/services/lead.service';
+import { leads, leadTokenMatches } from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
 import { songInSlot } from '@/services/wedding-songs.service';
 
@@ -283,7 +283,7 @@ export async function publishWedding(
     const existing = await tx.get(weddingAtSlugQuery(slug));
 
     if (lead === null) return { state: 'not-found' as const };
-    if (lead.previewTokenHash === null || !tokenMatches(token, lead.previewTokenHash)) {
+    if (!leadTokenMatches(token, lead)) {
       return { state: 'other-browser' as const };
     }
     if (lead.status === 'paid' && lead.weddingSlug !== undefined) {

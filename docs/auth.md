@@ -96,7 +96,7 @@ The couple chooses the invite address on step 3 of the sign-up card. `GET /api/a
 
 Step 4 asks for a song, from the four an admin uploads in `/admin`. `GET /api/songs` lists them, and `GET /api/songs/<file>` redirects to a short-lived signed URL. The body names the song by slot only. `POST /api/leads` copies the song's name and file onto the lead, and publishing copies them onto the wedding. Playing a song also chooses it. Later, the couple can change the song in `/dashboard`. The dashboard action calls `requireUser()`, checks that the session's number owns the wedding, and copies the song from the admin's list by slot.
 
-The preview link `GET /p/<lead id>` is not a sign-in either. It sets a `vivah_preview` cookie that ties the preview to the first browser that opened it. The lead stores only the SHA-256 hash of that token.
+The preview link `GET /p/<lead id>` is not a sign-in either. It sets a `vivah_preview` cookie that ties the preview to the first two browsers that open it: the sign-up screen and the WhatsApp link. The lead stores only the SHA-256 hash of each token. [ADR-0009](./adr/0009-open-a-preview-in-two-browsers.md) records why.
 
 Publishing the invite is the second write without a session. The preview page's Server Action calls `publishWedding`, which checks the `vivah_preview` cookie against the stored hash, then reserves the address in one transaction. [ADR-0007](./adr/0007-publish-from-the-bound-preview-browser.md) records why. Until Cashfree is connected, a test payment button starts it.
 
