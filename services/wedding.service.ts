@@ -8,9 +8,10 @@ import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slu
 import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
-import { chosenSongSchema } from '@/lib/wedding-songs';
+import { chosenSongSchema, type SongSlot } from '@/lib/wedding-songs';
 import { leads, tokenMatches } from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
+import { songInSlot } from '@/services/wedding-songs.service';
 
 /**
  * Weddings: one per paid couple, served at `<slug>.<root domain>`.
@@ -134,6 +135,26 @@ export async function updateWeddingDetails(
   if (!parsed.ok) return { ok: false, reason: 'invalid', errors: parsed.errors };
   await weddings.update(wedding.id, parsed.details);
   return { ok: true };
+}
+
+/**
+ * Sets the song guests can play on the invite, from the admin's current list.
+ * Only the couple's own number may change it. The body names a slot, never a
+ * file: the server copies `{ name, file }` from the list.
+ */
+export async function updateWeddingSong(
+  slug: string,
+  callerPhoneE164: string | null,
+  slot: SongSlot,
+): Promise<{ ok: true; name: string } | { ok: false; reason: 'not-found' | 'invalid' }> {
+  const wedding = await getWeddingBySlug(slug);
+  if (wedding === null || !canEditWedding(callerPhoneE164, wedding.ownerPhoneE164)) {
+    return { ok: false, reason: 'not-found' };
+  }
+  const song = await songInSlot(slot);
+  if (song === null) return { ok: false, reason: 'invalid' };
+  await weddings.update(wedding.id, { song });
+  return { ok: true, name: song.name };
 }
 
 /**

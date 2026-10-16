@@ -1,16 +1,20 @@
 import { SignOutButton } from '@/components/auth/SignOutButton';
 import { GuestLinks } from '@/components/dashboard/GuestLinks';
+import { SongPicker } from '@/components/dashboard/SongPicker';
 import { WeddingDetailsForm } from '@/components/dashboard/WeddingDetailsForm';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
 import { env } from '@/lib/env';
 import { inviteOrigin } from '@/lib/invite-meta';
+import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref } from '@/lib/site-host';
+import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { listGuestLinks } from '@/services/guest-link.service';
 import type { WeddingDocument } from '@/services/wedding.service';
+import { listSongOptions } from '@/services/wedding-songs.service';
 
-import { createGuestLinkAction, deleteGuestLinkAction } from './actions';
+import { createGuestLinkAction, deleteGuestLinkAction, saveSongAction } from './actions';
 import { saveWeddingDetailsAction } from './edit/[slug]/actions';
 
 /**
@@ -29,7 +33,12 @@ export async function CoupleSite({
   wedding: WeddingDocument;
   phoneE164: string;
 }) {
-  const links = await listGuestLinks(wedding.id);
+  const [links, songs] = await Promise.all([listGuestLinks(wedding.id), songOptions()]);
+  const currentSong = wedding.song ?? null;
+  const currentSlot =
+    currentSong === null
+      ? null
+      : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
   const origin = inviteOrigin(wedding.slug, env.rootDomain, env.appUrl);
   const coupleNames = `${wedding.bride} & ${wedding.groom}`;
 
@@ -87,6 +96,21 @@ export async function CoupleSite({
 
         <Card className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
+            <h2 className="text-heading">Your song</h2>
+            <p className="text-small text-ink-soft">
+              Guests can play it on your website. Tap play to listen, then save.
+            </p>
+          </div>
+          <SongPicker
+            songs={songs}
+            currentSlot={currentSlot}
+            currentName={currentSong?.name ?? null}
+            save={saveSongAction.bind(null, wedding.slug)}
+          />
+        </Card>
+
+        <Card className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
             <h2 className="text-heading">Guest invite links</h2>
             <p className="text-small text-ink-soft">
               Make a link for each guest. It opens your invite with &ldquo;Hi&rdquo; and their name.
@@ -106,4 +130,14 @@ export async function CoupleSite({
       </div>
     </>
   );
+}
+
+/** The songs to choose from. A failed read hides the choice, not the dashboard. */
+async function songOptions(): Promise<SongOption[]> {
+  try {
+    return await listSongOptions();
+  } catch (error) {
+    logger.error('Reading the wedding songs failed', error);
+    return [];
+  }
 }

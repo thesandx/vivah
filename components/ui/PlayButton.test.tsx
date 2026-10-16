@@ -26,10 +26,20 @@ describe('PlayButton', () => {
     act(() => {
       audio?.dispatchEvent(new Event('playing'));
     });
-    expect(screen.getByRole('button', { name: 'Pause Kesariya' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
+    const pauseButton = screen.getByRole('button', { name: 'Pause Kesariya' });
+    expect(pauseButton).toHaveAttribute('aria-pressed', 'true');
+    // The pause icon is white, so the light background must not stay on.
+    expect(pauseButton).toHaveClass('bg-brand', 'text-on-brand');
+    expect(pauseButton).not.toHaveClass('bg-surface');
+    expect(pauseButton).not.toHaveClass('text-ink');
+    expect(pauseButton.querySelector('svg rect')).not.toBeNull();
+  });
+
+  it('tells the caller when a tap starts the song', () => {
+    const onPlay = vi.fn();
+    render(<PlayButton src="/a.mp3" title="Kesariya" onPlay={onPlay} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Play Kesariya' }));
+    expect(onPlay).toHaveBeenCalledTimes(1);
   });
 
   it('pauses the song playing elsewhere when another starts', () => {

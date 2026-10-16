@@ -11,7 +11,7 @@ export interface RadioOption {
   disabled?: boolean;
   /**
    * Something to do with this option, at the end of its row: a play button
-   * for a song. Not part of the choice, so tapping it does not choose.
+   * for a song. Tapping it does not choose on its own; the action decides.
    */
   action?: React.ReactNode;
 }

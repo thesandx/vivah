@@ -18,6 +18,8 @@ export interface PlayButtonProps {
   src: string;
   /** The song's name, for the button's accessible name: "Play Kesariya". */
   title: string;
+  /** Called when a tap starts this song: the sign-up card chooses it too. */
+  onPlay?: () => void;
   className?: string;
 }
 
@@ -26,7 +28,7 @@ let playing: HTMLAudioElement | null = null;
 
 type State = 'idle' | 'loading' | 'playing' | 'error';
 
-export function PlayButton({ src, title, className }: PlayButtonProps): React.JSX.Element {
+export function PlayButton({ src, title, onPlay, className }: PlayButtonProps): React.JSX.Element {
   const audio = useRef<HTMLAudioElement>(null);
   const [state, setState] = useState<State>('idle');
 
@@ -48,6 +50,7 @@ export function PlayButton({ src, title, className }: PlayButtonProps): React.JS
     }
     if (playing !== null && playing !== element) playing.pause();
     playing = element;
+    onPlay?.();
     setState('loading');
     element.play().catch(() => setState('error'));
   }
@@ -62,8 +65,10 @@ export function PlayButton({ src, title, className }: PlayButtonProps): React.JS
         aria-label={`${on ? 'Pause' : 'Play'} ${title}`}
         aria-pressed={on}
         className={cn(
-          'squish border-line bg-surface text-ink rounded-pill inline-grid size-11 shrink-0 place-items-center border-2',
-          on && 'bg-brand text-on-brand border-transparent',
+          'squish rounded-pill inline-grid size-11 shrink-0 place-items-center border-2',
+          // One set or the other: `cn` does not merge, so two background
+          // classes would leave the stylesheet order to pick, and white on white.
+          on ? 'bg-brand text-on-brand border-transparent' : 'border-line bg-surface text-ink',
           className,
         )}
       >
