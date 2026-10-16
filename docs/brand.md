@@ -48,3 +48,14 @@ The wordmark is "vivah" in Huninn, with ".online" in sindoor at half the size. H
 - Do not change the colours, rotate the mark, stretch it, add a shadow or put it in a box with an outline.
 - Do not swap the two colours. Rose is always on the left, in front.
 - Do not redraw the wordmark in another font.
+
+## The invite link preview card
+
+A guest's WhatsApp link preview shows a portrait card, 1080 × 1350. `app/api/og/[slug]/route.tsx` draws it.
+
+- The artwork is one fixed picture, `public/invite/og-card.png`. It holds the arch, the blossoms, the lanterns, the couple, the Ganesha and "शुभ विवाह".
+- The couple is a Vecteezy vector. We hold a paid licence, so the card needs no credit.
+- The route draws only the guest's name, the couple's names and the date, in Martel.
+- "शुभ विवाह" is in the picture because the image renderer cannot join Devanagari letters correctly.
+- Keep the card under 300 KB. Above that, WhatsApp shows a small thumbnail. The picture is a 256-colour PNG for this reason, and a test checks the size.
+- To change the artwork, edit the generator in the project files (`screenshots/og-card/source/`), render it again, and replace `og-card.png`.
