@@ -1,34 +1,28 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/invite/SlugPicker';
 import { BrandMark } from '@/components/layout/BrandMark';
-import {
-  PAPER_CARDS,
-  PAYMENT_LIVE,
-  PAYMENT_METHODS,
-  PAYMENT_PROVIDER,
-  REFUND_WINDOW_DAYS,
-} from '@/lib/business';
+import { PAPER_CARDS, PAYMENT_LIVE, PAYMENT_METHODS, PAYMENT_PROVIDER } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
 /**
  * The two payment dialogs at the foot of the couple's preview.
  *
- * Closed, it is a short sheet: what they get, the price once against what
- * paper cards cost, and one green button. It stays short because it sits over
- * the invite the couple is still reading. Open, it is the checkout: what
+ * Closed, it is a one-line bar (the price and "Continue") while the couple
+ * reads their invite. At the foot of the page it grows to the full sheet: the
+ * price against what paper cards cost, one green button and the trust lines.
+ * Scrolling up shrinks it back. Open, it is the checkout: what
  * publishing gives them, their address, an order summary, the ways to pay,
- * the pay button, and the refund promise.
+ * and the pay button.
  *
  * It is a transaction surface, so it is set apart from the invite behind it:
  * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
  * tokens). Only the couple's names keep the invite's serif. Every claim on it
  * is true today: the price is `PRICE_FROM_RUPEES` (passed in), the paper-card
- * figures are the home page's, and the refund line is the refund policy's
- * own window. No ratings and no couple counts.
+ * figures are the home page's. No ratings, no couple counts and no refund
+ * promise (the product owner removed it, 2026-10-16).
  *
  * While publishing is a test payment (`PAYMENT_LIVE` is false), the button
  * says "Publish", not "Pay", and a line under it says nothing is charged.
@@ -58,6 +52,9 @@ export interface PublishBannerProps {
   publish: (leadId: string, slug: string) => Promise<PublishOutcome>;
   className?: string;
 }
+
+/** How close to the foot of the page counts as the foot, for the full sheet. */
+const FOOT_SLACK_PX = 120;
 
 /** What publishing gives the couple, in their words. */
 const PROMISES = [
@@ -107,20 +104,20 @@ function PaymentMethods() {
   );
 }
 
-/** The refund promise, from the refund policy, with a link to it. */
-function RefundLine({ className }: { className?: string }) {
+/**
+ * The small promises at the foot of the sheet and the checkout, in the
+ * product owner's words and emoji (their choice over the "no emoji" rule,
+ * 2026-10-16). Each line is true today: links open at once, the invite shows
+ * no ads, and the terms keep it live until 12 months after the wedding.
+ * "Secure payment" shows only once payment is live.
+ */
+function TrustLines() {
   return (
-    <p className={cn('text-small text-pay-body', className)}>
-      <span className="text-pay-ink font-semibold">Changed your mind?</span> Full refund within{' '}
-      {REFUND_WINDOW_DAYS} days if you have not shared the invite yet.{' '}
-      <Link
-        href="/refund-policy"
-        target="_blank"
-        className="text-pay-ink decoration-pay-line underline decoration-2 underline-offset-2"
-      >
-        Refund policy
-      </Link>
-    </p>
+    <div className="text-small text-pay-muted flex flex-col items-center gap-1 text-center">
+      <p>{PAYMENT_LIVE && '🔒 Secure payment · '}⚡ Instant link · 💛 No ads</p>
+      <p>📅 Your link stays live until 12 months after your wedding</p>
+      <p>Made with love in India 🇮🇳</p>
+    </div>
   );
 }
 
@@ -157,6 +154,10 @@ export function PublishBanner({
   className,
 }: PublishBannerProps): React.JSX.Element {
   const [open, setOpen] = useState(notice !== undefined);
+  // Closed, the banner is a short bar while the couple reads their invite,
+  // and grows to the full sheet once they reach the foot of the page.
+  // Scrolling up again shrinks it back.
+  const [atFoot, setAtFoot] = useState(false);
   const price = `₹${priceRupees.toLocaleString('en-IN')}`;
 
   useEffect(() => {
@@ -167,6 +168,28 @@ export function PublishBanner({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
+
+  useEffect(() => {
+    let frame = 0;
+    function measure() {
+      frame = 0;
+      const root = document.documentElement;
+      setAtFoot(window.innerHeight + window.scrollY >= root.scrollHeight - FOOT_SLACK_PX);
+    }
+    function onScroll() {
+      if (frame === 0) frame = window.requestAnimationFrame(measure);
+    }
+    measure();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame !== 0) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  const continueLabel = PAYMENT_LIVE ? `Continue to payment · ${price}` : 'Continue to publish';
 
   return (
     <>
@@ -182,13 +205,29 @@ export function PublishBanner({
         aria-label="Publish your invite"
         className={cn(
           'bg-surface rounded-t-sheet font-pay text-pay-body relative mx-auto flex w-full max-w-xl flex-col px-5 antialiased',
-          open ? 'gap-5 py-5' : 'gap-3 pt-5 pb-3',
+          open ? 'gap-5 py-5' : atFoot ? 'gap-3 pt-5 pb-3' : 'py-3',
           open && 'max-h-[90dvh] overflow-y-auto',
           className,
         )}
       >
-        {!open ? (
-          <>
+        {!open && !atFoot ? (
+          <div className="animate-fade-in flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-col">
+              <p className="text-body text-pay-ink font-semibold">Your invite is ready</p>
+              <p className="text-small text-pay-body tabular-nums">
+                {price} once · No charge per guest
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="bg-pay-action hover:bg-pay-action-deep text-on-brand rounded-input text-body inline-flex min-h-12 shrink-0 items-center justify-center px-5 font-semibold transition-colors select-none active:translate-y-px"
+            >
+              Continue
+            </button>
+          </div>
+        ) : !open ? (
+          <div className="animate-rise-in flex flex-col gap-3">
             <div className="flex flex-col gap-1">
               <p className="text-small text-pay-body flex items-center gap-2 font-semibold">
                 <BrandMark className="size-6" />
@@ -222,7 +261,7 @@ export function PublishBanner({
               onClick={() => setOpen(true)}
               className="bg-pay-action hover:bg-pay-action-deep text-on-brand rounded-input text-body inline-flex min-h-14 w-full items-center justify-center px-5 font-semibold tabular-nums transition-colors select-none active:translate-y-px"
             >
-              {PAYMENT_LIVE ? `Continue to payment · ${price}` : 'Continue to publish'}
+              {continueLabel}
             </button>
 
             <div className="text-small text-pay-body flex flex-wrap items-center justify-between gap-x-3">
@@ -238,7 +277,8 @@ export function PublishBanner({
                 See everything you get
               </button>
             </div>
-          </>
+            <TrustLines />
+          </div>
         ) : (
           <>
             <div className="flex items-start justify-between gap-3">
@@ -294,11 +334,9 @@ export function PublishBanner({
               actionLabel={PAYMENT_LIVE ? `Pay ${price} and publish` : 'Publish our invite'}
               workingLabel={PAYMENT_LIVE ? 'Opening payment' : 'Publishing your invite'}
               footer={
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-4">
                   <PaymentNote />
-                  <div className="border-pay-line rounded-input border-2 px-4 py-3">
-                    <RefundLine />
-                  </div>
+                  <TrustLines />
                 </div>
               }
             >

@@ -47,7 +47,7 @@ export interface SlugPickerProps {
   workingLabel?: string;
   /** Shown between the address and the button: the order summary. */
   children?: React.ReactNode;
-  /** Shown under the button: who takes the payment, and the refund promise. */
+  /** Shown under the button: who takes the payment. */
   footer?: React.ReactNode;
   className?: string;
 }

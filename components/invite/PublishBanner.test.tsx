@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import { PublishBanner } from '@/components/invite/PublishBanner';
@@ -43,10 +43,7 @@ describe('PublishBanner', () => {
     expect(screen.getByText('riya-arjun.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('Total, paid once')).toBeInTheDocument();
     expect(screen.getByText(/nothing is charged/)).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Refund policy' })).toHaveAttribute(
-      'href',
-      '/refund-policy',
-    );
+    expect(screen.queryByText(/refund/i)).not.toBeInTheDocument();
     const button = screen.getByRole('button', { name: 'Publish our invite' });
     fireEvent.click(button);
     expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun');
@@ -61,6 +58,24 @@ describe('PublishBanner', () => {
     expect(working).toHaveAttribute('aria-busy', 'true');
     fireEvent.click(working);
     expect(publish).toHaveBeenCalledTimes(1);
+  });
+
+  it('is a short bar while the couple reads, and the full sheet at the foot of the page', async () => {
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      value: 5000,
+      configurable: true,
+    });
+    renderBanner();
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
+    expect(screen.queryByText('₹5,000 to ₹50,000+')).not.toBeInTheDocument();
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      value: 0,
+      configurable: true,
+    });
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    expect(await screen.findByText('₹5,000 to ₹50,000+')).toBeInTheDocument();
   });
 
   it('closes again, with the button or Escape', () => {
