@@ -45,7 +45,7 @@ const PROBLEM: Record<
   },
   'other-browser': {
     title: 'Open this preview on your own phone',
-    body: 'A preview opens only in the browser that opened it first, so it cannot be forwarded as an invite.',
+    body: 'A preview opens only in the two browsers that opened it first, so it cannot be forwarded as an invite.',
   },
 };
 

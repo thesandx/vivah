@@ -40,3 +40,4 @@ Do **not** write one for a routine choice with an obvious answer. An ADR per pul
 | [0006](./0006-accept-anonymous-lead-capture.md)               | Accept one anonymous write, for lead capture                          | Accepted |
 | [0007](./0007-publish-from-the-bound-preview-browser.md)      | Publish an invite from the bound preview browser, with a test payment | Accepted |
 | [0008](./0008-two-step-admin-sign-in.md)                      | Sign in to the admin dashboard in two steps, with its own session     | Accepted |
+| [0009](./0009-open-a-preview-in-two-browsers.md)              | Open a preview in two browsers, then lock it                          | Accepted |

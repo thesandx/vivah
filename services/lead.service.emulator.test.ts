@@ -26,7 +26,7 @@ const REQUEST = {
 };
 
 describeEmulator('lead.service (emulator)', () => {
-  it('binds the preview to the first browser and refuses a second one', async () => {
+  it('binds the preview to two browsers and refuses a third', async () => {
     const id = await createLead(REQUEST);
     expect(await getPreview(id, undefined)).toEqual({ state: 'unopened' });
 
@@ -44,11 +44,19 @@ describeEmulator('lead.service (emulator)', () => {
     const again = await openPreviewLink(id, token);
     expect(again).toEqual({ access: 'ok', newToken: null });
 
-    const other = await openPreviewLink(id, 'someone-elses-token');
-    expect(other).toEqual({ access: 'other-browser', newToken: null });
+    // The WhatsApp link, opened in another browser, binds a second token.
+    const second = await openPreviewLink(id, undefined);
+    expect(second.access).toBe('ok');
+    expect(second.newToken).not.toBeNull();
+    const secondToken = second.newToken ?? '';
+    expect((await leads.getOrThrow(id)).secondTokenHash).toHaveLength(64);
+    expect(await openPreviewLink(id, secondToken)).toEqual({ access: 'ok', newToken: null });
 
-    const view = await getPreview(id, token);
-    expect(view.state).toBe('ok');
+    const third = await openPreviewLink(id, 'someone-elses-token');
+    expect(third).toEqual({ access: 'other-browser', newToken: null });
+
+    expect((await getPreview(id, token)).state).toBe('ok');
+    expect((await getPreview(id, secondToken)).state).toBe('ok');
     expect(await getPreview(id, undefined)).toEqual({ state: 'other-browser' });
   });
 
