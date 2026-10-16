@@ -177,6 +177,22 @@ const martel = localFont({
 });
 
 /**
+ * Inter (SIL OFL), for the payment dialogs on the preview page only: the
+ * screen where a couple reads a price and decides. Latin and ₹ only, 400, 600
+ * and 700, about 18 KB each. Not preloaded: only an open banner uses it.
+ */
+const inter = localFont({
+  src: [
+    { path: '../public/fonts/inter-regular.woff2', weight: '400' },
+    { path: '../public/fonts/inter-semibold.woff2', weight: '600' },
+    { path: '../public/fonts/inter-bold.woff2', weight: '700' },
+  ],
+  variable: '--font-inter',
+  display: 'swap',
+  preload: false,
+});
+
+/**
  * The product theme. 'phera' is the default token set; 'calm' and 'night'
  * re-assign tokens in styles/globals.css. Set once per product, here only.
  */
@@ -210,7 +226,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-theme={THEME}
-      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${arvo.variable} ${dancingScript.variable} ${tiroDevanagari.variable} ${playfair.variable} ${dmSerif.variable} ${martel.variable}`}
+      className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${arvo.variable} ${dancingScript.variable} ${tiroDevanagari.variable} ${playfair.variable} ${dmSerif.variable} ${martel.variable} ${inter.variable}`}
       suppressHydrationWarning
     >
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}

@@ -97,6 +97,20 @@
   --font-jewel-dev: var(--font-martel), var(--font-dm-serif), serif;
   --color-maps: #1a73e8; /* Google's link blue: the Maps button's words, 4.5:1 on white */
 
+  /* The payment dialogs on the preview page (PublishBanner). Neutral greys and
+     one green action, so the pay button is the only colour on the sheet.
+     The same in every theme. Ratios are on white. */
+  --color-pay-action: #0b6b4a; /* the pay button; white text 6.5:1 */
+  --color-pay-action-deep: #075238; /* its hover and its puff */
+  --color-pay-action-soft: #e3f1ea; /* the circle behind a tick */
+  --color-pay-ink: #111827; /* headings, amounts, the address; 17.7:1 */
+  --color-pay-body: #4b5563; /* body text; 7.6:1 */
+  --color-pay-muted: #6b7280; /* fine print; 4.8:1 */
+  --color-pay-line: #e5e7eb; /* 1px-looking rules and card edges */
+  --color-pay-well: #f9fafb; /* the price and address cards */
+  --color-pay-disabled: #d1d5db; /* the pay button while it cannot be pressed */
+  --font-pay: var(--font-inter), system-ui, -apple-system, 'Segoe UI', sans-serif;
+
   /* Focus — peacock, so a focus ring never reads as the brand */
   --color-focus: #2c9fa8;
 

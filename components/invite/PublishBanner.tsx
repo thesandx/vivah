@@ -1,19 +1,32 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/invite/SlugPicker';
-import { Button } from '@/components/ui/Button';
+import { BrandMark } from '@/components/layout/BrandMark';
+import { PAPER_CARDS, PAYMENT_LIVE, PAYMENT_METHODS, PAYMENT_PROVIDER } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
 /**
- * The banner at the foot of the couple's preview. Closed, it is one warm
- * line and one button: "It's almost yours". Open, it says what publishing
- * gives them, shows their address, the price once, and the publish button.
+ * The two payment dialogs at the foot of the couple's preview.
  *
- * It is written to the couple, not at a buyer: the invite is already theirs
- * to look at, and this is the last small step to send it. The price shows
- * before they publish, as the terms promise, but it is not the headline.
+ * Closed, it is a one-line bar (the price and "Continue") while the couple
+ * reads their invite. At the foot of the page it grows to the full sheet: the
+ * price against what paper cards cost, one green button and the trust lines.
+ * Scrolling up shrinks it back. Open, it is the checkout: what
+ * publishing gives them, their address, an order summary, the ways to pay,
+ * and the pay button.
+ *
+ * It is a transaction surface, so it is set apart from the invite behind it:
+ * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
+ * tokens). Only the couple's names keep the invite's serif. Every claim on it
+ * is true today: the price is `PRICE_FROM_RUPEES` (passed in), the paper-card
+ * figures are the home page's. No ratings, no couple counts and no refund
+ * promise (the product owner removed it, 2026-10-16).
+ *
+ * While publishing is a test payment (`PAYMENT_LIVE` is false), the button
+ * says "Publish", not "Pay", and a line under it says nothing is charged.
+ * Setting `PAYMENT_LIVE` removes both.
  *
  * A Client Component for the open state. The address check and the publish
  * are Server Actions the page passes in, through `SlugPicker`.
@@ -40,6 +53,9 @@ export interface PublishBannerProps {
   className?: string;
 }
 
+/** How close to the foot of the page counts as the foot, for the full sheet. */
+const FOOT_SLACK_PX = 120;
+
 /** What publishing gives the couple, in their words. */
 const PROMISES = [
   'Your own address to share on WhatsApp',
@@ -48,11 +64,78 @@ const PROMISES = [
   'Add your venue, time and map any time from your dashboard',
 ] as const;
 
-function Heart() {
+function Tick() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="fill-brand mt-1 size-4 shrink-0">
-      <path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.8 4.5c2.1 0 3.6 1.2 5.2 3 1.6-1.8 3.1-3 5.2-3 3.8 0 5.9 3.9 4.4 7.3C19.5 16.4 12 21 12 21Z" />
+    <span className="bg-pay-action-soft rounded-pill mt-0.5 inline-grid size-5 shrink-0 place-items-center">
+      <svg viewBox="0 0 20 20" aria-hidden="true" className="size-3.5" fill="none">
+        <path
+          d="m5 10.5 3.2 3.2L15 7"
+          className="stroke-pay-action"
+          strokeWidth="2.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
+  );
+}
+
+function Lock() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true" className="size-4 shrink-0" fill="none">
+      <rect x="4" y="9" width="12" height="8" rx="2" className="stroke-current" strokeWidth="1.8" />
+      <path d="M7 9V6.5a3 3 0 0 1 6 0V9" className="stroke-current" strokeWidth="1.8" />
     </svg>
+  );
+}
+
+function PaymentMethods() {
+  return (
+    <ul aria-label="Ways to pay" className="flex flex-wrap gap-2">
+      {PAYMENT_METHODS.map((method) => (
+        <li
+          key={method}
+          className="border-pay-line text-pay-body rounded-box text-small border-2 px-2 font-semibold"
+        >
+          {method}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/**
+ * The small promises at the foot of the sheet and the checkout, in the
+ * product owner's words and emoji (their choice over the "no emoji" rule,
+ * 2026-10-16). Each line is true today: links open at once, the invite shows
+ * no ads, and the terms keep it live until 12 months after the wedding.
+ * "Secure payment" shows only once payment is live.
+ */
+function TrustLines() {
+  return (
+    <div className="text-small text-pay-muted flex flex-col items-center gap-1 text-center">
+      <p>{PAYMENT_LIVE && '🔒 Secure payment · '}⚡ Instant link · 💛 No ads</p>
+      <p>📅 Your link stays live until 12 months after your wedding</p>
+      <p>Made with love in India 🇮🇳</p>
+    </div>
+  );
+}
+
+/** Who takes the money, or, while payment is a test, that nobody does. */
+function PaymentNote() {
+  if (!PAYMENT_LIVE) {
+    return (
+      <p className="text-small text-pay-body bg-pay-well rounded-input px-3 py-2 text-center">
+        Test payment: payments are not connected yet, so nothing is charged and your invite
+        publishes free.
+      </p>
+    );
+  }
+  return (
+    <p className="text-small text-pay-body flex items-center justify-center gap-1.5">
+      <Lock />
+      Secure payment · Powered by {PAYMENT_PROVIDER}
+    </p>
   );
 }
 
@@ -71,6 +154,42 @@ export function PublishBanner({
   className,
 }: PublishBannerProps): React.JSX.Element {
   const [open, setOpen] = useState(notice !== undefined);
+  // Closed, the banner is a short bar while the couple reads their invite,
+  // and grows to the full sheet once they reach the foot of the page.
+  // Scrolling up again shrinks it back.
+  const [atFoot, setAtFoot] = useState(false);
+  const price = `₹${priceRupees.toLocaleString('en-IN')}`;
+
+  useEffect(() => {
+    if (!open) return;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'Escape') setOpen(false);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open]);
+
+  useEffect(() => {
+    let frame = 0;
+    function measure() {
+      frame = 0;
+      const root = document.documentElement;
+      setAtFoot(window.innerHeight + window.scrollY >= root.scrollHeight - FOOT_SLACK_PX);
+    }
+    function onScroll() {
+      if (frame === 0) frame = window.requestAnimationFrame(measure);
+    }
+    measure();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame !== 0) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  const continueLabel = PAYMENT_LIVE ? `Continue to payment · ${price}` : 'Continue to publish';
 
   return (
     <>
@@ -79,46 +198,103 @@ export function PublishBanner({
         <div
           aria-hidden="true"
           onClick={() => setOpen(false)}
-          className="bg-ink/40 animate-fade-in fixed inset-0"
+          className="bg-ink/50 animate-fade-in fixed inset-0"
         />
       )}
       <section
-        aria-label="Make this invite yours"
+        aria-label="Publish your invite"
         className={cn(
-          'bg-surface border-line rounded-t-sheet relative mx-auto flex w-full max-w-xl flex-col border-2 border-b-0 px-5 pt-4 pb-4 font-display',
-          open ? 'gap-4' : 'gap-3',
-          open && 'max-h-[88dvh] overflow-y-auto',
+          'bg-surface rounded-t-sheet font-pay text-pay-body relative mx-auto flex w-full max-w-xl flex-col px-5 antialiased',
+          open ? 'gap-5 py-5' : atFoot ? 'gap-3 pt-5 pb-3' : 'py-3',
+          open && 'max-h-[90dvh] overflow-y-auto',
           className,
         )}
       >
-        {!open ? (
-          <>
-            <div className="flex flex-col items-center text-center">
-              <p className="font-script text-title text-brand">
-                {bride} &amp; {groom}, it&apos;s almost yours
-              </p>
-              <p className="text-body text-ink-soft italic">
-                One small step, and every guest sees it just like this.
+        {!open && !atFoot ? (
+          <div className="animate-fade-in flex items-center justify-between gap-3">
+            <div className="flex min-w-0 flex-col">
+              <p className="text-body text-pay-ink font-semibold">Your invite is ready</p>
+              <p className="text-small text-pay-body tabular-nums">
+                {price} once · No charge per guest
               </p>
             </div>
-            <Button type="button" variant="primary" block onClick={() => setOpen(true)}>
-              Make it ours
-            </Button>
-          </>
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="bg-pay-action hover:bg-pay-action-deep text-on-brand rounded-input text-body inline-flex min-h-12 shrink-0 items-center justify-center px-5 font-semibold transition-colors select-none active:translate-y-px"
+            >
+              Continue
+            </button>
+          </div>
+        ) : !open ? (
+          <div className="animate-rise-in flex flex-col gap-3">
+            <div className="flex flex-col gap-1">
+              <p className="text-small text-pay-body flex items-center gap-2 font-semibold">
+                <BrandMark className="size-6" />
+                {domainLabel}
+              </p>
+              <h2 className="font-pay text-heading text-pay-ink font-bold tracking-tight">
+                Your invite is ready
+              </h2>
+              <p className="text-small text-pay-body">
+                One small step, and every guest opens it with their own name on it.
+              </p>
+            </div>
+
+            <div className="bg-pay-well border-pay-line rounded-input flex items-end justify-between gap-3 border-2 px-4 py-2">
+              <div className="flex flex-col">
+                <span className="text-small text-pay-body">One-time payment</span>
+                <span className="text-pay-ink tabular-nums">
+                  <span className="text-title font-bold tracking-tight">{price}</span>{' '}
+                  <span className="text-small text-pay-body">once</span>
+                </span>
+              </div>
+              <div className="text-small text-pay-muted flex flex-col text-right">
+                <span>Paper cards cost</span>
+                <span className="text-pay-ink font-semibold tabular-nums">{PAPER_CARDS.cost}</span>
+                <span>and take {PAPER_CARDS.readyIn}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="bg-pay-action hover:bg-pay-action-deep text-on-brand rounded-input text-body inline-flex min-h-14 w-full items-center justify-center px-5 font-semibold tabular-nums transition-colors select-none active:translate-y-px"
+            >
+              {continueLabel}
+            </button>
+
+            <div className="text-small text-pay-body flex flex-wrap items-center justify-between gap-x-3">
+              <span className="flex items-center gap-1.5">
+                {PAYMENT_LIVE && <Lock />}
+                {PAYMENT_LIVE && 'Secure payment · '}Paid once · No charge per guest
+              </span>
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="text-pay-ink decoration-pay-line inline-flex min-h-11 items-center font-semibold underline decoration-2 underline-offset-4"
+              >
+                See everything you get
+              </button>
+            </div>
+            <TrustLines />
+          </div>
         ) : (
           <>
             <div className="flex items-start justify-between gap-3">
               <div className="flex flex-col gap-1">
-                <p className="text-small text-gold tracking-widest uppercase">
+                <p className="font-jewel-name text-heading text-pay-ink">
                   {bride} &amp; {groom}
                 </p>
-                <h2 className="font-script text-title text-brand">Your invite is ready to go</h2>
+                <h2 className="font-pay text-title text-pay-ink font-bold tracking-tight">
+                  Your invite is ready to publish
+                </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
                 aria-label="Close"
-                className="squish border-line text-ink-soft rounded-pill inline-grid size-11 shrink-0 place-items-center border-2"
+                className="bg-pay-well text-pay-body hover:text-pay-ink rounded-pill inline-grid size-11 shrink-0 place-items-center"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="none">
                   <path
@@ -131,16 +307,16 @@ export function PublishBanner({
               </button>
             </div>
 
-            <p className="text-heading text-ink-soft italic">
+            <p className="text-body text-pay-body">
               {hasSong
                 ? 'Everyone you love will open it just as you did: the seal, your song, your day.'
                 : 'Everyone you love will open it just as you did: the seal, your names, your day.'}
             </p>
 
-            <ul className="text-ink flex flex-col gap-2">
+            <ul className="text-body text-pay-ink flex flex-col gap-2.5">
               {PROMISES.map((line) => (
-                <li key={line} className="text-heading flex gap-2">
-                  <Heart />
+                <li key={line} className="flex gap-3">
+                  <Tick />
                   {line}
                 </li>
               ))}
@@ -155,12 +331,34 @@ export function PublishBanner({
               domainLabel={domainLabel}
               checkSlug={checkSlug}
               publish={publish}
-              actionLabel={`Publish our invite · ₹${priceRupees.toLocaleString('en-IN')}`}
-            />
-
-            <p className="text-small text-ink-soft text-center">
-              Paid once. No charge per guest. Only this phone can open this preview, for 48 hours.
-            </p>
+              actionLabel={PAYMENT_LIVE ? `Pay ${price} and publish` : 'Publish our invite'}
+              workingLabel={PAYMENT_LIVE ? 'Opening payment' : 'Publishing your invite'}
+              footer={
+                <div className="flex flex-col gap-4">
+                  <PaymentNote />
+                  <TrustLines />
+                </div>
+              }
+            >
+              <dl className="border-pay-line text-body flex flex-col gap-2 border-t-2 pt-4 tabular-nums">
+                <div className="flex justify-between gap-3">
+                  <dt>Wedding website and invite</dt>
+                  <dd className="text-pay-ink">{price}</dd>
+                </div>
+                <div className="flex justify-between gap-3">
+                  <dt>A personal link for every guest</dt>
+                  <dd className="text-pay-ink">Included</dd>
+                </div>
+                <div className="border-pay-line text-pay-ink flex justify-between gap-3 border-t-2 pt-3 font-bold">
+                  <dt>Total, paid once</dt>
+                  <dd className="text-heading">{price}</dd>
+                </div>
+              </dl>
+              <div className="flex flex-col gap-2">
+                <p className="text-small text-pay-body">Pay with</p>
+                <PaymentMethods />
+              </div>
+            </SlugPicker>
           </>
         )}
       </section>
