@@ -24,6 +24,7 @@ import { buttonStyles } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import {
   countBy,
+  DELETED_SORT_CHOICES,
   filterLeads,
   filterWeddings,
   formatAdminTime,
@@ -74,6 +75,7 @@ export const dynamic = 'force-dynamic';
 
 const VIEWS = [
   { value: 'invites', label: 'Invites' },
+  { value: 'deleted', label: 'Deleted' },
   { value: 'previews', label: 'Previews' },
   { value: 'activity', label: 'Activity' },
   { value: 'home', label: 'Home page' },
@@ -117,7 +119,8 @@ export default async function AdminPage({
           ))}
         </nav>
 
-        {view === 'invites' && <InvitesView params={params} />}
+        {view === 'invites' && <InvitesView params={params} tab="invites" />}
+        {view === 'deleted' && <InvitesView params={params} tab="deleted" />}
         {view === 'previews' && <PreviewsView params={params} />}
         {view === 'activity' && <ActivityView />}
         {view === 'home' && <HomePageView />}
@@ -134,35 +137,61 @@ function CappedNotice({ capped }: { capped: boolean }) {
   ) : null;
 }
 
-async function InvitesView({ params }: { params: SearchParams }) {
-  const filters = parseWeddingFilters(params);
-  const { items, capped } = await listAllWeddings();
+/**
+ * The Invites tab (live and unavailable) and the Deleted tab (archived, with
+ * their addresses freed). One list, split by `deletedAt`.
+ */
+async function InvitesView({ params, tab }: { params: SearchParams; tab: 'invites' | 'deleted' }) {
+  const filters = parseWeddingFilters(params, tab);
+  const all = await listAllWeddings();
+  const capped = all.capped;
+  const items = all.items.filter((row) => (row.deletedAt !== null) === (tab === 'deleted'));
   const rows = filterWeddings(items, filters, todayInIndia());
   const counts = countBy(items, weddingState);
+  const clearHref = tab === 'deleted' ? '/admin?view=deleted' : '/admin';
+  const whenMenu = {
+    name: 'when',
+    label: 'Wedding date',
+    value: filters.when,
+    options: WEDDING_WHEN_CHOICES,
+  };
 
   return (
     <>
       <header className="flex flex-col gap-1">
-        <h2 className="text-title">Invites</h2>
+        <h2 className="text-title">{tab === 'deleted' ? 'Deleted invites' : 'Invites'}</h2>
         <p className="text-ink-soft">
-          {counts.get('live') ?? 0} live · {counts.get('unavailable') ?? 0} unavailable ·{' '}
-          {counts.get('deleted') ?? 0} deleted
+          {tab === 'deleted'
+            ? 'Their addresses are free for other couples. Open one to restore it at any free address.'
+            : `${counts.get('live') ?? 0} live · ${counts.get('unavailable') ?? 0} unavailable`}
         </p>
       </header>
       <AdminFilters
-        view="invites"
+        view={tab}
         query={filters.q}
-        clearHref="/admin"
-        menus={[
-          { name: 'state', label: 'State', value: filters.state, options: WEDDING_STATE_CHOICES },
-          {
-            name: 'when',
-            label: 'Wedding date',
-            value: filters.when,
-            options: WEDDING_WHEN_CHOICES,
-          },
-          { name: 'sort', label: 'Sort', value: filters.sort, options: WEDDING_SORT_CHOICES },
-        ]}
+        clearHref={clearHref}
+        menus={
+          tab === 'deleted'
+            ? [
+                whenMenu,
+                { name: 'sort', label: 'Sort', value: filters.sort, options: DELETED_SORT_CHOICES },
+              ]
+            : [
+                {
+                  name: 'state',
+                  label: 'State',
+                  value: filters.state,
+                  options: WEDDING_STATE_CHOICES,
+                },
+                whenMenu,
+                {
+                  name: 'sort',
+                  label: 'Sort',
+                  value: filters.sort,
+                  options: WEDDING_SORT_CHOICES,
+                },
+              ]
+        }
       />
       <CappedNotice capped={capped} />
       <p className="text-small text-ink-soft" aria-live="polite">
@@ -170,9 +199,19 @@ async function InvitesView({ params }: { params: SearchParams }) {
       </p>
 
       {rows.length === 0 ? (
-        <EmptyState title={items.length === 0 ? 'No invites yet' : 'Nothing matches'}>
+        <EmptyState
+          title={
+            items.length === 0
+              ? tab === 'deleted'
+                ? 'Nothing deleted'
+                : 'No invites yet'
+              : 'Nothing matches'
+          }
+        >
           {items.length === 0
-            ? 'Published invites show here as soon as a couple pays.'
+            ? tab === 'deleted'
+              ? 'A deleted invite shows here, ready to restore.'
+              : 'Published invites show here as soon as a couple pays.'
             : 'Change the search or the filters.'}
         </EmptyState>
       ) : (
@@ -187,7 +226,13 @@ async function InvitesView({ params }: { params: SearchParams }) {
                   <span className="font-display text-heading break-words">
                     {wedding.bride} &amp; {wedding.groom}
                   </span>
-                  <span className="text-brand text-small font-semibold break-all">
+                  <span
+                    className={cn(
+                      'text-small font-semibold break-all',
+                      wedding.deletedAt === null ? 'text-brand' : 'text-ink-soft',
+                    )}
+                  >
+                    {wedding.deletedAt === null ? '' : 'Was '}
                     {inviteHostLabel(wedding.slug, env.rootDomain)}
                   </span>
                   <span className="text-small text-ink-soft">
@@ -197,6 +242,8 @@ async function InvitesView({ params }: { params: SearchParams }) {
                     {' · '}
                     {formatPhoneForDisplay(wedding.ownerPhoneE164)}
                     {' · '}paid {formatAdminTime(wedding.createdAt)}
+                    {wedding.deletedAt !== null &&
+                      ` · deleted ${formatAdminTime(wedding.deletedAt)}`}
                   </span>
                 </span>
                 <StateBadge state={weddingState(wedding)} />

@@ -27,13 +27,15 @@ import { whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref, inviteUrl } from '@/lib/site-host';
-import { getWeddingForAdmin } from '@/services/admin.service';
+import { getWeddingForAdmin, weddingHoldsAddress } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
+import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
  * do to it: edit, change the number or the address, make it unavailable,
- * delete, restore, release the address, and send the link to the couple.
+ * delete (which frees the address), restore at any free address, and send
+ * the link to the couple.
  *
  * Every button is a Server Action that checks the admin session again.
  */
@@ -64,12 +66,18 @@ export default async function AdminInvitePage({
   const link =
     env.rootDomain === '' ? inviteHref(wedding.slug, '') : inviteUrl(wedding.slug, env.rootDomain);
   const message = `Hi ${wedding.bride} & ${wedding.groom}, your wedding invite is live at ${link} . Share it with your guests on WhatsApp.`;
+  const deleted = wedding.deletedAt !== null;
+  const restore = deleted ? await restoreChoice(wedding) : null;
 
   return (
     <>
       <AppBar
         title={`${wedding.bride} & ${wedding.groom}`}
-        back={{ fallbackHref: '/admin', label: 'Back to all invites' }}
+        back={
+          deleted
+            ? { fallbackHref: '/admin?view=deleted', label: 'Back to deleted invites' }
+            : { fallbackHref: '/admin', label: 'Back to all invites' }
+        }
         end={<AdminSignOutButton />}
       />
       <main className="mx-auto grid w-full max-w-5xl gap-6 px-5 py-6 sm:px-8 sm:py-10 lg:grid-cols-3 lg:items-start lg:gap-10">
@@ -77,14 +85,18 @@ export default async function AdminInvitePage({
           <div className="flex flex-wrap items-center gap-3">
             <StateBadge state={state} />
           </div>
-          <a
-            href={inviteHref(wedding.slug, env.rootDomain)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-brand decoration-butter font-semibold break-all underline decoration-2 underline-offset-4"
-          >
-            {address}
-          </a>
+          {deleted ? (
+            <p className="text-ink-soft font-semibold break-all">Was {address}</p>
+          ) : (
+            <a
+              href={inviteHref(wedding.slug, env.rootDomain)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-brand decoration-butter font-semibold break-all underline decoration-2 underline-offset-4"
+            >
+              {address}
+            </a>
+          )}
           <dl className="text-small grid gap-2">
             <div>
               <dt className="text-ink-soft">Couple&apos;s WhatsApp</dt>
@@ -116,21 +128,23 @@ export default async function AdminInvitePage({
         </aside>
 
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <Card className="flex flex-col gap-4">
-            <h2 className="text-heading">Send the link to the couple</h2>
-            <p className="text-small text-ink-soft break-all">{link}</p>
-            <div className="flex flex-wrap gap-3">
-              <CopyButton value={link} />
-              <a
-                href={whatsAppChatUrl(wedding.ownerPhoneE164, message)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={buttonStyles({ variant: 'primary' })}
-              >
-                Send on WhatsApp
-              </a>
-            </div>
-          </Card>
+          {!deleted && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Send the link to the couple</h2>
+              <p className="text-small text-ink-soft break-all">{link}</p>
+              <div className="flex flex-wrap gap-3">
+                <CopyButton value={link} />
+                <a
+                  href={whatsAppChatUrl(wedding.ownerPhoneE164, message)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonStyles({ variant: 'primary' })}
+                >
+                  Send on WhatsApp
+                </a>
+              </div>
+            </Card>
+          )}
 
           <Card className="flex flex-col gap-4">
             <h2 className="text-heading">Invite details</h2>
@@ -229,21 +243,23 @@ export default async function AdminInvitePage({
           </Card>
 
           <Card className="flex flex-col gap-4">
-            <h2 className="text-heading">Delete</h2>
+            <h2 className="text-heading">{deleted ? 'Restore' : 'Delete'}</h2>
             <p className="text-small text-ink-soft">
-              {wedding.deletedAt === null
-                ? 'Guests see "no invite at this address". The address stays reserved, so you can restore the invite as it was.'
-                : `Deleted. Restore it, or release ${address} so another couple can use it. To restore it later, the address must still be free.`}
+              {restore === null
+                ? `Guests see "no invite at this address", and ${address} becomes free for another couple. The invite moves to the Deleted tab, and you can restore it at any free address.`
+                : restore.holdsAddress
+                  ? `Deleted before delete freed addresses, so it still holds ${address}. Restore it, or release the address below.`
+                  : 'Pick a free address to bring it back at. Every detail comes back as it was. Send the couple the new link after.'}
             </p>
             <AdminActionForm
               key="delete"
-              {...(wedding.deletedAt === null
+              {...(restore === null
                 ? {
                     action: deleteWeddingAction.bind(null, wedding.id),
                     label: 'Delete invite',
                     confirm: {
                       title: 'Delete this invite?',
-                      body: `${address} stops working for guests. You can restore it from here.`,
+                      body: `${address} stops working for guests and becomes free for another couple. You can restore the invite later from the Deleted tab, at any free address.`,
                       confirmLabel: 'Delete invite',
                     },
                   }
@@ -251,9 +267,15 @@ export default async function AdminInvitePage({
                     action: restoreWeddingAction.bind(null, wedding.id),
                     label: 'Restore invite',
                     variant: 'primary' as const,
+                    field: {
+                      name: 'slug',
+                      label: 'Address',
+                      defaultValue: restore.suggestion,
+                      hint: `Lowercase letters, digits and hyphens. Becomes <address>.${env.rootDomain || 'vivah.online'}.`,
+                    },
                   })}
             />
-            {wedding.deletedAt !== null && (
+            {restore?.holdsAddress === true && (
               <AdminActionForm
                 action={releaseAddressAction.bind(null, wedding.id)}
                 label="Release address"
@@ -269,4 +291,20 @@ export default async function AdminInvitePage({
       </main>
     </>
   );
+}
+
+/**
+ * What the Restore card offers for a deleted invite: its old address when
+ * that is still free (or still held by it), otherwise the first free
+ * suggestion from the couple's names.
+ */
+async function restoreChoice(
+  wedding: Parameters<typeof weddingHoldsAddress>[0],
+): Promise<{ suggestion: string; holdsAddress: boolean }> {
+  const holdsAddress = await weddingHoldsAddress(wedding);
+  if (holdsAddress || (await checkSlug(wedding.slug)).available) {
+    return { suggestion: wedding.slug, holdsAddress };
+  }
+  const [first] = await freeSlugSuggestions(wedding.bride, wedding.groom, 1);
+  return { suggestion: first ?? '', holdsAddress };
 }

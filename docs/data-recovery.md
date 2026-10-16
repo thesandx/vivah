@@ -103,6 +103,8 @@ await notes.restore(id);
 
 To find it, use `list({ ..., includeDeleted: true })`.
 
+A deleted wedding invite needs no script. Open `/admin`, go to the **Deleted** tab, and open the invite. Delete frees the invite's address, so another couple can take it. To restore the invite, pick an address that is free now. The old address is offered when it is still free. Every other field comes back as it was.
+
 ### Clone from a point in time
 
 Use the time from before the bad change. The time must be on a whole minute, and in the last 7 days.
