@@ -37,7 +37,11 @@ export const leadSchema = z.object({
   /** E.164, from `toE164`. Never logged. */
   phoneE164: z.string().regex(/^\+\d{8,15}$/),
   status: z.enum(LEAD_STATUSES),
-  /** When the couple ticked the WhatsApp consent box. */
+  /**
+   * When the couple asked for the preview, with the note "we will send your
+   * link to this number on WhatsApp" in view. That is the WhatsApp opt-in.
+   * (Leads before 17 Oct 2026 ticked a box instead.)
+   */
   consentAt: z.date(),
   /** The preview link stops working after this instant. */
   expiresAt: z.date(),

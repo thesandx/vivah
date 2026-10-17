@@ -22,7 +22,6 @@ function fillDate(): void {
 function fillDetails(): void {
   fillDate();
   fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
-  fireEvent.click(screen.getByLabelText('Send my preview on WhatsApp'));
 }
 
 function json(body: unknown, status = 200): Response {
@@ -172,7 +171,6 @@ describe('LeadForm', () => {
     render(<LeadForm />);
     fillNames();
     fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
-    fireEvent.click(screen.getByLabelText('Send my preview on WhatsApp'));
     expect(screen.getByLabelText('Wedding date')).toBeRequired();
     expect(screen.queryByLabelText("I'll add the date later")).not.toBeInTheDocument();
     const next = screen.getByRole('button', { name: 'Choose our address' });
@@ -182,17 +180,16 @@ describe('LeadForm', () => {
     expect(next).toBeEnabled();
   });
 
-  it('asks for the WhatsApp opt-in before it moves on', () => {
+  it('says what the number is for, with no box to tick', () => {
     render(<LeadForm />);
     fillNames();
-    fillDate();
-    fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+    fillDetails();
 
-    expect(
-      screen.getByText('Tick the box so we can send your preview on WhatsApp.'),
-    ).toBeInTheDocument();
-    expect(leadCalls()).toHaveLength(0);
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
+    expect(screen.getByText('Send my preview on WhatsApp')).toBeInTheDocument();
+    expect(screen.getByText(/You also sign in with it later/)).toBeInTheDocument();
+    expect(screen.queryByText(/only for your invite/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Choose our address' })).toBeEnabled();
   });
 
   it('offers free addresses on the third step, and checks a typed one', async () => {
@@ -240,10 +237,10 @@ describe('LeadForm', () => {
       weddingDate: DATE,
       countryIso: 'IN',
       phone: '9876543210',
-      consent: true,
       slug: 'raadha-shyam',
     });
     expect(body).not.toHaveProperty('website');
+    expect(body).not.toHaveProperty('consent');
     expect(screen.getByText(/raadha-shyam\.vivah\.online/)).toBeInTheDocument();
 
     await runTheShow();
