@@ -22,6 +22,49 @@ describe('AutoScroller', () => {
     expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
   });
 
+  describe('the images in the row', () => {
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    /* eslint-disable @next/next/no-img-element -- a plain <img> is what the cards in the row render */
+    const PHOTOS = [
+      { key: 'a', node: <img src="/a.webp" alt="First couple" loading="lazy" /> },
+      { key: 'b', node: <img src="/b.webp" alt="Second couple" loading="lazy" /> },
+    ];
+    /* eslint-enable @next/next/no-img-element */
+
+    it('load all at once when the row comes near the screen, so no card arrives blank', () => {
+      let report: IntersectionObserverCallback = () => undefined;
+      vi.stubGlobal(
+        'IntersectionObserver',
+        class {
+          constructor(callback: IntersectionObserverCallback) {
+            report = callback;
+          }
+          observe() {}
+          disconnect() {}
+        },
+      );
+
+      render(<AutoScroller items={PHOTOS} label="Reviews" />);
+      const photos = screen.getAllByRole('img') as HTMLImageElement[];
+      expect(photos.map((photo) => photo.getAttribute('loading'))).toEqual(['lazy', 'lazy']);
+
+      act(() => {
+        report([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+      });
+      expect(photos.map((photo) => photo.getAttribute('loading'))).toEqual(['eager', 'eager']);
+    });
+
+    it('load at once where the browser cannot watch the row', () => {
+      vi.stubGlobal('IntersectionObserver', undefined);
+      render(<AutoScroller items={PHOTOS} label="Reviews" />);
+      const photos = screen.getAllByRole('img') as HTMLImageElement[];
+      expect(photos.map((photo) => photo.getAttribute('loading'))).toEqual(['eager', 'eager']);
+    });
+  });
+
   describe('when the cards are wider than the row', () => {
     afterEach(() => {
       vi.restoreAllMocks();
