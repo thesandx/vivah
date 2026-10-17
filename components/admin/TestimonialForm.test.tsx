@@ -1,6 +1,8 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { STALE_PAGE_MESSAGE } from '@/lib/action-errors';
+
 const refresh = vi.fn();
 vi.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }));
 
@@ -141,5 +143,14 @@ describe('TestimonialForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save it' }));
     expect(await screen.findByText('That did not save. Try again.')).toBeInTheDocument();
     expect(save).toHaveBeenCalled();
+  });
+
+  it('asks for a reload when the page is older than the site', async () => {
+    const stale = Object.assign(new Error('Server Action "abc" was not found on the server.'), {
+      name: 'UnrecognizedActionError',
+    });
+    setup(false, vi.fn().mockRejectedValue(stale));
+    fireEvent.click(screen.getByRole('button', { name: 'Save it' }));
+    expect(await screen.findByText(STALE_PAGE_MESSAGE)).toBeInTheDocument();
   });
 });
