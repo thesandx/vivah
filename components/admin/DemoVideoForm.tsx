@@ -46,10 +46,14 @@ const POSTER_AT_S = 2.2;
 
 const MB = 1024 * 1024;
 
-/** One frame of `file` as a JPEG, or `null` when the browser cannot draw it. */
-function drawPoster(file: File): Promise<Blob | null> {
+/**
+ * One frame of the video as a JPEG, or `null` when the browser cannot draw
+ * it. Takes the file's bytes, not the picked `File`: the player gets a URL
+ * made only from bytes and a fixed type, never anything from the file input.
+ */
+function drawPoster(bytes: ArrayBuffer): Promise<Blob | null> {
   return new Promise((resolve) => {
-    const url = URL.createObjectURL(file);
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'video/mp4' }));
     const video = document.createElement('video');
     let settled = false;
     const finish = (blob: Blob | null) => {
@@ -118,7 +122,7 @@ async function check(file: File): Promise<Checked> {
         'This MP4 is not set up for fast start, so a phone would wait for the whole file. Export it again with "Optimize for web" (or "Fast start") turned on.',
     };
   }
-  const poster = await drawPoster(file);
+  const poster = await drawPoster(await file.arrayBuffer());
   return {
     status: 'ready',
     file,
