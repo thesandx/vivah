@@ -92,6 +92,36 @@ export function AutoScroller({
       .forEach((element) => element.setAttribute('tabindex', '-1'));
   }, [loop, items]);
 
+  // Load every image in the row once the row comes near the screen. A browser
+  // lazy-loads an image only when it is near the viewport, and a card off to
+  // the side of a scrolling row is not, so each card would arrive blank and
+  // fill in a second later, after the swipe already showed it. Safari is the
+  // worst at this. The copy holds the same URLs, so it comes from the cache.
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (scroller === null) return;
+
+    const loadAll = () =>
+      scroller
+        .querySelectorAll<HTMLImageElement>('img[loading="lazy"]')
+        .forEach((image) => image.setAttribute('loading', 'eager'));
+
+    if (typeof IntersectionObserver === 'undefined') {
+      loadAll();
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting !== true) return;
+        loadAll();
+        observer.disconnect();
+      },
+      { rootMargin: '600px 0px' },
+    );
+    observer.observe(scroller);
+    return () => observer.disconnect();
+  }, [loop, items]);
+
   // The drift.
   useEffect(() => {
     const scroller = scrollerRef.current;
