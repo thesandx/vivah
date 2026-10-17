@@ -115,32 +115,32 @@ Not every card needs a shadow. A shadow says "this is an object you can press or
 
 Each primitive lives in `components/ui/`, has a colocated test, and renders on `/design`. Pick the primitive by its job.
 
-| Primitive      | Use it for                                                             |
-| -------------- | ---------------------------------------------------------------------- |
-| `Button`       | An action. `buttonStyles()` styles a `Link` the same way.              |
-| `Card`         | One object the user can act on. `peek` puts a face over the edge.      |
-| `Input`        | One line of text, with a label, a hint and an error.                   |
-| `Textarea`     | Several lines of text. Same label, hint and error as `Input`.          |
-| `Select`       | One choice from a long list. It is a native select.                    |
-| `RadioGroup`   | One choice from five options or fewer.                                 |
-| `Checkbox`     | A yes/no value that a form submits later.                              |
-| `Switch`       | A setting that applies at once.                                        |
-| `Field`        | The label, hint and error. Use it to wrap a new form control.          |
-| `Badge`        | A short state in words: "Host", "Ready". Not pressable.                |
-| `Chip`         | A pill that names one thing, often with an `Avatar`. Not pressable.    |
-| `ContactLink`  | A phone number (`tel:`) or an email address (`mailto:`) to tap.        |
-| `Alert`        | A message in the interface voice: a result, a problem, a status.       |
-| `Progress`     | How far through something the user is. It shows the value in words.    |
-| `Spinner`      | Work that the user asked for and that is not complete yet.             |
-| `EmptyState`   | A space with no content yet. A sleepy face, one line, one action.      |
-| `Skeleton`     | The shape of content that is loading. Use it as a loading fallback.    |
-| `Tabs`         | Two to five views of the same thing. A client component.               |
-| `Dialog`       | A decision that must interrupt. A bottom sheet on a phone.             |
-| `AutoScroller` | A row of cards that drifts and loops, and takes a swipe. No scrollbar. |
-| `Avatar`       | A player. The name sets the colour and the mood.                       |
-| `Face`         | The mascot face. See [Signature patterns](#signature-patterns).        |
-| `Speech`       | The mascot speaks. Moments only.                                       |
-| `Sticker`      | Decoration. Two per viewport at most.                                  |
+| Primitive      | Use it for                                                                       |
+| -------------- | -------------------------------------------------------------------------------- |
+| `Button`       | An action. `buttonStyles()` styles a `Link` the same way.                        |
+| `Card`         | One object the user can act on. `peek` puts a face over the edge.                |
+| `Input`        | One line of text, with a label, a hint and an error.                             |
+| `Textarea`     | Several lines of text. Same label, hint and error as `Input`.                    |
+| `Select`       | One choice from a long list. It is a native select.                              |
+| `RadioGroup`   | One choice from five options or fewer.                                           |
+| `Checkbox`     | A yes/no value that a form submits later.                                        |
+| `Switch`       | A setting that applies at once.                                                  |
+| `Field`        | The label, hint and error. Use it to wrap a new form control.                    |
+| `Badge`        | A short state in words: "Host", "Ready". Not pressable.                          |
+| `Chip`         | A pill that names one thing, often with an `Avatar`. Not pressable.              |
+| `ContactLink`  | A phone number (`tel:`) or an email address (`mailto:`) to tap.                  |
+| `Alert`        | A message in the interface voice: a result, a problem, a status.                 |
+| `Progress`     | How far through something the user is. It shows the value in words.              |
+| `Spinner`      | Work that the user asked for and that is not complete yet.                       |
+| `EmptyState`   | A space with no content yet. A sleepy face, one line, one action.                |
+| `Skeleton`     | The shape of content that is loading. Use it as a loading fallback.              |
+| `Tabs`         | Two to five views of the same thing. A client component.                         |
+| `Dialog`       | A decision that must interrupt. A bottom sheet on a phone.                       |
+| `AutoScroller` | A row of cards that drifts to the end and back, and takes a swipe. No scrollbar. |
+| `Avatar`       | A player. The name sets the colour and the mood.                                 |
+| `Face`         | The mascot face. See [Signature patterns](#signature-patterns).                  |
+| `Speech`       | The mascot speaks. Moments only.                                                 |
+| `Sticker`      | Decoration. Two per viewport at most.                                            |
 
 `components/layout/` holds the page chrome:
 
@@ -200,7 +200,7 @@ The heart thread is the one exception to rules 2 and 5. A line can only draw its
 Two things on the home page move without a tap, because the product owner asked for them:
 
 - **The "How it works" steps.** A visitor sees that there are three steps. The loop stops on hover, on focus and off screen. A tap on a step ends it, and reduced motion turns it off.
-- **The review and chat rows (`AutoScroller`).** Each row drifts slowly and loops, and a visitor can swipe it at any time. No scrollbar shows; from `md` up, arrow buttons appear on hover. The row stops on hover, on focus, under a finger, off screen and in a hidden tab. Reduced motion turns the drift off.
+- **The review and chat rows (`AutoScroller`).** Each row drifts slowly to the last card, rests, and drifts back to the first. It never loops: the product owner asked for this (2026-10-17), because a looped row showed blank cards after a fast swipe. A visitor can swipe it at any time, and a swipe stops at either end. No scrollbar shows; from `md` up, arrow buttons appear on hover. The row stops on hover, on focus, under a finger, off screen and in a hidden tab. Reduced motion turns the drift off.
 
 ### Loading
 

@@ -22,6 +22,9 @@ export interface AutoScrollerProps {
 /** How long the row waits after a touch, a wheel or a button before it moves again. */
 const RESUME_AFTER_MS = 2500;
 
+/** How long the row rests at either end before it drifts back. */
+const TURN_PAUSE_MS = 1500;
+
 /** The longest step one frame may take, so a slow frame never jumps the row. */
 const MAX_FRAME_MS = 50;
 
@@ -32,15 +35,15 @@ function prefersReducedMotion(): boolean {
 }
 
 /**
- * A row of cards that drifts sideways by itself and loops without end, and
- * that a visitor can also swipe, drag with a trackpad, or step through with
- * the arrow buttons. No scrollbar shows.
+ * A row of cards that drifts sideways by itself, to the last card and then
+ * back to the first, and that a visitor can also swipe, drag with a
+ * trackpad, or step through with the arrow buttons. No scrollbar shows.
  *
  * It is a real scrolling row, not a CSS animation, so the visitor's own
- * scroll and the drift move the same thing. When the cards are wider than
- * the row, it holds the list twice and jumps back by one list's width when
- * the second copy reaches the start, so the loop has no seam. The copy is
- * hidden from screen readers and takes no focus, so each card is read once.
+ * scroll and the drift move the same thing. It holds each card once and
+ * never loops: a swipe stops at either end, and the drift turns round there.
+ * An earlier version looped by holding the list twice and jumping back, and
+ * a fast swipe on a phone ran past the jump into blank space.
  *
  * It stops while a pointer is on it, a card has focus, or a finger is on it,
  * and for a moment after a swipe, a wheel or a button. It also stops while it
@@ -56,16 +59,14 @@ export function AutoScroller({
 }: AutoScrollerProps): React.JSX.Element {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
-  const [loop, setLoop] = useState(false);
   const [overflows, setOverflows] = useState(false);
 
   // Hover, focus and touch each hold the row still. `pausedUntil` covers the
   // moment after a swipe, a wheel or a button.
   const holds = useRef({ hover: false, focus: false, touch: false, pausedUntil: 0 });
-  const copyRef = useRef<HTMLUListElement>(null);
 
-  // Decide whether the row needs to loop: only when one list is wider than
-  // the row. A short list stays still and centred on the left.
+  // Decide whether the row needs to drift: only when the list is wider than
+  // the row. A short list stays still on the left.
   useEffect(() => {
     const scroller = scrollerRef.current;
     const list = listRef.current;
@@ -74,7 +75,6 @@ export function AutoScroller({
     const measure = () => {
       const wider = list.getBoundingClientRect().width > scroller.clientWidth + 1;
       setOverflows(wider);
-      setLoop(wider);
     };
     measure();
     if (typeof ResizeObserver === 'undefined') return;
@@ -84,19 +84,11 @@ export function AutoScroller({
     return () => observer.disconnect();
   }, [items]);
 
-  // The copy is hidden from screen readers, so nothing in it may take focus.
-  // It is not `inert`, so a tap on a copied card still works.
-  useEffect(() => {
-    copyRef.current
-      ?.querySelectorAll<HTMLElement>('a, button, input, select, textarea, [tabindex]')
-      .forEach((element) => element.setAttribute('tabindex', '-1'));
-  }, [loop, items]);
-
   // Load every image in the row once the row comes near the screen. A browser
   // lazy-loads an image only when it is near the viewport, and a card off to
   // the side of a scrolling row is not, so each card would arrive blank and
   // fill in a second later, after the swipe already showed it. Safari is the
-  // worst at this. The copy holds the same URLs, so it comes from the cache.
+  // worst at this.
   useEffect(() => {
     const scroller = scrollerRef.current;
     if (scroller === null) return;
@@ -120,15 +112,16 @@ export function AutoScroller({
     );
     observer.observe(scroller);
     return () => observer.disconnect();
-  }, [loop, items]);
+  }, [items]);
 
   // The drift.
   useEffect(() => {
     const scroller = scrollerRef.current;
-    const list = listRef.current;
-    if (!loop || scroller === null || list === null) return;
+    if (!overflows || scroller === null) return;
 
     let visible = true;
+    // 1 drifts towards the last card, -1 back towards the first.
+    let direction = 1;
     let frame = 0;
     let last = 0;
     // The position as a fraction of a pixel. Browsers round `scrollLeft`, so
@@ -160,13 +153,17 @@ export function AutoScroller({
       // Someone else moved the row (a swipe, a key, a button): start from there.
       if (Math.abs(scroller.scrollLeft - written) > 1) position = scroller.scrollLeft;
 
-      const half = list.getBoundingClientRect().width;
-      if (!still) position += (speed * step) / 1000;
-      const wrapped = half > 0 && position >= half;
-      if (wrapped) position -= half;
-      // Write only when the row drifts or wraps. A write while a finger is
-      // still flicking the row would stop its momentum.
-      if (!still || wrapped) {
+      // Write only when the row drifts. A write while a finger is still
+      // flicking the row would stop its momentum.
+      if (!still) {
+        const end = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+        position += (direction * speed * step) / 1000;
+        // Turn round only at the end the row is drifting towards.
+        if ((direction === 1 && position >= end) || (direction === -1 && position <= 0)) {
+          position = direction === 1 ? end : 0;
+          direction = -direction;
+          held.pausedUntil = now + TURN_PAUSE_MS;
+        }
         scroller.scrollLeft = position;
         written = scroller.scrollLeft;
       }
@@ -178,7 +175,7 @@ export function AutoScroller({
       cancelAnimationFrame(frame);
       intersection?.disconnect();
     };
-  }, [loop, speed]);
+  }, [overflows, speed]);
 
   const pauseForAMoment = () => {
     holds.current.pausedUntil = performance.now() + RESUME_AFTER_MS;
@@ -191,22 +188,6 @@ export function AutoScroller({
     pauseForAMoment();
     scroller.scrollBy({ left: direction * card.getBoundingClientRect().width, behavior: 'smooth' });
   };
-
-  const list = (copy: boolean) => (
-    <ul
-      ref={copy ? copyRef : listRef}
-      className="flex shrink-0"
-      {...(copy && { 'aria-hidden': true })}
-    >
-      {items.map((item) => (
-        // Padding, not a gap, so both copies are the same width and the loop
-        // lands exactly on its start.
-        <li key={item.key} className="shrink-0 pr-5">
-          {item.node}
-        </li>
-      ))}
-    </ul>
-  );
 
   return (
     <div
@@ -241,8 +222,13 @@ export function AutoScroller({
         onKeyDown={pauseForAMoment}
       >
         <div className="flex w-max px-5 sm:px-8">
-          {list(false)}
-          {loop && list(true)}
+          <ul ref={listRef} className="flex shrink-0 gap-5">
+            {items.map((item) => (
+              <li key={item.key} className="shrink-0">
+                {item.node}
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
 
