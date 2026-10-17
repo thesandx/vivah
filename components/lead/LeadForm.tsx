@@ -533,7 +533,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
             <p className="text-small text-ink-soft">
               <span className="text-ink block font-medium">Send my preview on WhatsApp</span>
               We will send your personal wedding link to this number. You also sign in with it
-              later, so check that it is correct. We use this number only for your invite.
+              later, so check that it is correct.
             </p>
           </div>
 

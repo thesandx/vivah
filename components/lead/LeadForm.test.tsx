@@ -188,7 +188,7 @@ describe('LeadForm', () => {
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
     expect(screen.getByText('Send my preview on WhatsApp')).toBeInTheDocument();
     expect(screen.getByText(/You also sign in with it later/)).toBeInTheDocument();
-    expect(screen.getByText(/We use this number only for your invite\./)).toBeInTheDocument();
+    expect(screen.queryByText(/only for your invite/)).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Choose our address' })).toBeEnabled();
   });
 
