@@ -21,11 +21,10 @@ import {
 } from '@/components/lead/SignupArt';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
-import { Checkbox } from '@/components/ui/Checkbox';
-import { FieldError } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { PlayButton } from '@/components/ui/PlayButton';
 import { RadioGroup } from '@/components/ui/RadioGroup';
+import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { indianMobileDigits, toE164 } from '@/lib/phone';
 import { cn } from '@/lib/utils';
 import { daysUntil, foreverStartsLine, formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
@@ -76,7 +75,7 @@ const SENT_DETAIL_WHATSAPP = 'Sent to your WhatsApp. Opening your preview now.';
 type Step = 'names' | 'details' | 'address' | 'song' | 'making' | 'flying' | 'sent';
 const PAST_DATE_ERROR = 'Pick today or a later date.';
 
-type FieldName = 'bride' | 'groom' | 'weddingDate' | 'phone' | 'consent' | 'slug' | 'songSlot';
+type FieldName = 'bride' | 'groom' | 'weddingDate' | 'phone' | 'slug' | 'songSlot';
 type FieldErrors = Partial<Record<FieldName, string>>;
 
 interface ErrorBody {
@@ -116,7 +115,6 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const [groom, setGroom] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
   const [phone, setPhone] = useState('');
-  const [consent, setConsent] = useState(false);
   const [website, setWebsite] = useState('');
   const [address, setAddress] = useState<AddressValue>(() => initialAddress([]));
   /** Free addresses for these names; `null` while they load. */
@@ -250,7 +248,6 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
     else if (days !== null && days < 0) errors.weddingDate = PAST_DATE_ERROR;
     const phoneResult = toE164('IN', phone);
     if (!phoneResult.ok) errors.phone = phoneResult.message;
-    if (!consent) errors.consent = 'Tick the box so we can send your preview on WhatsApp.';
     setFieldErrors(errors);
     setError(null);
     if (Object.keys(errors).length > 0) return;
@@ -330,7 +327,6 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           weddingDate,
           countryIso: 'IN',
           phone,
-          consent,
           slug: chosen,
           ...(chosenSong !== null && { songSlot: chosenSong }),
           ...(website !== '' && { website }),
@@ -530,18 +526,16 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
             }}
             {...(fieldErrors.phone !== undefined && { error: fieldErrors.phone })}
           />
-          <Checkbox
-            label="Send my preview on WhatsApp"
-            hint="We use this number only for your invite."
-            checked={consent}
-            onChange={(event) => {
-              setConsent(event.target.checked);
-              setFieldErrors(({ consent: _, ...rest }) => rest);
-            }}
-          />
-          {fieldErrors.consent !== undefined && (
-            <FieldError id="lead-consent-error">{fieldErrors.consent}</FieldError>
-          )}
+          {/* A note, not a tick: a required box stopped couples here. It
+              still tells them, before they submit, what the number is for. */}
+          <div className="flex items-start gap-3">
+            <WhatsAppIcon className="text-ink-soft mt-0.5 size-5 shrink-0" />
+            <p className="text-small text-ink-soft">
+              <span className="text-ink block font-medium">Send my preview on WhatsApp</span>
+              We will send your personal wedding link to this number. You also sign in with it
+              later, so check that it is correct.
+            </p>
+          </div>
 
           {/* Honeypot: hidden from people and from screen readers, so only a bot fills it. */}
           <div aria-hidden="true" className="hidden">
