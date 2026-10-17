@@ -51,7 +51,7 @@ export async function HomeTestimonials() {
             id="reviews-heading"
             eyebrow="Love notes"
             title="From our couples"
-            intro="Real couples, their own words, shared with their permission."
+            intro="Real couples, their own words."
           />
           <AutoScroller
             label="Reviews from couples"
