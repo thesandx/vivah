@@ -44,7 +44,6 @@ const VALID = {
   weddingDate: DATE,
   countryIso: 'IN',
   phone: '98765 43210',
-  consent: true,
 };
 
 describe('POST /api/leads', () => {
