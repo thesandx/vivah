@@ -1,10 +1,13 @@
 /**
- * The home page's demo video: the couple's preview arrives on WhatsApp, they
- * tap the link, open the Shri Ganesh card, scratch the date, and walk through
- * the countdown, the venue and the RSVP to the publish bar. Pure data, no I/O.
+ * The home page's demo video: the groom sends a guest her own link on
+ * WhatsApp. She taps it, and the couple's own website opens at
+ * `riya-arjun.vivah.online` and greets her by name. She opens the Shri Ganesh
+ * card, scratches the date, and walks through the countdown, the venue and the
+ * RSVP. Pure data, no I/O.
  *
- * The files in `public/demo/` are 720x1280, 30 fps and silent (42 s). They are
- * cut from a 1080x1920, 60 fps master, which is kept outside the repository.
+ * The files in `public/demo/` are 720x1280 and 30 fps (46 s), with an original
+ * music track made for the video. They are cut from a 1080x1920, 60 fps
+ * master, which is kept outside the repository.
  *
  * To publish the video, add its files to `sources`. That is the only change.
  * List WebM first and MP4 second: the browser plays the first type it can.
