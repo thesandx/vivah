@@ -232,6 +232,23 @@ const whatsappGraphVersion = pattern(
   'v23.0',
 );
 
+/**
+ * Telegram bot that tells the team about each new preview. See
+ * `services/telegram.service.ts` and `cloud/environment-variables.md`.
+ *
+ * It is on only when the bot token and the chat id are both set. Leave either
+ * empty and nothing is sent. The bot token IS a secret: it comes from Secret
+ * Manager at runtime, like the WhatsApp token.
+ */
+const telegramBotToken = optional(process.env.TELEGRAM_BOT_TOKEN, '').trim();
+
+const telegramChatId = pattern(
+  'TELEGRAM_CHAT_ID',
+  process.env.TELEGRAM_CHAT_ID?.trim(),
+  /^-?\d{1,20}$/,
+  'must be a numeric Telegram chat id, like 123456789 or -1001234567890',
+);
+
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
 // Order matters below: the database id and bucket name default to values
@@ -382,6 +399,16 @@ export const env = {
     templateName: whatsappTemplateName,
     templateLanguage: whatsappTemplateLanguage,
     graphVersion: whatsappGraphVersion,
+  },
+
+  /**
+   * Telegram notices to the team about new previews. Server only: the token
+   * is a secret. `enabled` is true only when the token and chat id are set.
+   */
+  telegram: {
+    enabled: telegramBotToken !== '' && telegramChatId !== '',
+    botToken: telegramBotToken,
+    chatId: telegramChatId,
   },
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */

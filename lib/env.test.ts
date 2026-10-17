@@ -52,6 +52,8 @@ async function loadEnv(overrides: Record<string, string | undefined>): Promise<E
     'WHATSAPP_PREVIEW_TEMPLATE',
     'WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE',
     'WHATSAPP_GRAPH_API_VERSION',
+    'TELEGRAM_BOT_TOKEN',
+    'TELEGRAM_CHAT_ID',
   ]) {
     delete process.env[key];
   }
@@ -270,5 +272,33 @@ describe('WhatsApp preview sending', () => {
     await expect(loadEnv({ WHATSAPP_PREVIEW_TEMPLATE: 'Preview Ready' })).rejects.toThrow(
       /WHATSAPP_PREVIEW_TEMPLATE/,
     );
+  });
+});
+
+describe('Telegram notices', () => {
+  const BOTH = { TELEGRAM_BOT_TOKEN: '123456:ABC-token', TELEGRAM_CHAT_ID: '987654321' };
+
+  it('turns notices on when the token and the chat id are set', async () => {
+    expect((await loadEnv(BOTH)).telegram).toEqual({
+      enabled: true,
+      botToken: '123456:ABC-token',
+      chatId: '987654321',
+    });
+  });
+
+  it('keeps notices off when either one is unset', async () => {
+    expect((await loadEnv({})).telegram.enabled).toBe(false);
+    expect((await loadEnv({ ...BOTH, TELEGRAM_BOT_TOKEN: '' })).telegram.enabled).toBe(false);
+    expect((await loadEnv({ ...BOTH, TELEGRAM_CHAT_ID: '' })).telegram.enabled).toBe(false);
+  });
+
+  it('accepts a group chat id, which is negative', async () => {
+    expect((await loadEnv({ TELEGRAM_CHAT_ID: '-1001234567890' })).telegram.chatId).toBe(
+      '-1001234567890',
+    );
+  });
+
+  it('refuses a username in place of the chat id', async () => {
+    await expect(loadEnv({ TELEGRAM_CHAT_ID: '@vivah' })).rejects.toThrow(/TELEGRAM_CHAT_ID/);
   });
 });

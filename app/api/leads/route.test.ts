@@ -25,6 +25,11 @@ vi.mock('@/services/whatsapp.service', () => ({
   sendPreviewLink: (message: unknown) => sendPreviewLink(message),
 }));
 
+const notifyNewLead = vi.fn<(notice: unknown) => Promise<boolean>>();
+vi.mock('@/services/telegram.service', () => ({
+  notifyNewLead: (notice: unknown) => notifyNewLead(notice),
+}));
+
 const { POST } = await import('./route');
 
 let visitor = 0;
@@ -52,6 +57,7 @@ describe('POST /api/leads', () => {
     createLead.mockResolvedValue('AbCdEfGhIjKlMnOpQrSt');
     checkSlug.mockResolvedValue({ available: true });
     sendPreviewLink.mockResolvedValue(false);
+    notifyNewLead.mockResolvedValue(false);
   });
 
   it('creates a lead and answers with its preview path', async () => {
@@ -87,6 +93,16 @@ describe('POST /api/leads', () => {
     });
   });
 
+  it('tells the team on Telegram, without the phone number', async () => {
+    const response = await POST(post(VALID));
+    expect(response.status).toBe(201);
+    expect(notifyNewLead).toHaveBeenCalledWith({
+      leadId: 'AbCdEfGhIjKlMnOpQrSt',
+      coupleNames: 'Raadha & Shyam',
+      weddingDate: DATE,
+    });
+  });
+
   it('copies the chosen song from its slot, never from the body', async () => {
     songInSlot.mockResolvedValue({ name: 'Kesariya', file: 'song-2-abc.mp3' });
     const response = await POST(post({ ...VALID, songSlot: 2 }));
@@ -113,6 +129,7 @@ describe('POST /api/leads', () => {
     expect(Object.keys(body.fields)).toEqual(['slug']);
     expect(createLead).not.toHaveBeenCalled();
     expect(sendPreviewLink).not.toHaveBeenCalled();
+    expect(notifyNewLead).not.toHaveBeenCalled();
   });
 
   it('answers 400 with one message per field', async () => {
