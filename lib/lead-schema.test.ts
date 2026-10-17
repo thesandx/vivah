@@ -71,8 +71,10 @@ describe('leadRequestSchema', () => {
     }
   });
 
-  it('refuses a missing consent tick', () => {
-    expect(leadRequestSchema.safeParse({ ...VALID, consent: false }).success).toBe(false);
+  it('needs no consent tick, and still accepts one from a cached page', () => {
+    const { consent: _, ...withoutTick } = VALID;
+    expect(leadRequestSchema.safeParse(withoutTick).success).toBe(true);
+    expect(leadRequestSchema.safeParse({ ...VALID, consent: true }).success).toBe(true);
   });
 
   it('reports a wrong phone number on the phone field', () => {

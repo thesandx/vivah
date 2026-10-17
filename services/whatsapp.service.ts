@@ -10,7 +10,7 @@ import { logger } from '@/lib/logger';
  *
  * A business may start a WhatsApp chat only with an approved template. The
  * template this sends is a UTILITY template (the couple asked for the preview
- * and ticked the WhatsApp consent box), with this shape:
+ * with a note beside the number saying the link goes there), with this shape:
  *
  *   Body:   "Hi {{1}}, your wedding invite preview is ready. ..."
  *           {{1}} is the couple's names, e.g. "Riya & Aman".

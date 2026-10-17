@@ -58,8 +58,13 @@ export const leadRequestSchema = z
     /** Indian numbers only: the couples and our WhatsApp templates are in India. */
     countryIso: z.literal('IN', 'We accept Indian (+91) numbers only.').default('IN'),
     phone: z.string().trim().min(1, 'Enter your WhatsApp number.').max(20),
-    /** The consent tick. WhatsApp's policy needs an explicit opt-in. */
-    consent: z.literal(true, 'Tick the box so we can send your preview on WhatsApp.'),
+    /**
+     * The old WhatsApp tick. The card no longer has it: a note beside the
+     * number says we send the link there, and submitting with that note in
+     * view is the opt-in (`lead.consentAt`). Still accepted, so a page cached
+     * with the tick keeps working.
+     */
+    consent: z.boolean().optional(),
     /**
      * The invite address the couple chose on step 3: `radha-shyam`. Optional,
      * so a page cached before step 3 existed still works; the preview page
