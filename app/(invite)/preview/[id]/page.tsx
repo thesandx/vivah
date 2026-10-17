@@ -5,6 +5,8 @@ import { redirect } from 'next/navigation';
 import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteTheme } from '@/components/invite/InviteTheme';
 import { PreviewNotch } from '@/components/invite/PreviewNotch';
+import { PreviewShield } from '@/components/invite/PreviewShield';
+import { PreviewWatermark } from '@/components/invite/PreviewWatermark';
 import { PublishBanner } from '@/components/invite/PublishBanner';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { PageShell } from '@/components/layout/PageShell';
@@ -54,10 +56,12 @@ const PROBLEM: Record<
  *
  * It is the couple's invite exactly as guests will see it: the same envelope,
  * the same song, the same page, from the same components, with the couple's
- * own details. Only two things are added: a "Preview" notch at the top, and
- * the banner at the foot that publishes it. No watermark: the preview opens
- * only in the couple's own browser and expires in 48 hours, and a couple who
- * sees a clean invite wants to send it.
+ * own details. Until it is paid, three things are added: a "Preview" notch at
+ * the top, the banner at the foot that publishes it, and a faint
+ * "vivah.online · preview" watermark over the whole screen. A screenshot or a
+ * screen recording cannot be stopped from a web page, so the watermark is in
+ * every frame instead; `PreviewShield` also takes away the right-click menu
+ * and the developer-tools keys on a desktop. Once paid, neither renders.
  *
  * An async Server Component: it reads the lead and the browser's preview
  * cookie on the server, so nothing about the lead reaches a browser that may
@@ -151,6 +155,12 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
 
   return (
     <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
+      {!published && (
+        <>
+          <PreviewWatermark label={`${domainLabel} · preview`} />
+          <PreviewShield />
+        </>
+      )}
       <InviteGate
         guestName={null}
         couple={`${lead.bride} & ${lead.groom}`}
