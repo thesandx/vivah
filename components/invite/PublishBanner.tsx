@@ -290,7 +290,7 @@ export function PublishBanner({
             </div>
 
             <div className="bg-pay-well border-pay-line rounded-input flex items-end justify-between gap-3 border-2 px-4 py-2">
-              <div className="flex flex-col">
+              <div className="flex shrink-0 flex-col">
                 <span className="text-small text-pay-body">One-time payment</span>
                 <span className="text-pay-ink tabular-nums">
                   <span className="text-title font-bold tracking-tight">{price}</span>{' '}
@@ -331,7 +331,7 @@ export function PublishBanner({
             <div className="text-small text-pay-body flex flex-wrap items-center justify-between gap-x-3">
               <span className="flex items-center gap-1.5">
                 {PAYMENT_LIVE && <Lock />}
-                {PAYMENT_LIVE && 'Secure payment · '}Paid once · No charge per guest
+                {PAYMENT_LIVE && 'Secure payment · '}Paid once, nothing more to pay later
               </span>
               <button
                 type="button"
