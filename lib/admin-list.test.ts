@@ -9,6 +9,7 @@ import {
   leadState,
   parseLeadFilters,
   parseWeddingFilters,
+  previewTimeNote,
   type WeddingRow,
   weddingState,
 } from '@/lib/admin-list';
@@ -190,5 +191,23 @@ describe('lead filters', () => {
 describe('formatAdminTime', () => {
   it('writes India time', () => {
     expect(formatAdminTime(at('2026-10-15T09:15:00Z'))).toMatch(/15 Oct 2026.*2:45/);
+  });
+});
+
+describe('preview timer in the admin', () => {
+  it('closes a preview when its 30 minutes end, before the link expiry', () => {
+    const row = lead({ status: 'opened', viewEndsAt: at('2026-10-14T23:59:00Z') });
+    expect(leadState(row, NOW)).toBe('expired');
+    expect(previewTimeNote(row, NOW)).toBeNull();
+  });
+
+  it('shows the minutes left while the timer runs', () => {
+    const row = lead({ status: 'opened', viewEndsAt: at('2026-10-15T00:12:00Z') });
+    expect(leadState(row, NOW)).toBe('opened');
+    expect(previewTimeNote(row, NOW)).toMatch(/^12 min left · closes /);
+  });
+
+  it('says the timer has not started for an unopened link', () => {
+    expect(previewTimeNote(lead({}), NOW)).toMatch(/^timer starts on first open · link expires /);
   });
 });

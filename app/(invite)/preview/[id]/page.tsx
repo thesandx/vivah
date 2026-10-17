@@ -6,16 +6,20 @@ import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteTheme } from '@/components/invite/InviteTheme';
 import { PreviewNotch } from '@/components/invite/PreviewNotch';
 import { PreviewShield } from '@/components/invite/PreviewShield';
+import { PreviewTimer } from '@/components/invite/PreviewTimer';
 import { PreviewWatermark } from '@/components/invite/PreviewWatermark';
 import { PublishBanner } from '@/components/invite/PublishBanner';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { PageShell } from '@/components/layout/PageShell';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { Alert } from '@/components/ui/Alert';
+import { buttonStyles } from '@/components/ui/Button';
 import { Face } from '@/components/ui/Face';
-import { PRICE_FROM_RUPEES } from '@/lib/business';
+import { BUSINESS, PRICE_FROM_RUPEES, whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
+import { previewClosesAt } from '@/lib/preview-timer';
+import { siteOrigin } from '@/lib/seo';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
@@ -42,12 +46,8 @@ const PROBLEM: Record<
     body: 'Check that you opened the full link from your WhatsApp message.',
   },
   expired: {
-    title: 'This preview has expired',
-    body: 'A preview stays open for 48 hours. Start again on the home page to get a new one.',
-  },
-  'other-browser': {
-    title: 'Open this preview on your own phone',
-    body: 'A preview opens only in the two browsers that opened it first, so it cannot be forwarded as an invite.',
+    title: 'This preview has closed',
+    body: 'A preview stays open for 30 minutes. Message us on WhatsApp and we will open it again for you.',
   },
 };
 
@@ -57,16 +57,21 @@ const PROBLEM: Record<
  * It is the couple's invite exactly as guests will see it: the same envelope,
  * the same song, the same page, from the same components, with the couple's
  * own details. Until it is paid, three things are added: a "Preview" notch at
- * the top, the banner at the foot that publishes it, and a faint
+ * the top with the preview's 30-minute countdown, the banner at the foot that
+ * publishes it, and a faint
  * "vivah.online · preview" watermark over the whole screen. A screenshot or a
  * screen recording cannot be stopped from a web page, so the watermark is in
  * every frame instead; `PreviewShield` also takes away the right-click menu
  * and the developer-tools keys on a desktop. Once paid, neither renders.
  *
+ * Anyone with the link sees it while its 30 minutes run (ADR-0010). Then it
+ * closes for everyone until an admin reactivates it. Only the two browsers
+ * the link is bound to get the publish banner (ADR-0007, ADR-0009).
+ *
  * An async Server Component: it reads the lead and the browser's preview
- * cookie on the server, so nothing about the lead reaches a browser that may
- * not see it. The cookie is set by `GET /p/<id>`; a visit straight to this
- * address without it is sent there first.
+ * cookie on the server, so nothing about a closed preview reaches a browser.
+ * The timer starts at `GET /p/<id>`; a visit straight to this address before
+ * that is sent there first.
  */
 export default async function PreviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -87,13 +92,28 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
             </span>
             <h1 className="text-title">{problem.title}</h1>
             <p className="text-ink-soft">{problem.body}</p>
+            {access.state === 'expired' && (
+              <a
+                href={whatsAppChatUrl(
+                  BUSINESS.whatsAppE164,
+                  `Hi, please open my invite preview again: ${siteOrigin(env.rootDomain, env.appUrl)}/p/${id}`,
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={buttonStyles({ variant: 'primary' })}
+              >
+                Message us on WhatsApp
+              </a>
+            )}
           </section>
         </PageShell>
       </>
     );
   }
 
-  const { lead } = access;
+  const { lead, canPublish } = access;
+  const closesAt = previewClosesAt(lead);
+  const renderedAt = new Date().getTime();
   const song =
     lead.song === undefined ? null : { name: lead.song.name, src: songUrl(lead.song.file) };
   const domainLabel = inviteDomainLabel(env.rootDomain);
@@ -127,7 +147,7 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         </a>
       </section>
     );
-  } else {
+  } else if (canPublish) {
     dock = (
       <PublishBanner
         bride={lead.bride}
@@ -165,7 +185,13 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         guestName={null}
         couple={`${lead.bride} & ${lead.groom}`}
         song={song}
-        top={<PreviewNotch note={published ? 'your invite is live' : 'only you can see this'} />}
+        top={
+          <PreviewNotch note={published ? 'your invite is live' : 'only you can see this'}>
+            {closesAt !== null && (
+              <PreviewTimer endsAt={closesAt.getTime()} renderedAt={renderedAt} />
+            )}
+          </PreviewNotch>
+        }
         dock={dock}
       >
         {/* Room at the foot, so the banner never covers the last lines. */}

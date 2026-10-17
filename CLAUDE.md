@@ -463,6 +463,7 @@ Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of
 | [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment until Cashfree |
 | [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                |
 | [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks               |
+| [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                 |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { capitalizeName } from '@/lib/guest-name';
 import type { LeadRequest } from '@/lib/lead-schema';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
+import { previewClosed, timerStarted, viewEndsAtFrom } from '@/lib/preview-timer';
 import { type ChosenSong, chosenSongSchema } from '@/lib/wedding-songs';
 import { createRepository, type StoredDocument } from '@/services/repository';
 
@@ -43,8 +44,17 @@ export const leadSchema = z.object({
    * (Leads before 17 Oct 2026 ticked a box instead.)
    */
   consentAt: z.date(),
-  /** The preview link stops working after this instant. */
+  /**
+   * An unopened preview link stops working after this instant. Once the link
+   * opens, `viewEndsAt` decides instead.
+   */
   expiresAt: z.date(),
+  /**
+   * When the preview's 30 minutes end, for every browser. Set the first time
+   * the link opens; an admin's reactivate clears it, so the next open starts
+   * a fresh 30 minutes. Optional: older leads do not have it. ADR-0010.
+   */
+  viewEndsAt: z.date().nullable().optional(),
   /**
    * SHA-256 of the token in the first browser's cookie, or `null` until the
    * link is opened. The hash, not the token: a database export must not be
@@ -138,62 +148,72 @@ export async function createLead(
   });
 }
 
-/** What a browser may see of a lead's preview. */
+/**
+ * What a browser may see of a lead's preview. Anyone with the link sees it
+ * while its 30 minutes run; `canPublish` is true only in the two browsers the
+ * link is bound to (ADR-0009), because only they may publish (ADR-0007).
+ */
 export type PreviewAccess =
-  | { state: 'ok'; lead: LeadDocument }
+  | { state: 'ok'; lead: LeadDocument; canPublish: boolean }
   | { state: 'not-found' }
   | { state: 'expired' }
-  | { state: 'unopened' }
-  | { state: 'other-browser' };
+  | { state: 'unopened' };
 
 /**
- * Opens a preview link. The FIRST call binds the lead to a new random token
- * and returns it, for the caller to set as a cookie. The first call from
- * another browser binds a second token the same way. After that, calls only
- * report whether the presented token matches one of the two.
+ * Opens a preview link. The first open starts the preview's 30 minutes.
+ *
+ * It also binds the link to up to two browsers, for publishing: the FIRST
+ * call binds the lead to a new random token and returns it, for the caller to
+ * set as a cookie. The first call from another browser binds a second token
+ * the same way. A third browser still sees the preview, with no token.
  *
  * A transaction, so two taps on the link at the same moment cannot bind two
- * different browsers.
+ * different browsers or start two timers.
  */
 export async function openPreviewLink(
   leadId: string,
   presentedToken: string | undefined,
   now: Date = new Date(),
-): Promise<{ access: PreviewAccess['state']; newToken: string | null }> {
+): Promise<{ access: 'ok' | 'not-found' | 'expired'; newToken: string | null }> {
   if (!isLeadId(leadId)) return { access: 'not-found', newToken: null };
 
   return leads.runTransaction(async (repo) => {
     const lead = await repo.get(leadId);
     if (lead === null) return { access: 'not-found' as const, newToken: null };
-    if (lead.status !== 'paid' && lead.expiresAt.getTime() <= now.getTime()) {
-      return { access: 'expired' as const, newToken: null };
+    if (previewClosed(lead, now)) return { access: 'expired' as const, newToken: null };
+
+    const changes: Partial<LeadPayload> = {};
+    if (lead.status !== 'paid' && !timerStarted(lead)) {
+      const viewEndsAt = viewEndsAtFrom(now);
+      changes.viewEndsAt = viewEndsAt;
+      // Publishing checks `expiresAt`. Keep it past the 30 minutes, so a link
+      // first opened near its end can still be paid for while it shows.
+      if (lead.expiresAt.getTime() < viewEndsAt.getTime()) changes.expiresAt = viewEndsAt;
     }
 
+    let newToken: string | null = null;
     if (lead.previewTokenHash === null) {
-      const token = randomBytes(32).toString('base64url');
-      repo.update(leadId, {
-        previewTokenHash: hashToken(token),
-        firstOpenedAt: now,
-        status: lead.status === 'preview-sent' ? 'opened' : lead.status,
-      });
-      return { access: 'ok' as const, newToken: token };
+      newToken = randomBytes(32).toString('base64url');
+      changes.previewTokenHash = hashToken(newToken);
+      changes.firstOpenedAt = now;
+      if (lead.status === 'preview-sent') changes.status = 'opened';
+    } else if (
+      !leadTokenMatches(presentedToken, lead) &&
+      (lead.secondTokenHash === undefined || lead.secondTokenHash === null)
+    ) {
+      newToken = randomBytes(32).toString('base64url');
+      changes.secondTokenHash = hashToken(newToken);
     }
 
-    if (leadTokenMatches(presentedToken, lead)) return { access: 'ok' as const, newToken: null };
-
-    if (lead.secondTokenHash === undefined || lead.secondTokenHash === null) {
-      const token = randomBytes(32).toString('base64url');
-      repo.update(leadId, { secondTokenHash: hashToken(token) });
-      return { access: 'ok' as const, newToken: token };
-    }
-
-    return { access: 'other-browser' as const, newToken: null };
+    if (Object.keys(changes).length > 0) repo.update(leadId, changes);
+    return { access: 'ok' as const, newToken };
   });
 }
 
 /**
- * Reads a preview for the browser presenting `token`. Read-only: binding
- * happens in `openPreviewLink`, from the `/p/<id>` link.
+ * Reads a preview for the browser presenting `token`. Read-only: the timer
+ * starts and the binding happens in `openPreviewLink`, from the `/p/<id>`
+ * link, so a preview whose timer has not started is `unopened`.
  */
 export async function getPreview(
   leadId: string,
@@ -204,10 +224,9 @@ export async function getPreview(
 
   const lead = await leads.get(leadId);
   if (lead === null) return { state: 'not-found' };
-  if (lead.status !== 'paid' && lead.expiresAt.getTime() <= now.getTime()) {
-    return { state: 'expired' };
+  if (previewClosed(lead, now)) return { state: 'expired' };
+  if (lead.status !== 'paid' && (!timerStarted(lead) || lead.previewTokenHash === null)) {
+    return { state: 'unopened' };
   }
-  if (lead.previewTokenHash === null) return { state: 'unopened' };
-  if (!leadTokenMatches(token, lead)) return { state: 'other-browser' };
-  return { state: 'ok', lead };
+  return { state: 'ok', lead, canPublish: leadTokenMatches(token, lead) };
 }
