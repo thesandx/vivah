@@ -32,8 +32,8 @@ import { sendPreviewLink } from '@/services/whatsapp.service';
  * (`services/whatsapp.service.ts`). The form opens the preview on screen
  * either way; `whatsappSent` only changes the line under its tick. Sending is
  * off until the Cloud API is configured, and a failed send never fails the
- * sign-up. The team also gets a Telegram notice (`services/telegram.service.ts`)
- * with the admin link, so somebody can send the link by hand meanwhile.
+ * sign-up. The team also gets Telegram messages (`services/telegram.service.ts`)
+ * with the couple's message and number, so somebody can send the link by hand.
  */
 
 export const runtime = 'nodejs';
@@ -109,7 +109,14 @@ export async function POST(request: Request): Promise<NextResponse> {
     const coupleNames = `${lead.bride} & ${lead.groom}`;
     const [whatsappSent] = await Promise.all([
       sendPreviewLink({ phoneE164: lead.phoneE164, coupleNames, leadId: id }),
-      notifyNewLead({ leadId: id, coupleNames, weddingDate: lead.weddingDate }),
+      notifyNewLead({
+        leadId: id,
+        bride: lead.bride,
+        groom: lead.groom,
+        weddingDate: lead.weddingDate,
+        slug: lead.slug,
+        phoneE164: lead.phoneE164,
+      }),
     ]);
     return NextResponse.json({ previewPath: `/p/${id}`, whatsappSent }, { status: 201 });
   } catch (error) {

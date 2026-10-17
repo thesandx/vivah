@@ -93,13 +93,16 @@ describe('POST /api/leads', () => {
     });
   });
 
-  it('tells the team on Telegram, without the phone number', async () => {
+  it('tells the team on Telegram, with what they need to send the link', async () => {
     const response = await POST(post(VALID));
     expect(response.status).toBe(201);
     expect(notifyNewLead).toHaveBeenCalledWith({
       leadId: 'AbCdEfGhIjKlMnOpQrSt',
-      coupleNames: 'Raadha & Shyam',
+      bride: 'Raadha',
+      groom: 'Shyam',
       weddingDate: DATE,
+      slug: null,
+      phoneE164: '+919876543210',
     });
   });
 

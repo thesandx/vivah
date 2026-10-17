@@ -81,8 +81,8 @@ export default function PrivacyPage() {
           <li>Google Firebase, which sends the one-time code you sign in with.</li>
           <li>Meta (WhatsApp Business), which delivers our WhatsApp messages to you.</li>
           <li>
-            Telegram, which tells our team that you made a preview. It gets your names and wedding
-            date, never your number.
+            Telegram, which tells our team that you made a preview, so we can send it to your
+            WhatsApp. It gets your names, wedding date and WhatsApp number.
           </li>
           <li>
             Your guests: anyone with your invite link can see your invite. Do not put anything on it
