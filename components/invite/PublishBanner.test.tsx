@@ -22,11 +22,12 @@ function renderBanner() {
 }
 
 describe('PublishBanner', () => {
-  it('opens on the price once, against what paper cards cost', () => {
+  it('opens on the price once, against every guest at no extra charge', () => {
     renderBanner();
     expect(screen.getByRole('heading', { name: 'Your invite is ready' })).toBeInTheDocument();
     expect(screen.getByText('₹499')).toBeInTheDocument();
-    expect(screen.getByText('₹5,000 to ₹50,000+')).toBeInTheDocument();
+    expect(screen.getByText('Share as many times as you like')).toBeInTheDocument();
+    expect(screen.queryByText(/paper/i)).not.toBeInTheDocument();
   });
 
   it('makes no claim it cannot back', () => {
@@ -80,7 +81,7 @@ describe('PublishBanner', () => {
     });
     const { publish } = renderBanner();
     expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
-    expect(screen.queryByText('₹5,000 to ₹50,000+')).not.toBeInTheDocument();
+    expect(screen.queryByText('Share as many times as you like')).not.toBeInTheDocument();
     Object.defineProperty(document.documentElement, 'scrollHeight', {
       value: 0,
       configurable: true,
@@ -88,7 +89,7 @@ describe('PublishBanner', () => {
     act(() => {
       window.dispatchEvent(new Event('scroll'));
     });
-    expect(await screen.findByText('₹5,000 to ₹50,000+')).toBeInTheDocument();
+    expect(await screen.findByText('Share as many times as you like')).toBeInTheDocument();
     expect(publish).not.toHaveBeenCalled();
   });
 

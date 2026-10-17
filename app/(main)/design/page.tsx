@@ -297,7 +297,7 @@ export default function DesignPage() {
           <section id="rows" className="flex flex-col gap-5">
             <h2 className="text-title">A row that drifts</h2>
             <p className="text-ink-soft max-w-prose">
-              The cards drift sideways and loop when they are wider than the row. Swipe them any
+              The cards drift to the end and back when they are wider than the row. Swipe them any
               time. The row stops under a pointer, a finger or the keyboard.
             </p>
             <AutoScroller

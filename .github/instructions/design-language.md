@@ -115,32 +115,32 @@ Not every card needs a shadow. A shadow says "this is an object you can press or
 
 Each primitive lives in `components/ui/`, has a colocated test, and renders on `/design`. Pick the primitive by its job.
 
-| Primitive      | Use it for                                                             |
-| -------------- | ---------------------------------------------------------------------- |
-| `Button`       | An action. `buttonStyles()` styles a `Link` the same way.              |
-| `Card`         | One object the user can act on. `peek` puts a face over the edge.      |
-| `Input`        | One line of text, with a label, a hint and an error.                   |
-| `Textarea`     | Several lines of text. Same label, hint and error as `Input`.          |
-| `Select`       | One choice from a long list. It is a native select.                    |
-| `RadioGroup`   | One choice from five options or fewer.                                 |
-| `Checkbox`     | A yes/no value that a form submits later.                              |
-| `Switch`       | A setting that applies at once.                                        |
-| `Field`        | The label, hint and error. Use it to wrap a new form control.          |
-| `Badge`        | A short state in words: "Host", "Ready". Not pressable.                |
-| `Chip`         | A pill that names one thing, often with an `Avatar`. Not pressable.    |
-| `ContactLink`  | A phone number (`tel:`) or an email address (`mailto:`) to tap.        |
-| `Alert`        | A message in the interface voice: a result, a problem, a status.       |
-| `Progress`     | How far through something the user is. It shows the value in words.    |
-| `Spinner`      | Work that the user asked for and that is not complete yet.             |
-| `EmptyState`   | A space with no content yet. A sleepy face, one line, one action.      |
-| `Skeleton`     | The shape of content that is loading. Use it as a loading fallback.    |
-| `Tabs`         | Two to five views of the same thing. A client component.               |
-| `Dialog`       | A decision that must interrupt. A bottom sheet on a phone.             |
-| `AutoScroller` | A row of cards that drifts and loops, and takes a swipe. No scrollbar. |
-| `Avatar`       | A player. The name sets the colour and the mood.                       |
-| `Face`         | The mascot face. See [Signature patterns](#signature-patterns).        |
-| `Speech`       | The mascot speaks. Moments only.                                       |
-| `Sticker`      | Decoration. Two per viewport at most.                                  |
+| Primitive      | Use it for                                                                       |
+| -------------- | -------------------------------------------------------------------------------- |
+| `Button`       | An action. `buttonStyles()` styles a `Link` the same way.                        |
+| `Card`         | One object the user can act on. `peek` puts a face over the edge.                |
+| `Input`        | One line of text, with a label, a hint and an error.                             |
+| `Textarea`     | Several lines of text. Same label, hint and error as `Input`.                    |
+| `Select`       | One choice from a long list. It is a native select.                              |
+| `RadioGroup`   | One choice from five options or fewer.                                           |
+| `Checkbox`     | A yes/no value that a form submits later.                                        |
+| `Switch`       | A setting that applies at once.                                                  |
+| `Field`        | The label, hint and error. Use it to wrap a new form control.                    |
+| `Badge`        | A short state in words: "Host", "Ready". Not pressable.                          |
+| `Chip`         | A pill that names one thing, often with an `Avatar`. Not pressable.              |
+| `ContactLink`  | A phone number (`tel:`) or an email address (`mailto:`) to tap.                  |
+| `Alert`        | A message in the interface voice: a result, a problem, a status.                 |
+| `Progress`     | How far through something the user is. It shows the value in words.              |
+| `Spinner`      | Work that the user asked for and that is not complete yet.                       |
+| `EmptyState`   | A space with no content yet. A sleepy face, one line, one action.                |
+| `Skeleton`     | The shape of content that is loading. Use it as a loading fallback.              |
+| `Tabs`         | Two to five views of the same thing. A client component.                         |
+| `Dialog`       | A decision that must interrupt. A bottom sheet on a phone.                       |
+| `AutoScroller` | A row of cards that drifts to the end and back, and takes a swipe. No scrollbar. |
+| `Avatar`       | A player. The name sets the colour and the mood.                                 |
+| `Face`         | The mascot face. See [Signature patterns](#signature-patterns).                  |
+| `Speech`       | The mascot speaks. Moments only.                                                 |
+| `Sticker`      | Decoration. Two per viewport at most.                                            |
 
 `components/layout/` holds the page chrome:
 
@@ -200,7 +200,7 @@ The heart thread is the one exception to rules 2 and 5. A line can only draw its
 Two things on the home page move without a tap, because the product owner asked for them:
 
 - **The "How it works" steps.** A visitor sees that there are three steps. The loop stops on hover, on focus and off screen. A tap on a step ends it, and reduced motion turns it off.
-- **The review and chat rows (`AutoScroller`).** Each row drifts slowly and loops, and a visitor can swipe it at any time. No scrollbar shows; from `md` up, arrow buttons appear on hover. The row stops on hover, on focus, under a finger, off screen and in a hidden tab. Reduced motion turns the drift off.
+- **The review and chat rows (`AutoScroller`).** Each row drifts slowly to the last card, rests, and drifts back to the first. It never loops: the product owner asked for this (2026-10-17), because a looped row showed blank cards after a fast swipe. A visitor can swipe it at any time, and a swipe stops at either end. No scrollbar shows; from `md` up, arrow buttons appear on hover. The row stops on hover, on focus, under a finger, off screen and in a hidden tab. Reduced motion turns the drift off.
 
 ### Loading
 
@@ -245,7 +245,7 @@ In this app, a couple's invite is the ceremonial surface. It uses the `shubh-viv
 - **The opening.** `InviteGate` covers the invite with the Shri Ganesh card, `GaneshCover`. The card is drawn in code as one SVG, not a photo: a rani-pink band with marigold flowers and white rangoli, a gold arch with a chain of loops, a cream lattice, Shri Ganesh, the shloka "श्री गणेशाय नमः" as live text, and a lotus at the foot. Shri Ganesh is one vector path in `components/invite/ganesha-path.ts`, traced with potrace from the product owner's card art. The colours are the `rani`, `ganesh`, `marigold`, `haldi`, `arch` and `lattice` tokens, the same in every theme. On a phone the card fills the screen and is cropped, never stretched. From `md` up it stands as a phone-shaped card on a dark rose glow and bobs a little. Over the foot of the art, "Hi <guest>" and "Please tap to open your invitation" sit on a dark fade. The tap starts the couple's song (the tap is the user gesture that allows sound). Then the dark cover fades, the card lifts up and off, and a gold light blooms behind it. The invite shows through as the cover fades. A round rose `SoundButton`, pinned to the top right (below the preview notch on the preview), then pauses and plays the song at any time. The card shows on every visit and always waits for the tap.
 - **Shri Ganesh opens the card.** The invite matches the offline Hindu wedding card: Ganesh line art, then "॥ श्री गणेशाय नमः ॥" and the Vakratunda shloka, then "With hearts full of joy, we", the names and "invite you to our wedding". The product owner chose this over the religion-neutral default in the PRD (2026-10-15).
 - **The preview is the invite.** `/preview/<id>` renders the same `InviteGate` and `ShubhVivahInvite` with the couple's own details, full screen, with no product header. It adds a gold `PreviewNotch` at the top, the `PublishBanner` at the foot, and a faint tiled `PreviewWatermark` ("vivah.online · preview") over the whole screen. A page cannot stop a screenshot or a screen recording, so the watermark is in every frame. `PreviewShield` blocks the right-click menu and the developer-tools, source, save and print keys. These are deterrents only. Once the couple pays, neither renders, and the live invite never has them.
-- **The payment dialogs.** `PublishBanner` is the place where a couple reads a price and decides, so it does not wear the invite's look. It uses Inter (`font-pay`, self-hosted under `public/fonts`, OFL), neutral greys and one green action: the `pay-*` tokens. Only the couple's names keep the invite's serif. Closed, the banner is a one-line bar while the couple reads. At the foot of the page it grows to a sheet: the price once, the paper-card cost beside it, and a green button. Scrolling up shrinks it back. The green button on the bar and on the sheet goes straight to payment for the chosen address. Only "See everything you get" opens the checkout: what they get, the address, an order summary, the pay button, then the ways to pay as text pills (no brand logos). The pay button comes before the ways to pay, so a small phone shows it without a scroll. With no chosen address, the green button opens the checkout. Every claim reads from `lib/business.ts`: `PRICE_FROM_RUPEES` and `PAPER_CARDS`. Do not add a rating, a couple count or a refund promise; the product owner removed the refund line (2026-10-16). The trust lines at the foot (instant link, no ads, live until 12 months after the wedding, made in India) keep the product owner's emoji, their choice over the "no emoji" rule below. The pay button has three looks: ready, working (a spinner, and a second tap does nothing) and not ready. While `PAYMENT_LIVE` is false, the button says "Publish", and a line under it says that nothing is charged.
+- **The payment dialogs.** `PublishBanner` is the place where a couple reads a price and decides, so it does not wear the invite's look. It uses Inter (`font-pay`, self-hosted under `public/fonts`, OFL), neutral greys and one green action: the `pay-*` tokens. Only the couple's names keep the invite's serif. Closed, the banner is a one-line bar while the couple reads. At the foot of the page it grows to a sheet: the price once, "every guest, no charge per guest" beside it, and a green button. Scrolling up shrinks it back. The green button on the bar and on the sheet goes straight to payment for the chosen address. Only "See everything you get" opens the checkout: what they get, the address, an order summary, the pay button, then the ways to pay as text pills (no brand logos). The pay button comes before the ways to pay, so a small phone shows it without a scroll. With no chosen address, the green button opens the checkout. Every claim reads from `lib/business.ts`: `PRICE_FROM_RUPEES`. Do not add a rating, a couple count or a refund promise; the product owner removed the refund line (2026-10-16). The trust lines at the foot (instant link, no ads, live until 12 months after the wedding, made in India) keep the product owner's emoji, their choice over the "no emoji" rule below. The pay button has three looks: ready, working (a spinner, and a second tap does nothing) and not ready. While `PAYMENT_LIVE` is false, the button says "Publish", and a line under it says that nothing is charged.
 - **The link preview image** cannot read CSS tokens. `lib/invite-palette.ts` repeats the values. Change both together.
 
 Budget limits per viewport, all themes:
