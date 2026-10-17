@@ -63,7 +63,7 @@ export function DemoVideo({ sources, poster, steps }: DemoVideoProps) {
         <PlayIcon />
         Watch a demo
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="A guest opens your invite">
+      <Dialog open={open} onClose={() => setOpen(false)} title="From WhatsApp to your invite">
         {open && hasVideo && (
           <video
             ref={videoRef}

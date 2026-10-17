@@ -1,6 +1,10 @@
 /**
- * The home page's demo video: a guest gets the invite on WhatsApp, taps the
- * link, opens the Shri Ganesh card and replies. Pure data, no I/O.
+ * The home page's demo video: the couple's preview arrives on WhatsApp, they
+ * tap the link, open the Shri Ganesh card, scratch the date, and walk through
+ * the countdown, the venue and the RSVP to the publish bar. Pure data, no I/O.
+ *
+ * The files in `public/demo/` are 720x1280, 30 fps and silent (42 s). They are
+ * cut from a 1080x1920, 60 fps master, which is kept outside the repository.
  *
  * To publish the video, add its files to `sources`. That is the only change.
  * List WebM first and MP4 second: the browser plays the first type it can.
@@ -24,8 +28,11 @@ export interface DemoVideo {
 }
 
 export const DEMO_VIDEO: DemoVideo = {
-  sources: [],
-  poster: '',
+  sources: [
+    { src: '/demo/walkthrough.webm', type: 'video/webm' },
+    { src: '/demo/walkthrough.mp4', type: 'video/mp4' },
+  ],
+  poster: '/demo/walkthrough-poster.webp',
 };
 
 /** What the walkthrough shows, in order. The dialog lists these until the video exists. */

@@ -58,7 +58,7 @@ describe('DemoVideo', () => {
     const { container } = render(<DemoVideo sources={[]} poster="" steps={STEPS} />);
     fireEvent.click(screen.getByRole('button', { name: 'Watch a demo' }));
 
-    expect(screen.getByRole('dialog', { name: 'A guest opens your invite' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'From WhatsApp to your invite' })).toBeInTheDocument();
     expect(screen.getByText('The guest taps the link.')).toBeInTheDocument();
     expect(container.querySelector('video')).toBeNull();
   });
