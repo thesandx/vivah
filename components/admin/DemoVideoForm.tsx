@@ -7,6 +7,7 @@ import type { ActionState } from '@/components/admin/AdminActionForm';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import type { UploadStart } from '@/hooks/useImageUpload';
+import { actionErrorMessage } from '@/lib/action-errors';
 import {
   isFastStart,
   MAX_DEMO_POSTER_BYTES,
@@ -199,8 +200,11 @@ export function DemoVideoForm({
         if (fileInput.current !== null) fileInput.current.value = '';
         router.refresh();
       }
-    } catch {
-      setState({ status: 'error', message: 'That video did not save. Try again.' });
+    } catch (error) {
+      setState({
+        status: 'error',
+        message: actionErrorMessage(error, 'That video did not save. Try again.'),
+      });
     } finally {
       setPending(false);
     }

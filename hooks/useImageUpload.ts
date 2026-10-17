@@ -2,6 +2,8 @@
 
 import { useCallback } from 'react';
 
+import { actionErrorMessage } from '@/lib/action-errors';
+
 /**
  * Uploads one image from an admin page straight to the bucket.
  *
@@ -83,8 +85,11 @@ export function useImageUpload({
           return { status: 'error', message: 'The upload did not finish. Try again.' };
         }
         return { status: 'ok', tmpPath: started.upload.tmpPath };
-      } catch {
-        return { status: 'error', message: 'That image did not upload. Try another one.' };
+      } catch (error) {
+        return {
+          status: 'error',
+          message: actionErrorMessage(error, 'That image did not upload. Try another one.'),
+        };
       }
     },
     [startUpload, width, maxBytes],

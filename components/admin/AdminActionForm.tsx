@@ -6,6 +6,7 @@ import { Alert } from '@/components/ui/Alert';
 import { Button, type ButtonVariant } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
+import { isStalePageError, STALE_PAGE_MESSAGE } from '@/lib/action-errors';
 import { cn } from '@/lib/utils';
 
 /**
@@ -47,7 +48,20 @@ export function AdminActionForm({
   confirm,
   className,
 }: AdminActionFormProps): React.JSX.Element {
-  const [state, formAction, pending] = useActionState(action, { status: 'idle' });
+  const [state, formAction, pending] = useActionState(
+    async (previous: ActionState, form: FormData): Promise<ActionState> => {
+      try {
+        return await action(previous, form);
+      } catch (error) {
+        // A page opened before a deploy calls an action the server no longer has.
+        if (isStalePageError(error)) {
+          return { status: 'error', message: STALE_PAGE_MESSAGE };
+        }
+        throw error;
+      }
+    },
+    { status: 'idle' },
+  );
   const [asking, setAsking] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 

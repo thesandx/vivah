@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { PlayButton } from '@/components/ui/PlayButton';
 import type { UploadStart } from '@/hooks/useImageUpload';
+import { actionErrorMessage } from '@/lib/action-errors';
 import { MAX_SONG_BYTES, MAX_SONG_NAME_LENGTH, SONG_AUDIO_TYPES } from '@/lib/wedding-songs';
 
 /**
@@ -99,8 +100,11 @@ export function SongSlotForm({
         if (fileInput.current !== null) fileInput.current.value = '';
         router.refresh();
       }
-    } catch {
-      setState({ status: 'error', message: 'That song did not save. Try again.' });
+    } catch (error) {
+      setState({
+        status: 'error',
+        message: actionErrorMessage(error, 'That song did not save. Try again.'),
+      });
     } finally {
       setPending(false);
     }

@@ -8,6 +8,7 @@ import { TestimonialPreview } from '@/components/admin/TestimonialPreview';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { type UploadStart, useImageUpload } from '@/hooks/useImageUpload';
+import { actionErrorMessage } from '@/lib/action-errors';
 import {
   MAX_TESTIMONIAL_IMAGE_BYTES,
   TESTIMONIAL_IMAGE_WIDTH,
@@ -123,8 +124,11 @@ export function TestimonialForm({
         if (isNew) form.reset();
         router.refresh();
       }
-    } catch {
-      setState({ status: 'error', message: 'That did not save. Try again.' });
+    } catch (error) {
+      setState({
+        status: 'error',
+        message: actionErrorMessage(error, 'That did not save. Try again.'),
+      });
     } finally {
       setPending(false);
     }

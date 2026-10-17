@@ -7,6 +7,7 @@ import type { ActionState } from '@/components/admin/AdminActionForm';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { type UploadStart, useImageUpload } from '@/hooks/useImageUpload';
+import { actionErrorMessage } from '@/lib/action-errors';
 import { MAX_STEP_IMAGE_BYTES, STEP_IMAGE_WIDTH } from '@/lib/how-it-works';
 
 /**
@@ -54,8 +55,11 @@ export function StepImageUpload({
       const saved = await saveUpload(uploaded.tmpPath);
       setState(saved);
       if (saved.status === 'ok') router.refresh();
-    } catch {
-      setState({ status: 'error', message: 'That image did not upload. Try another one.' });
+    } catch (error) {
+      setState({
+        status: 'error',
+        message: actionErrorMessage(error, 'That image did not upload. Try another one.'),
+      });
     } finally {
       setPending(false);
       if (inputRef.current !== null) inputRef.current.value = '';
