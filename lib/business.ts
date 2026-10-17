@@ -28,7 +28,7 @@ export const BUSINESS = {
   /** What we sell, in one line. The footer prints it for the payment provider. */
   natureOfService: 'Digital invitation service. No physical products are shipped.',
   /** The date the policy pages last changed, `YYYY-MM-DD`. */
-  policiesUpdated: '2026-10-14',
+  policiesUpdated: '2026-10-17',
 } as const;
 
 /**

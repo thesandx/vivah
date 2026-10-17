@@ -6,6 +6,7 @@ import { type LeadRequest, leadRequestSchema } from '@/lib/lead-schema';
 import { logger } from '@/lib/logger';
 import { clientIp, RateLimiter } from '@/lib/rate-limit';
 import { createLead } from '@/services/lead.service';
+import { notifyNewLead } from '@/services/telegram.service';
 import { checkSlug } from '@/services/wedding.service';
 import { songInSlot } from '@/services/wedding-songs.service';
 import { sendPreviewLink } from '@/services/whatsapp.service';
@@ -31,7 +32,8 @@ import { sendPreviewLink } from '@/services/whatsapp.service';
  * (`services/whatsapp.service.ts`). The form opens the preview on screen
  * either way; `whatsappSent` only changes the line under its tick. Sending is
  * off until the Cloud API is configured, and a failed send never fails the
- * sign-up.
+ * sign-up. The team also gets Telegram messages (`services/telegram.service.ts`)
+ * with the couple's message and number, so somebody can send the link by hand.
  */
 
 export const runtime = 'nodejs';
@@ -102,12 +104,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     // number is never logged — see CLAUDE.md > Authentication in brief.
     logger.info('Lead created', { leadId: id, hasWeddingDate: lead.weddingDate !== null });
     // Awaited, not fired after the response: Cloud Run may pause the CPU
-    // once a response is sent. It is bounded by its own timeout.
-    const whatsappSent = await sendPreviewLink({
-      phoneE164: lead.phoneE164,
-      coupleNames: `${lead.bride} & ${lead.groom}`,
-      leadId: id,
-    });
+    // once a response is sent. Both run at once, each under its own timeout,
+    // and neither throws.
+    const coupleNames = `${lead.bride} & ${lead.groom}`;
+    const [whatsappSent] = await Promise.all([
+      sendPreviewLink({ phoneE164: lead.phoneE164, coupleNames, leadId: id }),
+      notifyNewLead({
+        leadId: id,
+        bride: lead.bride,
+        groom: lead.groom,
+        weddingDate: lead.weddingDate,
+        slug: lead.slug,
+        phoneE164: lead.phoneE164,
+      }),
+    ]);
     return NextResponse.json({ previewPath: `/p/${id}`, whatsappSent }, { status: 201 });
   } catch (error) {
     const mapped = mapHttpError(error);

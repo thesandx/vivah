@@ -312,6 +312,42 @@ To turn sending off, clear `WHATSAPP_PREVIEW_TEMPLATE` and deploy. The token can
 
 ---
 
+## Telegram configuration
+
+After sign-up, the app sends the team three Telegram messages about the new preview, so somebody can send it on WhatsApp by hand. `services/telegram.service.ts` calls the Telegram Bot API.
+
+1. An alert with the couple's names, the wedding date and the `/admin/previews/<id>` link.
+2. The message for the couple, with their preview link, ready to paste into WhatsApp.
+3. The couple's WhatsApp number alone, to copy.
+
+The logs never hold the number. Notices are on only when the bot token and the chat id are both set.
+
+| Variable                | Where it comes from                                    | Secret |
+| ----------------------- | ------------------------------------------------------ | ------ |
+| `TELEGRAM_BOT_TOKEN`    | Secret Manager, mounted by `deploy.yml`                | Yes    |
+| `TELEGRAM_CHAT_ID`      | GitHub variable of the same name                       | No     |
+| `TELEGRAM_TOKEN_SECRET` | GitHub variable. The name of the Secret Manager secret | No     |
+
+To turn notices on:
+
+1. In Telegram, message `@BotFather`, send `/newbot`, and copy the token it gives.
+2. Send any message to the new bot. Then open `https://api.telegram.org/bot<token>/getUpdates` and copy `result[0].message.chat.id`.
+3. Store the token and grant access:
+
+```bash
+gcloud secrets create telegram-bot-token --replication-policy=automatic
+printf '%s' "$TOKEN" | gcloud secrets versions add telegram-bot-token --data-file=-
+gcloud secrets add-iam-policy-binding telegram-bot-token \
+  --member="serviceAccount:vivah-runtime@<project>.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+```
+
+4. Set the GitHub variables `TELEGRAM_TOKEN_SECRET=telegram-bot-token` and `TELEGRAM_CHAT_ID`, and deploy.
+
+Grant access before you set `TELEGRAM_TOKEN_SECRET`. To turn notices off, clear `TELEGRAM_CHAT_ID` and deploy.
+
+---
+
 ## Platform-injected variables
 
 Cloud Run sets these; do not define them yourself.

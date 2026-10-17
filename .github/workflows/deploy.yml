@@ -150,6 +150,31 @@ jobs:
           echo "Revision will be: ${SERVICE_NAME}-${SUFFIX} (${#SERVICE_NAME}+1+${#SUFFIX} chars)"
           echo "revision_suffix=${SUFFIX}" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve secret mounts
+        id: secrets
+        # One --set-secrets flag for every secret whose GitHub variable names
+        # it. gcloud refuses two --set-secrets flags, and a mount of a secret
+        # that does not exist fails the deploy, so an unset variable adds
+        # nothing. The variables come in through `env:`, never ${{ }} in the
+        # script. See cloud/environment-variables.md > WhatsApp and Telegram.
+        env:
+          WHATSAPP_TOKEN_SECRET: ${{ vars.WHATSAPP_TOKEN_SECRET }}
+          TELEGRAM_TOKEN_SECRET: ${{ vars.TELEGRAM_TOKEN_SECRET }}
+        run: |
+          set -euo pipefail
+          MOUNTS=()
+          if [[ -n "$WHATSAPP_TOKEN_SECRET" ]]; then
+            MOUNTS+=("WHATSAPP_ACCESS_TOKEN=${WHATSAPP_TOKEN_SECRET}:latest")
+          fi
+          if [[ -n "$TELEGRAM_TOKEN_SECRET" ]]; then
+            MOUNTS+=("TELEGRAM_BOT_TOKEN=${TELEGRAM_TOKEN_SECRET}:latest")
+          fi
+          FLAG=""
+          if [[ "${#MOUNTS[@]}" -gt 0 ]]; then
+            FLAG="--set-secrets=$(IFS=,; echo "${MOUNTS[*]}")"
+          fi
+          echo "flag=${FLAG}" >> "$GITHUB_OUTPUT"
+
       - name: Resolve data layer names
         id: data
         # Same defaults as lib/env.ts and scripts/gcp-bootstrap.sh. Three places
@@ -266,6 +291,7 @@ jobs:
             WHATSAPP_PHONE_NUMBER_ID=${{ vars.WHATSAPP_PHONE_NUMBER_ID }}
             WHATSAPP_PREVIEW_TEMPLATE=${{ vars.WHATSAPP_PREVIEW_TEMPLATE }}
             WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE=${{ vars.WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE || 'en' }}
+            TELEGRAM_CHAT_ID=${{ vars.TELEGRAM_CHAT_ID }}
             DEPLOYED_AT=${{ steps.meta.outputs.deployed_at }}
           # The runtime identity goes through `flags`, NOT a `service_account`
           # input. This action has no such input: it accepts one and warns
@@ -275,11 +301,9 @@ jobs:
           # project, the opposite of the least-privilege account bootstrap
           # created. Keep this in flags, where gcloud actually reads it.
           #
-          # The WhatsApp access token is a secret, so it is mounted from Secret
-          # Manager, never set in env_vars. The mount is added only when the
-          # WHATSAPP_TOKEN_SECRET variable names the secret: a deploy that
-          # mounts a secret which does not exist fails. See
-          # cloud/environment-variables.md > WhatsApp.
+          # The WhatsApp and Telegram tokens are secrets, so they are mounted
+          # from Secret Manager, never set in env_vars. The "Resolve secret
+          # mounts" step builds the one --set-secrets flag.
           flags: >-
             --service-account=${{ vars.RUNTIME_SERVICE_ACCOUNT || format('{0}-runtime@{1}.iam.gserviceaccount.com', env.APP_SLUG, env.GCP_PROJECT_ID) }}
             --allow-unauthenticated
@@ -293,7 +317,7 @@ jobs:
             --execution-environment=gen2
             --cpu-boost
             --revision-suffix=${{ steps.meta.outputs.revision_suffix }}
-            ${{ vars.WHATSAPP_TOKEN_SECRET && format('--set-secrets=WHATSAPP_ACCESS_TOKEN={0}:latest', vars.WHATSAPP_TOKEN_SECRET) || '' }}
+            ${{ steps.secrets.outputs.flag }}
 
       - name: Verify the deployment serves traffic
         # The deploy step succeeding only means Cloud Run accepted the revision.
