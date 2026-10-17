@@ -48,7 +48,7 @@ describe('newLeadMessages', () => {
     expect(alert).toContain('https://vivah.online/admin/previews/AbCdEfGhIjKlMnOpQrSt');
     expect(forCouple).toContain('Namaste Riya & Aman');
     expect(forCouple).toContain('https://vivah.online/p/AbCdEfGhIjKlMnOpQrSt');
-    expect(forCouple).toContain('48 hours');
+    expect(forCouple).toContain('30 minutes');
     expect(forCouple).toContain('riya-aman.vivah.online');
     expect(forCouple).not.toContain('9876543210');
     expect(phone).toBe('+919876543210');

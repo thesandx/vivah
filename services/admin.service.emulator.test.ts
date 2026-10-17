@@ -165,12 +165,17 @@ describeEmulator('admin operations (emulator)', () => {
     await openPreviewLink(leadId, undefined, new Date(Date.now() - 3 * 86_400_000));
     expect((await reactivatePreview(leadId, ADMIN)).ok).toBe(true);
     const lead = await leads.getOrThrow(leadId);
-    expect(lead).toMatchObject({ previewTokenHash: null, status: 'preview-sent' });
+    expect(lead).toMatchObject({
+      previewTokenHash: null,
+      viewEndsAt: null,
+      status: 'preview-sent',
+    });
     expect(lead.expiresAt.getTime()).toBeGreaterThan(Date.now());
 
-    // A new phone may now open it.
+    // A new phone may now open it, and that open starts a fresh 30 minutes.
     const { access } = await openPreviewLink(leadId, undefined);
     expect(access).toBe('ok');
+    expect((await leads.getOrThrow(leadId)).viewEndsAt?.getTime()).toBeGreaterThan(Date.now());
 
     await deleteLead(leadId, ADMIN);
     expect(await getPreview(leadId, undefined)).toEqual({ state: 'not-found' });

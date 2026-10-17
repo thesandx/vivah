@@ -8,6 +8,8 @@
  * bookmarked or reloaded.
  */
 
+import { previewClosed } from '@/lib/preview-timer';
+
 /** What the admin sees of a wedding's state. */
 export type WeddingState = 'live' | 'unavailable' | 'deleted';
 
@@ -40,15 +42,36 @@ export interface LeadRow {
   phoneE164: string;
   status: 'preview-sent' | 'opened' | 'paid';
   expiresAt: Date;
+  /** When the preview's 30 minutes end. Absent until the link first opens. */
+  viewEndsAt?: Date | null | undefined;
   createdAt: Date;
   deletedAt: Date | null;
   weddingSlug?: string | undefined;
 }
 
+/** When a preview closes, for sorting: the 30 minutes once started, else the link's expiry. */
+function closesAt(row: LeadRow): number {
+  return (row.viewEndsAt ?? row.expiresAt).getTime();
+}
+
+/**
+ * The admin's line for when a preview closes: "12 min left" while its 30
+ * minutes run, the link's expiry before it is opened, `null` once closed.
+ */
+export function previewTimeNote(row: LeadRow, now: Date): string | null {
+  const state = leadState(row, now);
+  if (state !== 'sent' && state !== 'opened') return null;
+  if (row.viewEndsAt === undefined || row.viewEndsAt === null) {
+    return `timer starts on first open · link expires ${formatAdminTime(row.expiresAt)}`;
+  }
+  const minutes = Math.ceil((row.viewEndsAt.getTime() - now.getTime()) / 60_000);
+  return `${minutes} min left · closes ${formatAdminTime(row.viewEndsAt)}`;
+}
+
 export function leadState(row: LeadRow, now: Date): LeadState {
   if (row.deletedAt !== null) return 'deleted';
   if (row.status === 'paid') return 'paid';
-  if (row.expiresAt.getTime() <= now.getTime()) return 'expired';
+  if (previewClosed(row, now)) return 'expired';
   return row.status === 'opened' ? 'opened' : 'sent';
 }
 
@@ -229,7 +252,7 @@ export function filterLeads<T extends LeadRow>(
   const sorters: Record<LeadFilters['sort'], (a: T, b: T) => number> = {
     newest: (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
     oldest: (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-    expiring: (a, b) => a.expiresAt.getTime() - b.expiresAt.getTime(),
+    expiring: (a, b) => closesAt(a) - closesAt(b),
     names: byNames,
   };
   return kept.sort(sorters[filters.sort]);

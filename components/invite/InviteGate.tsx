@@ -152,7 +152,7 @@ export function InviteGate({
             'animate-pop fixed right-4 z-40',
             top === undefined
               ? 'top-[max(0.75rem,env(safe-area-inset-top))]'
-              : 'top-[calc(env(safe-area-inset-top)+4rem)]',
+              : 'top-[calc(env(safe-area-inset-top)+7rem)]',
           )}
         />
       )}

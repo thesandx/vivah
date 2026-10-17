@@ -16,7 +16,7 @@ import { AppBar } from '@/components/layout/AppBar';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ContactLink } from '@/components/ui/ContactLink';
-import { formatAdminTime, leadState } from '@/lib/admin-list';
+import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
@@ -56,7 +56,7 @@ export default async function AdminPreviewPage({
   const state = leadState(lead, now);
   const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
   const link = `${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`;
-  const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview: ${link} . It opens on the first phone you tap it on, and stays open for 48 hours.`;
+  const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview: ${link} . It stays open for 30 minutes from when you open it, so please complete payment within that time.`;
 
   return (
     <>
@@ -95,8 +95,12 @@ export default async function AdminPreviewPage({
             </div>
             {lead.status !== 'paid' && (
               <div>
-                <dt className="text-ink-soft">{state === 'expired' ? 'Expired' : 'Expires'}</dt>
-                <dd>{formatAdminTime(lead.expiresAt)}</dd>
+                <dt className="text-ink-soft">30-minute timer</dt>
+                <dd>
+                  {state === 'expired'
+                    ? `Closed ${formatAdminTime(lead.viewEndsAt ?? lead.expiresAt)}`
+                    : previewTimeNote(lead, now)}
+                </dd>
               </div>
             )}
           </dl>
@@ -118,7 +122,7 @@ export default async function AdminPreviewPage({
                 <p className="text-small text-ink-soft">
                   WhatsApp sending is not automatic yet. Copy the link, or open WhatsApp with the
                   message typed in for you.
-                  {state === 'expired' && ' Reactivate it first: the link has expired.'}
+                  {state === 'expired' && ' Reactivate it first: the preview has closed.'}
                 </p>
                 <p className="text-small text-ink-soft break-all">{link}</p>
                 <div className="flex flex-wrap gap-3">
@@ -137,8 +141,8 @@ export default async function AdminPreviewPage({
               <Card className="flex flex-col gap-4">
                 <h2 className="text-heading">Reactivate</h2>
                 <p className="text-small text-ink-soft">
-                  Gives the link a fresh 48 hours and frees it from the first phone, so the couple
-                  can open it on any phone. The next phone to open it keeps it.
+                  Gives the couple a fresh 30 minutes. The timer starts again when the link is next
+                  opened. The next two phones to open it can pay and publish.
                 </p>
                 <AdminActionForm
                   action={reactivatePreviewAction.bind(null, lead.id)}
@@ -147,7 +151,7 @@ export default async function AdminPreviewPage({
                   {...(state === 'opened' && {
                     confirm: {
                       title: 'Reactivate this preview?',
-                      body: 'The phone that opened it loses it until it taps the link again.',
+                      body: 'Its timer stops and starts again from 30:00 on the next open. The phones that opened it must tap the link again to pay.',
                       confirmLabel: 'Reactivate',
                     },
                   })}

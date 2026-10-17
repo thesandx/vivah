@@ -37,6 +37,7 @@ import {
   leadState,
   parseLeadFilters,
   parseWeddingFilters,
+  previewTimeNote,
   type SearchParams,
   WEDDING_SORT_CHOICES,
   WEDDING_STATE_CHOICES,
@@ -315,9 +316,9 @@ async function PreviewsView({ params }: { params: SearchParams }) {
                     <span className="text-small text-ink-soft">
                       {formatPhoneForDisplay(lead.phoneE164)} · asked{' '}
                       {formatAdminTime(lead.createdAt)}
-                      {state === 'sent' || state === 'opened'
-                        ? ` · expires ${formatAdminTime(lead.expiresAt)}`
-                        : ''}
+                      {previewTimeNote(lead, now) === null
+                        ? ''
+                        : ` · ${previewTimeNote(lead, now)}`}
                     </span>
                   </span>
                   <StateBadge state={state} />

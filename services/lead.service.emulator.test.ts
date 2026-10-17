@@ -26,7 +26,7 @@ const REQUEST = {
 };
 
 describeEmulator('lead.service (emulator)', () => {
-  it('binds the preview to two browsers and refuses a third', async () => {
+  it('shows the preview to anyone, and lets only two browsers publish', async () => {
     const id = await createLead(REQUEST);
     expect(await getPreview(id, undefined)).toEqual({ state: 'unopened' });
 
@@ -53,11 +53,34 @@ describeEmulator('lead.service (emulator)', () => {
     expect(await openPreviewLink(id, secondToken)).toEqual({ access: 'ok', newToken: null });
 
     const third = await openPreviewLink(id, 'someone-elses-token');
-    expect(third).toEqual({ access: 'other-browser', newToken: null });
+    expect(third).toEqual({ access: 'ok', newToken: null });
 
-    expect((await getPreview(id, token)).state).toBe('ok');
-    expect((await getPreview(id, secondToken)).state).toBe('ok');
-    expect(await getPreview(id, undefined)).toEqual({ state: 'other-browser' });
+    expect(await getPreview(id, token)).toMatchObject({ state: 'ok', canPublish: true });
+    expect(await getPreview(id, secondToken)).toMatchObject({ state: 'ok', canPublish: true });
+    expect(await getPreview(id, undefined)).toMatchObject({ state: 'ok', canPublish: false });
+  });
+
+  it('closes the preview for everyone 30 minutes after the first open', async () => {
+    const created = new Date('2030-01-01T00:00:00Z');
+    const id = await createLead(REQUEST, created);
+    const opened = new Date(created.getTime() + 60 * 60 * 1000);
+    const { newToken } = await openPreviewLink(id, undefined, opened);
+    const token = newToken ?? '';
+    expect((await leads.getOrThrow(id)).viewEndsAt).toEqual(
+      new Date(opened.getTime() + 30 * 60 * 1000),
+    );
+
+    // A reload, or another phone, does not restart the timer.
+    const later = new Date(opened.getTime() + 20 * 60 * 1000);
+    await openPreviewLink(id, undefined, later);
+    expect((await leads.getOrThrow(id)).viewEndsAt).toEqual(
+      new Date(opened.getTime() + 30 * 60 * 1000),
+    );
+    expect((await getPreview(id, token, later)).state).toBe('ok');
+
+    const over = new Date(opened.getTime() + 30 * 60 * 1000);
+    expect(await getPreview(id, token, over)).toEqual({ state: 'expired' });
+    expect(await openPreviewLink(id, token, over)).toEqual({ access: 'expired', newToken: null });
   });
 
   it('stores the chosen address as a wish, and nothing when there is none', async () => {

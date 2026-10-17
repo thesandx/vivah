@@ -64,7 +64,7 @@ export function newLeadMessages(notice: NewLeadNotice): [string, string, string]
     'We made your wedding invite, and it looks beautiful ✨ Tap to see it:',
     `${origin}/p/${notice.leadId}`,
     '',
-    '• This link is active for 48 hours.',
+    '• Your preview stays open for 30 minutes. If it closes, message us here and we will open it again.',
     `• Love it? Make it live from the same page and get ${ownLink}, ready to share with every guest.`,
     '',
     'Open the link to see your invite, and make it live after purchase. Your guests are waiting to hear the good news! 💌',

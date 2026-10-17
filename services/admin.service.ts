@@ -366,9 +366,10 @@ export async function weddingHoldsAddress(wedding: WeddingDocument): Promise<boo
 }
 
 /**
- * Reactivates a preview: a fresh 48 hours, and the link is no longer tied to
- * the first phone, so the next phone to open it gets it. For a couple whose
- * link expired, or who changed phones.
+ * Reactivates a preview: the link works for a fresh 48 hours, and the next
+ * open starts a fresh 30 minutes. It is also no longer tied to the first
+ * phones, so the next phones to open it may publish. For a couple whose
+ * preview closed, or who changed phones. ADR-0010.
  */
 export async function reactivatePreview(
   id: string,
@@ -382,6 +383,7 @@ export async function reactivatePreview(
   }
   await leads.update(id, {
     expiresAt: new Date(now.getTime() + PREVIEW_LIFETIME_SECONDS * 1000),
+    viewEndsAt: null,
     previewTokenHash: null,
     secondTokenHash: null,
     firstOpenedAt: null,
@@ -394,7 +396,10 @@ export async function reactivatePreview(
     `Reactivated the preview for ${lead.bride} & ${lead.groom}.`,
     adminUid,
   );
-  return { ok: true, message: 'Reactivated for 48 hours. Send the link again.' };
+  return {
+    ok: true,
+    message: 'Reactivated. The next open starts a fresh 30 minutes. Send the link again.',
+  };
 }
 
 export async function deleteLead(id: string, adminUid: string): Promise<AdminResult> {
