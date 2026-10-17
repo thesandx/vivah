@@ -1,7 +1,8 @@
 import Image from 'next/image';
 
 import { Countdown } from '@/components/invite/Countdown';
-import { ScratchCard } from '@/components/invite/ScratchCard';
+import { PetalShower } from '@/components/invite/PetalShower';
+import { SaveTheDateCards } from '@/components/invite/SaveTheDateCards';
 import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-contact';
 import { cn } from '@/lib/utils';
 import {
@@ -17,10 +18,11 @@ import {
  * a 430px column of jewel-toned blocks on ivory. Shri Ganesh in a mehrab arch
  * over the names, a scratch-to-reveal date, the day in a peacock block with
  * a countdown, the venue card, a vermilion RSVP block and a rani-pink close.
- * Marigold garlands hang between the blocks.
+ * Marigold garlands hang between the blocks, and marigold and rose petals
+ * drift down over it all (`PetalShower`, CSS only).
  *
- * A Server Component. Only the scratch cards and the countdown run in the
- * browser. The colours, faces and sizes are the `jewel-*` tokens and
+ * A Server Component. Only the scratch cards (with the confetti burst when
+ * the date is out) and the countdown run in the browser. The colours, faces and sizes are the `jewel-*` tokens and
  * utilities in `styles/globals.css`, the spec's own values.
  *
  * The couple's preview renders this same component with the couple's own
@@ -217,6 +219,7 @@ export function ShubhVivahInvite({
   return (
     <div className={cn('bg-jewel-maroon-deep flex flex-col', className)}>
       <article className="jewel-page flex-1">
+        <PetalShower />
         {/* Shri Ganesh in the mehrab arch, over the couple's names. */}
         <header className="jewel-section jewel-bg-hero">
           <Jaali />
@@ -288,19 +291,11 @@ export function ShubhVivahInvite({
                 titleClassName="text-jewel-sindoor"
               />
               <p className="jewel-note mt-6.5">Scratch below to reveal our wedding date</p>
-              <div className="mt-9 flex justify-center gap-3.25">
-                <ScratchCard label="Day" value={parts.day} className="jewel-scratch-day" />
-                <ScratchCard
-                  label="Month"
-                  value={parts.monthNumber}
-                  className="jewel-scratch-month"
-                />
-                <ScratchCard
-                  label="Year"
-                  value={parts.year.slice(2)}
-                  className="jewel-scratch-year"
-                />
-              </div>
+              <SaveTheDateCards
+                day={parts.day}
+                month={parts.monthNumber}
+                year={parts.year.slice(2)}
+              />
               <p className="jewel-note mt-8 max-w-50">{TOGETHERNESS}</p>
             </div>
           </section>

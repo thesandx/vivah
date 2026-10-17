@@ -29,6 +29,8 @@ export interface ScratchCardProps {
   label: string;
   /** The card's face under the foil, e.g. `jewel-scratch-day`. */
   className?: string;
+  /** Called once, when the foil falls away. */
+  onReveal?: () => void;
 }
 
 /** Reveal the rest once this share of the foil is gone. */
@@ -82,10 +84,16 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-export function ScratchCard({ value, label, className }: ScratchCardProps): React.JSX.Element {
+export function ScratchCard({
+  value,
+  label,
+  className,
+  onReveal,
+}: ScratchCardProps): React.JSX.Element {
   const canvas = useRef<HTMLCanvasElement>(null);
   const dustCanvas = useRef<HTMLCanvasElement>(null);
   const [revealed, setRevealed] = useState(false);
+  const revealedOnce = useRef(false);
   const last = useRef<{ x: number; y: number } | null>(null);
   const moves = useRef(0);
   const dust = useRef<Mote[]>([]);
@@ -210,7 +218,11 @@ export function ScratchCard({ value, label, className }: ScratchCardProps): Reac
   }
 
   function reveal(): void {
+    // A ref, not the state: two pointer moves can land before the re-render.
+    if (revealedOnce.current) return;
+    revealedOnce.current = true;
     setRevealed(true);
+    onReveal?.();
     // What is left of the foil sheds its glitter as it falls away.
     const element = canvas.current;
     if (element === null) return;
