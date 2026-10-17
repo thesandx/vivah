@@ -302,6 +302,12 @@ Instance count is pinned at `--max-instances`. Raise it — but understand that 
 
 If it starts with `NEXT_PUBLIC_`, it is **inlined at build time**. Updating the Cloud Run service does nothing; you must rebuild the image. See [`cloud/environment-variables.md`](../cloud/environment-variables.md).
 
+### A form fails with `409` after a deploy
+
+The console shows `Failed to load resource: the server responded with a status of 409` on a Server Action. The body says `Server Action unavailable`.
+
+Each build gives every Server Action a new id. A page opened before the deploy still calls the old ids. Reload the page. The forms in `/admin` show `STALE_PAGE_MESSAGE` from `lib/action-errors.ts` for this case.
+
 ### The site is broken and I need it working now
 
 ```bash
