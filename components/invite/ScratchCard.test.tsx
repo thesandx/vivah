@@ -55,6 +55,13 @@ describe('ScratchCard', () => {
     expect(screen.queryByRole('button', { name: 'Reveal the month' })).not.toBeInTheDocument();
   });
 
+  it('tells its owner once when the foil falls away', () => {
+    const onReveal = vi.fn();
+    render(<ScratchCard value="07" label="Day" onReveal={onReveal} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reveal the day' }));
+    expect(onReveal).toHaveBeenCalledTimes(1);
+  });
+
   it('shows the value at once where the browser cannot draw the foil', () => {
     vi.mocked(HTMLCanvasElement.prototype.getContext).mockImplementation(() => null);
     const { container } = render(<ScratchCard value="2026" label="Year" />);

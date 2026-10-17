@@ -198,7 +198,6 @@
      same time before it removes the envelope. */
   --animate-seal-break: seal-break 360ms var(--ease-settle) forwards;
   --animate-flap-open: flap-open 480ms 240ms var(--ease-settle) forwards;
-  --animate-petal-fall: petal-fall 14s linear infinite;
   /* Then the letter rises out of the pocket, and the envelope fades away to
      the invite underneath, which settles into place. 1.9 s end to end. */
   --animate-letter-rise: letter-rise 620ms 620ms var(--ease-settle) forwards;
@@ -299,15 +298,6 @@
     100% {
       transform: rotateX(180deg);
       z-index: 5;
-    }
-  }
-
-  @keyframes petal-fall {
-    from {
-      transform: translate3d(0, -10vh, 0) rotate(0deg);
-    }
-    to {
-      transform: translate3d(6vw, 110vh, 0) rotate(540deg);
     }
   }
 
@@ -1333,4 +1323,78 @@
   to {
     transform: translateX(100%);
   }
+}
+
+/* The petal shower over the jewel invite (`components/invite/PetalShower.tsx`).
+   A fixed layer the width of the 430px column. Each petal falls the height
+   of the screen, and its SVG sways and turns over on its own, shorter
+   loop, so no two petals move together. Only `transform` animates, so the
+   compositor runs it. Under the opening card and the preview banner (z-40,
+   z-50). Reduced motion hides it: a looping fall cut to 0.01ms would flash. */
+@utility jewel-petals {
+  position: fixed;
+  inset-block: 0;
+  left: 50%;
+  z-index: 30;
+  width: 100%;
+  max-width: 430px;
+  overflow: hidden;
+  pointer-events: none;
+  translate: -50% 0;
+
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+  }
+}
+
+@utility jewel-petal {
+  position: absolute;
+  top: 0;
+  opacity: 0.9;
+  animation-name: jewel-petal-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+@utility jewel-petal-sway {
+  display: block;
+  width: 100%;
+  height: auto;
+  animation-name: jewel-petal-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  filter: drop-shadow(0 1px 1px rgb(74 14 30 / 0.25));
+}
+
+@keyframes jewel-petal-fall {
+  from {
+    transform: translate3d(0, -6vh, 0);
+  }
+  to {
+    transform: translate3d(0, 104vh, 0);
+  }
+}
+
+@keyframes jewel-petal-sway {
+  from {
+    transform: translateX(-16px) rotate(-35deg) rotateY(0deg);
+  }
+  to {
+    transform: translateX(16px) rotate(40deg) rotateY(160deg);
+  }
+}
+
+/* The confetti burst when the last scratch card reveals the wedding date
+   (`components/invite/ConfettiBurst.tsx`). A canvas over the whole screen,
+   above the preview banner and under the opening card, which is gone by
+   then. It never takes a tap. */
+@utility jewel-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
