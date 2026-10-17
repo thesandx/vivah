@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Suspense } from 'react';
 
+import { HomeDemoVideo } from '@/app/(main)/home-demo-video';
 import { HomeTestimonials } from '@/app/(main)/home-testimonials';
 import { FaqList } from '@/components/guides/FaqList';
 import { DemoVideo } from '@/components/home/DemoVideo';
@@ -21,7 +22,7 @@ import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
-import { DEMO_STEPS, DEMO_VIDEO } from '@/lib/demo-video';
+import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import {
   faqPageSchema,
@@ -167,7 +168,10 @@ export default function HomePage() {
               title="Everything about your wedding, on one link"
               intro="Shri Ganesh greets every guest by name. Then your song, a date to scratch open, the countdown, the venue map and a WhatsApp RSVP."
             />
-            <DemoVideo sources={DEMO_VIDEO.sources} poster={DEMO_VIDEO.poster} steps={DEMO_STEPS} />
+            {/* The steps show until the uploaded video's URL arrives. */}
+            <Suspense fallback={<DemoVideo video={null} steps={DEMO_STEPS} />}>
+              <HomeDemoVideo />
+            </Suspense>
           </div>
           <GuestPreview />
           <SectionCta

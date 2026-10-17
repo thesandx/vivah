@@ -6,6 +6,7 @@ import type { ActionState } from '@/components/admin/AdminActionForm';
 import type { StepUploadStart } from '@/components/admin/StepImageUpload';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
 import type { UploadStart } from '@/hooks/useImageUpload';
+import { parseDemoUploadKind } from '@/lib/demo-video';
 import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
@@ -25,6 +26,11 @@ import {
   setWeddingStatus,
 } from '@/services/admin.service';
 import { requireAdmin } from '@/services/admin-session.service';
+import {
+  createDemoVideoUpload,
+  removeDemoVideo,
+  saveDemoVideo,
+} from '@/services/demo-video.service';
 import {
   createStepImageUpload,
   resetStepImage,
@@ -324,4 +330,40 @@ export async function removeSongAction(rawSlot: number): Promise<ActionState> {
   const slot = parseSongSlot(rawSlot);
   if (slot === null) return { status: 'error', message: 'That song does not exist.' };
   return run('song-remove', String(slot), (uid) => removeSong(slot, uid));
+}
+
+/**
+ * Step 1 of the demo video upload: a signed URL the browser sends the video,
+ * or its poster, to. Admin only, like the songs.
+ */
+export async function startDemoVideoUploadAction(
+  rawKind: string,
+  contentType: string,
+): Promise<UploadStart> {
+  let adminUid: string;
+  try {
+    adminUid = (await requireAdmin()).uid;
+  } catch {
+    return { status: 'error', message: SIGN_IN_AGAIN_MESSAGE };
+  }
+  const kind = parseDemoUploadKind(rawKind);
+  if (kind === null) return { status: 'error', message: 'That upload is not part of the video.' };
+  try {
+    return { status: 'ok', upload: await createDemoVideoUpload(kind, contentType) };
+  } catch (error) {
+    logger.error('Signing a demo video upload failed', error, { kind, uid: adminUid });
+    return { status: 'error', message: 'Use an MP4 video, then try again.' };
+  }
+}
+
+/** Step 2: checks the uploaded video and poster, and puts them on the home page. */
+export async function saveDemoVideoAction(
+  videoTmpPath: string,
+  posterTmpPath: string | null,
+): Promise<ActionState> {
+  return run('demo-video', 'demo-video', (uid) => saveDemoVideo(videoTmpPath, posterTmpPath, uid));
+}
+
+export async function removeDemoVideoAction(): Promise<ActionState> {
+  return run('demo-video-remove', 'demo-video', (uid) => removeDemoVideo(uid));
 }

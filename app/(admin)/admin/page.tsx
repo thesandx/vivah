@@ -3,10 +3,13 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  removeDemoVideoAction,
   removeSongAction,
   resetStepImageAction,
+  saveDemoVideoAction,
   saveSongAction,
   saveStepImageAction,
+  startDemoVideoUploadAction,
   startSongUploadAction,
   startStepImageUploadAction,
 } from '@/app/(admin)/admin/actions';
@@ -15,6 +18,7 @@ import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminFilters } from '@/components/admin/AdminFilters';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
+import { DemoVideoForm } from '@/components/admin/DemoVideoForm';
 import { SongSlotForm } from '@/components/admin/SongSlotForm';
 import { StateBadge } from '@/components/admin/StateBadge';
 import { StepImageUpload } from '@/components/admin/StepImageUpload';
@@ -39,6 +43,7 @@ import {
   WEDDING_WHEN_CHOICES,
   weddingState,
 } from '@/lib/admin-list';
+import { demoVideoRoute } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
@@ -50,6 +55,7 @@ import { SONG_SLOTS, songUrl } from '@/lib/wedding-songs';
 import { listAllLeads, listAllWeddings } from '@/services/admin.service';
 import { recentAdminActions } from '@/services/admin-audit.service';
 import { getAdminSession } from '@/services/admin-session.service';
+import { getDemoVideo } from '@/services/demo-video.service';
 import { getStepImages } from '@/services/site-content.service';
 import { createSignedReadUrl } from '@/services/storage.service';
 import { getSongSlots } from '@/services/wedding-songs.service';
@@ -460,9 +466,62 @@ async function HomePageView() {
           ))}
         </ol>
       )}
+      <DemoVideoAdmin />
       <SongsAdmin />
       <TestimonialsAdmin />
     </>
+  );
+}
+
+/** The "Watch a demo" video on the home page. */
+async function DemoVideoAdmin() {
+  let demo: Awaited<ReturnType<typeof getDemoVideo>> | null = null;
+  try {
+    demo = await getDemoVideo({ fresh: true });
+  } catch (error) {
+    logger.error('Reading the demo video failed', error);
+  }
+  return (
+    <section className="flex flex-col gap-4">
+      <h3 className="text-heading">Demo video</h3>
+      <p className="text-ink-soft max-w-prose">
+        The &ldquo;Watch a demo&rdquo; button on the home page plays this video. With no video, the
+        button lists the steps instead. A new upload replaces the video at once.
+      </p>
+      {demo === null ? (
+        <Alert tone="danger" title="The demo video could not be read.">
+          Reload the page to try again.
+        </Alert>
+      ) : (
+        <div className="border-line rounded-card bg-surface flex flex-col gap-4 border-2 p-4">
+          <DemoVideoForm
+            // A new key after a save, so the form starts empty.
+            key={demo.file ?? 'empty'}
+            current={
+              demo.file === null
+                ? null
+                : {
+                    src: demoVideoRoute(demo.file),
+                    poster: demo.poster === null ? '' : demoVideoRoute(demo.poster),
+                  }
+            }
+            startUpload={startDemoVideoUploadAction}
+            save={saveDemoVideoAction}
+          />
+          {demo.file !== null && (
+            <AdminActionForm
+              action={removeDemoVideoAction}
+              label="Remove the video"
+              confirm={{
+                title: 'Remove the demo video?',
+                body: 'The home page lists the steps in its place. The file stays in storage.',
+                confirmLabel: 'Remove it',
+              }}
+            />
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 

@@ -1,16 +1,21 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { preconnect } from 'react-dom';
 
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
-import type { DemoVideoSource } from '@/lib/demo-video';
 
 export interface DemoVideoProps {
-  /** The video files, WebM first. Empty shows `steps` in place of the video. */
-  sources: readonly DemoVideoSource[];
-  /** The first frame, as an image URL. Empty for none. */
-  poster: string;
+  /** The uploaded video, or `null` to list `steps` in its place. */
+  video: {
+    /** A signed URL that plays at once. */
+    src: string;
+    /** A URL that signs a fresh one, for when `src` has expired. */
+    fallbackSrc: string;
+    /** The poster image URL. Empty for none. */
+    poster: string;
+  } | null;
   /** What the walkthrough shows. Listed while there is no video. */
   steps: readonly string[];
 }
@@ -25,10 +30,12 @@ function PlayIcon() {
   );
 }
 
+/** Start warming the video this far before the button scrolls into view. */
+const WARM_MARGIN = '400px';
+
 /**
- * Starts the video with sound. A browser can refuse sound when the play does
- * not come straight from a tap (iOS Safari does, because the video mounts
- * after the tap). Then it plays muted, and the controls let the guest unmute.
+ * Starts the video with sound. A browser can refuse sound; then it plays
+ * muted, and the controls let the visitor unmute.
  */
 function playWithFallback(video: HTMLVideoElement) {
   const attempt = video.play() as Promise<void> | undefined;
@@ -43,43 +50,98 @@ function playWithFallback(video: HTMLVideoElement) {
 /**
  * "Watch a demo": a button that opens the walkthrough video in a dialog.
  *
- * The page pays nothing for the video until the tap. Before it, no `<video>`
- * element exists, so the browser fetches no byte. The tap mounts the player,
- * which streams from the start and plays at once. Closing the dialog unmounts
- * it, which stops the sound and the download.
+ * Built to start at once on a phone. The page opens a connection to the
+ * video's host early. When the button comes near the screen, the player
+ * mounts, hidden in the closed dialog, with `preload="metadata"`: the browser
+ * fetches the file's index (the video is uploaded "fast start", so the index
+ * is at the front) and nothing more. The tap then plays the player that is
+ * already there, inside the tap itself, so iOS Safari allows sound too.
+ * Closing the dialog pauses it.
+ *
+ * Before the button nears the screen, the page loads no byte of video.
  */
-export function DemoVideo({ sources, poster, steps }: DemoVideoProps) {
+export function DemoVideo({ video, steps }: DemoVideoProps) {
   const [open, setOpen] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const hasVideo = sources.length > 0;
+  const [warm, setWarm] = useState(false);
+  const [src, setSrc] = useState(video?.src ?? '');
+  const anchor = useRef<HTMLDivElement>(null);
+  const player = useRef<HTMLVideoElement>(null);
+  const playOnMount = useRef(false);
+
+  // Resolve DNS and TLS for the video's host before anyone taps.
+  if (video !== null && /^https:/.test(video.src)) preconnect(new URL(video.src).origin);
 
   useEffect(() => {
-    if (open && videoRef.current) playWithFallback(videoRef.current);
-  }, [open]);
+    if (video === null || warm) return;
+    const element = anchor.current;
+    if (element === null || typeof IntersectionObserver === 'undefined') {
+      setWarm(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) setWarm(true);
+      },
+      { rootMargin: WARM_MARGIN },
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [video, warm]);
+
+  // A tap that came before the player mounted, or a fresh URL after an
+  // expired one, plays as soon as the player has its source.
+  useEffect(() => {
+    if (warm && playOnMount.current && player.current !== null) {
+      playOnMount.current = false;
+      playWithFallback(player.current);
+    }
+  }, [warm, src]);
+
+  function openDialog() {
+    setOpen(true);
+    const element = player.current;
+    if (element === null) {
+      playOnMount.current = video !== null;
+      setWarm(video !== null);
+      return;
+    }
+    element.preload = 'auto';
+    if (element.ended) element.currentTime = 0;
+    playWithFallback(element);
+  }
+
+  function closeDialog() {
+    setOpen(false);
+    player.current?.pause();
+  }
 
   return (
-    <>
-      <Button variant="secondary" onClick={() => setOpen(true)} className="self-start">
+    <div ref={anchor} className="flex flex-col">
+      <Button variant="secondary" onClick={openDialog} className="self-start">
         <PlayIcon />
         Watch a demo
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="From WhatsApp to your invite">
-        {open && hasVideo && (
+      <Dialog open={open} onClose={closeDialog} title="From WhatsApp to your invite">
+        {video !== null && warm && (
           <video
-            ref={videoRef}
+            ref={player}
+            src={src}
             controls
             playsInline
-            preload="auto"
-            {...(poster !== '' && { poster })}
+            preload="metadata"
+            {...(video.poster !== '' && { poster: video.poster })}
+            onError={() => {
+              // The signed URL may have expired on a page left open: sign a fresh one.
+              if (src === video.fallbackSrc) return;
+              playOnMount.current = open;
+              setSrc(video.fallbackSrc);
+            }}
             className="bg-sunken rounded-card mx-auto aspect-9/16 w-full max-w-72"
           >
-            {sources.map((source) => (
-              <source key={source.src} src={source.src} type={source.type} />
-            ))}
             <p>Your browser cannot play this video.</p>
           </video>
         )}
-        {!hasVideo && (
+        {video === null && (
           <>
             <p className="text-ink-soft">
               Our video walkthrough is on its way. This is what it shows, step by step.
@@ -100,6 +162,6 @@ export function DemoVideo({ sources, poster, steps }: DemoVideoProps) {
           </>
         )}
       </Dialog>
-    </>
+    </div>
   );
 }
