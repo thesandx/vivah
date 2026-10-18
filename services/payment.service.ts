@@ -8,7 +8,7 @@ import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { siteOrigin } from '@/lib/seo';
 import { CashfreeError, createPaymentLink, getPaymentLink } from '@/services/cashfree.service';
-import { leads } from '@/services/lead.service';
+import { type LeadDocument, leads } from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
 import { notifyPayment } from '@/services/telegram.service';
 import {
@@ -167,9 +167,14 @@ export async function startPayment(
   }
 }
 
+/** The couple's fields a payment notice needs. */
+function coupleOf(lead: LeadDocument): { bride: string; groom: string; phoneE164: string } {
+  return { bride: lead.bride, groom: lead.groom, phoneE164: lead.phoneE164 };
+}
+
 /** Publishes a lead that paid already, at a new address. No payment. */
 async function publishPaidLead(leadId: string, slug: string): Promise<StartPaymentResult> {
-  return slugClaims.runTransaction(async (claimsTx, tx) => {
+  const result = await slugClaims.runTransaction(async (claimsTx, tx) => {
     const lead = await leads.inTransaction(tx).get(leadId);
     const claim = await claimsTx.get(slugClaimId(slug));
     const existing = await tx.get(weddingAtSlugQuery(slug));
@@ -179,8 +184,25 @@ async function publishPaidLead(leadId: string, slug: string): Promise<StartPayme
     }
     if (claim !== null || !existing.empty) return { state: 'taken' as const };
     writePublish(tx, lead, slug);
-    return { state: 'published' as const, slug };
+    return { state: 'published' as const, slug, lead };
   });
+  if (result.state !== 'published') return result;
+
+  // The couple paid earlier; now the site is live, so the team gets the
+  // welcome message to send them, as for any other payment.
+  const paymentId = result.lead.paymentId;
+  const payment = paymentId === undefined ? null : await payments.get(paymentId);
+  if (paymentId !== undefined && payment !== null) {
+    await notifyPayment({
+      paymentId,
+      leadId,
+      slug,
+      amountRupees: payment.amountPaid ?? payment.amountRupees,
+      kind: 'published',
+      ...coupleOf(result.lead),
+    });
+  }
+  return { state: 'published', slug };
 }
 
 export type CompletePaymentResult =
@@ -287,6 +309,7 @@ export async function completePayment(
         slug: payment.slug,
         amountRupees: amountPaid,
         kind: 'duplicate',
+        ...coupleOf(result.lead),
       });
       return result.lead.weddingSlug === undefined
         ? { state: 'address-taken', leadId: payment.leadId }
@@ -298,6 +321,7 @@ export async function completePayment(
         slug: payment.slug,
         amountRupees: amountPaid,
         kind: 'published',
+        ...coupleOf(result.lead),
       });
       return { state: 'published', leadId: payment.leadId, slug: payment.slug };
     case 'address-taken':
@@ -307,6 +331,7 @@ export async function completePayment(
         slug: payment.slug,
         amountRupees: amountPaid,
         kind: 'address-taken',
+        ...coupleOf(result.lead),
       });
       return { state: 'address-taken', leadId: payment.leadId };
   }

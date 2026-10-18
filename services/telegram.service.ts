@@ -1,7 +1,9 @@
 import 'server-only';
 
+import { BUSINESS } from '@/lib/business';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
+import { formatPhoneForDisplay } from '@/lib/phone';
 import { siteOrigin } from '@/lib/seo';
 import { formatWeddingDate } from '@/lib/wedding-date';
 
@@ -123,46 +125,87 @@ export interface PaymentNotice {
   amountRupees: number;
   /** What the payment did: see `PAYMENT_OUTCOMES` in `services/payment.service.ts`. */
   kind: 'published' | 'address-taken' | 'duplicate';
+  /** The couple, for the welcome message once the site is live. */
+  bride: string;
+  groom: string;
+  /** E.164. Never logged. */
+  phoneE164: string;
 }
 
-/** The one message about a payment. Pure apart from the origin. */
-export function paymentMessage(notice: PaymentNotice): string {
+/**
+ * The messages about a payment. Once the site is live there are three, like
+ * the new-preview notice, so each can be copied alone (Sandeep, 2026-10-18):
+ *
+ *   1. The alert: amount, address and the `/admin/previews/<id>` link.
+ *   2. The welcome message for the couple, ready to paste into WhatsApp.
+ *   3. The couple's WhatsApp number and nothing else.
+ *
+ * A payment that published nothing (address taken, paid twice) sends the
+ * alert alone. Pure apart from the origin.
+ */
+export function paymentMessages(notice: PaymentNotice): string[] {
   const origin = siteOrigin(env.rootDomain, env.appUrl);
   const host = new URL(origin).host;
+  const site = `https://${notice.slug}.${host}`;
   const amount = `₹${notice.amountRupees.toLocaleString('en-IN')}`;
   const headline = {
-    published: `Paid ${amount}: ${notice.slug}.${host} is live`,
-    'address-taken': `Paid ${amount}, but ${notice.slug}.${host} was taken. The couple picks another address on their preview.`,
-    duplicate: `Paid ${amount} a SECOND time for one invite. Refund it in Cashfree.`,
+    published: `Paid ${amount}: ${notice.bride} & ${notice.groom} are live at ${notice.slug}.${host}`,
+    'address-taken': `Paid ${amount}, but ${notice.slug}.${host} was taken. ${notice.bride} & ${notice.groom} pick another address on their preview.`,
+    duplicate: `Paid ${amount} a SECOND time by ${notice.bride} & ${notice.groom}. Refund it in Cashfree.`,
   }[notice.kind];
-  return [
+  const alert = [
     headline,
     `Admin: ${origin}/admin/previews/${notice.leadId}`,
     `Payment: ${notice.paymentId}`,
   ].join('\n');
+  if (notice.kind !== 'published') return [alert];
+
+  const forCouple = [
+    `Congratulations ${notice.bride} & ${notice.groom}! 🎉💍`,
+    '',
+    'Your personal wedding site is live now ✨',
+    `👉 ${site}`,
+    '',
+    'Next, make it truly yours:',
+    '📍 Add your venue, time and map',
+    '💌 Create a personal invite link for every guest, with their name on it',
+    '',
+    `Do both at ${origin}/dashboard. Sign in with your number ${formatPhoneForDisplay(notice.phoneE164)}.`,
+    '',
+    `Need any help? Chat with us right here on WhatsApp, or email us at ${BUSINESS.email}.`,
+    '',
+    'Once again, many congratulations on your wedding! Wishing you both a lifetime of love and laughter 💛🙏',
+    '',
+    'Team Vivah 💛',
+  ].join('\n');
+  return [alert, forCouple, notice.phoneE164];
 }
 
-/** Tells the team about a payment. Best effort: never throws. */
+/** Tells the team about a payment, one message after another. Best effort: never throws. */
 export async function notifyPayment(notice: PaymentNotice): Promise<boolean> {
   if (!env.telegram.enabled) return false;
+  // The token is part of the URL, so the URL is never logged.
   const url = `https://api.telegram.org/bot${env.telegram.botToken}/sendMessage`;
+  const signal = AbortSignal.timeout(TIMEOUT_MS);
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: env.telegram.chatId,
-        text: paymentMessage(notice),
-        link_preview_options: { is_disabled: true },
-      }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    });
-    if (!response.ok) {
-      logger.error('Telegram refused the payment notice', undefined, {
-        paymentId: notice.paymentId,
-        status: response.status,
+    for (const text of paymentMessages(notice)) {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: env.telegram.chatId,
+          text,
+          link_preview_options: { is_disabled: true },
+        }),
+        signal,
       });
-      return false;
+      if (!response.ok) {
+        logger.error('Telegram refused the payment notice', undefined, {
+          paymentId: notice.paymentId,
+          status: response.status,
+        });
+        return false;
+      }
     }
     return true;
   } catch (error) {

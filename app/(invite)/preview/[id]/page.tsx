@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 
 import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteTheme } from '@/components/invite/InviteTheme';
+import { PaymentSuccess } from '@/components/invite/PaymentSuccess';
 import { PreviewNotch } from '@/components/invite/PreviewNotch';
 import { PreviewShield } from '@/components/invite/PreviewShield';
 import { PreviewTimer } from '@/components/invite/PreviewTimer';
@@ -222,6 +223,12 @@ export default async function PreviewPage({
 
   return (
     <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
+      {published && payment === 'success' && lead.weddingSlug !== undefined && (
+        <PaymentSuccess
+          liveUrl={inviteHref(lead.weddingSlug, env.rootDomain)}
+          hostLabel={inviteHostLabel(lead.weddingSlug, env.rootDomain)}
+        />
+      )}
       {!published && (
         <>
           <PreviewWatermark label={`${domainLabel} · preview`} />
