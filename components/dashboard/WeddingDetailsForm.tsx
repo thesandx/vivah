@@ -5,6 +5,7 @@ import { useActionState, useState } from 'react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { capitalizeName } from '@/lib/guest-name';
 import { cn } from '@/lib/utils';
 import { formatWeddingDate, formatWeddingTime } from '@/lib/wedding-date';
 
@@ -40,6 +41,11 @@ export interface WeddingDetailsFormProps {
 }
 
 /** The read-only rows, in the order the form shows them. */
+/** Shows a name as it will be saved, the moment the field loses focus: `RIYA` → `Riya`. */
+function tidyName(event: React.FocusEvent<HTMLInputElement>): void {
+  event.currentTarget.value = capitalizeName(event.currentTarget.value);
+}
+
 function detailRows(values: WeddingDetailValues): { label: string; value: string | null }[] {
   return [
     { label: "Bride's name", value: values.bride || null },
@@ -138,6 +144,7 @@ export function WeddingDetailsForm({
           label="Bride's name"
           name="bride"
           defaultValue={initial.bride}
+          onBlur={tidyName}
           required
           maxLength={60}
           {...error('bride')}
@@ -146,6 +153,7 @@ export function WeddingDetailsForm({
           label="Groom's name"
           name="groom"
           defaultValue={initial.groom}
+          onBlur={tidyName}
           required
           maxLength={60}
           {...error('groom')}

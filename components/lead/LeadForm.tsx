@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/Input';
 import { PlayButton } from '@/components/ui/PlayButton';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
+import { capitalizeName } from '@/lib/guest-name';
 import { indianMobileDigits, toE164 } from '@/lib/phone';
 import { cn } from '@/lib/utils';
 import { daysUntil, foreverStartsLine, formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
@@ -427,6 +428,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
             autoComplete="off"
             value={bride}
             onChange={(event) => setBride(event.target.value)}
+            onBlur={(event) => setBride(capitalizeName(event.target.value))}
             maxLength={MAX_NAME_LENGTH}
             required
             {...(fieldErrors.bride !== undefined && { error: fieldErrors.bride })}
@@ -437,6 +439,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
             autoComplete="off"
             value={groom}
             onChange={(event) => setGroom(event.target.value)}
+            onBlur={(event) => setGroom(capitalizeName(event.target.value))}
             maxLength={MAX_NAME_LENGTH}
             required
             {...(fieldErrors.groom !== undefined && { error: fieldErrors.groom })}
