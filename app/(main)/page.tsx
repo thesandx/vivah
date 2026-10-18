@@ -140,16 +140,6 @@ export default function HomePage() {
               Get your personal wedding site and send personalised digital invites to friends and
               family.
             </p>
-            {/* The sample couple's site (`lib/sample-invite.ts`), in a new tab so
-              the visitor comes back to the form. */}
-            <a
-              href={`${inviteHref(SAMPLE_SLUG, env.rootDomain)}/${SAMPLE_GUEST}`}
-              target="_blank"
-              rel="noopener"
-              className={buttonStyles({ variant: 'secondary', className: 'self-start' })}
-            >
-              See a real invite
-            </a>
           </div>
 
           <div
@@ -254,6 +244,16 @@ export default function HomePage() {
           </p>
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <SignupButton>Show us our wedding website</SignupButton>
+            {/* The sample couple's site (`lib/sample-invite.ts`), in a new tab so
+              the visitor comes back to this page. */}
+            <a
+              href={`${inviteHref(SAMPLE_SLUG, env.rootDomain)}/${SAMPLE_GUEST}`}
+              target="_blank"
+              rel="noopener"
+              className={buttonStyles({ variant: 'secondary', size: 'lg' })}
+            >
+              See a real invite
+            </a>
             <a
               href={chatUrl}
               target="_blank"

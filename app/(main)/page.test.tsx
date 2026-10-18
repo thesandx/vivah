@@ -29,6 +29,20 @@ describe('HomePage', () => {
     );
   });
 
+  it('links the sample invite from the closing call to action, before WhatsApp', () => {
+    render(<HomePage />);
+    const cta = screen.getByRole('heading', { name: 'Your love story deserves its own website' })
+      .parentElement as HTMLElement;
+    const links = within(cta).getAllByRole('link');
+    const sample = within(cta).getByRole('link', { name: 'See a real invite' });
+    expect(sample).toHaveAttribute('target', '_blank');
+    expect(links.indexOf(sample)).toBe(
+      links.indexOf(within(cta).getByRole('link', { name: /Ask us on WhatsApp/ })) - 1,
+    );
+    const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement;
+    expect(within(hero).queryByRole('link', { name: 'See a real invite' })).toBeNull();
+  });
+
   it('starts the funnel with the two names', () => {
     render(<HomePage />);
     const heading = screen.getByRole('heading', { name: 'The two of you' });
