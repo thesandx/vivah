@@ -39,6 +39,13 @@ describe('proxy', () => {
     expect(response.headers.get('location')).toBe('https://raadha-shyam.vivah.online/');
   });
 
+  it("sends WhatsApp's link-preview fetcher to the small share page", () => {
+    const req = request('/Kartheek', 'raadha-shyam.vivah.online');
+    req.headers.set('user-agent', 'WhatsApp/2.23.20.0 A');
+    const response = proxy(req);
+    expect(new URL(rewriteOf(response) ?? '').pathname).toBe('/api/share/raadha-shyam/Kartheek');
+  });
+
   it("rewrites a guest's link to the guest page", () => {
     const response = proxy(request('/Kartheek-ji', 'raadha-shyam.vivah.online'));
     expect(new URL(rewriteOf(response) ?? '').pathname).toBe('/site/raadha-shyam/Kartheek-ji');

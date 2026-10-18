@@ -12,6 +12,7 @@
 import type { Metadata } from 'next';
 
 import { encodeGuestSegment, guestPath } from '@/lib/guest-name';
+import type { LinkPreviewCard } from '@/lib/link-preview-page';
 import { inviteUrl } from '@/lib/site-host';
 import { formatShortWeddingDate, formatWeddingDate } from '@/lib/wedding-date';
 
@@ -76,18 +77,8 @@ export function inviteDescription(
   return `${greeting} invited to the wedding of ${bride} and ${groom}${day}.`;
 }
 
-/**
- * The page metadata for an invite. A guest's page is not indexed: it is a
- * private greeting, and indexing every name a couple typed adds nothing.
- */
-export function inviteMetadata(input: InviteMetaInput): Metadata {
-  const title = inviteTitle(input.bride, input.groom, input.weddingDate);
-  const description = inviteDescription(
-    input.bride,
-    input.groom,
-    input.weddingDate,
-    input.guestName,
-  );
+/** The card a link-preview fetcher sees for an invite. */
+export function inviteCard(input: InviteMetaInput): LinkPreviewCard {
   const origin = inviteOrigin(input.slug, input.rootDomain, input.appUrl);
   const url =
     input.guestName === null
@@ -95,12 +86,26 @@ export function inviteMetadata(input: InviteMetaInput): Metadata {
       : input.guestSegment === undefined
         ? `${origin}${guestPath(input.guestName)}`
         : `${origin}/${encodeGuestSegment(input.guestSegment)}`;
-  const image = {
-    url: ogImageUrl(input),
-    width: OG_IMAGE_WIDTH,
-    height: OG_IMAGE_HEIGHT,
-    alt: `Wedding invitation of ${input.bride} and ${input.groom}`,
+  return {
+    title: inviteTitle(input.bride, input.groom, input.weddingDate),
+    description: inviteDescription(input.bride, input.groom, input.weddingDate, input.guestName),
+    url,
+    siteName: 'vivah.online',
+    image: {
+      url: ogImageUrl(input),
+      width: OG_IMAGE_WIDTH,
+      height: OG_IMAGE_HEIGHT,
+      alt: `Wedding invitation of ${input.bride} and ${input.groom}`,
+    },
   };
+}
+
+/**
+ * The page metadata for an invite. A guest's page is not indexed: it is a
+ * private greeting, and indexing every name a couple typed adds nothing.
+ */
+export function inviteMetadata(input: InviteMetaInput): Metadata {
+  const { title, description, url, siteName, image } = inviteCard(input);
 
   return {
     title: { absolute: title },
@@ -108,7 +113,7 @@ export function inviteMetadata(input: InviteMetaInput): Metadata {
     alternates: { canonical: url },
     openGraph: {
       type: 'website',
-      siteName: 'vivah.online',
+      siteName,
       url,
       title,
       description,

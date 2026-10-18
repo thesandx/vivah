@@ -170,6 +170,17 @@ const PRIVATE_PATHS = [
 const LINK_PREVIEW_AGENTS = ['WhatsApp', 'facebookexternalhit', 'Facebot'];
 
 /**
+ * True when a request comes from a link-preview fetcher, not a person. The
+ * WhatsApp app sends `WhatsApp/2.x` while it builds a preview on the sender's
+ * phone; Facebook's crawler sends `facebookexternalhit` or `Facebot`.
+ */
+export function isLinkPreviewAgent(userAgent: string | null): boolean {
+  if (userAgent === null) return false;
+  const agent = userAgent.toLowerCase();
+  return LINK_PREVIEW_AGENTS.some((name) => agent.includes(name.toLowerCase()));
+}
+
+/**
  * The robots rules for a request's host.
  *
  * - The product site lets every search and AI crawler read the marketing

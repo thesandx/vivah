@@ -60,4 +60,19 @@ describe('GET /p/[id]', () => {
     expect(response.status).toBe(303);
     expect(response.headers.get('set-cookie')).toBeNull();
   });
+
+  it('gives a link-preview fetcher the share card and does not open the link', async () => {
+    const response = await GET(
+      new Request(`http://0.0.0.0:8080/p/${ID}`, {
+        headers: { 'user-agent': 'WhatsApp/2.23.20.0 A' },
+      }),
+      { params: Promise.resolve({ id: ID }) },
+    );
+    expect(openPreviewLink).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(response.headers.get('set-cookie')).toBeNull();
+    const html = await response.text();
+    expect(html).toMatch(/<meta property="og:image" content="https?:\/\/[^"]+\/og-image\.png">/);
+    expect(html).toContain(`/p/${ID}`);
+  });
 });
