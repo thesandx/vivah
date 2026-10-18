@@ -81,8 +81,10 @@ async function pay(leadId: string, slug: string): Promise<PublishActionResult> {
       case 'redirect':
         return { ok: true, url: result.url, to: 'payment' };
       case 'published':
-      case 'already-published':
+        // Paid earlier, published now: the same success screen as after paying.
         logger.info('Wedding published', { leadId, slug: result.slug });
+        return { ok: true, url: `/preview/${leadId}?payment=success`, to: 'invite' };
+      case 'already-published':
         return { ok: true, url: inviteHref(result.slug, env.rootDomain), to: 'invite' };
       case 'invalid':
         return { ok: false, message: result.message };
@@ -103,9 +105,12 @@ async function testPublish(leadId: string, slug: string): Promise<PublishActionR
     const store = await cookies();
     const result = await publishWedding(leadId, store.get(PREVIEW_COOKIE_NAME)?.value, slug);
 
-    if (result.state === 'published' || result.state === 'already-published') {
+    if (result.state === 'published') {
       // The lead id, never the phone number. See CLAUDE.md > Authentication.
       logger.info('Wedding published', { leadId, slug: result.slug });
+      return { ok: true, url: `/preview/${leadId}?payment=success`, to: 'invite' };
+    }
+    if (result.state === 'already-published') {
       return { ok: true, url: inviteHref(result.slug, env.rootDomain), to: 'invite' };
     }
     if (result.state === 'invalid') return { ok: false, message: result.message };

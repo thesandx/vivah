@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import { paymentIdFromLinkId } from '@/lib/cashfree';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
-import { inviteHref } from '@/lib/site-host';
 import { completePayment, payments } from '@/services/payment.service';
 
 /**
@@ -11,7 +10,8 @@ import { completePayment, payments } from '@/services/payment.service';
  * sends the couple after they pay. ADR-0011.
  *
  * It asks Cashfree for the link's status and settles the payment at once, so
- * the couple lands on their live invite without waiting for the webhook. The
+ * the couple does not wait for the webhook. A paid one goes to
+ * `/preview/<id>?payment=success`, which says so and then opens the live invite. The
  * query only names the payment; a made-up or unpaid one publishes nothing.
  *
  * Every other outcome goes back to the preview, which says what happened:
@@ -46,7 +46,8 @@ export async function GET(request: Request): Promise<NextResponse> {
     const result = await completePayment(paymentId);
     switch (result.state) {
       case 'published':
-        return redirect(inviteHref(result.slug, env.rootDomain));
+        // The preview shows "Payment successful", then counts down to the live site.
+        return redirect(`/preview/${result.leadId}?payment=success`);
       case 'address-taken':
         return redirect(`/preview/${result.leadId}?payment=choose`);
       case 'pending':

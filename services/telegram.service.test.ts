@@ -17,7 +17,7 @@ vi.mock('@/lib/env', () => ({
 const logged = { info: vi.fn(), error: vi.fn() };
 vi.mock('@/lib/logger', () => ({ logger: logged }));
 
-const { newLeadMessages, notifyNewLead, notifyPayment, paymentMessage } =
+const { newLeadMessages, notifyNewLead, notifyPayment, paymentMessages } =
   await import('./telegram.service');
 
 const NOTICE = {
@@ -111,26 +111,50 @@ describe('payment notices', () => {
     leadId: 'AbCdEfGhIjKlMnOpQrSt',
     slug: 'riya-aman',
     amountRupees: 499,
+    bride: 'Riya',
+    groom: 'Aman',
+    phoneE164: '+919876543210',
   };
 
-  it('says what each payment did, with the admin link', () => {
-    expect(paymentMessage({ ...PAYMENT, kind: 'published' })).toContain(
-      'Paid ₹499: riya-aman.vivah.online is live',
-    );
-    expect(paymentMessage({ ...PAYMENT, kind: 'address-taken' })).toContain('was taken');
-    expect(paymentMessage({ ...PAYMENT, kind: 'duplicate' })).toContain('Refund it');
-    expect(paymentMessage({ ...PAYMENT, kind: 'published' })).toContain(
-      'https://vivah.online/admin/previews/AbCdEfGhIjKlMnOpQrSt',
-    );
+  it('sends the alert, the welcome message for the couple, and the bare number once live', () => {
+    const [alert, forCouple, phone] = paymentMessages({ ...PAYMENT, kind: 'published' });
+    expect(alert).toContain('Paid ₹499: Riya & Aman are live at riya-aman.vivah.online');
+    expect(alert).toContain('https://vivah.online/admin/previews/AbCdEfGhIjKlMnOpQrSt');
+    expect(forCouple).toContain('Congratulations Riya & Aman');
+    expect(forCouple).toContain('https://riya-aman.vivah.online');
+    expect(forCouple).toContain('https://vivah.online/dashboard');
+    expect(forCouple).toContain('+91 98765 43210');
+    expect(forCouple).toContain('support@vivah.online');
+    expect(phone).toBe('+919876543210');
   });
 
-  it('sends nothing while notices are off, and never throws', async () => {
+  it('sends the alert alone when nothing was published', () => {
+    expect(paymentMessages({ ...PAYMENT, kind: 'address-taken' })).toEqual([
+      expect.stringContaining('was taken'),
+    ]);
+    expect(paymentMessages({ ...PAYMENT, kind: 'duplicate' })).toEqual([
+      expect.stringContaining('Refund it'),
+    ]);
+  });
+
+  it('sends the three messages in order, and never throws', async () => {
+    fetchMock.mockResolvedValue(new Response('{}'));
+    expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+
     telegram.enabled = false;
+    fetchMock.mockClear();
     expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
     expect(fetchMock).not.toHaveBeenCalled();
 
     telegram.enabled = true;
     fetchMock.mockRejectedValueOnce(new Error('offline'));
     expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
+  });
+
+  it('never logs the number', async () => {
+    fetchMock.mockResolvedValue(new Response('no', { status: 400 }));
+    await notifyPayment({ ...PAYMENT, kind: 'published' });
+    expect(JSON.stringify(logged.error.mock.calls)).not.toContain('9876543210');
   });
 });
