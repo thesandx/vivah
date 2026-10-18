@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 import { env } from '@/lib/env';
+import { LINK_PREVIEW_HEADERS, linkPreviewHtml } from '@/lib/link-preview-page';
 import { logger } from '@/lib/logger';
 import { PREVIEW_COOKIE_NAME, previewCookie } from '@/lib/preview-cookie';
 import { isLinkPreviewAgent, SHARE_IMAGE, siteOrigin } from '@/lib/seo';
@@ -33,33 +34,14 @@ function isSecureContext(): boolean {
 /** The page a link-preview fetcher reads. Fixed text: nothing about the lead. */
 function linkPreviewPage(id: string): NextResponse {
   const origin = siteOrigin(env.rootDomain, env.appUrl);
-  const title = 'Your wedding invite preview';
-  const description = 'Open your invite and see it exactly as your guests will.';
-  const html = `<!doctype html>
-<html lang="en"><head><meta charset="utf-8">
-<title>${title}</title>
-<meta name="description" content="${description}">
-<meta name="robots" content="noindex, nofollow">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="${env.appName}">
-<meta property="og:url" content="${origin}/p/${encodeURIComponent(id)}">
-<meta property="og:title" content="${title}">
-<meta property="og:description" content="${description}">
-<meta property="og:image" content="${origin}${SHARE_IMAGE.url}">
-<meta property="og:image:width" content="${SHARE_IMAGE.width}">
-<meta property="og:image:height" content="${SHARE_IMAGE.height}">
-<meta property="og:image:alt" content="${SHARE_IMAGE.alt}">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="${origin}${SHARE_IMAGE.url}">
-</head><body></body></html>`;
-  return new NextResponse(html, {
-    status: 200,
-    headers: {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Cache-Control': 'no-store',
-      'X-Robots-Tag': 'noindex, nofollow',
-    },
+  const html = linkPreviewHtml({
+    title: 'Your wedding invite preview',
+    description: 'Open your invite and see it exactly as your guests will.',
+    url: `${origin}/p/${encodeURIComponent(id)}`,
+    siteName: env.appName,
+    image: { ...SHARE_IMAGE, url: `${origin}${SHARE_IMAGE.url}` },
   });
+  return new NextResponse(html, { status: 200, headers: LINK_PREVIEW_HEADERS });
 }
 
 export async function GET(

@@ -7,7 +7,8 @@ import { InviteUnavailable } from '@/components/invite/InviteUnavailable';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { env } from '@/lib/env';
 import { parseGuestName } from '@/lib/guest-name';
-import { inviteMetadata } from '@/lib/invite-meta';
+import { inviteCard, inviteMetadata, type InviteMetaInput } from '@/lib/invite-meta';
+import type { LinkPreviewCard } from '@/lib/link-preview-page';
 import { editDetailsUrl, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
 import { isGuestLinkDeleted } from '@/services/guest-link.service';
@@ -37,18 +38,20 @@ async function guestFrom(wedding: WeddingDocument, segment: string | null): Prom
   return (await loadDeleted(wedding.id, segment)) ? null : name;
 }
 
-export async function coupleInviteMetadata(
+/**
+ * What the link preview needs: `null` for no invite, `'unavailable'` for a
+ * paused one, which shows no names.
+ */
+async function metaInput(
   slug: string,
   guestSegment: string | null,
-): Promise<Metadata> {
+): Promise<InviteMetaInput | 'unavailable' | null> {
   const wedding = await loadWedding(slug);
-  if (wedding === null) return { title: 'Invite not found', robots: { index: false } };
-  if (wedding.status === 'unavailable') {
-    return { title: 'Invite not available', robots: { index: false } };
-  }
+  if (wedding === null) return null;
+  if (wedding.status === 'unavailable') return 'unavailable';
 
   const guestName = await guestFrom(wedding, guestSegment);
-  return inviteMetadata({
+  return {
     slug: wedding.slug,
     bride: wedding.bride,
     groom: wedding.groom,
@@ -57,7 +60,26 @@ export async function coupleInviteMetadata(
     ...(guestName !== null && guestSegment !== null && { guestSegment }),
     rootDomain: env.rootDomain,
     appUrl: env.appUrl,
-  });
+  };
+}
+
+export async function coupleInviteMetadata(
+  slug: string,
+  guestSegment: string | null,
+): Promise<Metadata> {
+  const input = await metaInput(slug, guestSegment);
+  if (input === null) return { title: 'Invite not found', robots: { index: false } };
+  if (input === 'unavailable') return { title: 'Invite not available', robots: { index: false } };
+  return inviteMetadata(input);
+}
+
+/** The card for a link-preview fetcher, or `null` when there is no invite to show. */
+export async function coupleInviteCard(
+  slug: string,
+  guestSegment: string | null,
+): Promise<LinkPreviewCard | null> {
+  const input = await metaInput(slug, guestSegment);
+  return input === null || input === 'unavailable' ? null : inviteCard(input);
 }
 
 /**
