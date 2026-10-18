@@ -1,10 +1,16 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 /** What the publish Server Action answers. */
 export type PublishOutcome =
-  { ok: true; url: string } | { ok: false; message: string; taken?: boolean };
+  | {
+      ok: true;
+      url: string;
+      /** `payment` when `url` is Cashfree's page, not the live invite. */
+      to?: 'payment' | 'invite';
+    }
+  | { ok: false; message: string; taken?: boolean };
 
 export interface PublishInviteState {
   /** `working` from the tap, `done` once the invite is live and opening. */
@@ -35,6 +41,18 @@ export function usePublishInvite(
   // A ref, not the state, so two taps in one frame still publish once.
   const busy = useRef(false);
 
+  // Back from Cashfree's page, the browser may restore this page from its
+  // back-forward cache with the button still busy. Free it again.
+  useEffect(() => {
+    function onPageShow(event: PageTransitionEvent) {
+      if (!event.persisted) return;
+      busy.current = false;
+      setStatus('idle');
+    }
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
+
   const run = useCallback(
     async (slug: string): Promise<void> => {
       if (busy.current) return;
@@ -44,7 +62,8 @@ export function usePublishInvite(
       try {
         const result = await publish(leadId, slug);
         if (result.ok) {
-          setStatus('done');
+          // Opening the payment page keeps the button's working words.
+          if (result.to !== 'payment') setStatus('done');
           window.location.assign(result.url);
           return;
         }

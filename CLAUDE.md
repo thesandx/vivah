@@ -339,7 +339,7 @@ Violations here are defects, not style disagreements.
 - **Never point a Cloud Run probe at `/api/health?deep=1`.** Deep mode answers 503 when a dependency blips, so the platform would kill healthy containers and amplify the outage. Dashboards only.
 - **Never set `FIRESTORE_EMULATOR_HOST` in a deployed environment.** Every read and write silently routes to a host that does not exist.
 - **Never grant `roles/datastore.user` without an IAM condition.** It grants access to every database in the project, including other apps'. See [trap 13](./docs/traps.md).
-- **Never write a route that changes data without `requireUser()`.** An ungated write is an open endpoint. Hiding the form in the UI stops nobody. See [Authentication in brief](#authentication-in-brief). The exceptions are `POST /api/leads` ([ADR-0006](./docs/adr/0006-accept-anonymous-lead-capture.md)) and publishing from the preview page ([ADR-0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)). Admin writes use `requireAdmin()` instead, which is stronger ([ADR-0008](./docs/adr/0008-two-step-admin-sign-in.md)). A new exception needs its own ADR.
+- **Never write a route that changes data without `requireUser()`.** An ungated write is an open endpoint. Hiding the form in the UI stops nobody. See [Authentication in brief](#authentication-in-brief). The exceptions are `POST /api/leads` ([ADR-0006](./docs/adr/0006-accept-anonymous-lead-capture.md)), publishing from the preview page ([ADR-0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)), and the Cashfree webhook and return, which act only on what Cashfree's API reports ([ADR-0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)). Admin writes use `requireAdmin()` instead, which is stronger ([ADR-0008](./docs/adr/0008-two-step-admin-sign-in.md)). A new exception needs its own ADR.
 - **Never take `ownerId`, `ownerName` or any identity field from a request body.** The caller chooses the body. Read identity from the session, always.
 - **Never treat a session as permission.** A session says who is asking, not what they may touch. Check ownership separately.
 - **Never rename the `__session` cookie.** Firebase Hosting strips every other cookie, so auth breaks only behind a custom domain. See [trap 20](./docs/traps.md).
@@ -460,10 +460,11 @@ Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of
 | [0004](./docs/adr/0004-use-firestore-and-cloud-storage.md)             | Firestore + Cloud Storage — over Cloud SQL, over a per-app project                           |
 | [0005](./docs/adr/0005-use-firebase-auth-for-sign-in.md)               | Firebase Auth with server-side session cookies — over Auth.js, over client-only auth         |
 | [0006](./docs/adr/0006-accept-anonymous-lead-capture.md)               | `POST /api/leads` is the one write with no session, and how it stays narrow                  |
-| [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment until Cashfree |
+| [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment in development |
 | [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                |
 | [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks               |
 | [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                 |
+| [0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)    | Cashfree Payment Links; the webhook and return publish from Cashfree's own record            |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

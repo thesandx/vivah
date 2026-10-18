@@ -115,3 +115,58 @@ export async function notifyNewLead(notice: NewLeadNotice): Promise<boolean> {
     return false;
   }
 }
+
+export interface PaymentNotice {
+  paymentId: string;
+  leadId: string;
+  slug: string;
+  amountRupees: number;
+  /** What the payment did: see `PAYMENT_OUTCOMES` in `services/payment.service.ts`. */
+  kind: 'published' | 'address-taken' | 'duplicate';
+}
+
+/** The one message about a payment. Pure apart from the origin. */
+export function paymentMessage(notice: PaymentNotice): string {
+  const origin = siteOrigin(env.rootDomain, env.appUrl);
+  const host = new URL(origin).host;
+  const amount = `₹${notice.amountRupees.toLocaleString('en-IN')}`;
+  const headline = {
+    published: `Paid ${amount}: ${notice.slug}.${host} is live`,
+    'address-taken': `Paid ${amount}, but ${notice.slug}.${host} was taken. The couple picks another address on their preview.`,
+    duplicate: `Paid ${amount} a SECOND time for one invite. Refund it in Cashfree.`,
+  }[notice.kind];
+  return [
+    headline,
+    `Admin: ${origin}/admin/previews/${notice.leadId}`,
+    `Payment: ${notice.paymentId}`,
+  ].join('\n');
+}
+
+/** Tells the team about a payment. Best effort: never throws. */
+export async function notifyPayment(notice: PaymentNotice): Promise<boolean> {
+  if (!env.telegram.enabled) return false;
+  const url = `https://api.telegram.org/bot${env.telegram.botToken}/sendMessage`;
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: env.telegram.chatId,
+        text: paymentMessage(notice),
+        link_preview_options: { is_disabled: true },
+      }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      logger.error('Telegram refused the payment notice', undefined, {
+        paymentId: notice.paymentId,
+        status: response.status,
+      });
+      return false;
+    }
+    return true;
+  } catch (error) {
+    logger.error('Sending the payment notice failed', error, { paymentId: notice.paymentId });
+    return false;
+  }
+}

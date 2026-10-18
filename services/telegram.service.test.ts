@@ -17,7 +17,8 @@ vi.mock('@/lib/env', () => ({
 const logged = { info: vi.fn(), error: vi.fn() };
 vi.mock('@/lib/logger', () => ({ logger: logged }));
 
-const { newLeadMessages, notifyNewLead } = await import('./telegram.service');
+const { newLeadMessages, notifyNewLead, notifyPayment, paymentMessage } =
+  await import('./telegram.service');
 
 const NOTICE = {
   leadId: 'AbCdEfGhIjKlMnOpQrSt',
@@ -101,5 +102,35 @@ describe('notifyNewLead', () => {
   it('answers false, and does not throw, when the network fails', async () => {
     fetchMock.mockRejectedValue(new DOMException('The operation timed out.', 'TimeoutError'));
     expect(await notifyNewLead(NOTICE)).toBe(false);
+  });
+});
+
+describe('payment notices', () => {
+  const PAYMENT = {
+    paymentId: 'PaYmEnTiDaBcDeFgHiJk',
+    leadId: 'AbCdEfGhIjKlMnOpQrSt',
+    slug: 'riya-aman',
+    amountRupees: 499,
+  };
+
+  it('says what each payment did, with the admin link', () => {
+    expect(paymentMessage({ ...PAYMENT, kind: 'published' })).toContain(
+      'Paid ₹499: riya-aman.vivah.online is live',
+    );
+    expect(paymentMessage({ ...PAYMENT, kind: 'address-taken' })).toContain('was taken');
+    expect(paymentMessage({ ...PAYMENT, kind: 'duplicate' })).toContain('Refund it');
+    expect(paymentMessage({ ...PAYMENT, kind: 'published' })).toContain(
+      'https://vivah.online/admin/previews/AbCdEfGhIjKlMnOpQrSt',
+    );
+  });
+
+  it('sends nothing while notices are off, and never throws', async () => {
+    telegram.enabled = false;
+    expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    telegram.enabled = true;
+    fetchMock.mockRejectedValueOnce(new Error('offline'));
+    expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
   });
 });

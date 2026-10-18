@@ -1,6 +1,6 @@
 # ADR-0007: Publish an invite from the bound preview browser, with a test payment for now
 
-- **Status:** Accepted
+- **Status:** Accepted. Amended by [ADR-0011](./0011-take-payment-with-cashfree-payment-links.md): in production a Cashfree payment publishes, and the test payment runs only in development without Cashfree keys.
 - **Date:** 2026-10-14
 - **Deciders:** Sandeep
 

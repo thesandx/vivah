@@ -1,6 +1,6 @@
 # ADR-0009: Open a preview in two browsers, then lock it
 
-- **Status:** Accepted. Amended by [ADR-0010](./0010-open-a-preview-to-anyone-for-30-minutes.md): anyone with the link sees the preview for 30 minutes. The two bindings now decide only who may publish.
+- **Status:** Accepted. Amended by [ADR-0010](./0010-open-a-preview-to-anyone-for-30-minutes.md): anyone with the link sees the preview for 30 minutes. The two bindings now decide only who may publish. Amended again by [ADR-0011](./0011-take-payment-with-cashfree-payment-links.md): with Cashfree on, any browser may pay, and the bindings matter only for the free test publish in development.
 - **Date:** 2026-10-16
 - **Deciders:** Sandeep
 - **Amends:** [ADR-0006](./0006-accept-anonymous-lead-capture.md), the bullet "The preview binds to the first browser that opens it"

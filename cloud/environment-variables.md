@@ -348,6 +348,42 @@ Grant access before you set `TELEGRAM_TOKEN_SECRET`. To turn notices off, clear 
 
 ---
 
+## Cashfree configuration
+
+The couple pays for their invite through a Cashfree Payment Link. `services/cashfree.service.ts` calls Cashfree's API. [ADR-0011](../docs/adr/0011-take-payment-with-cashfree-payment-links.md) records the design.
+
+| Variable                     | Where it comes from                                    | Secret |
+| ---------------------------- | ------------------------------------------------------ | ------ |
+| `CASHFREE_APP_ID`            | GitHub variable of the same name                       | No     |
+| `CASHFREE_SECRET_KEY`        | Secret Manager, mounted by `deploy.yml`                | Yes    |
+| `CASHFREE_SECRET_KEY_SECRET` | GitHub variable. The name of the Secret Manager secret | No     |
+| `CASHFREE_ENV`               | GitHub variable: `sandbox` (default) or `production`   | No     |
+
+Payment is on only when the app id and the secret key are both set. Without them, production shows "Payment is not open right now", and development publishes free (a test payment).
+
+The webhook needs no setting in the Cashfree dashboard. Each link carries its own `notify_url`, `https://<root domain>/api/payments/cashfree`.
+
+To turn payment on:
+
+1. In the Cashfree dashboard, choose Test Environment (or Prod), open Developers > API Keys, and generate the keys.
+2. Store the secret key and grant access:
+
+```bash
+gcloud secrets create cashfree-secret-key --replication-policy=automatic
+printf '%s' "$SECRET_KEY" | gcloud secrets versions add cashfree-secret-key --data-file=-
+gcloud secrets add-iam-policy-binding cashfree-secret-key \
+  --member="serviceAccount:vivah-runtime@<project>.iam.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+```
+
+3. Set the GitHub variables `CASHFREE_APP_ID`, `CASHFREE_SECRET_KEY_SECRET=cashfree-secret-key` and `CASHFREE_ENV=sandbox`, and deploy.
+
+To go live, add the live secret key as a new version of the same secret, set `CASHFREE_APP_ID` to the live app id and `CASHFREE_ENV=production`, and deploy. The keys and `CASHFREE_ENV` must name the same account, or every call answers 401.
+
+Grant access before you set `CASHFREE_SECRET_KEY_SECRET`. A deploy that mounts a secret the runtime account cannot read fails.
+
+---
+
 ## Platform-injected variables
 
 Cloud Run sets these; do not define them yourself.

@@ -2,6 +2,7 @@ import 'server-only';
 
 import { createHash } from 'node:crypto';
 
+import type { Transaction } from '@google-cloud/firestore';
 import { z } from 'zod';
 
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
@@ -10,7 +11,12 @@ import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { phoneHintDigits } from '@/lib/phone';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import { chosenSongSchema, type SongSlot } from '@/lib/wedding-songs';
-import { leads, leadTokenMatches } from '@/services/lead.service';
+import {
+  type LeadDocument,
+  type LeadPayload,
+  leads,
+  leadTokenMatches,
+} from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
 import { songInSlot } from '@/services/wedding-songs.service';
 
@@ -256,9 +262,10 @@ export type PublishResult =
  * and marks the lead paid, in ONE transaction, so a crash or a race never
  * leaves a claim without a wedding or two weddings at one address.
  *
- * TEMPORARY: nothing here takes money. The preview page calls this from its
- * test payment button until Cashfree is connected. Then the Cashfree webhook
- * calls it, once the payment link reports PAID. See ADR-0007.
+ * Nothing here takes money. The preview page calls this from its test
+ * payment button, which exists only in development without Cashfree keys.
+ * A real payment publishes through `services/payment.service.ts`, with the
+ * same writes (`writePublish`). See ADR-0007 and ADR-0011.
  *
  * Only the browser the preview is bound to may publish: the caller passes the
  * token from that browser's preview cookie.
@@ -275,7 +282,6 @@ export async function publishWedding(
   const claimId = slugClaimId(slug);
   return slugClaims.runTransaction(async (claimsTx, tx) => {
     const leadsTx = leads.inTransaction(tx);
-    const weddingsTx = weddings.inTransaction(tx);
 
     // All reads first: a Firestore transaction refuses a read after a write.
     const lead = await leadsTx.get(leadId);
@@ -293,19 +299,37 @@ export async function publishWedding(
     if (lead.expiresAt.getTime() <= now.getTime()) return { state: 'expired' as const };
     if (claim !== null || !existing.empty) return { state: 'taken' as const };
 
-    const weddingId = weddingsTx.create({
-      slug,
-      bride: lead.bride,
-      groom: lead.groom,
-      weddingDate: lead.weddingDate,
-      ownerPhoneE164: lead.phoneE164,
-      leadId,
-      ...(lead.song !== undefined && { song: lead.song }),
-    });
-    // `tx.create` under the hood: if another request claimed the slug after
-    // the read above, the whole transaction fails and retries, then sees it.
-    claimsTx.createWithId(claimId, { slug, weddingId, leadId });
-    leadsTx.update(leadId, { status: 'paid', weddingSlug: slug });
+    writePublish(tx, lead, slug);
     return { state: 'published' as const, slug };
   });
+}
+
+/**
+ * The writes that publish `lead` at `slug`: the wedding, the claim on the
+ * address, and the lead marked paid. Call it inside a transaction, after the
+ * reads that prove the address is free. `paid` adds the payment's fields to
+ * the lead.
+ *
+ * The claim uses `tx.create`: if another request claimed the slug after the
+ * caller's read, the whole transaction fails and retries, then sees it.
+ */
+export function writePublish(
+  tx: Transaction,
+  lead: LeadDocument,
+  slug: string,
+  paid: Pick<Partial<LeadPayload>, 'paidAt' | 'paymentId'> = {},
+): void {
+  const weddingId = weddings.inTransaction(tx).create({
+    slug,
+    bride: lead.bride,
+    groom: lead.groom,
+    weddingDate: lead.weddingDate,
+    ownerPhoneE164: lead.phoneE164,
+    leadId: lead.id,
+    ...(lead.song !== undefined && { song: lead.song }),
+  });
+  slugClaims
+    .inTransaction(tx)
+    .createWithId(slugClaimId(slug), { slug, weddingId, leadId: lead.id });
+  leads.inTransaction(tx).update(lead.id, { status: 'paid', weddingSlug: slug, ...paid });
 }

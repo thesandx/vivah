@@ -156,10 +156,11 @@ jobs:
         # it. gcloud refuses two --set-secrets flags, and a mount of a secret
         # that does not exist fails the deploy, so an unset variable adds
         # nothing. The variables come in through `env:`, never ${{ }} in the
-        # script. See cloud/environment-variables.md > WhatsApp and Telegram.
+        # script. See cloud/environment-variables.md > WhatsApp, Telegram, Cashfree.
         env:
           WHATSAPP_TOKEN_SECRET: ${{ vars.WHATSAPP_TOKEN_SECRET }}
           TELEGRAM_TOKEN_SECRET: ${{ vars.TELEGRAM_TOKEN_SECRET }}
+          CASHFREE_SECRET_KEY_SECRET: ${{ vars.CASHFREE_SECRET_KEY_SECRET }}
         run: |
           set -euo pipefail
           MOUNTS=()
@@ -168,6 +169,9 @@ jobs:
           fi
           if [[ -n "$TELEGRAM_TOKEN_SECRET" ]]; then
             MOUNTS+=("TELEGRAM_BOT_TOKEN=${TELEGRAM_TOKEN_SECRET}:latest")
+          fi
+          if [[ -n "$CASHFREE_SECRET_KEY_SECRET" ]]; then
+            MOUNTS+=("CASHFREE_SECRET_KEY=${CASHFREE_SECRET_KEY_SECRET}:latest")
           fi
           FLAG=""
           if [[ "${#MOUNTS[@]}" -gt 0 ]]; then
@@ -292,6 +296,8 @@ jobs:
             WHATSAPP_PREVIEW_TEMPLATE=${{ vars.WHATSAPP_PREVIEW_TEMPLATE }}
             WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE=${{ vars.WHATSAPP_PREVIEW_TEMPLATE_LANGUAGE || 'en' }}
             TELEGRAM_CHAT_ID=${{ vars.TELEGRAM_CHAT_ID }}
+            CASHFREE_APP_ID=${{ vars.CASHFREE_APP_ID }}
+            CASHFREE_ENV=${{ vars.CASHFREE_ENV || 'sandbox' }}
             DEPLOYED_AT=${{ steps.meta.outputs.deployed_at }}
           # The runtime identity goes through `flags`, NOT a `service_account`
           # input. This action has no such input: it accepts one and warns
@@ -301,7 +307,7 @@ jobs:
           # project, the opposite of the least-privilege account bootstrap
           # created. Keep this in flags, where gcloud actually reads it.
           #
-          # The WhatsApp and Telegram tokens are secrets, so they are mounted
+          # The WhatsApp and Telegram tokens and the Cashfree key are secrets, so they are mounted
           # from Secret Manager, never set in env_vars. The "Resolve secret
           # mounts" step builds the one --set-secrets flag.
           flags: >-
