@@ -32,10 +32,18 @@ import { cn } from '@/lib/utils';
  * The card shows on every visit, a refresh too, and always waits for the
  * tap. The song needs that tap, and a card that showed and then vanished by
  * itself read as a bug.
+ *
+ * While the card is up, the page behind it cannot scroll: a guest who swiped
+ * at the card used to open the invite half way down. The page is held at the
+ * top, and a swipe up opens the invite as a tap does: the card follows the
+ * finger, then lifts away from where the finger let go.
  */
 
-/** How long the opening runs: the card's lift ends at 120 + 1400 ms. */
-const OPENING_MS = 1500;
+/** How long the opening runs: the card's lift ends at 40 + 1300 ms. */
+const OPENING_MS = 1400;
+
+/** How far up (px) a swipe must carry the card to open the invite. */
+const SWIPE_OPENS_PX = 48;
 
 type Phase = 'closed' | 'opening' | 'open';
 
@@ -68,6 +76,38 @@ export function InviteGate({
   const [phase, setPhase] = useState<Phase>('closed');
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
+  const started = useRef(false);
+  const drag = useRef<HTMLSpanElement>(null);
+  const dragStartY = useRef<number | null>(null);
+  const dragOffset = useRef(0);
+  const locked = phase !== 'open';
+
+  // Start at the top. A browser that restores the scroll position on a
+  // reload would otherwise open the invite where the last visit left it.
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Hold the page still behind the card. `overflow: hidden` on the root stops
+  // the wheel and the keyboard; the touchmove block stops iOS, which scrolls
+  // the page under a fixed layer whatever the root's overflow says.
+  useEffect(() => {
+    if (!locked) return;
+    const root = document.documentElement;
+    const previous = { overflow: root.style.overflow, overscroll: root.style.overscrollBehavior };
+    root.style.overflow = 'hidden';
+    root.style.overscrollBehavior = 'none';
+    const block = (event: TouchEvent) => {
+      if (event.cancelable) event.preventDefault();
+    };
+    document.addEventListener('touchmove', block, { passive: false });
+    return () => {
+      root.style.overflow = previous.overflow;
+      root.style.overscrollBehavior = previous.overscroll;
+      document.removeEventListener('touchmove', block);
+    };
+  }, [locked]);
 
   useEffect(() => {
     if (phase !== 'opening') return;
@@ -95,9 +135,42 @@ export function InviteGate({
   }, []);
 
   function open(): void {
+    if (started.current) return;
+    started.current = true;
     // Start the song inside the tap: it is the gesture that allows sound.
     audio.current?.play().catch(() => setPlaying(false));
+    window.scrollTo(0, 0);
     setPhase('opening');
+  }
+
+  function setDrag(offset: number, settle: boolean): void {
+    dragOffset.current = offset;
+    const element = drag.current;
+    if (element === null) return;
+    element.style.transition = settle ? 'transform 280ms cubic-bezier(0.25, 1, 0.5, 1)' : 'none';
+    element.style.transform = offset === 0 ? '' : `translateY(${offset}px)`;
+  }
+
+  function onPointerDown(event: React.PointerEvent<HTMLButtonElement>): void {
+    if (started.current) return;
+    dragStartY.current = event.clientY;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  }
+
+  function onPointerMove(event: React.PointerEvent<HTMLButtonElement>): void {
+    if (dragStartY.current === null) return;
+    // Up only: a pull down meets resistance and stays near the start.
+    const delta = event.clientY - dragStartY.current;
+    setDrag(delta < 0 ? delta : delta / 6, false);
+  }
+
+  function onPointerEnd(): void {
+    if (dragStartY.current === null) return;
+    dragStartY.current = null;
+    // A pointerup is a user gesture, so a swipe may start the song too.
+    // The lift runs on an inner layer, so the card carries on from here.
+    if (dragOffset.current <= -SWIPE_OPENS_PX) open();
+    else setDrag(0, true);
   }
 
   function toggleSong(): void {
@@ -169,9 +242,17 @@ export function InviteGate({
         <button
           type="button"
           onClick={open}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerEnd}
+          onPointerCancel={onPointerEnd}
+          // A wheel turned down is the desktop's swipe up.
+          onWheel={(event) => {
+            if (event.deltaY > 0) open();
+          }}
           disabled={opening}
           aria-label={`${greeting}. Please tap to open your invitation from ${couple}`}
-          className="fixed inset-0 z-50 block overflow-hidden"
+          className="fixed inset-0 z-50 block touch-none overflow-hidden overscroll-none select-none"
         >
           <span
             aria-hidden="true"
@@ -202,32 +283,35 @@ export function InviteGate({
             }}
           />
 
-          {/* On a phone the card fills the screen, as an app's splash screen
+          {/* Follows the finger during a swipe; the lift runs inside it. */}
+          <span ref={drag} className="absolute inset-0">
+            {/* On a phone the card fills the screen, as an app's splash screen
               does. From `md` up it stands as a phone-shaped card on the glow,
               as a full-width card would crop Shri Ganesh on a wide screen. */}
-          <span
-            className={cn(
-              'absolute inset-0 md:flex md:items-center md:justify-center md:px-4 md:pb-36',
-              top === undefined ? 'md:pt-6' : 'md:pt-20',
-              opening && 'animate-gate-card-rise',
-            )}
-          >
-            <span className="block size-full md:animate-card-bob md:flex md:items-center md:justify-center">
-              <GaneshCover className="size-full md:rounded-input md:overflow-hidden md:aspect-5/9 md:h-full md:max-h-full md:w-auto md:max-w-full" />
+            <span
+              className={cn(
+                'absolute inset-0 md:flex md:items-center md:justify-center md:px-4 md:pb-36',
+                top === undefined ? 'md:pt-6' : 'md:pt-20',
+                opening && 'animate-gate-card-rise',
+              )}
+            >
+              <span className="block size-full md:animate-card-bob md:flex md:items-center md:justify-center">
+                <GaneshCover className="size-full md:rounded-input md:overflow-hidden md:aspect-5/9 md:h-full md:max-h-full md:w-auto md:max-w-full" />
+              </span>
             </span>
-          </span>
 
-          {/* The greeting, over the foot of the art, on a dark fade so it
+            {/* The greeting, over the foot of the art, on a dark fade so it
               reads on the light card. */}
-          <span
-            className={cn(
-              'from-plum-night/90 absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-linear-to-t to-transparent px-6 pt-24 pb-[max(2rem,env(safe-area-inset-bottom))] text-center',
-              opening && 'animate-gate-hint-out',
-            )}
-          >
-            <span className="font-script text-hero text-surface">{greeting}</span>
-            <span className="font-display text-heading text-surface">
-              Please tap to open your invitation
+            <span
+              className={cn(
+                'from-plum-night/90 absolute inset-x-0 bottom-0 flex flex-col items-center gap-2 bg-linear-to-t to-transparent px-6 pt-24 pb-[max(2rem,env(safe-area-inset-bottom))] text-center',
+                opening && 'animate-gate-hint-out',
+              )}
+            >
+              <span className="font-script text-hero text-surface">{greeting}</span>
+              <span className="font-display text-heading text-surface">
+                Please tap to open your invitation
+              </span>
             </span>
           </span>
         </button>
