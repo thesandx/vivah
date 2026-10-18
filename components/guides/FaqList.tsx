@@ -43,6 +43,18 @@ export function FaqList({ faqs, heading = 'Questions people ask' }: FaqListProps
                 </span>
               </summary>
               <p className="text-ink-soft px-5 pb-5">{faq.answer}</p>
+              {faq.link !== undefined && (
+                <p className="px-5 pb-5">
+                  <a
+                    href={faq.link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-ink decoration-brand underline decoration-2 underline-offset-4"
+                  >
+                    {faq.link.label}
+                  </a>
+                </p>
+              )}
             </details>
           </li>
         ))}

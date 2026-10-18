@@ -29,4 +29,21 @@ describe('FaqList', () => {
     fireEvent.click(screen.getByText('Is it free?'));
     expect(details).not.toHaveAttribute('open');
   });
+
+  it('shows a help link under an answer that has one, opening in a new tab', () => {
+    render(
+      <FaqList
+        faqs={[
+          {
+            question: 'No picture?',
+            answer: 'Turn previews on.',
+            link: { href: 'https://faq.whatsapp.com/445453537819972/', label: 'WhatsApp Help' },
+          },
+        ]}
+      />,
+    );
+    const link = screen.getByRole('link', { name: 'WhatsApp Help' });
+    expect(link).toHaveAttribute('href', 'https://faq.whatsapp.com/445453537819972/');
+    expect(link).toHaveAttribute('target', '_blank');
+  });
 });
