@@ -6,7 +6,7 @@ import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/in
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Alert } from '@/components/ui/Alert';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
-import { PAYMENT_LIVE, PAYMENT_METHODS, PAYMENT_PROVIDER } from '@/lib/business';
+import { PAYMENT_METHODS, PAYMENT_PROVIDER } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
 /**
@@ -31,13 +31,17 @@ import { cn } from '@/lib/utils';
  * no limit on guests or on sharing (the product owner's pick, 2026-10-17). No ratings, no couple counts and no refund
  * promise (the product owner removed it, 2026-10-16).
  *
- * While publishing is a test payment (`PAYMENT_LIVE` is false), the button
+ * `mode` says what the button does. `live`: it opens Cashfree's payment page
+ * (ADR-0011). `test` (development without Cashfree keys): it publishes free,
  * says "Publish", not "Pay", and a line under it says nothing is charged.
- * Setting `PAYMENT_LIVE` removes both.
+ * `paid`: the couple paid, but their address went to another couple first,
+ * so they pick another and publish with nothing more to pay.
  *
  * A Client Component for the open state. The address check and the publish
  * are Server Actions the page passes in, through `SlugPicker`.
  */
+
+export type PaymentBannerMode = 'live' | 'test' | 'paid';
 
 export interface PublishBannerProps {
   bride: string;
@@ -57,6 +61,8 @@ export interface PublishBannerProps {
   notice?: React.ReactNode;
   checkSlug: (slug: string) => Promise<SlugCheck>;
   publish: (leadId: string, slug: string) => Promise<PublishOutcome>;
+  /** What the button does. Default: `test`. */
+  mode?: PaymentBannerMode;
   className?: string;
 }
 
@@ -118,10 +124,10 @@ function PaymentMethods() {
  * no ads, and the terms keep it live until 12 months after the wedding.
  * "Secure payment" shows only once payment is live.
  */
-function TrustLines() {
+function TrustLines({ live }: { live: boolean }) {
   return (
     <div className="text-small text-pay-muted flex flex-col items-center gap-1 text-center">
-      <p>{PAYMENT_LIVE && '🔒 Secure payment · '}⚡ Instant link · 💛 No ads</p>
+      <p>{live && '🔒 Secure payment · '}⚡ Instant link · 💛 No ads</p>
       <p>📅 Your link stays live until 12 months after your wedding</p>
       <p>Made with love in India 🇮🇳</p>
     </div>
@@ -129,8 +135,15 @@ function TrustLines() {
 }
 
 /** Who takes the money, or, while payment is a test, that nobody does. */
-function PaymentNote() {
-  if (!PAYMENT_LIVE) {
+function PaymentNote({ mode }: { mode: PaymentBannerMode }) {
+  if (mode === 'paid') {
+    return (
+      <p className="text-small text-pay-body bg-pay-well rounded-input px-3 py-2 text-center">
+        Your payment is received. There is nothing more to pay.
+      </p>
+    );
+  }
+  if (mode === 'test') {
     return (
       <p className="text-small text-pay-body bg-pay-well rounded-input px-3 py-2 text-center">
         Test payment: payments are not connected yet, so nothing is charged and your invite
@@ -158,8 +171,10 @@ export function PublishBanner({
   notice,
   checkSlug,
   publish,
+  mode = 'test',
   className,
 }: PublishBannerProps): React.JSX.Element {
+  const live = mode === 'live';
   const [open, setOpen] = useState(notice !== undefined);
   // Closed, the banner is a short bar while the couple reads their invite,
   // and grows to the full sheet once they reach the foot of the page.
@@ -208,11 +223,11 @@ export function PublishBanner({
     void direct.run(chosen);
   }
 
-  const continueLabel = PAYMENT_LIVE ? `Continue to payment · ${price}` : 'Continue to publish';
+  const continueLabel = live ? `Continue to payment · ${price}` : 'Continue to publish';
   const directLabel =
     direct.status === 'done'
       ? 'Opening your invite'
-      : PAYMENT_LIVE
+      : live
         ? 'Opening payment'
         : 'Publishing your invite';
   const directError = direct.error !== null && (
@@ -330,8 +345,8 @@ export function PublishBanner({
 
             <div className="text-small text-pay-body flex flex-wrap items-center justify-between gap-x-3">
               <span className="flex items-center gap-1.5">
-                {PAYMENT_LIVE && <Lock />}
-                {PAYMENT_LIVE && 'Secure payment · '}Paid once, nothing more to pay later
+                {live && <Lock />}
+                {live && 'Secure payment · '}Paid once, nothing more to pay later
               </span>
               <button
                 type="button"
@@ -341,7 +356,7 @@ export function PublishBanner({
                 See everything you get
               </button>
             </div>
-            <TrustLines />
+            <TrustLines live={live} />
           </div>
         ) : (
           <>
@@ -395,16 +410,16 @@ export function PublishBanner({
               domainLabel={domainLabel}
               checkSlug={checkSlug}
               publish={publish}
-              actionLabel={PAYMENT_LIVE ? `Pay ${price} and publish` : 'Publish our invite'}
-              workingLabel={PAYMENT_LIVE ? 'Opening payment' : 'Publishing your invite'}
+              actionLabel={live ? `Pay ${price} and publish` : 'Publish our invite'}
+              workingLabel={live ? 'Opening payment' : 'Publishing your invite'}
               footer={
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-2">
                     <p className="text-small text-pay-body">Pay with</p>
                     <PaymentMethods />
                   </div>
-                  <PaymentNote />
-                  <TrustLines />
+                  <PaymentNote mode={mode} />
+                  <TrustLines live={live} />
                 </div>
               }
             >

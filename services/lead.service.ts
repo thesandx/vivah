@@ -76,6 +76,15 @@ export const leadSchema = z.object({
    */
   weddingSlug: z.string().optional(),
   /**
+   * When Cashfree reported the payment, and the `payments` document that
+   * holds it (order id, amount). Set with `status: 'paid'` by a real payment;
+   * absent for a test payment and for older leads. A paid lead without a
+   * `weddingSlug` paid for an address another couple took first: it picks
+   * another on the preview page, free. ADR-0011.
+   */
+  paidAt: z.date().optional(),
+  paymentId: z.string().optional(),
+  /**
    * The address the couple chose on the sign-up card. A wish, not a claim:
    * publishing reserves it, or the preview page offers others if it was
    * taken meanwhile. Optional because older leads do not have it.

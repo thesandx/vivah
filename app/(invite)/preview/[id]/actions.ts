@@ -3,10 +3,12 @@
 import { cookies } from 'next/headers';
 import { z } from 'zod';
 
+import { PRICE_FROM_RUPEES } from '@/lib/business';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { inviteHref } from '@/lib/site-host';
+import { paymentMode, startPayment } from '@/services/payment.service';
 import { checkSlug, publishWedding, type SlugAvailability } from '@/services/wedding.service';
 
 /**
@@ -16,9 +18,10 @@ import { checkSlug, publishWedding, type SlugAvailability } from '@/services/wed
  * is `/preview/<id>`, so the browser sends it only to that path, and an action
  * posts to the page it runs on. A route under `/api/` would never see it.
  *
- * Neither action has a session. ADR-0007 records why publishing is allowed
- * without one: the preview cookie proves this is the browser the preview was
- * bound to, and that is the same proof the preview page itself relies on.
+ * Neither action has a session. With Cashfree configured, the publish
+ * action only starts a payment, and the payment publishes (ADR-0011): any
+ * browser that can see the preview may pay. Without Cashfree, in development,
+ * it publishes free from the bound browser (ADR-0007).
  */
 
 /** The longest input either action reads. Longer than any valid slug. */
@@ -42,7 +45,8 @@ export async function checkSlugAction(slug: unknown): Promise<SlugAvailability> 
 }
 
 export type PublishActionResult =
-  { ok: true; url: string } | { ok: false; message: string; taken?: boolean };
+  | { ok: true; url: string; to?: 'payment' | 'invite' }
+  | { ok: false; message: string; taken?: boolean };
 
 /** What the couple reads for each way publishing can fail. */
 const FAILURE: Record<string, string> = {
@@ -50,12 +54,14 @@ const FAILURE: Record<string, string> = {
   'not-found': 'This preview link does not work. Start again on the home page.',
   expired: 'This preview has expired. Start again on the home page.',
   'other-browser': 'Open this preview on the phone you opened it on first.',
+  unavailable:
+    'Payment is not open right now. Message us on WhatsApp and we will publish your invite.',
 };
 
 /**
- * Publishes the invite at `slug`. TEMPORARY: the test payment button calls
- * this directly. When Cashfree is connected, the button opens a payment link
- * instead, and the Cashfree webhook publishes. See ADR-0007.
+ * The pay button. Live, it starts a Cashfree payment and answers with the
+ * payment page to open; Cashfree's webhook and return publish the invite
+ * (ADR-0011). In test mode it publishes at once (ADR-0007).
  */
 export async function publishAction(leadId: unknown, slug: unknown): Promise<PublishActionResult> {
   const parsedId = leadIdInput.safeParse(leadId);
@@ -63,19 +69,44 @@ export async function publishAction(leadId: unknown, slug: unknown): Promise<Pub
   if (!parsedId.success || !parsedSlug.success) {
     return { ok: false, message: 'Choose an address first.' };
   }
+  return paymentMode() === 'test'
+    ? testPublish(parsedId.data, parsedSlug.data)
+    : pay(parsedId.data, parsedSlug.data);
+}
 
+async function pay(leadId: string, slug: string): Promise<PublishActionResult> {
+  try {
+    const result = await startPayment(leadId, slug, PRICE_FROM_RUPEES);
+    switch (result.state) {
+      case 'redirect':
+        return { ok: true, url: result.url, to: 'payment' };
+      case 'published':
+      case 'already-published':
+        logger.info('Wedding published', { leadId, slug: result.slug });
+        return { ok: true, url: inviteHref(result.slug, env.rootDomain), to: 'invite' };
+      case 'invalid':
+        return { ok: false, message: result.message };
+      case 'taken':
+        return { ok: false, message: FAILURE.taken ?? '', taken: true };
+      default:
+        return { ok: false, message: FAILURE[result.state] ?? 'Payment did not start. Try again.' };
+    }
+  } catch (error) {
+    logger.error('Starting a payment failed', error, { leadId });
+    return { ok: false, message: 'Payment did not start. Check your connection and try again.' };
+  }
+}
+
+/** Development without Cashfree keys: publish free, from the bound browser only. */
+async function testPublish(leadId: string, slug: string): Promise<PublishActionResult> {
   try {
     const store = await cookies();
-    const result = await publishWedding(
-      parsedId.data,
-      store.get(PREVIEW_COOKIE_NAME)?.value,
-      parsedSlug.data,
-    );
+    const result = await publishWedding(leadId, store.get(PREVIEW_COOKIE_NAME)?.value, slug);
 
     if (result.state === 'published' || result.state === 'already-published') {
       // The lead id, never the phone number. See CLAUDE.md > Authentication.
-      logger.info('Wedding published', { leadId: parsedId.data, slug: result.slug });
-      return { ok: true, url: inviteHref(result.slug, env.rootDomain) };
+      logger.info('Wedding published', { leadId, slug: result.slug });
+      return { ok: true, url: inviteHref(result.slug, env.rootDomain), to: 'invite' };
     }
     if (result.state === 'invalid') return { ok: false, message: result.message };
     return {
@@ -84,7 +115,7 @@ export async function publishAction(leadId: unknown, slug: unknown): Promise<Pub
       ...(result.state === 'taken' && { taken: true }),
     };
   } catch (error) {
-    logger.error('Publishing a wedding failed', error, { leadId: parsedId.data });
+    logger.error('Publishing a wedding failed', error, { leadId });
     return { ok: false, message: 'Your invite was not published. Try again.' };
   }
 }

@@ -54,6 +54,9 @@ async function loadEnv(overrides: Record<string, string | undefined>): Promise<E
     'WHATSAPP_GRAPH_API_VERSION',
     'TELEGRAM_BOT_TOKEN',
     'TELEGRAM_CHAT_ID',
+    'CASHFREE_APP_ID',
+    'CASHFREE_SECRET_KEY',
+    'CASHFREE_ENV',
   ]) {
     delete process.env[key];
   }
@@ -300,5 +303,34 @@ describe('Telegram notices', () => {
 
   it('refuses a username in place of the chat id', async () => {
     await expect(loadEnv({ TELEGRAM_CHAT_ID: '@vivah' })).rejects.toThrow(/TELEGRAM_CHAT_ID/);
+  });
+});
+
+describe('Cashfree payments', () => {
+  const BOTH = { CASHFREE_APP_ID: 'TEST1234', CASHFREE_SECRET_KEY: 'cfsk_ma_test_secret' };
+
+  it('turns payment on in the sandbox when the app id and the secret key are set', async () => {
+    expect((await loadEnv(BOTH)).cashfree).toEqual({
+      enabled: true,
+      appId: 'TEST1234',
+      secretKey: 'cfsk_ma_test_secret',
+      environment: 'sandbox',
+    });
+  });
+
+  it('keeps payment off when either one is unset', async () => {
+    expect((await loadEnv({})).cashfree.enabled).toBe(false);
+    expect((await loadEnv({ ...BOTH, CASHFREE_SECRET_KEY: '' })).cashfree.enabled).toBe(false);
+    expect((await loadEnv({ ...BOTH, CASHFREE_APP_ID: '' })).cashfree.enabled).toBe(false);
+  });
+
+  it('uses the live account only when told to', async () => {
+    expect((await loadEnv({ ...BOTH, CASHFREE_ENV: 'production' })).cashfree.environment).toBe(
+      'production',
+    );
+  });
+
+  it('refuses an unknown environment', async () => {
+    await expect(loadEnv({ CASHFREE_ENV: 'live' })).rejects.toThrow(/CASHFREE_ENV/);
   });
 });

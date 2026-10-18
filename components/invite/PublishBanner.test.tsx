@@ -116,3 +116,38 @@ describe('PublishBanner', () => {
     expect(screen.getByRole('button', { name: 'See everything you get' })).toBeInTheDocument();
   });
 });
+
+describe('PublishBanner modes', () => {
+  function renderMode(mode: 'live' | 'paid') {
+    render(
+      <PublishBanner
+        bride="Riya"
+        groom="Arjun"
+        leadId="lead-1"
+        chosen="riya-arjun"
+        suggestions={[]}
+        domainLabel="vivah.online"
+        priceRupees={499}
+        mode={mode}
+        checkSlug={() => Promise.resolve({ available: true })}
+        publish={() => new Promise(() => undefined)}
+      />,
+    );
+  }
+
+  it('asks for payment through Cashfree when live, with no test note', () => {
+    renderMode('live');
+    expect(screen.getByRole('button', { name: 'Continue to payment · ₹499' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
+    expect(screen.getByRole('button', { name: 'Pay ₹499 and publish' })).toBeInTheDocument();
+    expect(screen.getByText(/Powered by Cashfree/)).toBeInTheDocument();
+    expect(screen.queryByText(/nothing is charged/)).not.toBeInTheDocument();
+  });
+
+  it('asks for nothing more once the couple has paid', () => {
+    renderMode('paid');
+    fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
+    expect(screen.getByRole('button', { name: 'Publish our invite' })).toBeInTheDocument();
+    expect(screen.getByText(/nothing more to pay/)).toBeInTheDocument();
+  });
+});

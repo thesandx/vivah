@@ -249,6 +249,24 @@ const telegramChatId = pattern(
   'must be a numeric Telegram chat id, like 123456789 or -1001234567890',
 );
 
+/**
+ * Cashfree, which takes the couple's payment. See `services/cashfree.service.ts`
+ * and ADR-0011.
+ *
+ * Payment is on only when the app id and the secret key are both set. The
+ * secret key IS a secret: it comes from Secret Manager at runtime. The app id
+ * is not; it is a GitHub variable. `CASHFREE_ENV` picks the test (`sandbox`)
+ * or the live (`production`) account; the keys must belong to the same one.
+ */
+const cashfreeAppId = optional(process.env.CASHFREE_APP_ID, '').trim();
+const cashfreeSecretKey = optional(process.env.CASHFREE_SECRET_KEY, '').trim();
+const cashfreeEnvironment = oneOf(
+  'CASHFREE_ENV',
+  process.env.CASHFREE_ENV?.trim(),
+  ['sandbox', 'production'] as const,
+  'sandbox',
+);
+
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
 // Order matters below: the database id and bucket name default to values
@@ -409,6 +427,17 @@ export const env = {
     enabled: telegramBotToken !== '' && telegramChatId !== '',
     botToken: telegramBotToken,
     chatId: telegramChatId,
+  },
+
+  /**
+   * Cashfree payment settings. Server only: the secret key is a secret.
+   * `enabled` is true only when the app id and the secret key are both set.
+   */
+  cashfree: {
+    enabled: cashfreeAppId !== '' && cashfreeSecretKey !== '',
+    appId: cashfreeAppId,
+    secretKey: cashfreeSecretKey,
+    environment: cashfreeEnvironment,
   },
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */

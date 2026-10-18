@@ -23,6 +23,7 @@ import { siteOrigin } from '@/lib/seo';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
+import { paymentMode } from '@/services/payment.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
 import { checkSlugAction, publishAction } from './actions';
@@ -65,16 +66,38 @@ const PROBLEM: Record<
  * and the developer-tools keys on a desktop. Once paid, neither renders.
  *
  * Anyone with the link sees it while its 30 minutes run (ADR-0010). Then it
- * closes for everyone until an admin reactivates it. Only the two browsers
- * the link is bound to get the publish banner (ADR-0007, ADR-0009).
+ * closes for everyone until an admin reactivates it. With Cashfree on, every
+ * browser that sees it gets the pay banner (ADR-0011); the free test publish,
+ * in development only, keeps to the two bound browsers (ADR-0007, ADR-0009).
  *
  * An async Server Component: it reads the lead and the browser's preview
  * cookie on the server, so nothing about a closed preview reaches a browser.
  * The timer starts at `GET /p/<id>`; a visit straight to this address before
  * that is sent there first.
  */
-export default async function PreviewPage({ params }: { params: Promise<{ id: string }> }) {
+/** What the return from Cashfree's page reports, in `?payment=`. */
+const PAYMENT_NOTICE: Record<string, { tone: 'info' | 'danger'; title: string; body: string }> = {
+  pending: {
+    tone: 'info',
+    title: 'We are confirming your payment',
+    body: 'If money left your account, do not pay again. Your invite goes live in a few minutes. Reload this page to check, or message us on WhatsApp.',
+  },
+  failed: {
+    tone: 'danger',
+    title: 'Your payment was not completed',
+    body: 'Your invite is not published yet. Try again below.',
+  },
+};
+
+export default async function PreviewPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
+  const { payment } = await searchParams;
   const store = await cookies();
   const access = await getPreview(id, store.get(PREVIEW_COOKIE_NAME)?.value);
 
@@ -118,6 +141,14 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
     lead.song === undefined ? null : { name: lead.song.name, src: songUrl(lead.song.file) };
   const domainLabel = inviteDomainLabel(env.rootDomain);
   const published = lead.status === 'paid' && lead.weddingSlug !== undefined;
+  // Paid, but another couple published the address first. ADR-0011.
+  const paidWithoutAddress = lead.status === 'paid' && lead.weddingSlug === undefined;
+  const mode = paymentMode();
+  // With real payment, any browser that can see the preview may pay: the
+  // money is the proof. Only the free test publish needs a bound browser.
+  const canPay = mode === 'test' ? canPublish : true;
+  const paymentNotice =
+    typeof payment === 'string' && !paidWithoutAddress ? PAYMENT_NOTICE[payment] : undefined;
 
   // The couple chose their address on the sign-up card. Check it is still
   // free, so the banner shows it with the publish button. Only when it was
@@ -147,7 +178,30 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         </a>
       </section>
     );
-  } else if (canPublish) {
+  } else if (canPay || paidWithoutAddress) {
+    let notice: React.ReactNode;
+    if (paidWithoutAddress) {
+      notice = (
+        <Alert tone="info" title="Your payment is received">
+          Another couple published{' '}
+          {desired === undefined ? 'your address' : inviteHostLabel(desired, env.rootDomain)} a
+          moment before you. Choose another address below. There is nothing more to pay.
+        </Alert>
+      );
+    } else if (paymentNotice !== undefined) {
+      notice = (
+        <Alert tone={paymentNotice.tone} title={paymentNotice.title}>
+          {paymentNotice.body}
+        </Alert>
+      );
+    } else if (desired !== undefined && chosen === undefined) {
+      notice = (
+        <Alert tone="info" title="Your address was taken">
+          Another couple published {inviteHostLabel(desired, env.rootDomain)} after you chose it.
+          Choose another address below.
+        </Alert>
+      );
+    }
     dock = (
       <PublishBanner
         bride={lead.bride}
@@ -158,15 +212,8 @@ export default async function PreviewPage({ params }: { params: Promise<{ id: st
         domainLabel={domainLabel}
         priceRupees={PRICE_FROM_RUPEES}
         hasSong={song !== null}
-        {...(desired !== undefined &&
-          chosen === undefined && {
-            notice: (
-              <Alert tone="info" title="Your address was taken">
-                Another couple published {inviteHostLabel(desired, env.rootDomain)} after you chose
-                it. Choose another address below.
-              </Alert>
-            ),
-          })}
+        {...(notice !== undefined && { notice })}
+        mode={paidWithoutAddress ? 'paid' : mode === 'test' ? 'test' : 'live'}
         checkSlug={checkSlugAction}
         publish={publishAction}
       />

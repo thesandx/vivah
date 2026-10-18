@@ -63,14 +63,6 @@ export const PAPER_CARDS = {
  */
 export const REFUND_WINDOW_DAYS = 7;
 
-/**
- * Whether a real payment runs when a couple publishes. False while publishing
- * is a test payment (ADR-0007): the banner then says no money is taken, and
- * its button says "Publish", not "Pay". Set it to true in the pull request
- * that connects Cashfree.
- */
-export const PAYMENT_LIVE = false;
-
 /** The payment provider the banner names once payment is live. */
 export const PAYMENT_PROVIDER = 'Cashfree';
 
