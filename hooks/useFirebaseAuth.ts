@@ -37,8 +37,14 @@ import { getFirebaseWebConfig } from '@/lib/firebase-config';
  * one, and it solves itself for almost every real user. It exists because SMS
  * costs real money per message, and an unprotected send endpoint is an
  * invitation to SMS pumping fraud — see docs/auth.md. The verifier is created
- * once, on first use, and reused: constructing a second one for the same
- * container throws.
+ * once, on first use, and reused while it works.
+ *
+ * Each verifier renders into its own fresh element inside the container, and
+ * that element is removed when the verifier is cleared. An invisible
+ * verifier's `clear()` leaves its widget in the DOM, and reCAPTCHA refuses to
+ * render twice into one element. Before this, one failed send (a dismissed
+ * challenge on an iPhone, for example) made every retry fail with a generic
+ * message until the page was reloaded.
  */
 
 export type AuthStep = 'idle' | 'working' | 'awaiting-code';
@@ -89,11 +95,28 @@ const MESSAGES: Record<string, string> = {
     'You already have an account with that email. Sign in the way you did before.',
   'auth/network-request-failed': 'The network dropped. Check your connection and try again.',
   'auth/operation-not-allowed': 'That sign-in method is not enabled for this app.',
+  'auth/invalid-app-credential':
+    'The robot check did not pass. Wait a moment, then tap the button again.',
+  'auth/captcha-check-failed':
+    'The robot check did not pass. Wait a moment, then tap the button again.',
+  'auth/missing-app-credential':
+    'The robot check did not finish. Wait a moment, then tap the button again.',
+  'auth/quota-exceeded': 'We cannot send more OTPs right now. Try again later.',
+  'auth/timeout': 'That took too long. Check your connection and try again.',
+  'auth/web-storage-unsupported':
+    'This browser blocks the storage sign-in needs. Turn off private browsing and try again.',
 };
 
+/**
+ * A message for the person signing in. An unmapped error shows its Firebase
+ * code, so a report from a phone we cannot debug says what failed.
+ */
 function toMessage(error: unknown): string {
   const code = typeof error === 'object' && error !== null && 'code' in error ? error.code : '';
-  return (typeof code === 'string' ? MESSAGES[code] : undefined) ?? 'Sign-in failed. Try again.';
+  if (typeof code === 'string' && code !== '') {
+    return MESSAGES[code] ?? `Sign-in failed (${code}). Try again.`;
+  }
+  return 'Sign-in failed. Try again.';
 }
 
 /**
@@ -182,9 +205,22 @@ export function useFirebaseAuth({
   }, [warm]);
 
   const verifierRef = useRef<RecaptchaVerifier | null>(null);
+  const verifierElementRef = useRef<HTMLElement | null>(null);
   const confirmationRef = useRef<ConfirmationResult | null>(null);
 
   const available = getFirebaseWebConfig() !== null;
+
+  /** Destroys the verifier and removes its widget, so the next one renders clean. */
+  const clearVerifier = useCallback((): void => {
+    try {
+      verifierRef.current?.clear();
+    } catch {
+      // Already destroyed. The element is removed below either way.
+    }
+    verifierRef.current = null;
+    verifierElementRef.current?.remove();
+    verifierElementRef.current = null;
+  }, []);
 
   /**
    * Exchanges the ID token for an httpOnly session cookie.
@@ -235,9 +271,14 @@ export function useFirebaseAuth({
       try {
         const { auth, sdk } = await loadClientAuth();
 
-        verifierRef.current ??= new sdk.RecaptchaVerifier(auth, recaptchaContainerId, {
-          size: 'invisible',
-        });
+        if (verifierRef.current === null) {
+          const container = document.getElementById(recaptchaContainerId);
+          if (container === null) throw new Error(`#${recaptchaContainerId} is not in the page.`);
+          const element = document.createElement('div');
+          container.appendChild(element);
+          verifierElementRef.current = element;
+          verifierRef.current = new sdk.RecaptchaVerifier(auth, element, { size: 'invisible' });
+        }
 
         confirmationRef.current = await sdk.signInWithPhoneNumber(
           auth,
@@ -249,14 +290,13 @@ export function useFirebaseAuth({
       } catch (caught) {
         // A failed send leaves the verifier in a state that cannot be reused,
         // and reusing it makes the next attempt fail for the wrong reason.
-        verifierRef.current?.clear();
-        verifierRef.current = null;
+        clearVerifier();
         setError(toMessage(caught));
         setStep('idle');
         return false;
       }
     },
-    [available],
+    [available, clearVerifier],
   );
 
   const confirmVerificationCode = useCallback(
@@ -304,12 +344,11 @@ export function useFirebaseAuth({
   }, [available]);
 
   const reset = useCallback((): void => {
-    verifierRef.current?.clear();
-    verifierRef.current = null;
+    clearVerifier();
     confirmationRef.current = null;
     setStep('idle');
     setError(null);
-  }, []);
+  }, [clearVerifier]);
 
   return {
     step,

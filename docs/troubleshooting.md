@@ -559,6 +559,14 @@ That sign-in provider is not enabled. Firebase console > Authentication > Sign-i
 
 reCAPTCHA could not run. Either the domain is not authorised (above), or the verifier was reused after a failed attempt. `useFirebaseAuth` clears and recreates it on failure for that reason.
 
+### Every OTP send fails after the first one fails
+
+The new verifier rendered into the element that still holds the old widget, and reCAPTCHA refuses that. An invisible verifier's `clear()` does not remove its widget. `useFirebaseAuth` gives each verifier its own fresh element and removes it on failure. Do not pass the container id to `RecaptchaVerifier` directly.
+
+### "Sign-in failed (auth/…). Try again."
+
+Firebase returned a code the hook has no message for. The code in the brackets is the cause. Look it up in this file or in the Firebase Auth error reference.
+
 ### An unexpected SMS bill
 
 The SMS region policy is still the default, which allows every country on earth.
