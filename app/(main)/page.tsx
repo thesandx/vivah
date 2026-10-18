@@ -21,7 +21,7 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
-import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
+import { BUSINESS, PRICE_FROM_RUPEES, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
@@ -138,7 +138,11 @@ export default function HomePage() {
             </h1>
             <p className="text-heading text-ink-soft max-w-prose font-normal">
               Get your personal wedding site and send personalised digital invites to friends and
-              family.
+              family at{' '}
+              <span className="decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
+                just ₹{PRICE_FROM_RUPEES.toLocaleString('en-IN')}
+              </span>
+              .
             </p>
           </div>
 

@@ -21,6 +21,11 @@ describe('HomePage', () => {
     ).toBeInTheDocument();
   });
 
+  it('names the price under the headline', () => {
+    render(<HomePage />);
+    expect(screen.getByText('just ₹499')).toBeInTheDocument();
+  });
+
   it('offers a WhatsApp chat with a first message', () => {
     render(<HomePage />);
     expect(screen.getByRole('link', { name: 'Ask us on WhatsApp' })).toHaveAttribute(
