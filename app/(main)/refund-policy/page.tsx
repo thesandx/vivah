@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 
 import { PolicyPage } from '@/components/legal/PolicyPage';
 import { SupportContacts } from '@/components/legal/SupportContacts';
-import { REFUND_WINDOW_DAYS } from '@/lib/business';
 
 /** `GET /refund-policy` — refunds and cancellation, from the PRD's draft. */
 
@@ -16,17 +15,10 @@ export const metadata: Metadata = {
 const CASES: ReadonlyArray<{ situation: string; refund: string }> = [
   { situation: 'Charged twice, or charged but no invite link received', refund: 'Full refund' },
   {
-    situation: `Paid, but you have not shared the invite or sent any guest link, within ${REFUND_WINDOW_DAYS} days of payment`,
-    refund: 'Full refund on request (cancellation)',
-  },
-  {
     situation: 'Our site was down or broken and you could not use the invite in time',
     refund: 'Full refund',
   },
-  {
-    situation: 'Invite shared or guest links sent, and you changed your mind',
-    refund: 'No refund',
-  },
+  { situation: 'You paid, then changed your mind', refund: 'No refund' },
   {
     situation: 'Wedding postponed or cancelled',
     refund: 'No refund; we change the date for you, free, once',
@@ -40,8 +32,8 @@ export default function RefundPolicyPage() {
       title="Refund and cancellation policy"
       summary={
         <p>
-          You see your invite before you pay, so we do not refund a change of mind once you have
-          shared it. If something goes wrong on our side, you get your money back.
+          You see your invite before you pay, so we do not refund a change of mind. If something
+          goes wrong on our side, you get your money back.
         </p>
       }
     >
