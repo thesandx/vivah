@@ -18,6 +18,12 @@
 /** The sample's address: `riya-arjun.vivah.online`. */
 export const SAMPLE_SLUG = 'riya-arjun';
 
+/**
+ * The guest the home page's link greets: `riya-arjun.vivah.online/Kartheek`.
+ * A visitor sees what a guest sees, with a name on the card.
+ */
+export const SAMPLE_GUEST = 'Kartheek';
+
 /** The sample's wedding day is the next 7 December at least this many days away. */
 const MIN_DAYS_AHEAD = 30;
 const DAY_MS = 24 * 60 * 60 * 1000;

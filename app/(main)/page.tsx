@@ -24,7 +24,7 @@ import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
-import { SAMPLE_SLUG } from '@/lib/sample-invite';
+import { SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
 import {
   faqPageSchema,
   organizationSchema,
@@ -143,7 +143,7 @@ export default function HomePage() {
             {/* The sample couple's site (`lib/sample-invite.ts`), in a new tab so
               the visitor comes back to the form. */}
             <a
-              href={inviteHref(SAMPLE_SLUG, env.rootDomain)}
+              href={`${inviteHref(SAMPLE_SLUG, env.rootDomain)}/${SAMPLE_GUEST}`}
               target="_blank"
               rel="noopener"
               className={buttonStyles({ variant: 'secondary', className: 'self-start' })}
