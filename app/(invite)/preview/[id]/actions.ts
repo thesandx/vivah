@@ -95,7 +95,10 @@ async function pay(leadId: string, slug: string): Promise<PublishActionResult> {
     }
   } catch (error) {
     logger.error('Starting a payment failed', error, { leadId });
-    return { ok: false, message: 'Payment did not start. Check your connection and try again.' };
+    return {
+      ok: false,
+      message: `Payment did not start. Try again in a minute, or message us on WhatsApp.`,
+    };
   }
 }
 

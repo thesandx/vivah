@@ -181,14 +181,17 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   return [alert, forCouple, notice.phoneE164];
 }
 
-/** Tells the team about a payment, one message after another. Best effort: never throws. */
-export async function notifyPayment(notice: PaymentNotice): Promise<boolean> {
+/** Sends messages one after another. Best effort: never throws. */
+async function sendAll(
+  texts: readonly string[],
+  context: Record<string, string>,
+): Promise<boolean> {
   if (!env.telegram.enabled) return false;
   // The token is part of the URL, so the URL is never logged.
   const url = `https://api.telegram.org/bot${env.telegram.botToken}/sendMessage`;
   const signal = AbortSignal.timeout(TIMEOUT_MS);
   try {
-    for (const text of paymentMessages(notice)) {
+    for (const text of texts) {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -201,7 +204,7 @@ export async function notifyPayment(notice: PaymentNotice): Promise<boolean> {
       });
       if (!response.ok) {
         logger.error('Telegram refused the payment notice', undefined, {
-          paymentId: notice.paymentId,
+          ...context,
           status: response.status,
         });
         return false;
@@ -209,7 +212,40 @@ export async function notifyPayment(notice: PaymentNotice): Promise<boolean> {
     }
     return true;
   } catch (error) {
-    logger.error('Sending the payment notice failed', error, { paymentId: notice.paymentId });
+    logger.error('Sending the payment notice failed', error, context);
     return false;
   }
+}
+
+/** Tells the team about a payment, one message after another. Best effort: never throws. */
+export function notifyPayment(notice: PaymentNotice): Promise<boolean> {
+  return sendAll(paymentMessages(notice), { paymentId: notice.paymentId });
+}
+
+export interface PaymentFailureNotice {
+  paymentId: string;
+  leadId: string;
+  /** Which Cashfree account refused: `sandbox` or `production`. */
+  environment: string;
+  /** Why, as Cashfree said it. Cut short; it never carries the key. */
+  detail: string;
+}
+
+/**
+ * The alert when a payment does not start. The team reads Cashfree's own
+ * reason here, with no access to the logs (Sandeep, 2026-10-18).
+ */
+export function paymentFailureMessage(notice: PaymentFailureNotice): string {
+  const origin = siteOrigin(env.rootDomain, env.appUrl);
+  return [
+    `⚠️ A couple pressed Pay, but the payment did not start (Cashfree ${notice.environment}).`,
+    `Reason: ${notice.detail.slice(0, 400)}`,
+    `Admin: ${origin}/admin/previews/${notice.leadId}`,
+    `Payment: ${notice.paymentId}`,
+  ].join('\n');
+}
+
+/** Tells the team that a payment did not start. Best effort: never throws. */
+export function notifyPaymentFailure(notice: PaymentFailureNotice): Promise<boolean> {
+  return sendAll([paymentFailureMessage(notice)], { paymentId: notice.paymentId });
 }

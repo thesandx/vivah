@@ -17,8 +17,14 @@ vi.mock('@/lib/env', () => ({
 const logged = { info: vi.fn(), error: vi.fn() };
 vi.mock('@/lib/logger', () => ({ logger: logged }));
 
-const { newLeadMessages, notifyNewLead, notifyPayment, paymentMessages } =
-  await import('./telegram.service');
+const {
+  newLeadMessages,
+  notifyNewLead,
+  notifyPayment,
+  notifyPaymentFailure,
+  paymentFailureMessage,
+  paymentMessages,
+} = await import('./telegram.service');
 
 const NOTICE = {
   leadId: 'AbCdEfGhIjKlMnOpQrSt',
@@ -150,6 +156,24 @@ describe('payment notices', () => {
     telegram.enabled = true;
     fetchMock.mockRejectedValueOnce(new Error('offline'));
     expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
+  });
+
+  it('names the Cashfree reason when a payment does not start', async () => {
+    const failure = {
+      paymentId: PAYMENT.paymentId,
+      leadId: PAYMENT.leadId,
+      environment: 'production',
+      detail: 'Cashfree creating a payment link failed (401): authentication Failed',
+    };
+    const text = paymentFailureMessage(failure);
+    expect(text).toContain('Cashfree production');
+    expect(text).toContain('authentication Failed');
+    expect(text).toContain('https://vivah.online/admin/previews/AbCdEfGhIjKlMnOpQrSt');
+
+    fetchMock.mockResolvedValue(new Response('{}'));
+    fetchMock.mockClear();
+    expect(await notifyPaymentFailure(failure)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('never logs the number', async () => {
