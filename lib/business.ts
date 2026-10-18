@@ -57,12 +57,6 @@ export const PAPER_CARDS = {
   readyIn: '2 to 4 weeks',
 } as const;
 
-/**
- * The days after payment in which a couple who has not shared the invite yet
- * gets a full refund on request. The refund policy reads it.
- */
-export const REFUND_WINDOW_DAYS = 7;
-
 /** The payment provider the banner names once payment is live. */
 export const PAYMENT_PROVIDER = 'Cashfree';
 
