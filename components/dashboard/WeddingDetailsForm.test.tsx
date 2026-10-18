@@ -27,6 +27,16 @@ describe('WeddingDetailsForm', () => {
     expect(screen.getByLabelText('Venue name')).toHaveValue('');
   });
 
+  it('tidies a name the moment its field loses focus', () => {
+    render(
+      <WeddingDetailsForm initial={INITIAL} save={vi.fn()} inviteHref="/site/a" startEditing />,
+    );
+    const groom = screen.getByLabelText("Groom's name");
+    fireEvent.change(groom, { target: { value: 'SANDEEP kumar' } });
+    fireEvent.blur(groom);
+    expect(groom).toHaveValue('Sandeep Kumar');
+  });
+
   it('goes back to the text on Cancel', () => {
     render(
       <WeddingDetailsForm initial={INITIAL} save={vi.fn()} inviteHref="/site/a" startEditing />,

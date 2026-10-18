@@ -85,6 +85,19 @@ describe('LeadForm', () => {
     vi.restoreAllMocks();
   });
 
+  it('tidies each name the moment its field loses focus', () => {
+    render(<LeadForm />);
+    const bride = screen.getByLabelText("Bride's name");
+    const groom = screen.getByLabelText("Groom's name");
+    fireEvent.change(bride, { target: { value: 'RIYA sharma' } });
+    expect(bride).toHaveValue('RIYA sharma');
+    fireEvent.blur(bride);
+    expect(bride).toHaveValue('Riya Sharma');
+    fireEvent.change(groom, { target: { value: 'arjun' } });
+    fireEvent.blur(groom);
+    expect(groom).toHaveValue('Arjun');
+  });
+
   it('wakes the first button only when both names are there, and joins them', () => {
     render(<LeadForm />);
     const begin = screen.getByRole('button', { name: 'Begin our story' });
