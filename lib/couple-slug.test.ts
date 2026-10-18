@@ -5,6 +5,7 @@ import {
   isValidCoupleSlug,
   MAX_SLUG_LENGTH,
   slugCandidates,
+  slugifyFirstName,
   slugifyName,
   slugProblem,
   withSuffix,
@@ -27,6 +28,20 @@ describe('slugifyName', () => {
     const slug = slugifyName('Raadha Rani Kumari Sharma Verma');
     expect(slug.length).toBeLessThanOrEqual(18);
     expect(slug.endsWith('-')).toBe(false);
+  });
+});
+
+describe('slugifyFirstName', () => {
+  it('keeps the first word only', () => {
+    expect(slugifyFirstName('  Sandeep Kumar Jha ')).toBe('sandeep');
+  });
+
+  it('skips a leading word with no ASCII form', () => {
+    expect(slugifyFirstName('राधा Rani')).toBe('rani');
+  });
+
+  it('returns an empty string when no word has an ASCII form', () => {
+    expect(slugifyFirstName('राधा')).toBe('');
   });
 });
 
@@ -95,6 +110,18 @@ describe('slugCandidates', () => {
       'radha-shyam-7',
       'radha-shyam-8',
       'radha-shyam-9',
+    ]);
+  });
+
+  it('uses only the first name of a full name', () => {
+    expect(slugCandidates('Anushka Kumari', 'Sandeep Kumar Jha').slice(0, 7)).toEqual([
+      'anushka-sandeep',
+      'sandeep-anushka',
+      'anushka-weds-sandeep',
+      'sandeep-weds-anushka',
+      'anushka-and-sandeep',
+      'sandeep-and-anushka',
+      'anushka-sandeep-2',
     ]);
   });
 
