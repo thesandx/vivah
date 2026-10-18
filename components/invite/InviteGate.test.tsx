@@ -18,11 +18,13 @@ describe('InviteGate', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.stubGlobal('matchMedia', () => ({ matches: false }));
+    vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it('greets the guest by name over the Ganesh card', () => {
@@ -100,5 +102,43 @@ describe('InviteGate', () => {
       vi.advanceTimersByTime(1500);
     });
     expect(screen.getByText('Make it ours')).toBeInTheDocument();
+  });
+
+  it('holds the page still behind the card, and frees it once open', () => {
+    renderGate();
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    const move = new Event('touchmove', { cancelable: true });
+    document.dispatchEvent(move);
+    expect(move.defaultPrevented).toBe(true);
+
+    fireEvent.click(screen.getByRole('button', { name: /tap to open/i }));
+    expect(window.scrollTo).toHaveBeenLastCalledWith(0, 0);
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(document.documentElement.style.overflow).toBe('');
+    const after = new Event('touchmove', { cancelable: true });
+    document.dispatchEvent(after);
+    expect(after.defaultPrevented).toBe(false);
+  });
+
+  it('opens on a swipe up, and not on a short drag', () => {
+    renderGate();
+    const gate = screen.getByRole('button', { name: /tap to open/i });
+    fireEvent.pointerDown(gate, { clientY: 500 });
+    fireEvent.pointerMove(gate, { clientY: 480 });
+    fireEvent.pointerUp(gate, { clientY: 480 });
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(screen.getByText('Hi Kartheek')).toBeInTheDocument();
+
+    fireEvent.pointerDown(gate, { clientY: 500 });
+    fireEvent.pointerMove(gate, { clientY: 400 });
+    fireEvent.pointerUp(gate, { clientY: 400 });
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(screen.queryByText('Hi Kartheek')).not.toBeInTheDocument();
   });
 });
