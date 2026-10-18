@@ -10,7 +10,7 @@ import { siteOrigin } from '@/lib/seo';
 import { CashfreeError, createPaymentLink, getPaymentLink } from '@/services/cashfree.service';
 import { type LeadDocument, leads } from '@/services/lead.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
-import { notifyPayment } from '@/services/telegram.service';
+import { notifyPayment, notifyPaymentFailure } from '@/services/telegram.service';
 import {
   checkSlug,
   slugClaimId,
@@ -163,6 +163,12 @@ export async function startPayment(
     return { state: 'redirect', url: link.link_url };
   } catch (error) {
     await payments.update(paymentId, { status: 'failed' });
+    await notifyPaymentFailure({
+      paymentId,
+      leadId,
+      environment: env.cashfree.environment,
+      detail: error instanceof Error ? error.message : 'Unknown error',
+    });
     throw error;
   }
 }
