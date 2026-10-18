@@ -1,3 +1,5 @@
+import { isSampleSlug } from '@/lib/sample-invite';
+
 /**
  * Couple slugs: the first label of an invite host, e.g. `raadha-shyam` in
  * `raadha-shyam.vivah.online`. Pure, so it is tested without Firestore.
@@ -34,6 +36,11 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   'support',
   'www',
 ]);
+
+/** True when no couple can take `slug`: the product's own labels and the sample invite. */
+function isKeptForVivah(slug: string): boolean {
+  return RESERVED_SLUGS.has(slug) || isSampleSlug(slug);
+}
 
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 
@@ -134,7 +141,9 @@ export function slugCandidates(bride: string, groom: string): string[] {
   const numbered = Array.from({ length: MAX_SUFFIX - 1 }, (_, index) =>
     withSuffix(base, index + 2),
   );
-  return [...new Set([...ordered, ...numbered])].filter(isValidCoupleSlug);
+  return [...new Set([...ordered, ...numbered])].filter(
+    (slug) => isValidCoupleSlug(slug) && !isSampleSlug(slug),
+  );
 }
 
 /**
@@ -147,6 +156,6 @@ export function slugProblem(slug: string): string | null {
   if (!SLUG_PATTERN.test(slug) || slug.includes('--')) {
     return 'Use lowercase letters, numbers and single hyphens. Start and end with a letter or number.';
   }
-  if (RESERVED_SLUGS.has(slug)) return 'This address is kept for Vivah. Choose another.';
+  if (isKeptForVivah(slug)) return 'This address is kept for Vivah. Choose another.';
   return null;
 }

@@ -7,6 +7,7 @@ import { parseGuestName } from '@/lib/guest-name';
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from '@/lib/invite-meta';
 import { drawableInLatinFonts, INVITE_PALETTE } from '@/lib/invite-palette';
 import { logger } from '@/lib/logger';
+import { isSampleSlug, sampleWedding } from '@/lib/sample-invite';
 import { formatWeddingDate } from '@/lib/wedding-date';
 import { getWeddingBySlug } from '@/services/wedding.service';
 
@@ -87,9 +88,11 @@ export async function GET(
 ): Promise<Response> {
   const { slug } = await params;
   try {
-    const wedding = await getWeddingBySlug(slug);
+    // The sample invite has no document; a real wedding at its address wins.
+    const wedding =
+      (await getWeddingBySlug(slug)) ?? (isSampleSlug(slug) ? sampleWedding(new Date()) : null);
     // An unavailable invite shows no names in a link preview either.
-    if (wedding === null || wedding.status === 'unavailable') {
+    if (wedding === null || ('status' in wedding && wedding.status === 'unavailable')) {
       return new Response('Not found', { status: 404 });
     }
 

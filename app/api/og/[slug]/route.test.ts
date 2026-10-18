@@ -58,6 +58,12 @@ describe('GET /api/og/<slug>', () => {
     expect((await get('anushka')).status).toBe(404);
   });
 
+  it('draws the sample invite, which has no wedding document', async () => {
+    getWeddingBySlug.mockResolvedValue(null);
+    expect((await get('riya-arjun')).status).toBe(200);
+    expect((await get('anushka')).status).toBe(404);
+  });
+
   it('answers 500 when the wedding cannot be read', async () => {
     getWeddingBySlug.mockRejectedValue(new Error('Firestore'));
     expect((await get('anushka')).status).toBe(500);

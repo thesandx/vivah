@@ -133,6 +133,11 @@ describe('slugCandidates', () => {
     expect(slugCandidates('राधा', 'श्याम')).toEqual([]);
   });
 
+  it('never suggests the sample invite address', () => {
+    expect(slugCandidates('Riya', 'Arjun')).not.toContain('riya-arjun');
+    expect(slugCandidates('Riya', 'Arjun')[0]).toBe('arjun-riya');
+  });
+
   it('returns only valid slugs', () => {
     expect(slugCandidates('A'.repeat(18), 'B'.repeat(18)).every(isValidCoupleSlug)).toBe(true);
   });
@@ -151,6 +156,7 @@ describe('slugProblem', () => {
     ['radha--shyam', 'lowercase'],
     ['radha.shyam', 'lowercase'],
     ['www', 'kept for Vivah'],
+    ['riya-arjun', 'kept for Vivah'],
   ])('refuses %s', (slug, message) => {
     expect(slugProblem(slug)).toContain(message);
   });
