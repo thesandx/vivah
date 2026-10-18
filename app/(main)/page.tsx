@@ -24,6 +24,7 @@ import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
+import { SAMPLE_SLUG } from '@/lib/sample-invite';
 import {
   faqPageSchema,
   organizationSchema,
@@ -31,6 +32,7 @@ import {
   siteOrigin,
   webApplicationSchema,
 } from '@/lib/seo';
+import { inviteHref } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
 
 /**
@@ -138,6 +140,16 @@ export default function HomePage() {
               Get your personal wedding site and send personalised digital invites to friends and
               family.
             </p>
+            {/* The sample couple's site (`lib/sample-invite.ts`), in a new tab so
+              the visitor comes back to the form. */}
+            <a
+              href={inviteHref(SAMPLE_SLUG, env.rootDomain)}
+              target="_blank"
+              rel="noopener"
+              className={buttonStyles({ variant: 'secondary', className: 'self-start' })}
+            >
+              See a real invite
+            </a>
           </div>
 
           <div
