@@ -55,6 +55,20 @@ export function slugifyName(name: string): string {
     .replace(/-+$/g, '');
 }
 
+/**
+ * The first name of a typed name, as a slug part: `Anushka Kumari` →
+ * `anushka`. Couples often type a full name, and a link built from two full
+ * names is long and hard to share, so suggestions use first names only. A
+ * leading word with no ASCII form is skipped, so `राधा Rani` gives `rani`.
+ */
+export function slugifyFirstName(name: string): string {
+  for (const word of name.trim().split(/\s+/)) {
+    const part = slugifyName(word);
+    if (part !== '') return part;
+  }
+  return '';
+}
+
 /** True when `slug` is a usable couple slug: valid shape and not reserved. */
 export function isValidCoupleSlug(slug: string): boolean {
   return (
@@ -93,10 +107,13 @@ const MAX_SUFFIX = 9;
  * `shyam-and-radha`, then `radha-shyam-2` to `-9`. Invalid and duplicate
  * forms are dropped. The preview page offers the first ones that are free, so
  * a couple never sees a suggestion they cannot have.
+ *
+ * Only first names are used: `Anushka Kumari` and `Sandeep Kumar Jha` give
+ * `anushka-sandeep`, never `anushka-kumari-sandeep-kumar-jha`.
  */
 export function slugCandidates(bride: string, groom: string): string[] {
-  const b = slugifyName(bride);
-  const g = slugifyName(groom);
+  const b = slugifyFirstName(bride);
+  const g = slugifyFirstName(groom);
   const pairs =
     b !== '' && g !== ''
       ? [
