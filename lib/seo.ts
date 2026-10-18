@@ -84,6 +84,15 @@ export const PRODUCT_FAQS: readonly Faq[] = [
     question: 'How much does it cost?',
     answer: `From ₹${PRICE_FROM_RUPEES}, paid once. There is no charge per guest, and you see a free preview before you pay.`,
   },
+  {
+    question: 'Why doesn’t my invite link show a picture on WhatsApp?',
+    answer:
+      'WhatsApp has a setting called “Disable link previews”, on Android and on iPhone. When it is on, every link shows as plain text with no picture. The link still works, and your guest sees the full invite when they tap it. On Android, tap ⋮ > Settings > Privacy > Advanced. On iPhone, tap Settings or your profile picture, then Privacy > Advanced. Turn off “Disable link previews”, then send the link again.',
+    link: {
+      href: 'https://faq.whatsapp.com/445453537819972/',
+      label: 'WhatsApp Help: turn link previews on or off',
+    },
+  },
 ];
 
 /**
@@ -207,6 +216,8 @@ export function robotsFor(host: string, rootDomain: string, origin: string): Met
 export interface Faq {
   question: string;
   answer: string;
+  /** A page that says more, shown under the answer. */
+  link?: { href: string; label: string };
 }
 
 /** schema.org `FAQPage`. The questions and answers must also show on the page. */
@@ -217,7 +228,10 @@ export function faqPageSchema(faqs: readonly Faq[]): Record<string, unknown> {
     mainEntity: faqs.map((faq) => ({
       '@type': 'Question',
       name: faq.question,
-      acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.link === undefined ? faq.answer : `${faq.answer} ${faq.link.href}`,
+      },
     })),
   };
 }
