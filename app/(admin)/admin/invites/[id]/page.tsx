@@ -65,7 +65,8 @@ export default async function AdminInvitePage({
   const address = inviteHostLabel(wedding.slug, env.rootDomain);
   const link =
     env.rootDomain === '' ? inviteHref(wedding.slug, '') : inviteUrl(wedding.slug, env.rootDomain);
-  const message = `Hi ${wedding.bride} & ${wedding.groom}, your wedding invite is live at ${link} . Share it with your guests on WhatsApp.`;
+  // The link goes last, so WhatsApp shows its preview (see the previews page).
+  const message = `Hi ${wedding.bride} & ${wedding.groom}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
   const deleted = wedding.deletedAt !== null;
   const restore = deleted ? await restoreChoice(wedding) : null;
 
