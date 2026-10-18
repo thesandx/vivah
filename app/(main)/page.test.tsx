@@ -21,12 +21,31 @@ describe('HomePage', () => {
     ).toBeInTheDocument();
   });
 
+  it('names the price under the headline', () => {
+    render(<HomePage />);
+    expect(screen.getByText('just ₹499')).toBeInTheDocument();
+  });
+
   it('offers a WhatsApp chat with a first message', () => {
     render(<HomePage />);
     expect(screen.getByRole('link', { name: 'Ask us on WhatsApp' })).toHaveAttribute(
       'href',
       'https://wa.me/919546342507?text=Hi',
     );
+  });
+
+  it('links the sample invite from the closing call to action, before WhatsApp', () => {
+    render(<HomePage />);
+    const cta = screen.getByRole('heading', { name: 'Your love story deserves its own website' })
+      .parentElement as HTMLElement;
+    const links = within(cta).getAllByRole('link');
+    const sample = within(cta).getByRole('link', { name: 'See a real invite' });
+    expect(sample).toHaveAttribute('target', '_blank');
+    expect(links.indexOf(sample)).toBe(
+      links.indexOf(within(cta).getByRole('link', { name: /Ask us on WhatsApp/ })) - 1,
+    );
+    const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement;
+    expect(within(hero).queryByRole('link', { name: 'See a real invite' })).toBeNull();
   });
 
   it('starts the funnel with the two names', () => {
