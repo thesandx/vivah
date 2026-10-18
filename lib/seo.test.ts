@@ -5,6 +5,7 @@ import {
   breadcrumbSchema,
   faqPageSchema,
   formatUpdated,
+  isLinkPreviewAgent,
   MARKETING_PAGES,
   organizationSchema,
   PRODUCT_FAQS,
@@ -133,5 +134,19 @@ describe('whatsAppShareUrl', () => {
 describe('formatUpdated', () => {
   it('writes the date as people in India read it', () => {
     expect(formatUpdated('2026-10-14')).toBe('14 October 2026');
+  });
+});
+
+describe('isLinkPreviewAgent', () => {
+  it('knows the WhatsApp app and Facebook crawler', () => {
+    expect(isLinkPreviewAgent('WhatsApp/2.23.20.0 A')).toBe(true);
+    expect(isLinkPreviewAgent('facebookexternalhit/1.1')).toBe(true);
+  });
+
+  it('treats a phone browser as a person', () => {
+    expect(
+      isLinkPreviewAgent('Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/129 Mobile'),
+    ).toBe(false);
+    expect(isLinkPreviewAgent(null)).toBe(false);
   });
 });

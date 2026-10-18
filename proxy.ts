@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { isValidCoupleSlug } from '@/lib/couple-slug';
 import { env } from '@/lib/env';
+import { isLinkPreviewAgent } from '@/lib/seo';
 import { inviteUrl, resolveSiteSurface } from '@/lib/site-host';
 
 /**
@@ -10,6 +11,7 @@ import { inviteUrl, resolveSiteSurface } from '@/lib/site-host';
  *
  *   raadha-shyam.vivah.online/          → rewrite to /site/raadha-shyam
  *   raadha-shyam.vivah.online/Kartheek  → rewrite to /site/raadha-shyam/Kartheek
+ *   the same, from WhatsApp's fetcher   → rewrite to /api/share/raadha-shyam/Kartheek
  *   vivah.online/site/raadha-shyam      → redirect to raadha-shyam.vivah.online
  *   vivah.online/site/raadha-shyam/K    → redirect to raadha-shyam.vivah.online/K
  *   everything else                   → unchanged
@@ -30,7 +32,10 @@ export function proxy(request: NextRequest): NextResponse {
     // `_` is not a valid slug, so the invite page answers 404 without a read.
     const slug = surface.slug === '' ? '_' : surface.slug;
     const target = request.nextUrl.clone();
-    target.pathname = `/site/${slug}${pathname === '/' ? '' : pathname}`;
+    // WhatsApp and Facebook get the small link-preview page instead: the real
+    // page's Open Graph tags sit too far down for WhatsApp on Android to read.
+    const base = isLinkPreviewAgent(request.headers.get('user-agent')) ? '/api/share' : '/site';
+    target.pathname = `${base}/${slug}${pathname === '/' ? '' : pathname}`;
     return NextResponse.rewrite(target);
   }
 

@@ -56,7 +56,9 @@ export default async function AdminPreviewPage({
   const state = leadState(lead, now);
   const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
   const link = `${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`;
-  const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview: ${link} . It stays open for 30 minutes from when you open it, so please complete payment within that time.`;
+  // The link goes last: WhatsApp on Android shows no link preview for a
+  // typed-in message whose link is followed by more text.
+  const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview. It stays open for 30 minutes from when you open it, so please complete payment within that time.\n\n${link}`;
 
   return (
     <>
