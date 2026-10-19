@@ -35,7 +35,7 @@ The mark has cuts with fewer ridges for small sizes. Thin ridges blur when they 
 | ------ | ------ | ------------ | -------------------------------------------------- |
 | Large  | 6      | 120px and up | `public/icons/icon-512.png`, `public/og-image.png` |
 | Medium | 4      | 40 to 120px  | `components/layout/BrandMark.tsx`                  |
-| Small  | 3      | Up to 40px   | `app/icon.svg`                                     |
+| Small  | 3      | Up to 40px   | `app/icon.svg`, `app/favicon.ico`                  |
 
 ## Type
 
@@ -48,6 +48,18 @@ The wordmark is "vivah" in Huninn, with ".online" in sindoor at half the size. H
 - Do not change the colours, rotate the mark, stretch it, add a shadow or put it in a box with an outline.
 - Do not swap the two colours. Rose is always on the left, in front.
 - Do not redraw the wordmark in another font.
+
+## The favicon in search results
+
+Google shows the site's icon next to each search result. Its rules decide which files the app serves:
+
+- Google needs a square icon whose size is a multiple of 48px. An SVG alone is not enough for every search surface.
+- `app/favicon.ico` holds 16, 32 and 48px images, from `app-icons/favicon.ico` in the brand kit. It also answers the plain `/favicon.ico` request that crawlers send.
+- `app/icon.png` is the 192px icon, a copy of `public/icons/icon-192.png`. 192 is a multiple of 48.
+- `app/icon.svg` stays for browsers that draw SVG icons sharply.
+- Keep all three in `app/`. Next.js links each one from every page.
+
+Google updates a site's icon slowly, from days to weeks. To ask for a refresh, use URL Inspection on the home page in Search Console, then select **Request indexing**.
 
 ## The invite link preview card
 
