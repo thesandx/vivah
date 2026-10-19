@@ -82,17 +82,21 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getAllByRole('link')).toHaveLength(1);
   });
 
-  it('tells the couple, on their preview, that they can add the venue later', () => {
+  it('shows venue placeholders on the preview, to add after payment', () => {
     render(
       <ShubhVivahInvite
         {...full}
         venueName={null}
         venueCity={null}
         venueMapsUrl={null}
-        venuePendingNote="Add your venue from your dashboard."
+        venuePlaceholder
       />,
     );
-    expect(screen.getByText('Add your venue from your dashboard.')).toBeInTheDocument();
+    expect(screen.getByText('Your venue name')).toBeInTheDocument();
+    expect(screen.getByText('Venue address')).toBeInTheDocument();
+    expect(screen.getByText('City')).toBeInTheDocument();
+    expect(screen.getByText('You can add these after payment.')).toBeInTheDocument();
+    expect(screen.queryByText('Venue to be shared soon')).not.toBeInTheDocument();
   });
 
   it('keeps the RSVP in reach on a phone, unless the page asks it not to', () => {
