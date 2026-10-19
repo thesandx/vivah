@@ -27,7 +27,7 @@
 
   /* Ink — text. Plum, a warm near-black; Phera never uses pure black. */
   --color-ink: #3d1f2e; /* 15:1 on paper */
-  --color-ink-soft: #8a6274; /* secondary text; 5.0:1 on paper, 4.6:1 on sunken */
+  --color-ink-soft: #82596b; /* secondary text; 5.7:1 on paper, 5.2:1 on sunken, 5.0:1 on brand-soft */
   /* Outlines are soft plum, not ink. 2px, so they still read next to Huninn. */
   --color-line: #e6d6dd;
 
@@ -59,6 +59,9 @@
   /* WhatsApp's own green, for the WhatsApp button only. People know it on
      sight, so it stays the same in every theme. */
   --color-whatsapp: #1da851; /* a shade darker than #25d366, so white reaches 3:1 */
+  /* WhatsApp green under white words. White on --color-whatsapp is 3.1:1,
+     enough for an icon but not for text; this is 4.7:1. */
+  --color-whatsapp-deep: #168540;
   --color-plum-night: #2a0d1c; /* the dark cover behind the invite's Ganesh card */
   /* The Shri Ganesh opening card, drawn in code (components/invite/GaneshCover.tsx).
      Bright festival colours, fixed in every theme, as printed card stock is. */

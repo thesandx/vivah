@@ -90,7 +90,7 @@ function WhatsAppShare({ text, name }: { text: string; name: string }) {
       aria-label={`Send ${name}'s link on WhatsApp`}
       className={buttonStyles({
         variant: 'secondary',
-        className: 'bg-whatsapp text-surface border-transparent',
+        className: 'bg-whatsapp-deep text-surface border-transparent',
       })}
     >
       <WhatsAppIcon />
