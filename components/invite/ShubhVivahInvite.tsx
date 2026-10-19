@@ -64,10 +64,12 @@ export interface ShubhVivahInviteProps {
    */
   stickyRsvp?: boolean;
   /**
-   * What the venue card says while there is no venue. The couple's preview
-   * tells them they can add it from their dashboard; guests get the default.
+   * The unpaid preview shows the venue card filled with faint placeholders
+   * ("Your venue name", "Venue address", "City") and one line saying the
+   * couple adds them after payment. The live site leaves it off: guests see
+   * "Venue to be shared soon".
    */
-  venuePendingNote?: string;
+  venuePlaceholder?: boolean;
   className?: string;
 }
 
@@ -198,7 +200,7 @@ export function ShubhVivahInvite({
   madeByUrl,
   editDetailsUrl,
   stickyRsvp = true,
-  venuePendingNote = 'We will add the place and a map here, so you can find your way.',
+  venuePlaceholder = false,
   className,
 }: ShubhVivahInviteProps) {
   const mapsUrl = venueMapsUrl !== null && isGoogleMapsUrl(venueMapsUrl) ? venueMapsUrl : null;
@@ -352,10 +354,21 @@ export function ShubhVivahInvite({
               <span className="jewel-pin">
                 <Icon name="pin" className="size-5" />
               </span>
-              {venueName === null ? (
+              {venueName === null && venuePlaceholder ? (
+                <>
+                  <p className="jewel-venue-name opacity-40">Your venue name</p>
+                  <p className="jewel-venue-loc opacity-60">Venue address</p>
+                  <p className="jewel-venue-loc opacity-60">City</p>
+                  <p className="jewel-lede text-jewel-emerald mt-4">
+                    You can add these after payment.
+                  </p>
+                </>
+              ) : venueName === null ? (
                 <>
                   <p className="jewel-venue-name">Venue to be shared soon</p>
-                  <p className="jewel-venue-loc">{venuePendingNote}</p>
+                  <p className="jewel-venue-loc">
+                    We will add the place and a map here, so you can find your way.
+                  </p>
                 </>
               ) : (
                 <p className="jewel-venue-name">{venueName}</p>
