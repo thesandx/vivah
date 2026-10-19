@@ -122,23 +122,16 @@ describe('InviteGate', () => {
     expect(after.defaultPrevented).toBe(false);
   });
 
-  it('opens on a swipe up, and not on a short drag', () => {
+  it('opens only on a tap, never on a swipe or a wheel', () => {
     renderGate();
     const gate = screen.getByRole('button', { name: /tap to open/i });
     fireEvent.pointerDown(gate, { clientY: 500 });
-    fireEvent.pointerMove(gate, { clientY: 480 });
-    fireEvent.pointerUp(gate, { clientY: 480 });
+    fireEvent.pointerMove(gate, { clientY: 100 });
+    fireEvent.pointerUp(gate, { clientY: 100 });
+    fireEvent.wheel(gate, { deltaY: 400 });
     act(() => {
       vi.advanceTimersByTime(1500);
     });
     expect(screen.getByText('Hi Kartheek')).toBeInTheDocument();
-
-    fireEvent.pointerDown(gate, { clientY: 500 });
-    fireEvent.pointerMove(gate, { clientY: 400 });
-    fireEvent.pointerUp(gate, { clientY: 400 });
-    act(() => {
-      vi.advanceTimersByTime(1500);
-    });
-    expect(screen.queryByText('Hi Kartheek')).not.toBeInTheDocument();
   });
 });
