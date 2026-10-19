@@ -224,7 +224,7 @@ Products with a formal or ceremonial tone (a legal page, a portfolio for employe
 
 The tokens in `@theme` are the Phera palette. `/design` shows them.
 
-- **Colour.** Cream paper, plum ink, a sindoor rose `brand` with white text, and the festival tones. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so white reaches 3:1. `maps` is Google's link blue, for the words on the invite's Google Maps button only.
+- **Colour.** Cream paper, plum ink, a sindoor rose `brand` with white text, and the festival tones. `whatsapp` is a darker WhatsApp green, for the WhatsApp button only, so a white icon reaches 3:1. `whatsapp-deep` is darker again, for white words on WhatsApp green (4.7:1). `maps` is Google's link blue, for the words on the invite's Google Maps button only.
 - **Shadow.** The puff: hard, straight down, in soft plum. The primary button sits on a darker rose puff.
 - **Type.** Huninn for every heading and line of text. `font-script` is the display face here; only the invite theme gives it a real script.
 - **Logo.** `BrandMark`: the "Saath" mark. Two paisleys with fingerprint ridges meet as one heart, in sindoor rose and jamun violet. Its colours are fixed and do not follow the theme. The rules and the master files are in [`docs/brand.md`](../../docs/brand.md).
