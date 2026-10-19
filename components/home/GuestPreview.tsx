@@ -173,7 +173,7 @@ export function GuestPreview({ className }: GuestPreviewProps) {
         className="bg-surface flex-col gap-2"
       >
         <span className="font-script text-heading leading-tight">Will you join us?</span>
-        <span className="bg-whatsapp text-surface rounded-pill text-small flex items-center gap-1.5 px-3 py-1 font-semibold">
+        <span className="bg-whatsapp-deep text-surface rounded-pill text-small flex items-center gap-1.5 px-3 py-1 font-semibold">
           <WhatsAppIcon className="size-4" />
           Reply
         </span>

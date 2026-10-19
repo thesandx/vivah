@@ -92,7 +92,9 @@ function StepCard({ step, active, showProgress, paused, onSelect, onProgressEnd 
           'focus-visible:outline-focus focus-visible:outline-2 focus-visible:outline-offset-2',
           active
             ? 'bg-surface border-line shadow-hard-lg'
-            : 'hover:bg-surface border-transparent opacity-70 hover:opacity-100',
+            : // Not dimmed with opacity: faded words fail the 4.5:1 text
+              // contrast. The raised card marks the active step.
+              'hover:bg-surface border-transparent',
         )}
       >
         <span
