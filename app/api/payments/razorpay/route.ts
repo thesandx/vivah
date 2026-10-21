@@ -2,23 +2,22 @@ import { NextResponse } from 'next/server';
 
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
-import {
-  parseRazorpayWebhook,
-  paymentIdFromReferenceId,
-  razorpaySignatureValid,
-} from '@/lib/razorpay';
+import { parseRazorpayWebhook, paymentIdFromReceipt, razorpaySignatureValid } from '@/lib/razorpay';
 import { completePayment } from '@/services/payment.service';
 
 /**
- * `POST /api/payments/razorpay` — Razorpay's webhook for a payment link.
+ * `POST /api/payments/razorpay` — Razorpay's webhook, for `order.paid`.
  * NO SESSION, on purpose: Razorpay is the caller. ADR-0012.
  *
  *   - The signature is checked first, on the raw body, with the webhook
  *     secret set in Razorpay's dashboard. A request that fails it changes
  *     nothing.
- *   - The body only names the link. Whether it is paid is read back from
+ *   - The body only names the order. Whether it is paid is read back from
  *     Razorpay's API (`completePayment`), so even a valid body for an old
  *     event cannot publish an unpaid invite.
+ *   - The checkout's own answer (`/api/payments/razorpay/confirm`) usually
+ *     settles the payment first. This covers a couple who closes the tab
+ *     before that answer arrives.
  *   - It is safe to repeat. Razorpay retries a failed delivery, so a failure
  *     answers 500 and the next try settles it.
  *
@@ -52,9 +51,9 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   const event = parseRazorpayWebhook(rawBody);
-  const paymentId = event === null ? null : paymentIdFromReferenceId(event.referenceId);
+  const paymentId = event === null ? null : paymentIdFromReceipt(event.receipt);
   if (event === null || paymentId === null) {
-    // Signed by Razorpay, but not a link of ours. Nothing to do; no retry.
+    // Signed by Razorpay, but not an order of ours. Nothing to do; no retry.
     return NextResponse.json({ ok: true, ignored: true });
   }
 

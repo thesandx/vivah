@@ -6,12 +6,12 @@ import { env } from '@/lib/env';
 import { toPaise } from '@/lib/razorpay';
 
 /**
- * Razorpay Payment Links: create one link per payment, and read a link's
- * status. ADR-0012.
+ * Razorpay Orders: create one order per payment, and read an order's status.
+ * The couple pays it in Razorpay's checkout, which opens over the preview
+ * page. ADR-0012.
  *
  * As with Cashfree, the status read is what decides that a couple paid. The
- * webhook and the return from Razorpay's page only tell us WHICH link to
- * read; neither is trusted on its own.
+ * checkout's answer and the webhook only tell us WHICH order to read.
  *
  * Nothing here logs a key or a phone number. Errors carry Razorpay's own
  * message, cut short, which names the problem and never echoes the key.
@@ -19,7 +19,7 @@ import { toPaise } from '@/lib/razorpay';
 
 const API_BASE = 'https://api.razorpay.com/v1';
 
-/** One budget per call. The couple waits on `createPaymentLink`. */
+/** One budget per call. The couple waits on `createOrder`. */
 const TIMEOUT_MS = 8_000;
 
 function headers(): Record<string, string> {
@@ -45,66 +45,48 @@ async function failure(response: Response, what: string): Promise<RazorpayError>
   );
 }
 
-/** Amounts are in paise. */
-const linkSchema = z.object({
+/** Amounts are in paise. `status` is `created`, `attempted` or `paid`. */
+const orderSchema = z.object({
   id: z.string(),
-  short_url: z.string().url(),
   status: z.string(),
-  currency: z.string().optional(),
+  currency: z.string(),
   amount: z.number(),
   amount_paid: z.number().optional(),
-  reference_id: z.string().optional(),
+  receipt: z.string().nullable().optional(),
 });
 
-export type RazorpayLink = z.infer<typeof linkSchema>;
+export type RazorpayOrder = z.infer<typeof orderSchema>;
 
-export interface NewRazorpayLink {
-  /** From `razorpayReferenceId`. */
-  referenceId: string;
+export interface NewRazorpayOrder {
+  /** From `razorpayReceipt`. */
+  receipt: string;
   amountRupees: number;
-  description: string;
-  customerName: string;
-  /** E.164, as Razorpay wants it: country code included. */
-  customerPhone: string;
-  /** Where Razorpay's page sends the couple after paying. Absolute. */
-  callbackUrl: string;
-  /** At least 15 minutes ahead; Razorpay refuses a sooner one. */
-  expiresAt: Date;
   notes: Record<string, string>;
 }
 
-/** Creates a payment link. Throws `RazorpayError` when Razorpay refuses. */
-export async function createPaymentLink(link: NewRazorpayLink): Promise<RazorpayLink> {
-  const response = await fetch(`${API_BASE}/payment_links`, {
+/** Creates an order. Throws `RazorpayError` when Razorpay refuses. */
+export async function createOrder(order: NewRazorpayOrder): Promise<RazorpayOrder> {
+  const response = await fetch(`${API_BASE}/orders`, {
     method: 'POST',
     headers: headers(),
     body: JSON.stringify({
-      amount: toPaise(link.amountRupees),
+      amount: toPaise(order.amountRupees),
       currency: 'INR',
-      accept_partial: false,
-      reference_id: link.referenceId,
-      description: link.description,
-      customer: { name: link.customerName, contact: link.customerPhone },
-      expire_by: Math.floor(link.expiresAt.getTime() / 1000),
-      // We send nothing by SMS or email: the couple is on the page already.
-      notify: { sms: false, email: false },
-      reminder_enable: false,
-      notes: link.notes,
-      callback_url: link.callbackUrl,
-      callback_method: 'get',
+      receipt: order.receipt,
+      notes: order.notes,
     }),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  if (!response.ok) throw await failure(response, 'creating a payment link');
-  return linkSchema.parse(await response.json());
+  if (!response.ok) throw await failure(response, 'creating an order');
+  return orderSchema.parse(await response.json());
 }
 
-/** Reads a payment link's current status by Razorpay's `plink_` id. */
-export async function getPaymentLink(linkId: string): Promise<RazorpayLink> {
-  const response = await fetch(`${API_BASE}/payment_links/${encodeURIComponent(linkId)}`, {
+/** Reads an order's current status by Razorpay's `order_` id. */
+export async function getOrder(orderId: string): Promise<RazorpayOrder> {
+  const response = await fetch(`${API_BASE}/orders/${encodeURIComponent(orderId)}`, {
     headers: headers(),
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
-  if (!response.ok) throw await failure(response, 'reading a payment link');
-  return linkSchema.parse(await response.json());
+  if (!response.ok) throw await failure(response, 'reading an order');
+  return orderSchema.parse(await response.json());
 }

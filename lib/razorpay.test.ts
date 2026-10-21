@@ -4,24 +4,25 @@ import { describe, expect, it } from 'vitest';
 
 import {
   parseRazorpayWebhook,
-  paymentIdFromReferenceId,
-  razorpayReferenceId,
+  paymentIdFromReceipt,
+  razorpayCheckoutSignatureValid,
+  razorpayReceipt,
   razorpaySignatureValid,
   toPaise,
 } from '@/lib/razorpay';
 
 const PAYMENT_ID = 'AbCdEfGhIjKlMnOpQrSt';
 
-describe('razorpayReferenceId', () => {
+describe('razorpayReceipt', () => {
   it('names the payment document, within 40 characters', () => {
-    const id = razorpayReferenceId(PAYMENT_ID);
-    expect(id).toBe(`vivah_${PAYMENT_ID}`);
-    expect(id.length).toBeLessThanOrEqual(40);
-    expect(paymentIdFromReferenceId(id)).toBe(PAYMENT_ID);
+    const receipt = razorpayReceipt(PAYMENT_ID);
+    expect(receipt).toBe(`vivah_${PAYMENT_ID}`);
+    expect(receipt.length).toBeLessThanOrEqual(40);
+    expect(paymentIdFromReceipt(receipt)).toBe(PAYMENT_ID);
   });
 
-  it('ignores a reference that is not ours', () => {
-    expect(paymentIdFromReferenceId('order_123')).toBeNull();
+  it('ignores a receipt that is not ours', () => {
+    expect(paymentIdFromReceipt('rcpt_123')).toBeNull();
   });
 });
 
@@ -36,9 +37,25 @@ describe('toPaise', () => {
   });
 });
 
+describe('razorpayCheckoutSignatureValid', () => {
+  const secret = 'key_secret';
+  const signed = createHmac('sha256', secret).update('order_1|pay_1').digest('hex');
+
+  it('accepts the hex HMAC of "order id|payment id"', () => {
+    expect(razorpayCheckoutSignatureValid('order_1', 'pay_1', signed, secret)).toBe(true);
+  });
+
+  it('refuses another order, another payment or another secret', () => {
+    expect(razorpayCheckoutSignatureValid('order_2', 'pay_1', signed, secret)).toBe(false);
+    expect(razorpayCheckoutSignatureValid('order_1', 'pay_2', signed, secret)).toBe(false);
+    expect(razorpayCheckoutSignatureValid('order_1', 'pay_1', signed, 'other')).toBe(false);
+    expect(razorpayCheckoutSignatureValid('order_1', 'pay_1', 'not-hex', secret)).toBe(false);
+  });
+});
+
 describe('razorpaySignatureValid', () => {
   const secret = 'whsec_test';
-  const body = '{"event":"payment_link.paid"}';
+  const body = '{"event":"order.paid"}';
   const signed = createHmac('sha256', secret).update(body).digest('hex');
 
   it('accepts the hex HMAC of the raw body', () => {
@@ -55,31 +72,23 @@ describe('razorpaySignatureValid', () => {
 });
 
 describe('parseRazorpayWebhook', () => {
-  it('reads the reference id and the payment id', () => {
+  it('reads the receipt and the payment id from order.paid', () => {
     const body = JSON.stringify({
-      event: 'payment_link.paid',
+      event: 'order.paid',
       payload: {
-        payment_link: { entity: { id: 'plink_1', reference_id: `vivah_${PAYMENT_ID}` } },
+        order: { entity: { id: 'order_1', receipt: `vivah_${PAYMENT_ID}` } },
         payment: { entity: { id: 'pay_1' } },
       },
     });
     expect(parseRazorpayWebhook(body)).toEqual({
-      referenceId: `vivah_${PAYMENT_ID}`,
+      receipt: `vivah_${PAYMENT_ID}`,
       razorpayPaymentId: 'pay_1',
     });
   });
 
-  it('reads a link event with no payment in it', () => {
-    const body = JSON.stringify({
-      event: 'payment_link.expired',
-      payload: { payment_link: { entity: { reference_id: 'vivah_x' } } },
-    });
-    expect(parseRazorpayWebhook(body)).toEqual({ referenceId: 'vivah_x', razorpayPaymentId: null });
-  });
-
-  it('ignores other events and bodies that are not JSON', () => {
+  it('ignores other events, bodies with no receipt, and bodies that are not JSON', () => {
     expect(parseRazorpayWebhook(JSON.stringify({ event: 'payment.captured' }))).toBeNull();
+    expect(parseRazorpayWebhook(JSON.stringify({ event: 'order.paid', payload: {} }))).toBeNull();
     expect(parseRazorpayWebhook('not json')).toBeNull();
-    expect(parseRazorpayWebhook(JSON.stringify({ event: 'payment_link.paid' }))).toBeNull();
   });
 });

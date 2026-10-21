@@ -10,6 +10,7 @@ import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { inviteHref } from '@/lib/site-host';
 import { paymentMode, startPayment } from '@/services/payment.service';
 import { checkSlug, publishWedding, type SlugAvailability } from '@/services/wedding.service';
+import type { RazorpayCheckout } from '@/types/razorpay-checkout';
 
 /**
  * Server Actions for the preview page: check an address, then publish.
@@ -18,10 +19,10 @@ import { checkSlug, publishWedding, type SlugAvailability } from '@/services/wed
  * is `/preview/<id>`, so the browser sends it only to that path, and an action
  * posts to the page it runs on. A route under `/api/` would never see it.
  *
- * Neither action has a session. With Cashfree configured, the publish
- * action only starts a payment, and the payment publishes (ADR-0011): any
- * browser that can see the preview may pay. Without Cashfree, in development,
- * it publishes free from the bound browser (ADR-0007).
+ * Neither action has a session. With a payment provider configured, the
+ * publish action only starts a payment, and the payment publishes (ADR-0011,
+ * ADR-0012): any browser that can see the preview may pay. Without one, in
+ * development, it publishes free from the bound browser (ADR-0007).
  */
 
 /** The longest input either action reads. Longer than any valid slug. */
@@ -46,6 +47,7 @@ export async function checkSlugAction(slug: unknown): Promise<SlugAvailability> 
 
 export type PublishActionResult =
   | { ok: true; url: string; to?: 'payment' | 'invite' }
+  | { ok: true; checkout: RazorpayCheckout }
   | { ok: false; message: string; taken?: boolean };
 
 /** What the couple reads for each way publishing can fail. */
@@ -59,9 +61,11 @@ const FAILURE: Record<string, string> = {
 };
 
 /**
- * The pay button. Live, it starts a Cashfree payment and answers with the
- * payment page to open; Cashfree's webhook and return publish the invite
- * (ADR-0011). In test mode it publishes at once (ADR-0007).
+ * The pay button. Live with Cashfree, it answers with the payment page to
+ * open; Cashfree's webhook and return publish the invite (ADR-0011). Live
+ * with Razorpay, it answers with an order for the page to open in
+ * Razorpay's checkout (ADR-0012). In test mode it publishes at once
+ * (ADR-0007).
  */
 export async function publishAction(leadId: unknown, slug: unknown): Promise<PublishActionResult> {
   const parsedId = leadIdInput.safeParse(leadId);
@@ -80,6 +84,8 @@ async function pay(leadId: string, slug: string): Promise<PublishActionResult> {
     switch (result.state) {
       case 'redirect':
         return { ok: true, url: result.url, to: 'payment' };
+      case 'checkout':
+        return { ok: true, checkout: result.checkout };
       case 'published':
         // Paid earlier, published now: the same success screen as after paying.
         logger.info('Wedding published', { leadId, slug: result.slug });
@@ -102,7 +108,7 @@ async function pay(leadId: string, slug: string): Promise<PublishActionResult> {
   }
 }
 
-/** Development without Cashfree keys: publish free, from the bound browser only. */
+/** Development without payment keys: publish free, from the bound browser only. */
 async function testPublish(leadId: string, slug: string): Promise<PublishActionResult> {
   try {
     const store = await cookies();

@@ -386,7 +386,7 @@ Grant access before you set `CASHFREE_SECRET_KEY_SECRET`. A deploy that mounts a
 
 ## Razorpay configuration
 
-Razorpay is the second payment provider, through Razorpay Payment Links. `services/razorpay.service.ts` calls Razorpay's API. [ADR-0012](../docs/adr/0012-add-razorpay-as-a-second-payment-provider.md) records the design.
+Razorpay is the second payment provider, through Razorpay Standard Checkout. The checkout opens over the preview page. `services/razorpay.service.ts` calls Razorpay's API. [ADR-0012](../docs/adr/0012-add-razorpay-as-a-second-payment-provider.md) records the design.
 
 | Variable                         | Where it comes from                                         | Secret |
 | -------------------------------- | ----------------------------------------------------------- | ------ |
@@ -404,7 +404,7 @@ Razorpay is on only when the key id and the key secret are both set. The key id'
 To turn Razorpay on:
 
 1. In the Razorpay dashboard, choose Test Mode (or Live Mode), open Account & Settings > API Keys, and generate a key. Download the file.
-2. Open Account & Settings > Webhooks > Add New Webhook. Enter the URL `https://<root domain>/api/payments/razorpay`, type a long random secret, and choose the events `payment_link.paid`, `payment_link.expired` and `payment_link.cancelled`. Test mode and live mode each have their own webhooks.
+2. Open Account & Settings > Webhooks > Add New Webhook. Enter the URL `https://<root domain>/api/payments/razorpay`, type a long random secret, and choose the event `order.paid`. Test mode and live mode each have their own webhooks.
 3. Store both secrets and grant access:
 
 ```bash

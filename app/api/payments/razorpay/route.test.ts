@@ -23,11 +23,9 @@ const { POST } = await import('./route');
 const PAYMENT_ID = 'AbCdEfGhIjKlMnOpQrSt';
 const BODY = JSON.stringify({
   entity: 'event',
-  event: 'payment_link.paid',
+  event: 'order.paid',
   payload: {
-    payment_link: {
-      entity: { id: 'plink_abc', reference_id: `vivah_${PAYMENT_ID}`, status: 'paid' },
-    },
+    order: { entity: { id: 'order_abc', receipt: `vivah_${PAYMENT_ID}`, status: 'paid' } },
     payment: { entity: { id: 'pay_abc', amount: 49900 } },
   },
 });
@@ -52,7 +50,7 @@ beforeEach(() => {
 });
 
 describe('POST /api/payments/razorpay', () => {
-  it('settles a signed event for one of our links', async () => {
+  it('settles a signed event for one of our orders', async () => {
     const response = await POST(webhook(BODY));
     expect(response.status).toBe(200);
     expect(completePayment).toHaveBeenCalledWith(PAYMENT_ID, 'pay_abc');
@@ -64,7 +62,7 @@ describe('POST /api/payments/razorpay', () => {
     expect(completePayment).not.toHaveBeenCalled();
   });
 
-  it('ignores a signed event for a link that is not ours', async () => {
+  it('ignores a signed event for an order that is not ours', async () => {
     const body = BODY.replace(`vivah_${PAYMENT_ID}`, 'order_ps11');
     const response = await POST(webhook(body));
     expect(response.status).toBe(200);

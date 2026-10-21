@@ -43,4 +43,4 @@ Do **not** write one for a routine choice with an obvious answer. An ADR per pul
 | [0009](./0009-open-a-preview-in-two-browsers.md)              | Open a preview in two browsers, then lock it                          | Amended  |
 | [0010](./0010-open-a-preview-to-anyone-for-30-minutes.md)     | Open a preview to anyone with the link, for 30 minutes                | Accepted |
 | [0011](./0011-take-payment-with-cashfree-payment-links.md)    | Take payment with Cashfree Payment Links                              | Amended  |
-| [0012](./0012-add-razorpay-as-a-second-payment-provider.md)   | Add Razorpay Payment Links as a second payment provider               | Accepted |
+| [0012](./0012-add-razorpay-as-a-second-payment-provider.md)   | Add Razorpay Standard Checkout as a second payment provider           | Accepted |

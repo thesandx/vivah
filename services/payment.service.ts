@@ -7,7 +7,7 @@ import { cashfreeCustomerPhone, cashfreeLinkId } from '@/lib/cashfree';
 import { slugProblem } from '@/lib/couple-slug';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
-import { razorpayReferenceId } from '@/lib/razorpay';
+import { razorpayCheckoutSignatureValid, razorpayReceipt } from '@/lib/razorpay';
 import { siteOrigin } from '@/lib/seo';
 import { CashfreeError, createPaymentLink, getPaymentLink } from '@/services/cashfree.service';
 import { type LeadDocument, leads } from '@/services/lead.service';
@@ -21,6 +21,7 @@ import {
   weddingAtSlugQuery,
   writePublish,
 } from '@/services/wedding.service';
+import type { RazorpayCheckout } from '@/types/razorpay-checkout';
 
 /**
  * Payments: one document per payment link, under an auto id. The link id
@@ -66,8 +67,8 @@ export const paymentSchema = z.object({
   linkUrl: z.string().url().optional(),
   /** Cashfree's own id for the link. */
   cfLinkId: z.string().optional(),
-  /** Razorpay's `plink_` id. Its status is read by this id. */
-  razorpayLinkId: z.string().optional(),
+  /** Razorpay's `order_` id. Its status is read by this id. */
+  razorpayOrderId: z.string().optional(),
   /**
    * Cashfree's order id or Razorpay's `pay_` id, from the webhook. For
    * conversions and refunds.
@@ -117,6 +118,8 @@ const LINK_LIFETIME_MS = 60 * 60 * 1000;
 
 export type StartPaymentResult =
   | { state: 'redirect'; url: string }
+  /** Razorpay: the page opens Razorpay's checkout over itself. */
+  | { state: 'checkout'; checkout: RazorpayCheckout }
   | { state: 'published'; slug: string }
   | { state: 'already-published'; slug: string }
   | { state: 'taken' }
@@ -180,8 +183,12 @@ export async function startPayment(
     notes: { lead_id: leadId, slug },
   };
   try {
-    const url =
-      provider === 'razorpay' ? await startRazorpayLink(link) : await startCashfreeLink(link);
+    if (provider === 'razorpay') {
+      const checkout = await startRazorpayOrder(link);
+      logger.info('Payment started', { leadId, paymentId, provider });
+      return { state: 'checkout', checkout };
+    }
+    const url = await startCashfreeLink(link);
     logger.info('Payment started', { leadId, paymentId, provider });
     return { state: 'redirect', url };
   } catch (error) {
@@ -229,26 +236,31 @@ async function startCashfreeLink(request: LinkRequest): Promise<string> {
 }
 
 /**
- * Makes the Razorpay link, records it, and answers its page. The webhook URL
- * is set once in Razorpay's dashboard, not per link.
+ * Makes the Razorpay order, records it, and answers what the page needs to
+ * open Razorpay's checkout. The webhook URL is set once in Razorpay's
+ * dashboard, not per order.
  */
-async function startRazorpayLink(request: LinkRequest): Promise<string> {
-  const link = await razorpay.createPaymentLink({
-    referenceId: razorpayReferenceId(request.paymentId),
+async function startRazorpayOrder(request: LinkRequest): Promise<RazorpayCheckout> {
+  const order = await razorpay.createOrder({
+    receipt: razorpayReceipt(request.paymentId),
     amountRupees: request.amountRupees,
-    description: request.description,
-    customerName: request.customerName,
-    customerPhone: request.phoneE164,
-    callbackUrl: `${request.origin}/api/payments/razorpay/return?payment=${request.paymentId}`,
-    expiresAt: request.expiresAt,
     notes: request.notes,
   });
-  await payments.update(request.paymentId, {
-    linkUrl: link.short_url,
-    razorpayLinkId: link.id,
-  });
-  return link.short_url;
+  await payments.update(request.paymentId, { razorpayOrderId: order.id });
+  return {
+    paymentId: request.paymentId,
+    keyId: env.razorpay.keyId,
+    orderId: order.id,
+    amount: order.amount,
+    currency: 'INR',
+    name: PAYMENT_BRAND,
+    description: request.description,
+    contact: request.phoneE164,
+  };
 }
+
+/** The name Razorpay's checkout shows at its top. */
+const PAYMENT_BRAND = 'Vivah';
 
 /** The couple's fields a payment notice needs. */
 function coupleOf(lead: LeadDocument): { bride: string; groom: string; phoneE164: string } {
@@ -306,24 +318,19 @@ interface LinkStatus {
 
 /** The Cashfree link states that will never become PAID. */
 const CLOSED_CASHFREE_STATES = new Set(['EXPIRED', 'CANCELLED']);
-/** The Razorpay link states that will never become paid. */
-const CLOSED_RAZORPAY_STATES = new Set(['expired', 'cancelled']);
 
 /** Asks the provider that holds the payment's link for its status. */
 async function readLink(paymentId: string, payment: PaymentPayload): Promise<LinkStatus> {
   if (payment.provider === 'razorpay') {
-    if (payment.razorpayLinkId === undefined)
+    // An order never expires or closes: unpaid, it stays open.
+    if (payment.razorpayOrderId === undefined) {
       return { state: 'open', amountPaid: 0, currency: 'INR' };
-    const link = await razorpay.getPaymentLink(payment.razorpayLinkId);
+    }
+    const order = await razorpay.getOrder(payment.razorpayOrderId);
     return {
-      state:
-        link.status === 'paid'
-          ? 'paid'
-          : CLOSED_RAZORPAY_STATES.has(link.status)
-            ? 'closed'
-            : 'open',
-      amountPaid: (link.amount_paid ?? 0) / 100,
-      currency: link.currency ?? 'INR',
+      state: order.status === 'paid' ? 'paid' : 'open',
+      amountPaid: (order.amount_paid ?? 0) / 100,
+      currency: order.currency,
     };
   }
   const link = await getPaymentLink(cashfreeLinkId(paymentId));
@@ -459,6 +466,35 @@ export async function completePayment(
       });
       return { state: 'address-taken', leadId: payment.leadId };
   }
+}
+
+/**
+ * What Razorpay's checkout handed the page after a payment. The signature is
+ * checked first, so a made-up answer costs no call to Razorpay; then the
+ * order's own status settles it, as the webhook would. ADR-0012.
+ */
+export async function confirmRazorpayCheckout(
+  paymentId: string,
+  answer: { orderId: string; razorpayPaymentId: string; signature: string },
+): Promise<CompletePaymentResult | { state: 'bad-signature' }> {
+  const payment = await payments.get(paymentId);
+  if (payment === null || payment.provider !== 'razorpay') return { state: 'not-found' };
+  const signed =
+    payment.razorpayOrderId === answer.orderId &&
+    razorpayCheckoutSignatureValid(
+      answer.orderId,
+      answer.razorpayPaymentId,
+      answer.signature,
+      env.razorpay.keySecret,
+    );
+  if (!signed) {
+    logger.warn('A Razorpay checkout answer failed its signature check', {
+      paymentId,
+      leadId: payment.leadId,
+    });
+    return { state: 'bad-signature' };
+  }
+  return completePayment(paymentId, answer.razorpayPaymentId);
 }
 
 /** The answer for a payment that was settled before this call. */

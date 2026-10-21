@@ -3,24 +3,24 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
 import { cashfreeLinkId, paymentIdFromLinkId } from '@/lib/cashfree';
 
 /**
- * The pure half of the Razorpay integration: the reference id, the amount in
- * paise, the webhook signature and the webhook's payment link. No I/O, so
- * every rule is tested without Razorpay. The HTTP calls live in
+ * The pure half of the Razorpay integration: the order receipt, the amount in
+ * paise, both signatures and the webhook's order. No I/O, so every rule is
+ * tested without Razorpay. The HTTP calls live in
  * `services/razorpay.service.ts`. ADR-0012.
  */
 
 /**
- * The `reference_id` of a payment link: `vivah_<payment id>`, the same id
- * Cashfree gets, so one payment document never has two names. Razorpay allows
- * 40 characters and refuses a repeat; this is 26 and unique per document.
+ * The `receipt` of an order: `vivah_<payment id>`, the same id Cashfree gets,
+ * so one payment document never has two names. Razorpay allows 40
+ * characters; this is 26.
  */
-export function razorpayReferenceId(paymentId: string): string {
+export function razorpayReceipt(paymentId: string): string {
   return cashfreeLinkId(paymentId);
 }
 
-/** The payment document id inside a reference id, or `null` when the link is not ours. */
-export function paymentIdFromReferenceId(referenceId: string): string | null {
-  return paymentIdFromLinkId(referenceId);
+/** The payment document id inside a receipt, or `null` when the order is not ours. */
+export function paymentIdFromReceipt(receipt: string): string | null {
+  return paymentIdFromLinkId(receipt);
 }
 
 /** Rupees to paise, the unit Razorpay counts in. Whole paise only. */
@@ -30,27 +30,43 @@ export function toPaise(rupees: number): number {
   return paise;
 }
 
+/** A constant-time compare of a hex signature with HMAC-SHA256(message, secret). */
+function hexHmacMatches(message: string, signature: string | null, secret: string): boolean {
+  if (signature === null || secret === '' || !/^[0-9a-f]{64}$/i.test(signature)) return false;
+  const expected = createHmac('sha256', secret).update(message).digest();
+  const presented = Buffer.from(signature, 'hex');
+  return presented.length === expected.length && timingSafeEqual(presented, expected);
+}
+
+/**
+ * Checks the signature the checkout hands the page after a payment:
+ * hex(HMAC-SHA256(`<order id>|<payment id>`, key secret)).
+ */
+export function razorpayCheckoutSignatureValid(
+  orderId: string,
+  razorpayPaymentId: string,
+  signature: string,
+  keySecret: string,
+): boolean {
+  return hexHmacMatches(`${orderId}|${razorpayPaymentId}`, signature, keySecret);
+}
+
 /**
  * Checks a webhook's `x-razorpay-signature`: hex(HMAC-SHA256(raw body,
  * webhook secret)). The RAW body, exactly as it arrived; a parsed and
- * re-serialised body does not match. Constant-time.
+ * re-serialised body does not match.
  */
 export function razorpaySignatureValid(
   rawBody: string,
   signature: string | null,
   webhookSecret: string,
 ): boolean {
-  if (signature === null || webhookSecret === '' || !/^[0-9a-f]{64}$/i.test(signature)) {
-    return false;
-  }
-  const expected = createHmac('sha256', webhookSecret).update(rawBody).digest();
-  const presented = Buffer.from(signature, 'hex');
-  return presented.length === expected.length && timingSafeEqual(presented, expected);
+  return hexHmacMatches(rawBody, signature, webhookSecret);
 }
 
-/** What the webhook needs from its body: our reference, and Razorpay's payment id. */
-export interface RazorpayWebhookLink {
-  referenceId: string;
+/** What the webhook needs from its body: our receipt, and Razorpay's payment id. */
+export interface RazorpayWebhookOrder {
+  receipt: string;
   /** Razorpay's `pay_...` id, for the record and for a refund. */
   razorpayPaymentId: string | null;
 }
@@ -71,21 +87,20 @@ function text(value: unknown): string | null {
 }
 
 /**
- * The reference id in a `payment_link.*` event, or `null` for any other body.
+ * The receipt in an `order.paid` event, or `null` for any other body.
  * Nothing else in the body is trusted: the webhook asks Razorpay for the
- * link's status itself.
+ * order's status itself.
  */
-export function parseRazorpayWebhook(rawBody: string): RazorpayWebhookLink | null {
+export function parseRazorpayWebhook(rawBody: string): RazorpayWebhookOrder | null {
   let body: Record<string, unknown> | null;
   try {
     body = record(JSON.parse(rawBody));
   } catch {
     return null;
   }
-  const event = text(body?.event);
-  if (event === null || !event.startsWith('payment_link.')) return null;
-  const payload = record(body?.payload);
-  const referenceId = text(entity(payload, 'payment_link')?.reference_id);
-  if (referenceId === null) return null;
-  return { referenceId, razorpayPaymentId: text(entity(payload, 'payment')?.id) };
+  if (body?.event !== 'order.paid') return null;
+  const payload = record(body.payload);
+  const receipt = text(entity(payload, 'order')?.receipt);
+  if (receipt === null) return null;
+  return { receipt, razorpayPaymentId: text(entity(payload, 'payment')?.id) };
 }

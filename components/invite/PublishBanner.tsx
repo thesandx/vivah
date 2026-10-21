@@ -31,8 +31,8 @@ import { cn } from '@/lib/utils';
  * no limit on guests or on sharing (the product owner's pick, 2026-10-17). No ratings, no couple counts and no refund
  * promise (the product owner removed it, 2026-10-16).
  *
- * `mode` says what the button does. `live`: it opens the payment provider's
- * page (ADR-0011, ADR-0012). `test` (development without payment keys): it publishes free,
+ * `mode` says what the button does. `live`: it opens Cashfree's page
+ * (ADR-0011) or Razorpay's checkout over this page (ADR-0012). `test` (development without payment keys): it publishes free,
  * says "Publish", not "Pay", and a line under it says nothing is charged.
  * `paid`: the couple paid, but their address went to another couple first,
  * so they pick another and publish with nothing more to pay.

@@ -60,33 +60,33 @@ vi.mock('@/services/cashfree.service', () => ({
     }),
 }));
 
-/** Razorpay's link, in paise as Razorpay counts. */
-const plink = { status: 'created', paid: 0 };
-const createdRazorpay: { referenceId: string; callbackUrl: string }[] = [];
+/** Razorpay's order, in paise as Razorpay counts. */
+const order = { status: 'created', paid: 0 };
+const createdOrders: { receipt: string }[] = [];
 vi.mock('@/services/razorpay.service', () => ({
   RazorpayError: class extends Error {},
-  createPaymentLink: (input: { referenceId: string; callbackUrl: string }) => {
-    createdRazorpay.push(input);
+  createOrder: (input: { receipt: string }) => {
+    createdOrders.push(input);
     return Promise.resolve({
-      id: `plink_${input.referenceId}`,
-      short_url: 'https://rzp.io/rzp/x',
+      id: `order_${input.receipt}`,
       status: 'created',
+      currency: 'INR',
       amount: 49_900,
     });
   },
-  getPaymentLink: (id: string) =>
+  getOrder: (id: string) =>
     Promise.resolve({
       id,
-      short_url: 'https://rzp.io/rzp/x',
-      status: plink.status,
+      status: order.status,
       currency: 'INR',
       amount: 49_900,
-      amount_paid: plink.paid,
+      amount_paid: order.paid,
     }),
 }));
 
 const { createLead, leads, openPreviewLink } = await import('@/services/lead.service');
-const { completePayment, payments, startPayment } = await import('@/services/payment.service');
+const { completePayment, confirmRazorpayCheckout, payments, startPayment } =
+  await import('@/services/payment.service');
 const { getWeddingBySlug, publishWedding } = await import('@/services/wedding.service');
 
 const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST ?? '';
@@ -121,8 +121,8 @@ beforeEach(() => {
   active.provider = 'cashfree';
   link.status = 'ACTIVE';
   link.paid = 0;
-  plink.status = 'created';
-  plink.paid = 0;
+  order.status = 'created';
+  order.paid = 0;
 });
 
 describeEmulator('payments (emulator)', () => {
@@ -216,19 +216,29 @@ describeEmulator('payments (emulator)', () => {
     const slug = uniqueSlug('rzp');
     const { id } = await openedLead();
     const result = await startPayment(id, slug, 499);
-    expect(result).toEqual({ state: 'redirect', url: 'https://rzp.io/rzp/x' });
-    const callback = new URL(createdRazorpay.at(-1)?.callbackUrl ?? '');
-    expect(callback.pathname).toBe('/api/payments/razorpay/return');
-    const paymentId = callback.searchParams.get('payment') ?? '';
+    if (result.state !== 'checkout') throw new Error(`Expected a checkout, got ${result.state}`);
+    const { paymentId, orderId, amount } = result.checkout;
+    expect(orderId).toBe(`order_vivah_${paymentId}`);
+    expect(amount).toBe(49_900);
+    expect(createdOrders.at(-1)?.receipt).toBe(`vivah_${paymentId}`);
     expect(await payments.getOrThrow(paymentId)).toMatchObject({
       provider: 'razorpay',
-      razorpayLinkId: `plink_vivah_${paymentId}`,
+      razorpayOrderId: orderId,
     });
+
+    // A made-up checkout answer publishes nothing.
+    expect(
+      await confirmRazorpayCheckout(paymentId, {
+        orderId,
+        razorpayPaymentId: 'pay_1',
+        signature: 'a'.repeat(64),
+      }),
+    ).toEqual({ state: 'bad-signature' });
 
     active.provider = 'cashfree';
     expect((await completePayment(paymentId)).state).toBe('pending');
-    plink.status = 'paid';
-    plink.paid = 49_900;
+    order.status = 'paid';
+    order.paid = 49_900;
     expect(await completePayment(paymentId, 'pay_1')).toEqual({
       state: 'published',
       leadId: id,
