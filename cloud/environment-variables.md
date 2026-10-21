@@ -427,6 +427,22 @@ Grant access before you set the `*_SECRET_SECRET` variables. A deploy that mount
 
 ---
 
+## Invoice configuration
+
+`/admin` gives a paid invite a **Download invoice** link. The link downloads a one-page PDF invoice. `lib/invoice.ts` draws it.
+
+| Variable         | Where it comes from              | Secret |
+| ---------------- | -------------------------------- | ------ |
+| `INVOICE_ISSUER` | GitHub variable of the same name | No     |
+
+`INVOICE_ISSUER` holds the seller's lines on the invoice: the legal name, the address and a registration number. Put `|` between the lines. Do not use commas, because the Cloud Run deploy action splits a value at a comma. For example: `Example Digital Services | 12 Example Road | New Delhi 110001 | UDYAM-DL-00-0000000`.
+
+The value is not a secret. It is a variable and not code because the repository is public. When it is empty, the invoice prints the brand name only.
+
+The seller is not registered under GST, so the invoice has no GSTIN and no tax line. After GST registration, add the GSTIN and the tax lines in `lib/invoice.ts`.
+
+---
+
 ## Platform-injected variables
 
 Cloud Run sets these; do not define them yourself.

@@ -11,6 +11,7 @@ import {
   recordAdminActionIn,
 } from '@/services/admin-audit.service';
 import { type LeadDocument, leads } from '@/services/lead.service';
+import { type PaymentDocument, payments } from '@/services/payment.service';
 import { MAX_PAGE_SIZE, type Repository, type StoredDocument } from '@/services/repository';
 import {
   slugClaimId,
@@ -70,6 +71,21 @@ export async function getWeddingForAdmin(id: string): Promise<WeddingDocument | 
 /** A lead by id, deleted or not. */
 export async function getLeadForAdmin(id: string): Promise<LeadDocument | null> {
   return isDocumentId(id) ? leads.get(id, { includeDeleted: true }) : null;
+}
+
+/**
+ * The payment that paid for a wedding, or `null` when there is none: a
+ * wedding published before payments existed, or in development's free test
+ * mode. The invoice is drawn from this document. Lead → its `paymentId` →
+ * the payment, which must be `paid`.
+ */
+export async function getPaidPaymentForWedding(
+  wedding: Pick<WeddingDocument, 'leadId'>,
+): Promise<PaymentDocument | null> {
+  const lead = await leads.get(wedding.leadId, { includeDeleted: true });
+  if (lead?.paymentId === undefined) return null;
+  const payment = await payments.get(lead.paymentId);
+  return payment?.status === 'paid' && payment.paidAt !== undefined ? payment : null;
 }
 
 /** A Firestore auto id. Checked before a read, so junk never reaches Firestore. */

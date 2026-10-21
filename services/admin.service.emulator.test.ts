@@ -6,6 +6,7 @@ import {
   changeWeddingAddress,
   deleteLead,
   deleteWedding,
+  getPaidPaymentForWedding,
   getWeddingForAdmin,
   listAllWeddings,
   reactivatePreview,
@@ -16,6 +17,7 @@ import {
 } from '@/services/admin.service';
 import { adminAudit } from '@/services/admin-audit.service';
 import { createLead, getPreview, leads, openPreviewLink } from '@/services/lead.service';
+import { payments } from '@/services/payment.service';
 import {
   checkSlug,
   getWeddingBySlug,
@@ -186,5 +188,31 @@ describeEmulator('admin operations (emulator)', () => {
   it('will not reactivate a paid preview', async () => {
     const { leadId } = await published();
     expect((await reactivatePreview(leadId, ADMIN)).ok).toBe(false);
+  });
+
+  it('finds the paid payment behind an invite, for its invoice', async () => {
+    const { weddingId, leadId, slug } = await published();
+    const wedding = await getWeddingForAdmin(weddingId);
+    if (wedding === null) throw new Error('No wedding');
+    // Published free, with no payment: no invoice.
+    expect(await getPaidPaymentForWedding(wedding)).toBeNull();
+
+    const base = {
+      leadId,
+      slug,
+      amountRupees: 499,
+      provider: 'razorpay' as const,
+      environment: 'production' as const,
+    };
+    const open = await payments.create({ ...base, status: 'created' });
+    await leads.update(leadId, { paymentId: open });
+    expect(await getPaidPaymentForWedding(wedding)).toBeNull();
+
+    const paidAt = new Date('2026-10-21T06:00:00Z');
+    const paid = await payments.create({ ...base, status: 'paid', paidAt, amountPaid: 499 });
+    await leads.update(leadId, { paymentId: paid });
+    const payment = await getPaidPaymentForWedding(wedding);
+    expect(payment?.id).toBe(paid);
+    expect(payment?.paidAt).toEqual(paidAt);
   });
 });

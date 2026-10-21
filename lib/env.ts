@@ -307,6 +307,13 @@ function activePaymentProvider(): 'cashfree' | 'razorpay' | null {
   return razorpayEnabled ? 'razorpay' : null;
 }
 
+/**
+ * The seller's lines on the admin's invoice PDF: legal name, address and
+ * registration, separated by `|`. A GitHub variable, not code, because the
+ * repository is public. Empty prints the brand only. See `lib/invoice.ts`.
+ */
+const invoiceIssuer = optional(process.env.INVOICE_ISSUER, '').trim();
+
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
 // Order matters below: the database id and bucket name default to values
@@ -500,6 +507,9 @@ export const env = {
    * `PAYMENT_PROVIDER` and which keys are set. ADR-0012.
    */
   paymentProvider: activePaymentProvider(),
+
+  /** `INVOICE_ISSUER`, raw. `parseIssuerLines` splits it. */
+  invoiceIssuer,
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */
   appVersion: optional(process.env.NEXT_PUBLIC_APP_VERSION, 'dev'),

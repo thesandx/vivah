@@ -308,6 +308,7 @@ jobs:
             CASHFREE_ENV=${{ vars.CASHFREE_ENV || 'sandbox' }}
             RAZORPAY_KEY_ID=${{ vars.RAZORPAY_KEY_ID }}
             PAYMENT_PROVIDER=${{ vars.PAYMENT_PROVIDER || 'auto' }}
+            INVOICE_ISSUER=${{ vars.INVOICE_ISSUER }}
             DEPLOYED_AT=${{ steps.meta.outputs.deployed_at }}
           # The runtime identity goes through `flags`, NOT a `service_account`
           # input. This action has no such input: it accepts one and warns
