@@ -156,11 +156,13 @@ jobs:
         # it. gcloud refuses two --set-secrets flags, and a mount of a secret
         # that does not exist fails the deploy, so an unset variable adds
         # nothing. The variables come in through `env:`, never ${{ }} in the
-        # script. See cloud/environment-variables.md > WhatsApp, Telegram, Cashfree.
+        # script. See cloud/environment-variables.md > WhatsApp, Telegram, Cashfree, Razorpay.
         env:
           WHATSAPP_TOKEN_SECRET: ${{ vars.WHATSAPP_TOKEN_SECRET }}
           TELEGRAM_TOKEN_SECRET: ${{ vars.TELEGRAM_TOKEN_SECRET }}
           CASHFREE_SECRET_KEY_SECRET: ${{ vars.CASHFREE_SECRET_KEY_SECRET }}
+          RAZORPAY_KEY_SECRET_SECRET: ${{ vars.RAZORPAY_KEY_SECRET_SECRET }}
+          RAZORPAY_WEBHOOK_SECRET_SECRET: ${{ vars.RAZORPAY_WEBHOOK_SECRET_SECRET }}
         run: |
           set -euo pipefail
           MOUNTS=()
@@ -172,6 +174,12 @@ jobs:
           fi
           if [[ -n "$CASHFREE_SECRET_KEY_SECRET" ]]; then
             MOUNTS+=("CASHFREE_SECRET_KEY=${CASHFREE_SECRET_KEY_SECRET}:latest")
+          fi
+          if [[ -n "$RAZORPAY_KEY_SECRET_SECRET" ]]; then
+            MOUNTS+=("RAZORPAY_KEY_SECRET=${RAZORPAY_KEY_SECRET_SECRET}:latest")
+          fi
+          if [[ -n "$RAZORPAY_WEBHOOK_SECRET_SECRET" ]]; then
+            MOUNTS+=("RAZORPAY_WEBHOOK_SECRET=${RAZORPAY_WEBHOOK_SECRET_SECRET}:latest")
           fi
           FLAG=""
           if [[ "${#MOUNTS[@]}" -gt 0 ]]; then
@@ -298,6 +306,8 @@ jobs:
             TELEGRAM_CHAT_ID=${{ vars.TELEGRAM_CHAT_ID }}
             CASHFREE_APP_ID=${{ vars.CASHFREE_APP_ID }}
             CASHFREE_ENV=${{ vars.CASHFREE_ENV || 'sandbox' }}
+            RAZORPAY_KEY_ID=${{ vars.RAZORPAY_KEY_ID }}
+            PAYMENT_PROVIDER=${{ vars.PAYMENT_PROVIDER || 'auto' }}
             DEPLOYED_AT=${{ steps.meta.outputs.deployed_at }}
           # The runtime identity goes through `flags`, NOT a `service_account`
           # input. This action has no such input: it accepts one and warns
@@ -307,7 +317,7 @@ jobs:
           # project, the opposite of the least-privilege account bootstrap
           # created. Keep this in flags, where gcloud actually reads it.
           #
-          # The WhatsApp and Telegram tokens and the Cashfree key are secrets, so they are mounted
+          # The WhatsApp and Telegram tokens and the payment keys are secrets, so they are mounted
           # from Secret Manager, never set in env_vars. The "Resolve secret
           # mounts" step builds the one --set-secrets flag.
           flags: >-

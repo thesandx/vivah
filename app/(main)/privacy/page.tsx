@@ -75,7 +75,7 @@ export default function PrivacyPage() {
       <section>
         <h2>3. Who else sees your data</h2>
         <ul>
-          <li>Cashfree Payments (India), which processes payments.</li>
+          <li>Cashfree Payments (India) or Razorpay (India), which processes payments.</li>
           <li>Google Cloud (Mumbai region), which hosts the site and the database.</li>
           <li>Cloudflare, which delivers pages quickly and protects against attacks.</li>
           <li>Google Firebase, which sends the one-time code you sign in with.</li>

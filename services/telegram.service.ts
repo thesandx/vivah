@@ -151,7 +151,7 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   const headline = {
     published: `Paid ${amount}: ${notice.bride} & ${notice.groom} are live at ${notice.slug}.${host}`,
     'address-taken': `Paid ${amount}, but ${notice.slug}.${host} was taken. ${notice.bride} & ${notice.groom} pick another address on their preview.`,
-    duplicate: `Paid ${amount} a SECOND time by ${notice.bride} & ${notice.groom}. Refund it in Cashfree.`,
+    duplicate: `Paid ${amount} a SECOND time by ${notice.bride} & ${notice.groom}. Refund it in the payment dashboard.`,
   }[notice.kind];
   const alert = [
     headline,
@@ -225,20 +225,20 @@ export function notifyPayment(notice: PaymentNotice): Promise<boolean> {
 export interface PaymentFailureNotice {
   paymentId: string;
   leadId: string;
-  /** Which Cashfree account refused: `sandbox` or `production`. */
+  /** Which provider and account refused, e.g. `Razorpay production`. */
   environment: string;
-  /** Why, as Cashfree said it. Cut short; it never carries the key. */
+  /** Why, as the provider said it. Cut short; it never carries the key. */
   detail: string;
 }
 
 /**
- * The alert when a payment does not start. The team reads Cashfree's own
+ * The alert when a payment does not start. The team reads the provider's own
  * reason here, with no access to the logs (Sandeep, 2026-10-18).
  */
 export function paymentFailureMessage(notice: PaymentFailureNotice): string {
   const origin = siteOrigin(env.rootDomain, env.appUrl);
   return [
-    `⚠️ A couple pressed Pay, but the payment did not start (Cashfree ${notice.environment}).`,
+    `⚠️ A couple pressed Pay, but the payment did not start (${notice.environment}).`,
     `Reason: ${notice.detail.slice(0, 400)}`,
     `Admin: ${origin}/admin/previews/${notice.leadId}`,
     `Payment: ${notice.paymentId}`,

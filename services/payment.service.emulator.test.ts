@@ -13,12 +13,23 @@ import type * as EnvModule from '@/lib/env';
  * Skipped without `FIRESTORE_EMULATOR_HOST`. Run with `pnpm test:emulator`.
  */
 
+const active: { provider: 'cashfree' | 'razorpay' } = { provider: 'cashfree' };
 vi.mock('@/lib/env', async (importOriginal) => {
   const original = await importOriginal<typeof EnvModule>();
   return {
     env: {
       ...original.env,
       cashfree: { enabled: true, appId: 'TEST', secretKey: 'secret', environment: 'sandbox' },
+      razorpay: {
+        enabled: true,
+        keyId: 'rzp_test_x',
+        keySecret: 'secret',
+        webhookSecret: 'secret',
+        environment: 'sandbox',
+      },
+      get paymentProvider() {
+        return active.provider;
+      },
       telegram: { enabled: false, botToken: '', chatId: '' },
     },
   };
@@ -46,6 +57,31 @@ vi.mock('@/services/cashfree.service', () => ({
       link_currency: 'INR',
       link_amount: 499,
       link_amount_paid: link.paid,
+    }),
+}));
+
+/** Razorpay's link, in paise as Razorpay counts. */
+const plink = { status: 'created', paid: 0 };
+const createdRazorpay: { referenceId: string; callbackUrl: string }[] = [];
+vi.mock('@/services/razorpay.service', () => ({
+  RazorpayError: class extends Error {},
+  createPaymentLink: (input: { referenceId: string; callbackUrl: string }) => {
+    createdRazorpay.push(input);
+    return Promise.resolve({
+      id: `plink_${input.referenceId}`,
+      short_url: 'https://rzp.io/rzp/x',
+      status: 'created',
+      amount: 49_900,
+    });
+  },
+  getPaymentLink: (id: string) =>
+    Promise.resolve({
+      id,
+      short_url: 'https://rzp.io/rzp/x',
+      status: plink.status,
+      currency: 'INR',
+      amount: 49_900,
+      amount_paid: plink.paid,
     }),
 }));
 
@@ -82,8 +118,11 @@ async function started(leadId: string, slug: string): Promise<string> {
 }
 
 beforeEach(() => {
+  active.provider = 'cashfree';
   link.status = 'ACTIVE';
   link.paid = 0;
+  plink.status = 'created';
+  plink.paid = 0;
 });
 
 describeEmulator('payments (emulator)', () => {
@@ -170,6 +209,36 @@ describeEmulator('payments (emulator)', () => {
     const next = uniqueSlug('next');
     expect(await startPayment(id, next, 499)).toEqual({ state: 'published', slug: next });
     expect(await getWeddingBySlug(next)).toMatchObject({ leadId: id });
+  });
+
+  it('settles a Razorpay payment from Razorpay, even after a switch back to Cashfree', async () => {
+    active.provider = 'razorpay';
+    const slug = uniqueSlug('rzp');
+    const { id } = await openedLead();
+    const result = await startPayment(id, slug, 499);
+    expect(result).toEqual({ state: 'redirect', url: 'https://rzp.io/rzp/x' });
+    const callback = new URL(createdRazorpay.at(-1)?.callbackUrl ?? '');
+    expect(callback.pathname).toBe('/api/payments/razorpay/return');
+    const paymentId = callback.searchParams.get('payment') ?? '';
+    expect(await payments.getOrThrow(paymentId)).toMatchObject({
+      provider: 'razorpay',
+      razorpayLinkId: `plink_vivah_${paymentId}`,
+    });
+
+    active.provider = 'cashfree';
+    expect((await completePayment(paymentId)).state).toBe('pending');
+    plink.status = 'paid';
+    plink.paid = 49_900;
+    expect(await completePayment(paymentId, 'pay_1')).toEqual({
+      state: 'published',
+      leadId: id,
+      slug,
+    });
+    expect(await payments.getOrThrow(paymentId)).toMatchObject({
+      status: 'paid',
+      amountPaid: 499,
+      orderId: 'pay_1',
+    });
   });
 
   it('refuses an address that is taken before any link is made', async () => {

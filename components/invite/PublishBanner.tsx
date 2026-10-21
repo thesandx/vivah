@@ -6,7 +6,7 @@ import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/in
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Alert } from '@/components/ui/Alert';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
-import { PAYMENT_METHODS, PAYMENT_PROVIDER } from '@/lib/business';
+import { PAYMENT_METHODS } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
 /**
@@ -31,8 +31,8 @@ import { cn } from '@/lib/utils';
  * no limit on guests or on sharing (the product owner's pick, 2026-10-17). No ratings, no couple counts and no refund
  * promise (the product owner removed it, 2026-10-16).
  *
- * `mode` says what the button does. `live`: it opens Cashfree's payment page
- * (ADR-0011). `test` (development without Cashfree keys): it publishes free,
+ * `mode` says what the button does. `live`: it opens the payment provider's
+ * page (ADR-0011, ADR-0012). `test` (development without payment keys): it publishes free,
  * says "Publish", not "Pay", and a line under it says nothing is charged.
  * `paid`: the couple paid, but their address went to another couple first,
  * so they pick another and publish with nothing more to pay.
@@ -63,6 +63,8 @@ export interface PublishBannerProps {
   publish: (leadId: string, slug: string) => Promise<PublishOutcome>;
   /** What the button does. Default: `test`. */
   mode?: PaymentBannerMode;
+  /** Who takes the money when `live`: `Cashfree` or `Razorpay`. */
+  providerName?: string;
   className?: string;
 }
 
@@ -135,7 +137,7 @@ function TrustLines({ live }: { live: boolean }) {
 }
 
 /** Who takes the money, or, while payment is a test, that nobody does. */
-function PaymentNote({ mode }: { mode: PaymentBannerMode }) {
+function PaymentNote({ mode, providerName }: { mode: PaymentBannerMode; providerName?: string }) {
   if (mode === 'paid') {
     return (
       <p className="text-small text-pay-body bg-pay-well rounded-input px-3 py-2 text-center">
@@ -154,7 +156,7 @@ function PaymentNote({ mode }: { mode: PaymentBannerMode }) {
   return (
     <p className="text-small text-pay-body flex items-center justify-center gap-1.5">
       <Lock />
-      Secure payment · Powered by {PAYMENT_PROVIDER}
+      Secure payment{providerName !== undefined && ` · Powered by ${providerName}`}
     </p>
   );
 }
@@ -172,6 +174,7 @@ export function PublishBanner({
   checkSlug,
   publish,
   mode = 'test',
+  providerName,
   className,
 }: PublishBannerProps): React.JSX.Element {
   const live = mode === 'live';
@@ -418,7 +421,7 @@ export function PublishBanner({
                     <p className="text-small text-pay-body">Pay with</p>
                     <PaymentMethods />
                   </div>
-                  <PaymentNote mode={mode} />
+                  <PaymentNote mode={mode} {...(providerName !== undefined && { providerName })} />
                   <TrustLines live={live} />
                 </div>
               }

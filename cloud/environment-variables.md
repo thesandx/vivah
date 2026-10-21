@@ -384,6 +384,49 @@ Grant access before you set `CASHFREE_SECRET_KEY_SECRET`. A deploy that mounts a
 
 ---
 
+## Razorpay configuration
+
+Razorpay is the second payment provider, through Razorpay Payment Links. `services/razorpay.service.ts` calls Razorpay's API. [ADR-0012](../docs/adr/0012-add-razorpay-as-a-second-payment-provider.md) records the design.
+
+| Variable                         | Where it comes from                                         | Secret |
+| -------------------------------- | ----------------------------------------------------------- | ------ |
+| `RAZORPAY_KEY_ID`                | GitHub variable of the same name                            | No     |
+| `RAZORPAY_KEY_SECRET`            | Secret Manager, mounted by `deploy.yml`                     | Yes    |
+| `RAZORPAY_KEY_SECRET_SECRET`     | GitHub variable. The name of the Secret Manager secret      | No     |
+| `RAZORPAY_WEBHOOK_SECRET`        | Secret Manager, mounted by `deploy.yml`                     | Yes    |
+| `RAZORPAY_WEBHOOK_SECRET_SECRET` | GitHub variable. The name of the Secret Manager secret      | No     |
+| `PAYMENT_PROVIDER`               | GitHub variable: `auto` (default), `cashfree` or `razorpay` | No     |
+
+Razorpay is on only when the key id and the key secret are both set. The key id's prefix picks the account: `rzp_test_` is test mode, `rzp_live_` is live.
+
+`PAYMENT_PROVIDER=auto` uses Cashfree when its keys are set, else Razorpay. Set `PAYMENT_PROVIDER=razorpay` to use Razorpay while Cashfree keys are also set. A named provider without keys turns payment off.
+
+To turn Razorpay on:
+
+1. In the Razorpay dashboard, choose Test Mode (or Live Mode), open Account & Settings > API Keys, and generate a key. Download the file.
+2. Open Account & Settings > Webhooks > Add New Webhook. Enter the URL `https://<root domain>/api/payments/razorpay`, type a long random secret, and choose the events `payment_link.paid`, `payment_link.expired` and `payment_link.cancelled`. Test mode and live mode each have their own webhooks.
+3. Store both secrets and grant access:
+
+```bash
+gcloud secrets create razorpay-key-secret --replication-policy=automatic
+printf '%s' "$KEY_SECRET" | gcloud secrets versions add razorpay-key-secret --data-file=-
+gcloud secrets create razorpay-webhook-secret --replication-policy=automatic
+printf '%s' "$WEBHOOK_SECRET" | gcloud secrets versions add razorpay-webhook-secret --data-file=-
+for SECRET in razorpay-key-secret razorpay-webhook-secret; do
+  gcloud secrets add-iam-policy-binding "$SECRET" \
+    --member="serviceAccount:vivah-runtime@<project>.iam.gserviceaccount.com" \
+    --role="roles/secretmanager.secretAccessor"
+done
+```
+
+4. Set the GitHub variables `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET_SECRET=razorpay-key-secret`, `RAZORPAY_WEBHOOK_SECRET_SECRET=razorpay-webhook-secret` and `PAYMENT_PROVIDER=razorpay`, and deploy.
+
+To go live, add the live key secret and the live webhook's secret as new versions of the same secrets, set `RAZORPAY_KEY_ID` to the live key id, and deploy.
+
+Grant access before you set the `*_SECRET_SECRET` variables. A deploy that mounts a secret the runtime account cannot read fails.
+
+---
+
 ## Platform-injected variables
 
 Cloud Run sets these; do not define them yourself.

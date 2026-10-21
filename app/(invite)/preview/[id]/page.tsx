@@ -24,7 +24,7 @@ import { siteOrigin } from '@/lib/seo';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { songUrl } from '@/lib/wedding-songs';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
-import { paymentMode } from '@/services/payment.service';
+import { paymentMode, paymentProviderName } from '@/services/payment.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
 import { checkSlugAction, publishAction } from './actions';
@@ -145,6 +145,7 @@ export default async function PreviewPage({
   // Paid, but another couple published the address first. ADR-0011.
   const paidWithoutAddress = lead.status === 'paid' && lead.weddingSlug === undefined;
   const mode = paymentMode();
+  const providerName = paymentProviderName();
   // With real payment, any browser that can see the preview may pay: the
   // money is the proof. Only the free test publish needs a bound browser.
   const canPay = mode === 'test' ? canPublish : true;
@@ -215,6 +216,7 @@ export default async function PreviewPage({
         hasSong={song !== null}
         {...(notice !== undefined && { notice })}
         mode={paidWithoutAddress ? 'paid' : mode === 'test' ? 'test' : 'live'}
+        {...(providerName !== null && { providerName })}
         checkSlug={checkSlugAction}
         publish={publishAction}
       />

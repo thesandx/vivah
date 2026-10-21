@@ -129,18 +129,19 @@ describe('PublishBanner modes', () => {
         domainLabel="vivah.online"
         priceRupees={499}
         mode={mode}
+        providerName="Razorpay"
         checkSlug={() => Promise.resolve({ available: true })}
         publish={() => new Promise(() => undefined)}
       />,
     );
   }
 
-  it('asks for payment through Cashfree when live, with no test note', () => {
+  it('asks for payment through the named provider when live, with no test note', () => {
     renderMode('live');
     expect(screen.getByRole('button', { name: 'Continue to payment · ₹499' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     expect(screen.getByRole('button', { name: 'Pay ₹499 and publish' })).toBeInTheDocument();
-    expect(screen.getByText(/Powered by Cashfree/)).toBeInTheDocument();
+    expect(screen.getByText(/Powered by Razorpay/)).toBeInTheDocument();
     expect(screen.queryByText(/nothing is charged/)).not.toBeInTheDocument();
   });
 

@@ -162,7 +162,7 @@ describe('payment notices', () => {
     const failure = {
       paymentId: PAYMENT.paymentId,
       leadId: PAYMENT.leadId,
-      environment: 'production',
+      environment: 'Cashfree production',
       detail: 'Cashfree creating a payment link failed (401): authentication Failed',
     };
     const text = paymentFailureMessage(failure);
