@@ -57,8 +57,8 @@ export const PAPER_CARDS = {
   readyIn: '2 to 4 weeks',
 } as const;
 
-/** The payment provider the banner names once payment is live. */
-export const PAYMENT_PROVIDER = 'Cashfree';
+/** How the banner names each payment provider. `env.paymentProvider` picks one. ADR-0012. */
+export const PAYMENT_PROVIDER_NAMES = { cashfree: 'Cashfree', razorpay: 'Razorpay' } as const;
 
 /** The ways to pay, in the order Indian buyers look for them. Text only, no brand logos. */
 export const PAYMENT_METHODS = ['UPI', 'Visa', 'Mastercard', 'RuPay', 'Net banking'] as const;

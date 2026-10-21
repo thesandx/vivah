@@ -5,6 +5,7 @@
 - **Deciders:** Sandeep
 - **Supersedes:** the test payment in [ADR-0007](./0007-publish-from-the-bound-preview-browser.md), in production
 - **Amends:** [ADR-0009](./0009-open-a-preview-in-two-browsers.md): the browser binding no longer decides who may pay
+- **Amended by:** [ADR-0012](./0012-add-razorpay-as-a-second-payment-provider.md): Razorpay Standard Checkout is a second provider, chosen by `PAYMENT_PROVIDER`
 
 ## Context
 

@@ -267,6 +267,46 @@ const cashfreeEnvironment = oneOf(
   'sandbox',
 );
 
+/**
+ * Razorpay, the second payment provider. See `services/razorpay.service.ts`
+ * and ADR-0012.
+ *
+ * On only when the key id and the key secret are both set. The key secret and
+ * the webhook secret ARE secrets: they come from Secret Manager at runtime.
+ * The key id is not; it is a GitHub variable. Its prefix says which mode the
+ * keys belong to (`rzp_test_` or `rzp_live_`), so there is no separate
+ * environment variable to get out of step with them.
+ */
+const razorpayKeyId = pattern(
+  'RAZORPAY_KEY_ID',
+  process.env.RAZORPAY_KEY_ID?.trim(),
+  /^rzp_(test|live)_[A-Za-z0-9]+$/,
+  'must be a Razorpay key id (rzp_test_... or rzp_live_...)',
+);
+const razorpayKeySecret = optional(process.env.RAZORPAY_KEY_SECRET, '').trim();
+const razorpayWebhookSecret = optional(process.env.RAZORPAY_WEBHOOK_SECRET, '').trim();
+const razorpayEnabled = razorpayKeyId !== '' && razorpayKeySecret !== '';
+
+/**
+ * Which provider takes the payment. `auto` (the default) uses Cashfree when it
+ * is configured, else Razorpay. Naming one uses only that one: payment stays
+ * off if its keys are missing, rather than falling back silently.
+ */
+const paymentProviderChoice = oneOf(
+  'PAYMENT_PROVIDER',
+  process.env.PAYMENT_PROVIDER?.trim(),
+  ['auto', 'cashfree', 'razorpay'] as const,
+  'auto',
+);
+const cashfreeEnabled = cashfreeAppId !== '' && cashfreeSecretKey !== '';
+
+function activePaymentProvider(): 'cashfree' | 'razorpay' | null {
+  if (paymentProviderChoice === 'cashfree') return cashfreeEnabled ? 'cashfree' : null;
+  if (paymentProviderChoice === 'razorpay') return razorpayEnabled ? 'razorpay' : null;
+  if (cashfreeEnabled) return 'cashfree';
+  return razorpayEnabled ? 'razorpay' : null;
+}
+
 const nodeEnv = oneOf('NODE_ENV', process.env.NODE_ENV, VALID_NODE_ENVS, 'development');
 
 // Order matters below: the database id and bucket name default to values
@@ -434,11 +474,32 @@ export const env = {
    * `enabled` is true only when the app id and the secret key are both set.
    */
   cashfree: {
-    enabled: cashfreeAppId !== '' && cashfreeSecretKey !== '',
+    enabled: cashfreeEnabled,
     appId: cashfreeAppId,
     secretKey: cashfreeSecretKey,
     environment: cashfreeEnvironment,
   },
+
+  /**
+   * Razorpay payment settings. Server only: both secrets are secrets.
+   * `enabled` is true only when the key id and the key secret are both set.
+   * `environment` follows the key id's prefix.
+   */
+  razorpay: {
+    enabled: razorpayEnabled,
+    keyId: razorpayKeyId,
+    keySecret: razorpayKeySecret,
+    webhookSecret: razorpayWebhookSecret,
+    environment: razorpayKeyId.startsWith('rzp_live_')
+      ? ('production' as const)
+      : ('sandbox' as const),
+  },
+
+  /**
+   * The provider the pay button uses, or `null` when payment is off. From
+   * `PAYMENT_PROVIDER` and which keys are set. ADR-0012.
+   */
+  paymentProvider: activePaymentProvider(),
 
   /** Commit SHA of the running build. Surfaced by /api/health for traceability. */
   appVersion: optional(process.env.NEXT_PUBLIC_APP_VERSION, 'dev'),

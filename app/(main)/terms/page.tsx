@@ -72,8 +72,9 @@ export default function TermsPage() {
       <section>
         <h2>7. Prices and payment</h2>
         <p>
-          We show the price before you pay, including GST where it applies. Cashfree Payments
-          processes payments. A price change never affects an invite you have already paid for.
+          We show the price before you pay, including GST where it applies. Cashfree Payments or
+          Razorpay processes payments. A price change never affects an invite you have already paid
+          for.
         </p>
       </section>
       <section>

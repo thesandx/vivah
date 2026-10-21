@@ -57,6 +57,10 @@ async function loadEnv(overrides: Record<string, string | undefined>): Promise<E
     'CASHFREE_APP_ID',
     'CASHFREE_SECRET_KEY',
     'CASHFREE_ENV',
+    'RAZORPAY_KEY_ID',
+    'RAZORPAY_KEY_SECRET',
+    'RAZORPAY_WEBHOOK_SECRET',
+    'PAYMENT_PROVIDER',
   ]) {
     delete process.env[key];
   }
@@ -332,5 +336,56 @@ describe('Cashfree payments', () => {
 
   it('refuses an unknown environment', async () => {
     await expect(loadEnv({ CASHFREE_ENV: 'live' })).rejects.toThrow(/CASHFREE_ENV/);
+  });
+});
+
+describe('Razorpay payments', () => {
+  const BOTH = { RAZORPAY_KEY_ID: 'rzp_test_AbC123', RAZORPAY_KEY_SECRET: 'secret' };
+
+  it('turns Razorpay on in test mode when the key id and the secret are set', async () => {
+    expect((await loadEnv(BOTH)).razorpay).toEqual({
+      enabled: true,
+      keyId: 'rzp_test_AbC123',
+      keySecret: 'secret',
+      webhookSecret: '',
+      environment: 'sandbox',
+    });
+  });
+
+  it('reads live mode from the key id', async () => {
+    const env = await loadEnv({ ...BOTH, RAZORPAY_KEY_ID: 'rzp_live_AbC123' });
+    expect(env.razorpay.environment).toBe('production');
+  });
+
+  it('refuses a key id that is not Razorpay’s', async () => {
+    await expect(loadEnv({ RAZORPAY_KEY_ID: 'AbC123' })).rejects.toThrow(/RAZORPAY_KEY_ID/);
+  });
+});
+
+describe('PAYMENT_PROVIDER', () => {
+  const CASHFREE = { CASHFREE_APP_ID: 'TEST1234', CASHFREE_SECRET_KEY: 'cfsk_ma_test_secret' };
+  const RAZORPAY = { RAZORPAY_KEY_ID: 'rzp_test_AbC123', RAZORPAY_KEY_SECRET: 'secret' };
+
+  it('is off with no keys', async () => {
+    expect((await loadEnv({})).paymentProvider).toBeNull();
+  });
+
+  it('prefers Cashfree on auto, and uses Razorpay when only it is set', async () => {
+    expect((await loadEnv({ ...CASHFREE, ...RAZORPAY })).paymentProvider).toBe('cashfree');
+    expect((await loadEnv(RAZORPAY)).paymentProvider).toBe('razorpay');
+  });
+
+  it('uses the named provider, and only that one', async () => {
+    const both = { ...CASHFREE, ...RAZORPAY };
+    expect((await loadEnv({ ...both, PAYMENT_PROVIDER: 'razorpay' })).paymentProvider).toBe(
+      'razorpay',
+    );
+    expect((await loadEnv({ ...CASHFREE, PAYMENT_PROVIDER: 'razorpay' })).paymentProvider).toBe(
+      null,
+    );
+  });
+
+  it('refuses an unknown provider', async () => {
+    await expect(loadEnv({ PAYMENT_PROVIDER: 'paytm' })).rejects.toThrow(/PAYMENT_PROVIDER/);
   });
 });
