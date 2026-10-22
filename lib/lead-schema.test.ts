@@ -91,6 +91,14 @@ describe('leadRequestSchema', () => {
     expect(leadRequestSchema.parse({ ...VALID, website: 'https://spam.test' }).isBot).toBe(true);
   });
 
+  it('keeps a Google click id, and refuses text that is not one', () => {
+    expect(leadRequestSchema.parse({ ...VALID, gclid: 'Cj0KCQjw_abc-123XYZ' }).gclid).toBe(
+      'Cj0KCQjw_abc-123XYZ',
+    );
+    expect(leadRequestSchema.parse(VALID)).not.toHaveProperty('gclid');
+    expect(leadRequestSchema.safeParse({ ...VALID, gclid: '<b>x</b>' }).success).toBe(false);
+  });
+
   it('defaults the country to India', () => {
     const { countryIso: _unused, ...withoutCountry } = VALID;
     expect(leadRequestSchema.parse(withoutCountry).phoneE164).toBe('+919876543210');

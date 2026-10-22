@@ -466,6 +466,7 @@ Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of
 | [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                 |
 | [0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)    | Cashfree Payment Links; the webhook and return publish from Cashfree's own record            |
 | [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                |
+| [0013](./docs/adr/0013-measure-google-ads-conversions.md)              | The Google tag counts previews and purchases as conversions; no remarketing, no analytics    |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

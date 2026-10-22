@@ -427,6 +427,28 @@ Grant access before you set the `*_SECRET_SECRET` variables. A deploy that mount
 
 ---
 
+## Google Ads configuration
+
+The Google tag and the two conversion events. [ADR-0013](../docs/adr/0013-measure-google-ads-conversions.md) records the design.
+
+| Variable                                | Where it comes from                         | Secret |
+| --------------------------------------- | ------------------------------------------- | ------ |
+| `NEXT_PUBLIC_GOOGLE_ADS_ID`             | GitHub variable `GOOGLE_ADS_ID`             | No     |
+| `NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL`   | GitHub variable `GOOGLE_ADS_SIGNUP_LABEL`   | No     |
+| `NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL` | GitHub variable `GOOGLE_ADS_PURCHASE_LABEL` | No     |
+
+All three are build arguments, so a change takes effect at the next deploy (trap 8). They are public: Google prints them in the page source of every site that uses them.
+
+Without `GOOGLE_ADS_ID`, the site has no Google tag. With it, the tag loads on the product site and the preview page. A missing label turns off only that conversion.
+
+To turn it on:
+
+1. In Google Ads, open Goals > Conversions > Summary and make the actions "Purchase" and "Preview made".
+2. For each one, open Tag setup > Install the tag yourself. Copy the id (`AW-…`) and the label (the part after the slash in `send_to`).
+3. Set the three GitHub variables, and deploy.
+
+---
+
 ## Platform-injected variables
 
 Cloud Run sets these; do not define them yourself.
