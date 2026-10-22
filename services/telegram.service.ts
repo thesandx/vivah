@@ -172,6 +172,8 @@ export function paymentMessages(notice: PaymentNotice): string[] {
     '',
     `Do both at ${origin}/dashboard. Sign in with your number ${formatPhoneForDisplay(notice.phoneE164)}.`,
     '',
+    `See how to add your venue and send guest invites, step by step: ${origin}/help`,
+    '',
     `Need any help? Chat with us right here on WhatsApp, or email us at ${BUSINESS.email}.`,
     '',
     'Once again, many congratulations on your wedding! Wishing you both a lifetime of love and laughter 💛🙏',
