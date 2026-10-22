@@ -51,7 +51,7 @@ export const PRODUCT_FEATURES: readonly string[] = [
 ];
 
 /**
- * The questions the home page answers, with `FAQPage` schema. They name the
+ * The questions `/help` answers, with `FAQPage` schema. They name the
  * dashboard and the RSVP plainly, so an answer engine does not guess.
  */
 export const PRODUCT_FAQS: readonly Faq[] = [
@@ -144,6 +144,7 @@ export const MARKETING_PAGES: readonly MarketingPage[] = [
     priority: 0.7,
   },
   { path: '/about', changeFrequency: 'yearly', priority: 0.5 },
+  { path: '/help', changeFrequency: 'monthly', priority: 0.6 },
   { path: '/contact', changeFrequency: 'yearly', priority: 0.5 },
   { path: '/privacy', changeFrequency: 'yearly', priority: 0.3 },
   { path: '/terms', changeFrequency: 'yearly', priority: 0.3 },

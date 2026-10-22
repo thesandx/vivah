@@ -116,7 +116,7 @@ describe('schema', () => {
     expect(app.offers).toMatchObject({ priceCurrency: 'INR', price: 499 });
   });
 
-  it('answers the dashboard and RSVP questions on the home page', () => {
+  it('answers the dashboard and RSVP questions on the help page', () => {
     const questions = PRODUCT_FAQS.map((faq) => faq.question);
     expect(questions).toContain('Is there a dashboard for the couple?');
     expect(questions).toContain('How does RSVP work?');

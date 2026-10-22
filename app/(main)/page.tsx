@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 
 import { HomeDemoVideo } from '@/app/(main)/home-demo-video';
 import { HomeTestimonials } from '@/app/(main)/home-testimonials';
-import { FaqList } from '@/components/guides/FaqList';
 import { DemoVideo } from '@/components/home/DemoVideo';
 import { FeatureList } from '@/components/home/FeatureList';
 import { GuestPreview } from '@/components/home/GuestPreview';
@@ -25,13 +24,7 @@ import { BUSINESS, PRICE_FROM_RUPEES, WHATSAPP_HELLO, whatsAppChatUrl } from '@/
 import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
-import {
-  faqPageSchema,
-  organizationSchema,
-  PRODUCT_FAQS,
-  siteOrigin,
-  webApplicationSchema,
-} from '@/lib/seo';
+import { organizationSchema, siteOrigin, webApplicationSchema } from '@/lib/seo';
 import { inviteHref } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
 
@@ -84,6 +77,7 @@ const PROMISES = [
 ];
 
 const GUIDES = [
+  { href: '/help', label: 'Help and questions couples ask' },
   { href: '/whatsapp-wedding-invitation', label: 'Wedding invitation for WhatsApp' },
   { href: '/guides/wedding-invitation-message-whatsapp', label: 'WhatsApp invitation messages' },
   {
@@ -118,7 +112,6 @@ export default function HomePage() {
       <SignupDialogProvider>
         <JsonLd data={organizationSchema(origin, env.appName)} />
         <JsonLd data={webApplicationSchema(origin, env.appName)} />
-        <JsonLd data={faqPageSchema(PRODUCT_FAQS)} />
 
         {/* The hero. Three grid items, so a phone gets words, form, promises,
           and a desktop gets the form beside the words. */}
@@ -234,8 +227,6 @@ export default function HomePage() {
           <HomeTestimonials />
         </Suspense>
 
-        <FaqList faqs={PRODUCT_FAQS} heading="Questions couples ask" />
-
         <section
           aria-labelledby="cta-heading"
           className="bg-brand-soft rounded-sheet flex flex-col items-center gap-5 px-6 py-12 text-center sm:px-12"
@@ -272,7 +263,7 @@ export default function HomePage() {
 
         <nav aria-labelledby="guides-heading" className="flex flex-col gap-3">
           <h2 id="guides-heading" className="text-heading">
-            Inviting on WhatsApp
+            Help and guides
           </h2>
           <ul className="flex flex-col gap-x-6 sm:flex-row sm:flex-wrap">
             {GUIDES.map((guide) => (
