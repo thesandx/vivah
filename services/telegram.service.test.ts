@@ -129,6 +129,7 @@ describe('payment notices', () => {
     expect(forCouple).toContain('Congratulations Riya & Aman');
     expect(forCouple).toContain('https://riya-aman.vivah.online');
     expect(forCouple).toContain('https://vivah.online/dashboard');
+    expect(forCouple).toContain('https://vivah.online/help');
     expect(forCouple).toContain('+91 98765 43210');
     expect(forCouple).toContain('support@vivah.online');
     expect(phone).toBe('+919876543210');
