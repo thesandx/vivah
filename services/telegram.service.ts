@@ -181,7 +181,54 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   return [alert, forCouple, notice.phoneE164];
 }
 
-/** Sends messages one after another. Best effort: never throws. */
+/** Each payment message gets its own budget, so a slow first send cannot starve the rest. */
+const PAYMENT_MESSAGE_TIMEOUT_MS = 4_000;
+
+/** The longest wait before the one retry, even when Telegram asks for longer. */
+const MAX_RETRY_WAIT_MS = 3_000;
+
+type SendResult =
+  { ok: true } | { ok: false; retry: boolean; waitMs: number; status: number | null };
+
+async function sendOne(url: string, text: string): Promise<SendResult> {
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: env.telegram.chatId,
+        text,
+        link_preview_options: { is_disabled: true },
+      }),
+      signal: AbortSignal.timeout(PAYMENT_MESSAGE_TIMEOUT_MS),
+    });
+    if (response.ok) return { ok: true };
+    // 429 carries `parameters.retry_after` in seconds. A 4xx other than 429
+    // will fail the same way again, so only 429 and 5xx are retried.
+    const body: unknown = await response.json().catch(() => null);
+    const retryAfter =
+      typeof body === 'object' && body !== null && 'parameters' in body
+        ? Number((body as { parameters?: { retry_after?: unknown } }).parameters?.retry_after)
+        : NaN;
+    return {
+      ok: false,
+      retry: response.status === 429 || response.status >= 500,
+      waitMs: Number.isFinite(retryAfter) ? retryAfter * 1000 : 500,
+      status: response.status,
+    };
+  } catch {
+    // A timeout or a dropped connection. Worth one more try.
+    return { ok: false, retry: true, waitMs: 500, status: null };
+  }
+}
+
+/**
+ * Sends messages one after another, so they arrive in order. Each message
+ * has its own timeout and one retry, and a failed message does not stop the
+ * ones after it: the welcome text for the couple matters most, so it must
+ * not be lost because the alert before it was slow. Resolves `true` when
+ * Telegram accepted every message. Never throws.
+ */
 async function sendAll(
   texts: readonly string[],
   context: Record<string, string>,
@@ -189,32 +236,24 @@ async function sendAll(
   if (!env.telegram.enabled) return false;
   // The token is part of the URL, so the URL is never logged.
   const url = `https://api.telegram.org/bot${env.telegram.botToken}/sendMessage`;
-  const signal = AbortSignal.timeout(TIMEOUT_MS);
-  try {
-    for (const text of texts) {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: env.telegram.chatId,
-          text,
-          link_preview_options: { is_disabled: true },
-        }),
-        signal,
-      });
-      if (!response.ok) {
-        logger.error('Telegram refused the payment notice', undefined, {
-          ...context,
-          status: response.status,
-        });
-        return false;
-      }
+  let allSent = true;
+  for (const [index, text] of texts.entries()) {
+    let result = await sendOne(url, text);
+    if (!result.ok && result.retry) {
+      const waitMs = Math.min(result.waitMs, MAX_RETRY_WAIT_MS);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+      result = await sendOne(url, text);
     }
-    return true;
-  } catch (error) {
-    logger.error('Sending the payment notice failed', error, context);
-    return false;
+    if (!result.ok) {
+      allSent = false;
+      logger.error('Telegram did not take a payment message', undefined, {
+        ...context,
+        message: `${index + 1} of ${texts.length}`,
+        status: result.status ?? 'no answer',
+      });
+    }
   }
+  return allSent;
 }
 
 /** Tells the team about a payment, one message after another. Best effort: never throws. */
