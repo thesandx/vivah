@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  changePreviewSongAction,
   deleteLeadAction,
   reactivatePreviewAction,
   restoreLeadAction,
@@ -12,6 +13,7 @@ import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
 import { CopyButton } from '@/components/admin/CopyButton';
 import { StateBadge } from '@/components/admin/StateBadge';
+import { SongPicker } from '@/components/dashboard/SongPicker';
 import { AppBar } from '@/components/layout/AppBar';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -19,6 +21,7 @@ import { ContactLink } from '@/components/ui/ContactLink';
 import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import {
   NUDGE_DAYS,
@@ -30,9 +33,11 @@ import {
 } from '@/lib/preview-nudges';
 import { siteOrigin } from '@/lib/seo';
 import { formatWeddingDate } from '@/lib/wedding-date';
+import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { getLeadForAdmin } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { getWeddingBySlug } from '@/services/wedding.service';
+import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * `GET /admin/previews/<lead id>` — one preview: who asked, when it expires,
@@ -62,7 +67,15 @@ export default async function AdminPreviewPage({
 
   const now = new Date();
   const state = leadState(lead, now);
-  const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
+  const [wedding, songs] = await Promise.all([
+    lead.weddingSlug === undefined ? null : getWeddingBySlug(lead.weddingSlug),
+    songOptions(),
+  ]);
+  const currentSong = lead.song ?? null;
+  const currentSlot =
+    currentSong === null
+      ? null
+      : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
   const link = `${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`;
   // The link goes last: WhatsApp on Android shows no link preview for a
   // typed-in message whose link is followed by more text.
@@ -250,6 +263,22 @@ export default async function AdminPreviewPage({
             </>
           )}
 
+          {lead.deletedAt === null && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Song</h2>
+              <p className="text-small text-ink-soft">
+                The song guests can play on the invite.
+                {wedding !== null && ' The couple has paid, so the live invite changes too.'}
+              </p>
+              <SongPicker
+                songs={songs}
+                currentSlot={currentSlot}
+                currentName={currentSong?.name ?? null}
+                save={changePreviewSongAction.bind(null, lead.id)}
+              />
+            </Card>
+          )}
+
           <Card className="flex flex-col gap-4">
             <h2 className="text-heading">Delete</h2>
             <p className="text-small text-ink-soft">
@@ -280,4 +309,14 @@ export default async function AdminPreviewPage({
       </main>
     </>
   );
+}
+
+/** The songs to choose from. A failed read hides the choice, not the page. */
+async function songOptions(): Promise<SongOption[]> {
+  try {
+    return await listSongOptions();
+  } catch (error) {
+    logger.error('Reading the wedding songs failed', error);
+    return [];
+  }
 }
