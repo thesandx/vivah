@@ -91,6 +91,12 @@ export const leadSchema = z.object({
    */
   desiredSlug: z.string().optional(),
   /**
+   * The Google Ads click id from the sign-up card, when the couple came
+   * from an ad (ADR-0013). Matches a payment made in another browser to
+   * the ad, by an upload. Never queried, so it needs no index.
+   */
+  gclid: z.string().max(200).optional(),
+  /**
    * The song the couple chose on the sign-up card, copied from the admin's
    * list so a later change there does not change it. Optional: older leads
    * and a card with no songs have none.
@@ -154,6 +160,7 @@ export async function createLead(
     firstOpenedAt: null,
     ...(input.slug !== null && { desiredSlug: input.slug }),
     ...(input.song !== undefined && input.song !== null && { song: input.song }),
+    ...(input.gclid !== undefined && { gclid: input.gclid }),
   });
 }
 
