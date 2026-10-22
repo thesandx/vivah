@@ -12,6 +12,7 @@ import { env } from '@/lib/env';
  */
 const FOOTER_LINKS = [
   { href: '/about', label: 'About' },
+  { href: '/help', label: 'Help' },
   { href: '/contact', label: 'Contact' },
   { href: '/terms', label: 'Terms & Conditions' },
   { href: '/privacy', label: 'Privacy Policy' },
