@@ -49,6 +49,7 @@ import { env } from '@/lib/env';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
+import { nudgeLabel, nudgeStatus } from '@/lib/preview-nudges';
 import { inviteHostLabel } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
 import { formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
@@ -320,6 +321,11 @@ async function PreviewsView({ params }: { params: SearchParams }) {
                         ? ''
                         : ` · ${previewTimeNote(lead, now)}`}
                     </span>
+                    {nudgeLabel(nudgeStatus(lead, now)) !== null && (
+                      <span className="text-small font-semibold">
+                        {nudgeLabel(nudgeStatus(lead, now))}
+                      </span>
+                    )}
                   </span>
                   <StateBadge state={state} />
                 </Link>
