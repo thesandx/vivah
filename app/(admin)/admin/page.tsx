@@ -44,7 +44,7 @@ import {
   WEDDING_WHEN_CHOICES,
   weddingState,
 } from '@/lib/admin-list';
-import { demoVideoRoute } from '@/lib/demo-video';
+import { demoVideoRoute, SITE_VIDEO_SLOTS, type SiteVideoSlot } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
@@ -473,30 +473,58 @@ async function HomePageView() {
           ))}
         </ol>
       )}
-      <DemoVideoAdmin />
+      {SITE_VIDEO_SLOTS.map((slot) => (
+        <SiteVideoAdmin key={slot} slot={slot} />
+      ))}
       <SongsAdmin />
       <TestimonialsAdmin />
     </>
   );
 }
 
-/** The "Watch a demo" video on the home page. */
-async function DemoVideoAdmin() {
+/** Where each uploaded video shows, and what shows without it. */
+const SITE_VIDEO_ADMIN: Record<
+  SiteVideoSlot,
+  { title: string; intro: string; removeTitle: string; removeBody: string }
+> = {
+  demo: {
+    title: 'Demo video',
+    intro:
+      'The “Watch a demo” button on the home page plays this video. With no video, the button lists the steps instead. A new upload replaces the video at once.',
+    removeTitle: 'Remove the demo video?',
+    removeBody: 'The home page lists the steps in its place. The file stays in storage.',
+  },
+  'help-edit-details': {
+    title: 'Help video: edit details',
+    intro:
+      'The help page plays this next to “Change the time, venue or map”. With no video, only the steps show. A new upload replaces the video at once.',
+    removeTitle: 'Remove the edit details video?',
+    removeBody: 'The help page shows only the steps. The file stays in storage.',
+  },
+  'help-guest-invite': {
+    title: 'Help video: guest invites',
+    intro:
+      'The help page plays this next to “Make and send a personal invite for each guest”. With no video, only the steps show. A new upload replaces the video at once.',
+    removeTitle: 'Remove the guest invite video?',
+    removeBody: 'The help page shows only the steps. The file stays in storage.',
+  },
+};
+
+/** One uploaded video: the home page's demo, or one on `/help`. */
+async function SiteVideoAdmin({ slot }: { slot: SiteVideoSlot }) {
+  const copy = SITE_VIDEO_ADMIN[slot];
   let demo: Awaited<ReturnType<typeof getDemoVideo>> | null = null;
   try {
-    demo = await getDemoVideo({ fresh: true });
+    demo = await getDemoVideo({ fresh: true, slot });
   } catch (error) {
-    logger.error('Reading the demo video failed', error);
+    logger.error('Reading a site video failed', error, { slot });
   }
   return (
     <section className="flex flex-col gap-4">
-      <h3 className="text-heading">Demo video</h3>
-      <p className="text-ink-soft max-w-prose">
-        The &ldquo;Watch a demo&rdquo; button on the home page plays this video. With no video, the
-        button lists the steps instead. A new upload replaces the video at once.
-      </p>
+      <h3 className="text-heading">{copy.title}</h3>
+      <p className="text-ink-soft max-w-prose">{copy.intro}</p>
       {demo === null ? (
-        <Alert tone="danger" title="The demo video could not be read.">
+        <Alert tone="danger" title="The video could not be read.">
           Reload the page to try again.
         </Alert>
       ) : (
@@ -508,20 +536,20 @@ async function DemoVideoAdmin() {
               demo.file === null
                 ? null
                 : {
-                    src: demoVideoRoute(demo.file),
-                    poster: demo.poster === null ? '' : demoVideoRoute(demo.poster),
+                    src: demoVideoRoute(demo.file, slot),
+                    poster: demo.poster === null ? '' : demoVideoRoute(demo.poster, slot),
                   }
             }
-            startUpload={startDemoVideoUploadAction}
-            save={saveDemoVideoAction}
+            startUpload={startDemoVideoUploadAction.bind(null, slot)}
+            save={saveDemoVideoAction.bind(null, slot)}
           />
           {demo.file !== null && (
             <AdminActionForm
-              action={removeDemoVideoAction}
+              action={removeDemoVideoAction.bind(null, slot)}
               label="Remove the video"
               confirm={{
-                title: 'Remove the demo video?',
-                body: 'The home page lists the steps in its place. The file stays in storage.',
+                title: copy.removeTitle,
+                body: copy.removeBody,
                 confirmLabel: 'Remove it',
               }}
             />

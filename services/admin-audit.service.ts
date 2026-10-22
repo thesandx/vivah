@@ -43,6 +43,8 @@ export const ADMIN_ACTIONS = [
   'song-removed',
   'demo-video-changed',
   'demo-video-removed',
+  'help-video-changed',
+  'help-video-removed',
 ] as const;
 
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
