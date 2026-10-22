@@ -138,7 +138,7 @@ describe('GoogleAdsProvider', () => {
     render(<GoogleAdsProvider {...PROPS}>page</GoogleAdsProvider>);
     act(() => {
       window.localStorage.setItem(CONSENT_STORAGE_KEY, 'denied');
-      window.dispatchEvent(new StorageEvent('storage', { key: CONSENT_STORAGE_KEY }));
+      window.dispatchEvent(new Event('storage'));
     });
     expect(screen.queryByRole('region', { name: 'Cookie choice' })).toBeNull();
   });
