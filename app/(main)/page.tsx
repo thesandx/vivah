@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     absolute: `Wedding Website and Digital Invitation with Guest Name | ${env.appName}`,
   },
   description:
-    'Create your wedding website in 5 minutes. Make a named invite link for each guest in your dashboard, send it on WhatsApp, and get RSVPs there. See it free first.',
+    'Create your wedding website in 5 minutes. Send each guest a named invite link on WhatsApp. They RSVP to your WhatsApp in one tap. See it free first.',
   alternates: { canonical: '/' },
 };
 
