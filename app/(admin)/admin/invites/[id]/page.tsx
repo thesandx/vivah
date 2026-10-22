@@ -27,15 +27,19 @@ import { whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref, inviteUrl } from '@/lib/site-host';
-import { getWeddingForAdmin, weddingHoldsAddress } from '@/services/admin.service';
+import {
+  getPaidPaymentForWedding,
+  getWeddingForAdmin,
+  weddingHoldsAddress,
+} from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
  * do to it: edit, change the number or the address, make it unavailable,
- * delete (which frees the address), restore at any free address, and send
- * the link to the couple.
+ * delete (which frees the address), restore at any free address, send the
+ * link to the couple, and download the invoice when it was paid for.
  *
  * Every button is a Server Action that checks the admin session again.
  */
@@ -69,6 +73,7 @@ export default async function AdminInvitePage({
   const message = `Hi ${wedding.bride} & ${wedding.groom}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
   const deleted = wedding.deletedAt !== null;
   const restore = deleted ? await restoreChoice(wedding) : null;
+  const payment = await getPaidPaymentForWedding(wedding);
 
   return (
     <>
@@ -109,6 +114,12 @@ export default async function AdminInvitePage({
               <dt className="text-ink-soft">Paid</dt>
               <dd>{formatAdminTime(wedding.createdAt)}</dd>
             </div>
+            {payment !== null && (
+              <div>
+                <dt className="text-ink-soft">Amount paid</dt>
+                <dd>{formatRupees(payment.amountPaid ?? payment.amountRupees)}</dd>
+              </div>
+            )}
             <div>
               <dt className="text-ink-soft">Last changed</dt>
               <dd>{formatAdminTime(wedding.updatedAt)}</dd>
@@ -126,6 +137,19 @@ export default async function AdminInvitePage({
           >
             Open the preview it was paid from
           </Link>
+          {payment === null ? (
+            <p className="text-small text-ink-soft">
+              No online payment is recorded for this invite, so it has no invoice.
+            </p>
+          ) : (
+            <a
+              href={`/admin/invites/${wedding.id}/invoice`}
+              download
+              className={buttonStyles({ variant: 'secondary' })}
+            >
+              Download invoice
+            </a>
+          )}
         </aside>
 
         <div className="flex flex-col gap-6 lg:col-span-2">
@@ -308,4 +332,9 @@ async function restoreChoice(
   }
   const [first] = await freeSlugSuggestions(wedding.bride, wedding.groom, 1);
   return { suggestion: first ?? '', holdsAddress };
+}
+
+/** `₹1,499`, or `₹499.50` when there are paise. */
+function formatRupees(rupees: number): string {
+  return `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(rupees)}`;
 }
