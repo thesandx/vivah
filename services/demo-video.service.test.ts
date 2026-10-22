@@ -144,4 +144,52 @@ describe('demo video', () => {
       expect.objectContaining({ action: 'demo-video-removed' }),
     );
   });
+
+  describe('a help video slot', () => {
+    const HELP_TMP = 'tmp/siteContent/help-guest-invite-video/demo-video-abc.mp4';
+
+    it('signs and plays from its own folder, with the slot in the fallback route', async () => {
+      stored = { file: 'demo-video-abc.mp4', poster: null };
+      createSignedReadUrl.mockImplementation(
+        async (path: string) => `https://storage.test/${path}`,
+      );
+      expect(await getDemoVideoUrls('help-guest-invite')).toEqual({
+        src: 'https://storage.test/siteContent/help-guest-invite-video/demo-video-abc.mp4',
+        fallbackSrc: '/api/demo-video/demo-video-abc.mp4?slot=help-guest-invite',
+        poster: '',
+      });
+      expect(await demoReadUrl('demo-video-abc.mp4', 'help-guest-invite')).toBe(
+        'https://storage.test/siteContent/help-guest-invite-video/demo-video-abc.mp4',
+      );
+    });
+
+    it('uploads to its own folder', async () => {
+      createSignedUploadUrl.mockResolvedValue({ url: 'u', tmpPath: 't', headers: {} });
+      await createDemoVideoUpload('video', 'video/mp4', 'help-edit-details');
+      const request = createSignedUploadUrl.mock.calls[0]?.[0] as { path: { docId: string } };
+      expect(request.path.docId).toBe('help-edit-details-video');
+    });
+
+    it('saves only an upload from its own folder, with a help audit entry', async () => {
+      expect((await saveDemoVideo(VIDEO_TMP, null, 'a', 'help-guest-invite')).ok).toBe(false);
+      expect((await saveDemoVideo(HELP_TMP, null, 'a', 'help-edit-details')).ok).toBe(false);
+      expect(finalizeUpload).not.toHaveBeenCalled();
+      expect((await saveDemoVideo(HELP_TMP, null, 'a', 'help-guest-invite')).ok).toBe(true);
+      expect(recordAdminActionIn).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({
+          action: 'help-video-changed',
+          targetId: 'help-guest-invite-video',
+        }),
+      );
+    });
+
+    it('removes with a help audit entry', async () => {
+      expect((await removeDemoVideo('a', 'help-edit-details')).ok).toBe(true);
+      expect(recordAdminActionIn).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ action: 'help-video-removed' }),
+      );
+    });
+  });
 });

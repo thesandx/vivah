@@ -6,7 +6,7 @@ import type { ActionState } from '@/components/admin/AdminActionForm';
 import type { StepUploadStart } from '@/components/admin/StepImageUpload';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
 import type { UploadStart } from '@/hooks/useImageUpload';
-import { parseDemoUploadKind } from '@/lib/demo-video';
+import { parseDemoUploadKind, parseSiteVideoSlot } from '@/lib/demo-video';
 import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
@@ -332,11 +332,15 @@ export async function removeSongAction(rawSlot: number): Promise<ActionState> {
   return run('song-remove', String(slot), (uid) => removeSong(slot, uid));
 }
 
+const NO_SLOT = 'That video does not exist.';
+
 /**
- * Step 1 of the demo video upload: a signed URL the browser sends the video,
- * or its poster, to. Admin only, like the songs.
+ * Step 1 of a video upload (the home page's demo or a `/help` video): a
+ * signed URL the browser sends the video, or its poster, to. Admin only, like
+ * the songs. `/admin` binds `rawSlot`.
  */
 export async function startDemoVideoUploadAction(
+  rawSlot: string,
   rawKind: string,
   contentType: string,
 ): Promise<UploadStart> {
@@ -346,24 +350,31 @@ export async function startDemoVideoUploadAction(
   } catch {
     return { status: 'error', message: SIGN_IN_AGAIN_MESSAGE };
   }
+  const slot = parseSiteVideoSlot(rawSlot);
+  if (slot === null) return { status: 'error', message: NO_SLOT };
   const kind = parseDemoUploadKind(rawKind);
   if (kind === null) return { status: 'error', message: 'That upload is not part of the video.' };
   try {
-    return { status: 'ok', upload: await createDemoVideoUpload(kind, contentType) };
+    return { status: 'ok', upload: await createDemoVideoUpload(kind, contentType, slot) };
   } catch (error) {
-    logger.error('Signing a demo video upload failed', error, { kind, uid: adminUid });
+    logger.error('Signing a demo video upload failed', error, { slot, kind, uid: adminUid });
     return { status: 'error', message: 'Use an MP4 video, then try again.' };
   }
 }
 
-/** Step 2: checks the uploaded video and poster, and puts them on the home page. */
+/** Step 2: checks the uploaded video and poster, and puts them on the slot's page. */
 export async function saveDemoVideoAction(
+  rawSlot: string,
   videoTmpPath: string,
   posterTmpPath: string | null,
 ): Promise<ActionState> {
-  return run('demo-video', 'demo-video', (uid) => saveDemoVideo(videoTmpPath, posterTmpPath, uid));
+  const slot = parseSiteVideoSlot(rawSlot);
+  if (slot === null) return { status: 'error', message: NO_SLOT };
+  return run('demo-video', slot, (uid) => saveDemoVideo(videoTmpPath, posterTmpPath, uid, slot));
 }
 
-export async function removeDemoVideoAction(): Promise<ActionState> {
-  return run('demo-video-remove', 'demo-video', (uid) => removeDemoVideo(uid));
+export async function removeDemoVideoAction(rawSlot: string): Promise<ActionState> {
+  const slot = parseSiteVideoSlot(rawSlot);
+  if (slot === null) return { status: 'error', message: NO_SLOT };
+  return run('demo-video-remove', slot, (uid) => removeDemoVideo(uid, slot));
 }
