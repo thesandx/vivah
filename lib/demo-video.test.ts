@@ -9,6 +9,9 @@ import {
   isDemoFilenameFor,
   isFastStart,
   parseDemoUploadKind,
+  parseSiteVideoSlot,
+  siteVideoDocId,
+  siteVideoFolder,
 } from '@/lib/demo-video';
 
 /** An MP4 box: a 32-bit size, a four-letter type, and `body` zero bytes. */
@@ -73,6 +76,22 @@ describe('demo video', () => {
 
   it('points the fallback at the signing route', () => {
     expect(demoVideoRoute('demo-video-abc.mp4')).toBe('/api/demo-video/demo-video-abc.mp4');
+    expect(demoVideoRoute('demo-video-abc.mp4', 'help-guest-invite')).toBe(
+      '/api/demo-video/demo-video-abc.mp4?slot=help-guest-invite',
+    );
+  });
+
+  it('gives each slot its own document and folder, and keeps the demo where it was', () => {
+    expect(siteVideoDocId('demo')).toBe('demo-video');
+    expect(siteVideoFolder('demo')).toBe('siteContent/demo-video/');
+    expect(siteVideoFolder('help-edit-details')).toBe('siteContent/help-edit-details-video/');
+    expect(siteVideoDocId('help-guest-invite')).toBe('help-guest-invite-video');
+  });
+
+  it('reads only the known slots', () => {
+    expect(parseSiteVideoSlot('help-edit-details')).toBe('help-edit-details');
+    expect(parseSiteVideoSlot('users')).toBeNull();
+    expect(parseSiteVideoSlot(3)).toBeNull();
   });
 
   describe('isFastStart', () => {

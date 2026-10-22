@@ -31,6 +31,7 @@ export const ADMIN_ACTIONS = [
   'preview-reactivated',
   'preview-deleted',
   'preview-restored',
+  'preview-song-changed',
   'home-image-changed',
   'home-image-reset',
   'testimonial-added',
@@ -42,6 +43,8 @@ export const ADMIN_ACTIONS = [
   'song-removed',
   'demo-video-changed',
   'demo-video-removed',
+  'help-video-changed',
+  'help-video-removed',
 ] as const;
 
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];

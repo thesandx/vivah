@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  changePreviewSongAction,
   deleteLeadAction,
   reactivatePreviewAction,
   restoreLeadAction,
@@ -12,6 +13,7 @@ import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
 import { CopyButton } from '@/components/admin/CopyButton';
 import { StateBadge } from '@/components/admin/StateBadge';
+import { SongPicker } from '@/components/dashboard/SongPicker';
 import { AppBar } from '@/components/layout/AppBar';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -19,6 +21,7 @@ import { ContactLink } from '@/components/ui/ContactLink';
 import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import {
   NUDGE_DAYS,
@@ -30,9 +33,11 @@ import {
 } from '@/lib/preview-nudges';
 import { siteOrigin } from '@/lib/seo';
 import { formatWeddingDate } from '@/lib/wedding-date';
+import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { getLeadForAdmin } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { getWeddingBySlug } from '@/services/wedding.service';
+import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * `GET /admin/previews/<lead id>` — one preview: who asked, when it expires,
@@ -62,22 +67,23 @@ export default async function AdminPreviewPage({
 
   const now = new Date();
   const state = leadState(lead, now);
-  const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
+  const [wedding, songs] = await Promise.all([
+    lead.weddingSlug === undefined ? null : getWeddingBySlug(lead.weddingSlug),
+    songOptions(),
+  ]);
+  const currentSong = lead.song ?? null;
+  const currentSlot =
+    currentSong === null
+      ? null
+      : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
   const link = `${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`;
   // The link goes last: WhatsApp on Android shows no link preview for a
   // typed-in message whose link is followed by more text.
   const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview. It stays open for 30 minutes from when you open it, so please complete payment within that time.\n\n${link}`;
   const openAgain = openAgainMessage({ bride: lead.bride, groom: lead.groom, link });
   const nudge = nudgeStatus(lead, now);
-  const nudgeText =
-    nudge.kind === 'due'
-      ? nudgeMessage(nudge.day, {
-          bride: lead.bride,
-          groom: lead.groom,
-          link,
-          rootDomain: env.rootDomain,
-        })
-      : null;
+  const nudgeInput = { bride: lead.bride, groom: lead.groom, link, rootDomain: env.rootDomain };
+  const nudgeText = nudge.kind === 'due' ? nudgeMessage(nudge.day, nudgeInput) : null;
 
   return (
     <>
@@ -164,6 +170,7 @@ export default async function AdminPreviewPage({
                   >
                     Send &ldquo;open again&rdquo;
                   </a>
+                  <CopyButton value={openAgain} label="Copy “open again”" />
                 </div>
                 <p className="text-small text-ink-soft">
                   Use &ldquo;open again&rdquo; after you reactivate a preview the couple asked to
@@ -185,7 +192,7 @@ export default async function AdminPreviewPage({
                     <p className="text-small text-ink-soft whitespace-pre-line break-words">
                       {nudgeText}
                     </p>
-                    <div>
+                    <div className="flex flex-wrap gap-3">
                       <a
                         href={whatsAppChatUrl(lead.phoneE164, nudgeText)}
                         target="_blank"
@@ -194,11 +201,44 @@ export default async function AdminPreviewPage({
                       >
                         Send Day {nudge.day} nudge
                       </a>
+                      <CopyButton value={nudgeText} label="Copy message" />
                     </div>
                   </>
                 ) : (
                   <p>{nudgeLabel(nudge) ?? 'No nudge: the wedding day has passed.'}</p>
                 )}
+                <details className="border-line rounded-card border-2">
+                  <summary className="flex min-h-11 cursor-pointer items-center px-4 py-3 font-semibold">
+                    All {NUDGE_DAYS} messages
+                  </summary>
+                  <ol className="divide-line flex flex-col divide-y-2 border-line border-t-2">
+                    {NUDGE_TOPICS.map((topic, index) => {
+                      const day = index + 1;
+                      const text = nudgeMessage(day, nudgeInput);
+                      return (
+                        <li key={topic} className="flex flex-col gap-3 p-4">
+                          <p className="font-semibold">
+                            Day {day}: {topic}
+                          </p>
+                          <p className="text-small text-ink-soft whitespace-pre-line break-words">
+                            {text}
+                          </p>
+                          <div className="flex flex-wrap gap-3">
+                            <a
+                              href={whatsAppChatUrl(lead.phoneE164, text)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={buttonStyles({ variant: 'secondary' })}
+                            >
+                              Send Day {day}
+                            </a>
+                            <CopyButton value={text} label="Copy message" />
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </details>
               </Card>
 
               <Card className="flex flex-col gap-4">
@@ -221,6 +261,22 @@ export default async function AdminPreviewPage({
                 />
               </Card>
             </>
+          )}
+
+          {lead.deletedAt === null && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Song</h2>
+              <p className="text-small text-ink-soft">
+                The song guests can play on the invite.
+                {wedding !== null && ' The couple has paid, so the live invite changes too.'}
+              </p>
+              <SongPicker
+                songs={songs}
+                currentSlot={currentSlot}
+                currentName={currentSong?.name ?? null}
+                save={changePreviewSongAction.bind(null, lead.id)}
+              />
+            </Card>
           )}
 
           <Card className="flex flex-col gap-4">
@@ -253,4 +309,14 @@ export default async function AdminPreviewPage({
       </main>
     </>
   );
+}
+
+/** The songs to choose from. A failed read hides the choice, not the page. */
+async function songOptions(): Promise<SongOption[]> {
+  try {
+    return await listSongOptions();
+  } catch (error) {
+    logger.error('Reading the wedding songs failed', error);
+    return [];
+  }
 }

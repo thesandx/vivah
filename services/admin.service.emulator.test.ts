@@ -2,7 +2,9 @@
 
 import { describe, expect, it } from 'vitest';
 
+import { SONGS_DOC_ID } from '@/lib/wedding-songs';
 import {
+  changePreviewSong,
   changeWeddingAddress,
   deleteLead,
   deleteWedding,
@@ -23,6 +25,7 @@ import {
   slugClaimId,
   slugClaims,
 } from '@/services/wedding.service';
+import { resetSongsCache, weddingSongs } from '@/services/wedding-songs.service';
 
 /**
  * What `/admin` does to the data, against the real Firestore emulator: the
@@ -186,5 +189,23 @@ describeEmulator('admin operations (emulator)', () => {
   it('will not reactivate a paid preview', async () => {
     const { leadId } = await published();
     expect((await reactivatePreview(leadId, ADMIN)).ok).toBe(false);
+  });
+
+  it('changes a preview song, and the live invite song once paid', async () => {
+    const song = { name: 'Kesariya', file: 'song-3-admin.mp3' };
+    const slots = { slot1: null, slot2: null, slot3: song, slot4: null };
+    if ((await weddingSongs.get(SONGS_DOC_ID)) === null) {
+      await weddingSongs.createWithId(SONGS_DOC_ID, slots, { minLength: SONGS_DOC_ID.length });
+    } else {
+      await weddingSongs.update(SONGS_DOC_ID, slots);
+    }
+    resetSongsCache();
+
+    const { leadId, slug } = await published();
+    expect((await changePreviewSong(leadId, 1, ADMIN)).ok).toBe(false);
+    expect((await changePreviewSong(leadId, 3, ADMIN)).ok).toBe(true);
+    expect((await leads.getOrThrow(leadId)).song).toEqual(song);
+    expect((await getWeddingBySlug(slug))?.song).toEqual(song);
+    expect(await auditFor(leadId)).toContain('preview-song-changed');
   });
 });

@@ -1,12 +1,16 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { Suspense } from 'react';
 
+import { HelpHowTo } from '@/app/(main)/help/help-how-to';
 import { FaqList } from '@/components/guides/FaqList';
+import { type HowTo, HowToSection } from '@/components/help/HowToSection';
 import { PageShell } from '@/components/layout/PageShell';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
+import type { SiteVideoSlot } from '@/lib/demo-video';
 import { faqPageSchema, PRODUCT_FAQS, SHARE_IMAGE } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 
@@ -19,10 +23,10 @@ import { cn } from '@/lib/utils';
  * (`components/dashboard/WeddingDetailsForm.tsx`, `GuestLinks.tsx`) and the
  * sign-in screens (`components/auth/SignInPanel.tsx`). Change them together.
  *
- * The videos are static files in `public/help/`, with `preload="none"`: the
- * page loads only the posters until the visitor presses play. They are the
- * tutorial videos the team sends a couple on WhatsApp, re-encoded for the web.
- * Re-record them when the dashboard or the sign-in screens change.
+ * The admin uploads each video from the Home page tab of `/admin`, like the
+ * home page's demo (`services/demo-video.service.ts`). With no video, the
+ * how-to shows its steps alone. The page renders on each request, so a new
+ * upload shows without a deploy.
  */
 
 const TITLE = 'Help: edit your wedding details and send guest invites';
@@ -63,17 +67,7 @@ const INVITE_STEPS = [
   'Do the same for each guest. The form is empty again after each link.',
 ];
 
-interface HowTo {
-  id: string;
-  eyebrow: string;
-  title: string;
-  intro: string;
-  steps: readonly string[];
-  video: { src: string; poster: string; label: string };
-  tips: readonly string[];
-}
-
-const HOW_TOS: readonly HowTo[] = [
+const HOW_TOS: readonly (HowTo & { slot: SiteVideoSlot })[] = [
   {
     id: 'edit-details',
     eyebrow: 'Your details',
@@ -81,11 +75,8 @@ const HOW_TOS: readonly HowTo[] = [
     intro:
       'Change your details as often as you need. Your web address stays the same, so the links you already sent keep working and show the new details.',
     steps: EDIT_STEPS,
-    video: {
-      src: '/help/edit-your-details.mp4',
-      poster: '/help/edit-your-details.webp',
-      label: 'Video: change your wedding details in the dashboard',
-    },
+    slot: 'help-edit-details',
+    videoLabel: 'Video: change your wedding details in the dashboard',
     tips: [
       'On your live invite, the “Your wedding? Edit details” link at the bottom also takes you to your dashboard.',
       'Tap Cancel to leave without a change.',
@@ -98,11 +89,8 @@ const HOW_TOS: readonly HowTo[] = [
     intro:
       'Each guest gets their own link. It opens your invite with Shri Ganesh and “Hi” with their name, then your song, the date, the venue map and the RSVP.',
     steps: INVITE_STEPS,
-    video: {
-      src: '/help/send-guest-invite.mp4',
-      poster: '/help/send-guest-invite.webp',
-      label: 'Video: make a guest link and send it on WhatsApp',
-    },
+    slot: 'help-guest-invite',
+    videoLabel: 'Video: make a guest link and send it on WhatsApp',
     tips: [
       'To send a link another way, tap “Copy link” and paste it in an SMS or an email.',
       'Made a link by mistake? Tap Delete next to it. If that guest opens the old link, they see your invite without their name. You cannot get a deleted link back.',
@@ -111,60 +99,7 @@ const HOW_TOS: readonly HowTo[] = [
   },
 ];
 
-function HowToSection({ howTo }: { howTo: HowTo }) {
-  const headingId = `${howTo.id}-heading`;
-  return (
-    <section
-      id={howTo.id}
-      aria-labelledby={headingId}
-      className="grid scroll-mt-24 gap-8 lg:grid-cols-2 lg:items-start lg:gap-x-12"
-    >
-      <div className="flex flex-col gap-5">
-        <div className="flex max-w-prose flex-col gap-3">
-          <p className="bg-brand-soft rounded-pill text-small self-start px-4 py-1.5 font-semibold">
-            {howTo.eyebrow}
-          </p>
-          <h2 id={headingId} className="text-title">
-            {howTo.title}
-          </h2>
-          <p className="text-ink-soft">{howTo.intro}</p>
-        </div>
-        <ol className="flex max-w-prose flex-col gap-4">
-          {howTo.steps.map((step, index) => (
-            <li key={step} className="flex items-start gap-3">
-              <span
-                aria-hidden="true"
-                className="bg-brand-soft rounded-pill font-weighted flex size-7 shrink-0 items-center justify-center"
-              >
-                {index + 1}
-              </span>
-              <span>{step}</span>
-            </li>
-          ))}
-        </ol>
-        <ul className="text-ink-soft flex max-w-prose list-disc flex-col gap-2 pl-6">
-          {howTo.tips.map((tip) => (
-            <li key={tip}>{tip}</li>
-          ))}
-        </ul>
-      </div>
-      {/* The steps above say what the video shows, so it needs no captions file. */}
-      <video
-        controls
-        playsInline
-        preload="none"
-        poster={howTo.video.poster}
-        width={720}
-        height={1280}
-        aria-label={howTo.video.label}
-        className="bg-sunken rounded-card shadow-hard mx-auto aspect-9/16 w-full max-w-72 lg:sticky lg:top-24"
-      >
-        <source src={howTo.video.src} type="video/mp4" />
-        <p>Your browser cannot play this video. The steps say the same.</p>
-      </video>
-    </section>
-  );
-}
+export const dynamic = 'force-dynamic';
 
 export default function HelpPage() {
   const chatUrl = whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO);
@@ -199,7 +134,10 @@ export default function HelpPage() {
       </header>
 
       {HOW_TOS.map((howTo) => (
-        <HowToSection key={howTo.id} howTo={howTo} />
+        // The steps show at once; the video joins them when its URL arrives.
+        <Suspense key={howTo.id} fallback={<HowToSection howTo={howTo} video={null} />}>
+          <HelpHowTo howTo={howTo} slot={howTo.slot} />
+        </Suspense>
       ))}
 
       <div className="scroll-mt-24" id="faq">

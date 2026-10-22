@@ -1,8 +1,8 @@
 import { SITE_CONTENT_COLLECTION } from '@/lib/how-it-works';
 
 /**
- * The home page's demo video: the rules for the file an admin uploads from
- * the Home page tab of `/admin`. Pure, no I/O, so they are tested without a
+ * The site's uploaded videos (the home page's demo and the two on `/help`):
+ * the rules for the file an admin uploads from the Home page tab of `/admin`. Pure, no I/O, so they are tested without a
  * bucket. `services/demo-video.service.ts` stores and signs the file.
  *
  * The video is an MP4 (H.264 and AAC), because every phone browser plays it.
@@ -15,11 +15,40 @@ import { SITE_CONTENT_COLLECTION } from '@/lib/how-it-works';
  * a page a visitor opened before the change still plays.
  */
 
-/** The one document that names the video, in `siteContent`. */
+/**
+ * The site's uploaded videos. Each slot is one video with its poster, in its
+ * own document and its own bucket folder:
+ *
+ * - `demo` — the home page's "Watch a demo".
+ * - `help-edit-details` — `/help`, "Change the time, venue or map".
+ * - `help-guest-invite` — `/help`, "Make and send a personal invite".
+ *
+ * They share every rule below: the type, the size, fast start and the names.
+ */
+export const SITE_VIDEO_SLOTS = ['demo', 'help-edit-details', 'help-guest-invite'] as const;
+
+export type SiteVideoSlot = (typeof SITE_VIDEO_SLOTS)[number];
+
+/** Reads a slot from a Server Action argument or a query string. */
+export function parseSiteVideoSlot(raw: unknown): SiteVideoSlot | null {
+  return SITE_VIDEO_SLOTS.find((slot) => slot === raw) ?? null;
+}
+
+/** The one document that names the home page's video, in `siteContent`. */
 export const DEMO_VIDEO_DOC_ID = 'demo-video';
 
-/** The folder in the bucket. The video and its poster live here and nowhere else. */
-export const DEMO_VIDEO_FOLDER = `${SITE_CONTENT_COLLECTION}/${DEMO_VIDEO_DOC_ID}/`;
+/** The document that names a slot's video, in `siteContent`. */
+export function siteVideoDocId(slot: SiteVideoSlot): string {
+  return slot === 'demo' ? DEMO_VIDEO_DOC_ID : `${slot}-video`;
+}
+
+/** The folder in the bucket. A slot's video and its poster live here and nowhere else. */
+export function siteVideoFolder(slot: SiteVideoSlot): string {
+  return `${SITE_CONTENT_COLLECTION}/${siteVideoDocId(slot)}/`;
+}
+
+/** The home page's folder. */
+export const DEMO_VIDEO_FOLDER = siteVideoFolder('demo');
 
 export const DEMO_VIDEO_TYPES = ['video/mp4'] as const;
 export const DEMO_POSTER_TYPES = ['image/jpeg'] as const;
@@ -71,8 +100,8 @@ export function isDemoContentType(kind: DemoUploadKind, contentType: string): bo
  * The route that signs a fresh URL for `file`. The page uses it only when the
  * URL it was given has expired, such as on a tab left open overnight.
  */
-export function demoVideoRoute(file: string): string {
-  return `/api/demo-video/${file}`;
+export function demoVideoRoute(file: string, slot: SiteVideoSlot = 'demo'): string {
+  return slot === 'demo' ? `/api/demo-video/${file}` : `/api/demo-video/${file}?slot=${slot}`;
 }
 
 /** Reads `length` bytes of a file from `start`. A `File.slice` in the browser. */
