@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { slugProblem } from '@/lib/couple-slug';
+import { parseGclid } from '@/lib/google-ads';
 import { capitalizeName } from '@/lib/guest-name';
 import { toE164 } from '@/lib/phone';
 import { todayInIndia } from '@/lib/wedding-date';
@@ -94,6 +95,15 @@ export const leadRequestSchema = z
      * nothing from the answer.
      */
     website: z.string().max(200).optional(),
+    /**
+     * The Google Ads click id, when the visitor came from an ad
+     * (ADR-0013). Kept on the lead so a payment made in another
+     * browser can still be matched to the ad by an upload.
+     */
+    gclid: z
+      .string()
+      .refine((value) => parseGclid(value) === value, 'Not a Google click id.')
+      .optional(),
   })
   .strict()
   .transform((body, context) => {
@@ -110,6 +120,7 @@ export const leadRequestSchema = z
       slug: body.slug ?? null,
       songSlot: body.songSlot === undefined ? null : parseSongSlot(body.songSlot),
       isBot: body.website !== undefined && body.website.trim() !== '',
+      ...(body.gclid !== undefined && { gclid: body.gclid }),
     };
   });
 

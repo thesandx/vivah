@@ -267,6 +267,9 @@ jobs:
           # public by design and ship in every bundle; a build arg is the right
           # place for them. Leave them unset and the image builds with sign-in
           # disabled, which closes every write route rather than opening one.
+          #
+          # The Google Ads values are public variables too (ADR-0013). Unset,
+          # the site has no Google tag.
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ vars.APP_URL || format('https://{0}', vars.ROOT_DOMAIN || 'vivah.online') }}
             NEXT_PUBLIC_APP_NAME=${{ vars.APP_NAME || 'vivah.online' }}
@@ -276,6 +279,9 @@ jobs:
             NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=${{ vars.FIREBASE_AUTH_DOMAIN }}
             NEXT_PUBLIC_FIREBASE_PROJECT_ID=${{ vars.FIREBASE_PROJECT_ID || env.GCP_PROJECT_ID }}
             NEXT_PUBLIC_FIREBASE_APP_ID=${{ vars.FIREBASE_APP_ID }}
+            NEXT_PUBLIC_GOOGLE_ADS_ID=${{ vars.GOOGLE_ADS_ID }}
+            NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL=${{ vars.GOOGLE_ADS_SIGNUP_LABEL }}
+            NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL=${{ vars.GOOGLE_ADS_PURCHASE_LABEL }}
 
       - name: Deploy to Cloud Run
         id: deploy

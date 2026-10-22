@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/Input';
 import { PlayButton } from '@/components/ui/PlayButton';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
+import { useGoogleAds } from '@/hooks/useGoogleAds';
 import { capitalizeName } from '@/lib/guest-name';
 import { indianMobileDigits, toE164 } from '@/lib/phone';
 import { cn } from '@/lib/utils';
@@ -132,6 +133,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   const [direction, setDirection] = useState<keyof typeof STEP_MOTION>('none');
   const [done, setDone] = useState(0);
   const [previewPath, setPreviewPath] = useState<string | null>(null);
+  const ads = useGoogleAds();
   const [whatsappSent, setWhatsappSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -318,6 +320,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   }
 
   async function submit(chosen: string, chosenSong: SongSlot | null): Promise<void> {
+    const gclid = ads.gclidForLead();
     try {
       const response = await fetch('/api/leads', {
         method: 'POST',
@@ -331,6 +334,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
           slug: chosen,
           ...(chosenSong !== null && { songSlot: chosenSong }),
           ...(website !== '' && { website }),
+          ...(gclid !== null && { gclid }),
         }),
         signal: AbortSignal.timeout(10_000),
       });
@@ -362,6 +366,7 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
       const body = (await response.json()) as { previewPath: string; whatsappSent?: boolean };
       setWhatsappSent(body.whatsappSent === true);
       setPreviewPath(body.previewPath);
+      ads.reportConversion('signup');
     } catch (caught) {
       setError(
         caught instanceof Error && caught.name !== 'TimeoutError'
