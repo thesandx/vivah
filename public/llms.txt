@@ -36,7 +36,8 @@ The RSVP button opens WhatsApp with a reply to the couple already typed. The gue
 
 ## Pages
 
-- [Home](https://vivah.online/): what the product includes, how it works, questions couples ask, and the form to start
+- [Home](https://vivah.online/): what the product includes, how it works, and the form to start
+- [Help](https://vivah.online/help): how a couple changes the wedding details and sends a personal invite to each guest from the dashboard, and questions couples ask
 - [Wedding invitation for WhatsApp](https://vivah.online/whatsapp-wedding-invitation): what a WhatsApp wedding invitation is, how it works, and a paper card vs digital wedding invitation comparison
 - [WhatsApp wedding invitation messages](https://vivah.online/guides/wedding-invitation-message-whatsapp): ready messages for family, friends and colleagues, in English and Hindi
 - [How to reply to a wedding invitation on WhatsApp](https://vivah.online/guides/reply-to-wedding-invitation-on-whatsapp): replies to accept, decline politely or send blessings, in English and Hindi

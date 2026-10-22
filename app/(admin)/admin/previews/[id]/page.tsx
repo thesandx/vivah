@@ -20,6 +20,14 @@ import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
+import {
+  NUDGE_DAYS,
+  NUDGE_TOPICS,
+  nudgeLabel,
+  nudgeMessage,
+  nudgeStatus,
+  openAgainMessage,
+} from '@/lib/preview-nudges';
 import { siteOrigin } from '@/lib/seo';
 import { formatWeddingDate } from '@/lib/wedding-date';
 import { getLeadForAdmin } from '@/services/admin.service';
@@ -59,6 +67,17 @@ export default async function AdminPreviewPage({
   // The link goes last: WhatsApp on Android shows no link preview for a
   // typed-in message whose link is followed by more text.
   const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview. It stays open for 30 minutes from when you open it, so please complete payment within that time.\n\n${link}`;
+  const openAgain = openAgainMessage({ bride: lead.bride, groom: lead.groom, link });
+  const nudge = nudgeStatus(lead, now);
+  const nudgeText =
+    nudge.kind === 'due'
+      ? nudgeMessage(nudge.day, {
+          bride: lead.bride,
+          groom: lead.groom,
+          link,
+          rootDomain: env.rootDomain,
+        })
+      : null;
 
   return (
     <>
@@ -137,7 +156,49 @@ export default async function AdminPreviewPage({
                   >
                     Send on WhatsApp
                   </a>
+                  <a
+                    href={whatsAppChatUrl(lead.phoneE164, openAgain)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonStyles({ variant: 'secondary' })}
+                  >
+                    Send &ldquo;open again&rdquo;
+                  </a>
                 </div>
+                <p className="text-small text-ink-soft">
+                  Use &ldquo;open again&rdquo; after you reactivate a preview the couple asked to
+                  open.
+                </p>
+              </Card>
+
+              <Card className="flex flex-col gap-4">
+                <h2 className="text-heading">Daily nudge</h2>
+                <p className="text-small text-ink-soft">
+                  One WhatsApp message a day for {NUDGE_DAYS} days after the preview, until the
+                  couple pays. Stop if they say no.
+                </p>
+                {nudge.kind === 'due' && nudgeText !== null ? (
+                  <>
+                    <p className="font-semibold">
+                      {nudgeLabel(nudge)}: {NUDGE_TOPICS[nudge.day - 1]}
+                    </p>
+                    <p className="text-small text-ink-soft whitespace-pre-line break-words">
+                      {nudgeText}
+                    </p>
+                    <div>
+                      <a
+                        href={whatsAppChatUrl(lead.phoneE164, nudgeText)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={buttonStyles({ variant: 'primary' })}
+                      >
+                        Send Day {nudge.day} nudge
+                      </a>
+                    </div>
+                  </>
+                ) : (
+                  <p>{nudgeLabel(nudge) ?? 'No nudge: the wedding day has passed.'}</p>
+                )}
               </Card>
 
               <Card className="flex flex-col gap-4">

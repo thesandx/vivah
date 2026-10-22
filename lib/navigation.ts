@@ -16,7 +16,7 @@ export interface AppTab {
 export const APP_TABS: readonly AppTab[] = [
   { href: '/', label: 'Home' },
   { href: '/dashboard', label: 'My site' },
-  { href: '/contact', label: 'Help' },
+  { href: '/help', label: 'Help' },
 ];
 
 /** True when `pathname` is the tab's page or a page below it. */
