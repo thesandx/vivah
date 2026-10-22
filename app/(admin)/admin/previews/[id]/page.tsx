@@ -69,15 +69,8 @@ export default async function AdminPreviewPage({
   const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview. It stays open for 30 minutes from when you open it, so please complete payment within that time.\n\n${link}`;
   const openAgain = openAgainMessage({ bride: lead.bride, groom: lead.groom, link });
   const nudge = nudgeStatus(lead, now);
-  const nudgeText =
-    nudge.kind === 'due'
-      ? nudgeMessage(nudge.day, {
-          bride: lead.bride,
-          groom: lead.groom,
-          link,
-          rootDomain: env.rootDomain,
-        })
-      : null;
+  const nudgeInput = { bride: lead.bride, groom: lead.groom, link, rootDomain: env.rootDomain };
+  const nudgeText = nudge.kind === 'due' ? nudgeMessage(nudge.day, nudgeInput) : null;
 
   return (
     <>
@@ -164,6 +157,7 @@ export default async function AdminPreviewPage({
                   >
                     Send &ldquo;open again&rdquo;
                   </a>
+                  <CopyButton value={openAgain} label="Copy “open again”" />
                 </div>
                 <p className="text-small text-ink-soft">
                   Use &ldquo;open again&rdquo; after you reactivate a preview the couple asked to
@@ -185,7 +179,7 @@ export default async function AdminPreviewPage({
                     <p className="text-small text-ink-soft whitespace-pre-line break-words">
                       {nudgeText}
                     </p>
-                    <div>
+                    <div className="flex flex-wrap gap-3">
                       <a
                         href={whatsAppChatUrl(lead.phoneE164, nudgeText)}
                         target="_blank"
@@ -194,11 +188,44 @@ export default async function AdminPreviewPage({
                       >
                         Send Day {nudge.day} nudge
                       </a>
+                      <CopyButton value={nudgeText} label="Copy message" />
                     </div>
                   </>
                 ) : (
                   <p>{nudgeLabel(nudge) ?? 'No nudge: the wedding day has passed.'}</p>
                 )}
+                <details className="border-line rounded-card border-2">
+                  <summary className="flex min-h-11 cursor-pointer items-center px-4 py-3 font-semibold">
+                    All {NUDGE_DAYS} messages
+                  </summary>
+                  <ol className="divide-line flex flex-col divide-y-2 border-line border-t-2">
+                    {NUDGE_TOPICS.map((topic, index) => {
+                      const day = index + 1;
+                      const text = nudgeMessage(day, nudgeInput);
+                      return (
+                        <li key={topic} className="flex flex-col gap-3 p-4">
+                          <p className="font-semibold">
+                            Day {day}: {topic}
+                          </p>
+                          <p className="text-small text-ink-soft whitespace-pre-line break-words">
+                            {text}
+                          </p>
+                          <div className="flex flex-wrap gap-3">
+                            <a
+                              href={whatsAppChatUrl(lead.phoneE164, text)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={buttonStyles({ variant: 'secondary' })}
+                            >
+                              Send Day {day}
+                            </a>
+                            <CopyButton value={text} label="Copy message" />
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                </details>
               </Card>
 
               <Card className="flex flex-col gap-4">
