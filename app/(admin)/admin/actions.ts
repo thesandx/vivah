@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import type { ActionState } from '@/components/admin/AdminActionForm';
 import type { StepUploadStart } from '@/components/admin/StepImageUpload';
+import type { SongSaveResult } from '@/components/dashboard/SongPicker';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
 import type { UploadStart } from '@/hooks/useImageUpload';
 import { parseDemoUploadKind } from '@/lib/demo-video';
@@ -14,6 +15,7 @@ import { parseKind } from '@/lib/testimonials';
 import { parseSongSlot } from '@/lib/wedding-songs';
 import {
   type AdminResult,
+  changePreviewSong,
   changeWeddingAddress,
   changeWeddingPhone,
   deleteLead,
@@ -324,6 +326,17 @@ export async function saveSongAction(
   const slot = parseSongSlot(rawSlot);
   if (slot === null) return { status: 'error', message: 'That song does not exist.' };
   return run('song', String(slot), (uid) => saveSong(slot, name, tmpPath, uid));
+}
+
+/** Changes one preview's song, and its live invite's when the couple has paid. */
+export async function changePreviewSongAction(
+  id: string,
+  rawSlot: unknown,
+): Promise<SongSaveResult> {
+  const slot = parseSongSlot(rawSlot);
+  if (slot === null) return { ok: false, message: 'Choose one of the songs.' };
+  const state = await run('preview-song', id, (uid) => changePreviewSong(id, slot, uid));
+  return { ok: state.status === 'ok', message: state.status === 'idle' ? '' : state.message };
 }
 
 export async function removeSongAction(rawSlot: number): Promise<ActionState> {

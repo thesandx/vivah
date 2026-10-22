@@ -5,6 +5,7 @@ import { FieldValue } from '@google-cloud/firestore';
 import { slugProblem } from '@/lib/couple-slug';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
+import type { SongSlot } from '@/lib/wedding-songs';
 import {
   type AdminAction,
   recordAdminAction,
@@ -13,6 +14,7 @@ import {
 import { type LeadDocument, leads } from '@/services/lead.service';
 import { MAX_PAGE_SIZE, type Repository, type StoredDocument } from '@/services/repository';
 import {
+  getWeddingBySlug,
   slugClaimId,
   slugClaims,
   weddingAtSlugQuery,
@@ -20,10 +22,12 @@ import {
   weddings,
   type WeddingStatus,
 } from '@/services/wedding.service';
+import { songInSlot } from '@/services/wedding-songs.service';
 
 /**
  * What `/admin` does to the data: list everything, edit a wedding, pause it,
- * move it to a new address, delete and restore it, and reactivate a preview.
+ * move it to a new address, delete and restore it, reactivate a preview and
+ * change its song.
  *
  * Every function takes the admin's uid, from `requireAdmin()`, and writes an
  * entry to the audit log. Deletes are soft. The one permanent delete is a
@@ -429,4 +433,40 @@ export async function restoreLead(id: string, adminUid: string): Promise<AdminRe
     adminUid,
   );
   return { ok: true, message: 'Restored.' };
+}
+
+/**
+ * Sets a preview's song to one on the admin's list. When the couple has paid,
+ * the live invite gets the same song, so the two never disagree. Like the
+ * dashboard, it stores `{ name, file }` copied from the list, never a file the
+ * caller names.
+ */
+export async function changePreviewSong(
+  id: string,
+  slot: SongSlot,
+  adminUid: string,
+): Promise<AdminResult> {
+  const lead = await getLeadForAdmin(id);
+  if (lead === null || lead.deletedAt !== null) return NOT_FOUND;
+  const song = await songInSlot(slot);
+  if (song === null) {
+    return { ok: false, message: 'That song is no longer on the list. Choose another.' };
+  }
+  await leads.update(id, { song });
+  const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
+  const live = wedding !== null && wedding.leadId === id;
+  if (live) await weddings.update(wedding.id, { song });
+  await audit(
+    'preview-song-changed',
+    'lead',
+    id,
+    `Changed the song for ${lead.bride} & ${lead.groom} to ${song.name}${live ? ', on the live invite too' : ''}.`,
+    adminUid,
+  );
+  return {
+    ok: true,
+    message: live
+      ? `${song.name} is now the song on the preview and the live invite.`
+      : `${song.name} is now the preview's song.`,
+  };
 }
