@@ -154,8 +154,43 @@ describe('payment notices', () => {
     expect(fetchMock).not.toHaveBeenCalled();
 
     telegram.enabled = true;
-    fetchMock.mockRejectedValueOnce(new Error('offline'));
+    fetchMock.mockClear();
+    fetchMock.mockRejectedValue(new Error('offline'));
     expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
+  });
+
+  it('retries a message that timed out once', async () => {
+    fetchMock.mockRejectedValueOnce(new DOMException('The operation timed out.', 'TimeoutError'));
+    fetchMock.mockResolvedValue(new Response('{}'));
+    expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('still sends the welcome text and the number when the alert fails', async () => {
+    fetchMock
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockRejectedValueOnce(new Error('offline'))
+      .mockResolvedValue(new Response('{}'));
+    expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
+    const texts = fetchMock.mock.calls.map(([, init]) => {
+      const body: unknown = JSON.parse(String(init?.body));
+      return (body as { text: string }).text;
+    });
+    expect(texts).toHaveLength(4);
+    expect(texts[2]).toContain('Congratulations');
+    expect(texts[3]).toBe(PAYMENT.phoneE164);
+  });
+
+  it('waits as Telegram asks after a 429, and does not retry a 400', async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        Response.json({ ok: false, parameters: { retry_after: 0 } }, { status: 429 }),
+      )
+      .mockResolvedValueOnce(new Response('bad', { status: 400 }))
+      .mockResolvedValue(new Response('{}'));
+    expect(await notifyPayment({ ...PAYMENT, kind: 'published' })).toBe(false);
+    // Alert: 429 then 400 (one retry, no more). Then the other two.
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it('names the Cashfree reason when a payment does not start', async () => {
