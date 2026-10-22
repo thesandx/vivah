@@ -464,6 +464,7 @@ Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of
 | [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                |
 | [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks               |
 | [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                 |
+| [0013](./docs/adr/0013-measure-google-ads-after-consent.md)            | The Google tag loads only after "Accept"; purchases and previews count as conversions        |
 | [0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)    | Cashfree Payment Links; the webhook and return publish from Cashfree's own record            |
 | [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                |
 

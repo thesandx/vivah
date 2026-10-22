@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
+import { GoogleAds } from '@/components/ads/GoogleAdsProvider';
+import { PurchaseConversion } from '@/components/ads/PurchaseConversion';
 import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteTheme } from '@/components/invite/InviteTheme';
 import { PaymentSuccess } from '@/components/invite/PaymentSuccess';
@@ -224,51 +226,65 @@ export default async function PreviewPage({
   }
 
   return (
-    <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
-      {published && payment === 'success' && lead.weddingSlug !== undefined && (
-        <PaymentSuccess
-          liveUrl={inviteHref(lead.weddingSlug, env.rootDomain)}
-          hostLabel={inviteHostLabel(lead.weddingSlug, env.rootDomain)}
-        />
-      )}
-      {!published && (
-        <>
-          <PreviewWatermark label={`${domainLabel} · preview`} />
-          <PreviewShield />
-        </>
-      )}
-      <InviteGate
-        guestName={null}
-        couple={`${lead.bride} & ${lead.groom}`}
-        song={song}
-        top={
-          <PreviewNotch note={published ? 'your invite is live' : 'only you can see this'}>
-            {closesAt !== null && (
-              <PreviewTimer endsAt={closesAt.getTime()} renderedAt={renderedAt} />
-            )}
-          </PreviewNotch>
-        }
-        dock={dock}
-      >
-        {/* Room at the foot, so the banner never covers the last lines. */}
-        <main className="bg-jewel-maroon-deep flex flex-1 flex-col pb-132">
-          <ShubhVivahInvite
-            bride={lead.bride}
-            groom={lead.groom}
-            guestName={null}
-            weddingDate={lead.weddingDate}
-            ceremonyTime={null}
-            venueName={null}
-            venueCity={null}
-            venueMapsUrl={null}
-            rsvpPhoneE164={lead.phoneE164}
-            madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
-            stickyRsvp={false}
-            venuePlaceholder
-            className="flex-1"
+    // No consent banner here (ADR-0013): it would cover the pay button. A
+    // purchase counts when the couple accepted on the product site.
+    <GoogleAds
+      adsId={env.googleAds.id}
+      signupLabel={env.googleAds.signupLabel}
+      purchaseLabel={env.googleAds.purchaseLabel}
+      askConsent={false}
+    >
+      <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
+        {published && payment === 'success' && lead.weddingSlug !== undefined && (
+          <PaymentSuccess
+            liveUrl={inviteHref(lead.weddingSlug, env.rootDomain)}
+            hostLabel={inviteHostLabel(lead.weddingSlug, env.rootDomain)}
           />
-        </main>
-      </InviteGate>
-    </InviteTheme>
+        )}
+        {/* Only a real payment: a free test publish has no payment id. The
+          price is what the pay button charged (PRICE_FROM_RUPEES). */}
+        {published && payment === 'success' && lead.paymentId !== undefined && (
+          <PurchaseConversion valueRupees={PRICE_FROM_RUPEES} paymentId={lead.paymentId} />
+        )}
+        {!published && (
+          <>
+            <PreviewWatermark label={`${domainLabel} · preview`} />
+            <PreviewShield />
+          </>
+        )}
+        <InviteGate
+          guestName={null}
+          couple={`${lead.bride} & ${lead.groom}`}
+          song={song}
+          top={
+            <PreviewNotch note={published ? 'your invite is live' : 'only you can see this'}>
+              {closesAt !== null && (
+                <PreviewTimer endsAt={closesAt.getTime()} renderedAt={renderedAt} />
+              )}
+            </PreviewNotch>
+          }
+          dock={dock}
+        >
+          {/* Room at the foot, so the banner never covers the last lines. */}
+          <main className="bg-jewel-maroon-deep flex flex-1 flex-col pb-132">
+            <ShubhVivahInvite
+              bride={lead.bride}
+              groom={lead.groom}
+              guestName={null}
+              weddingDate={lead.weddingDate}
+              ceremonyTime={null}
+              venueName={null}
+              venueCity={null}
+              venueMapsUrl={null}
+              rsvpPhoneE164={lead.phoneE164}
+              madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+              stickyRsvp={false}
+              venuePlaceholder
+              className="flex-1"
+            />
+          </main>
+        </InviteGate>
+      </InviteTheme>
+    </GoogleAds>
   );
 }

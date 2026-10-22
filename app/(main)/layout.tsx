@@ -1,3 +1,4 @@
+import { GoogleAds } from '@/components/ads/GoogleAdsProvider';
 import { Footer } from '@/components/layout/Footer';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SocialLinks } from '@/components/layout/SocialLinks';
@@ -31,6 +32,9 @@ const FOOTER_LINKS = [
  *
  * The WhatsApp button floats on every page here, so help is one tap away.
  *
+ * `GoogleAds` asks for ad consent and counts sign-ups (ADR-0013). It is off
+ * when no Google Ads id was set at build time.
+ *
  * A couple's invite does not use this shell. See `app/(invite)/layout.tsx`.
  */
 export default function MainLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -38,25 +42,31 @@ export default function MainLayout({ children }: Readonly<{ children: React.Reac
     // pb-24 keeps the last line of every page clear of the floating WhatsApp
     // button on a phone. SiteHeader is a client component rendered from this
     // Server Component.
-    <div className="flex flex-1 flex-col pb-24 md:pb-0">
-      <SiteHeader appName={env.appName} />
-      {children}
-      <Footer
-        brand={env.appName}
-        owner={env.appName}
-        links={FOOTER_LINKS}
-        social={
-          <SocialLinks
-            instagram={SOCIAL.instagram.url}
-            facebook={SOCIAL.facebook.url}
-            whatsApp={whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO)}
-            email={BUSINESS.email}
-          />
-        }
-      >
-        {BUSINESS.natureOfService}
-      </Footer>
-      <WhatsAppButton />
-    </div>
+    <GoogleAds
+      adsId={env.googleAds.id}
+      signupLabel={env.googleAds.signupLabel}
+      purchaseLabel={env.googleAds.purchaseLabel}
+    >
+      <div className="flex flex-1 flex-col pb-24 md:pb-0">
+        <SiteHeader appName={env.appName} />
+        {children}
+        <Footer
+          brand={env.appName}
+          owner={env.appName}
+          links={FOOTER_LINKS}
+          social={
+            <SocialLinks
+              instagram={SOCIAL.instagram.url}
+              facebook={SOCIAL.facebook.url}
+              whatsApp={whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO)}
+              email={BUSINESS.email}
+            />
+          }
+        >
+          {BUSINESS.natureOfService}
+        </Footer>
+        <WhatsAppButton />
+      </div>
+    </GoogleAds>
   );
 }

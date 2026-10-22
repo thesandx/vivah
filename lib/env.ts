@@ -72,6 +72,12 @@ const ROOT_DOMAIN_PATTERN =
 /** Firebase web app ids look like `1:1234567890:web:0a1b2c3d4e5f`. */
 const FIREBASE_APP_ID_PATTERN = /^\d+:\d+:web:[0-9a-z]+$/;
 
+/** A Google Ads conversion id, `AW-123456789`. */
+const GOOGLE_ADS_ID_PATTERN = /^AW-\d{6,15}$/;
+
+/** A Google Ads conversion label: the part after the slash in `send_to`. */
+const GOOGLE_ADS_LABEL_PATTERN = /^[A-Za-z0-9_-]{4,64}$/;
+
 class EnvValidationError extends Error {
   constructor(issues: readonly string[]) {
     super(
@@ -393,6 +399,32 @@ const firebaseAppId = pattern(
  * It is fixed at BUILD time, because these are NEXT_PUBLIC_ values. Adding
  * them to a running Cloud Run service enables nothing until you rebuild.
  */
+/**
+ * Google Ads measurement (ADR-0013). Public, like the Firebase config: these
+ * ids appear in the page source of every site that uses them. Fixed at BUILD
+ * time (trap 8). An empty id turns the tag and the consent banner off.
+ */
+const googleAdsId = pattern(
+  'NEXT_PUBLIC_GOOGLE_ADS_ID',
+  process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
+  GOOGLE_ADS_ID_PATTERN,
+  'must be a Google Ads conversion id, e.g. AW-123456789',
+);
+
+const googleAdsSignupLabel = pattern(
+  'NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL',
+  process.env.NEXT_PUBLIC_GOOGLE_ADS_SIGNUP_LABEL,
+  GOOGLE_ADS_LABEL_PATTERN,
+  'must be a Google Ads conversion label (4-64 letters, digits, _ and -)',
+);
+
+const googleAdsPurchaseLabel = pattern(
+  'NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL',
+  process.env.NEXT_PUBLIC_GOOGLE_ADS_PURCHASE_LABEL,
+  GOOGLE_ADS_LABEL_PATTERN,
+  'must be a Google Ads conversion label (4-64 letters, digits, _ and -)',
+);
+
 const authEnabled =
   firebaseApiKey !== '' &&
   firebaseAuthDomain !== '' &&
@@ -572,6 +604,16 @@ export const env = {
    * route, because nothing can sign in. Fixed at build time — see above.
    */
   authEnabled,
+
+  /**
+   * Google Ads: the conversion id and the label of each conversion action.
+   * Empty strings when not configured; `id === ''` means no tag at all.
+   */
+  googleAds: {
+    id: googleAdsId,
+    signupLabel: googleAdsSignupLabel,
+    purchaseLabel: googleAdsPurchaseLabel,
+  },
 
   /**
    * Session cookie lifetime. Firebase caps a session cookie at 14 days, so
