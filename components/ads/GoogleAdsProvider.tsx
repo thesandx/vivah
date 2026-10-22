@@ -1,23 +1,19 @@
 'use client';
 
 import Script from 'next/script';
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
-import { ConsentBanner } from '@/components/ads/ConsentBanner';
 import {
   type ConversionDetails,
   GoogleAdsContext,
   type GoogleAdsState,
 } from '@/hooks/useGoogleAds';
 import {
-  type AdConsent,
-  CONSENT_STORAGE_KEY,
   CONVERSION_SENT_PREFIX,
   type ConversionKind,
   conversionTarget,
   GCLID_STORAGE_KEY,
   gtagScriptUrl,
-  parseConsent,
   parseGclid,
 } from '@/lib/google-ads';
 
@@ -28,21 +24,12 @@ declare global {
 }
 
 export interface GoogleAdsProviderProps {
-  /** `AW-123456789`. Empty turns measurement off: no tag, no banner. */
+  /** `AW-123456789`. Empty turns measurement off: no tag at all. */
   adsId: string;
   signupLabel: string;
   purchaseLabel: string;
-  /**
-   * Show the consent banner. The preview page passes `false`: a banner over
-   * the pay button costs sales, so a purchase there counts only when the
-   * visitor accepted earlier, on the product site.
-   */
-  askConsent?: boolean;
   children: React.ReactNode;
 }
-
-/** Fired in this tab when the banner is answered; `storage` covers other tabs. */
-const CONSENT_EVENT = 'vivah:ad-consent';
 
 /**
  * Google's queue. gtag.js reads each entry as an `arguments` object, not an
@@ -55,38 +42,25 @@ function gtag(..._args: unknown[]): void {
 }
 
 /**
- * Storage can throw (Safari private mode, storage turned off). A failed read
- * is "no answer" and a failed write is a no-op, never a broken page.
+ * `sessionStorage` can throw (Safari private mode, storage turned off). A
+ * failed read is "nothing stored" and a failed write is a no-op.
  */
-function read(storage: 'local' | 'session', key: string): string | null {
+function read(key: string): string | null {
   try {
-    return (storage === 'local' ? window.localStorage : window.sessionStorage).getItem(key);
+    return window.sessionStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
-function write(storage: 'local' | 'session', key: string, value: string): void {
+function write(key: string, value: string): void {
   try {
-    (storage === 'local' ? window.localStorage : window.sessionStorage).setItem(key, value);
+    window.sessionStorage.setItem(key, value);
   } catch {
-    // Storage is off. The answer lasts until the page closes, which is fine.
+    // Storage is off. The click id and the once-per-payment guard are lost
+    // with it; Google still drops a repeated transaction id.
   }
 }
-
-function subscribe(onChange: () => void): () => void {
-  window.addEventListener('storage', onChange);
-  window.addEventListener(CONSENT_EVENT, onChange);
-  return () => {
-    window.removeEventListener('storage', onChange);
-    window.removeEventListener(CONSENT_EVENT, onChange);
-  };
-}
-
-const readConsent = (): AdConsent | null => parseConsent(read('local', CONSENT_STORAGE_KEY));
-
-/** The server cannot know the answer; `undefined` keeps the banner out of the HTML. */
-const serverConsent = (): undefined => undefined;
 
 /** Set once per page load: Google's consent and config calls must not repeat. */
 let configured = false;
@@ -94,9 +68,9 @@ let configured = false;
 /**
  * Google Ads measurement for the product site and the preview page (ADR-0013).
  *
- * Basic consent mode: Google's script is not even requested until the visitor
- * presses "Accept". Before that no cookie is set and nothing reaches Google.
- * The answer is kept in `localStorage`, so the banner asks once per browser.
+ * The tag loads on every visit, with no cookie banner (Sandeep, 2026-10-22).
+ * It counts conversions only: remarketing (ad personalisation) and analytics
+ * stay off.
  *
  * It also keeps the `gclid` of an ad click for the tab, so the sign-up card
  * can store it on the lead. A couple who pays in another browser (the
@@ -106,18 +80,15 @@ export function GoogleAdsProvider({
   adsId,
   signupLabel,
   purchaseLabel,
-  askConsent = true,
   children,
 }: GoogleAdsProviderProps) {
-  const consent = useSyncExternalStore(subscribe, readConsent, serverConsent);
-
   useEffect(() => {
     const gclid = parseGclid(new URLSearchParams(window.location.search).get('gclid'));
-    if (gclid !== null) write('session', GCLID_STORAGE_KEY, gclid);
+    if (gclid !== null) write(GCLID_STORAGE_KEY, gclid);
   }, []);
 
   useEffect(() => {
-    if (consent !== 'granted' || configured) return;
+    if (configured) return;
     configured = true;
     gtag('consent', 'default', {
       ad_storage: 'granted',
@@ -128,28 +99,19 @@ export function GoogleAdsProvider({
     });
     gtag('js', new Date());
     gtag('config', adsId);
-  }, [consent, adsId]);
+  }, [adsId]);
 
-  const answer = useCallback((value: AdConsent) => {
-    write('local', CONSENT_STORAGE_KEY, value);
-    window.dispatchEvent(new Event(CONSENT_EVENT));
-  }, []);
-
-  const gclidForLead = useCallback(
-    () => (consent === 'granted' ? parseGclid(read('session', GCLID_STORAGE_KEY)) : null),
-    [consent],
-  );
+  const gclidForLead = useCallback(() => parseGclid(read(GCLID_STORAGE_KEY)), []);
 
   const reportConversion = useCallback(
     (kind: ConversionKind, details: ConversionDetails = {}) => {
-      if (consent !== 'granted') return;
       const target = conversionTarget(adsId, kind === 'signup' ? signupLabel : purchaseLabel);
       if (target === null) return;
       const { value, transactionId } = details;
       if (transactionId !== undefined) {
         const key = `${CONVERSION_SENT_PREFIX}${transactionId}`;
-        if (read('session', key) !== null) return;
-        write('session', key, '1');
+        if (read(key) !== null) return;
+        write(key, '1');
       }
       gtag('event', 'conversion', {
         send_to: target,
@@ -157,34 +119,25 @@ export function GoogleAdsProvider({
         ...(transactionId !== undefined && { transaction_id: transactionId }),
       });
     },
-    [consent, adsId, signupLabel, purchaseLabel],
+    [adsId, signupLabel, purchaseLabel],
   );
 
   const state = useMemo<GoogleAdsState>(
-    () => ({
-      consent,
-      accept: () => answer('granted'),
-      decline: () => answer('denied'),
-      gclidForLead,
-      reportConversion,
-    }),
-    [consent, answer, gclidForLead, reportConversion],
+    () => ({ gclidForLead, reportConversion }),
+    [gclidForLead, reportConversion],
   );
 
   return (
     <GoogleAdsContext.Provider value={state}>
       {children}
-      {consent === 'granted' && <Script src={gtagScriptUrl(adsId)} strategy="afterInteractive" />}
-      {askConsent && consent === null && (
-        <ConsentBanner onAccept={() => answer('granted')} onDecline={() => answer('denied')} />
-      )}
+      <Script src={gtagScriptUrl(adsId)} strategy="afterInteractive" />
     </GoogleAdsContext.Provider>
   );
 }
 
 /**
  * The provider when an id is set, else the children alone. Server Components
- * render this, so a build without Google Ads ships no banner.
+ * render this, so a build without Google Ads ships no tag.
  */
 export function GoogleAds(props: GoogleAdsProviderProps) {
   return props.adsId === '' ? props.children : <GoogleAdsProvider {...props} />;

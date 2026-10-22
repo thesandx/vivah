@@ -67,8 +67,8 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong className="text-ink">The Google Ads click id</strong>, only if you came from one
-            of our ads and accepted the ad cookie, to learn which ads bring couples to us. Kept as
-            long as your preview or invite.
+            of our ads, to learn which ads bring couples to us. Kept as long as your preview or
+            invite.
           </li>
         </ul>
         <p>
@@ -86,8 +86,8 @@ export default function PrivacyPage() {
           <li>Google Firebase, which sends the one-time code you sign in with.</li>
           <li>Meta (WhatsApp Business), which delivers our WhatsApp messages to you.</li>
           <li>
-            Google Ads, only if you accept the ad cookie. It learns that a visit from our ad led to
-            a preview or a payment, and the amount. It does not get your names or your number.
+            Google Ads. It learns that a visit from our ad led to a preview or a payment, and the
+            amount. It does not get your names or your number.
           </li>
           <li>
             Telegram, which tells our team that you made a preview, so we can send it to your
@@ -145,11 +145,10 @@ export default function PrivacyPage() {
         <h2>9. Cookies</h2>
         <p>
           We set one cookie to keep you signed in to your dashboard, and one to keep your preview on
-          the phone that opened it. We ask before one more: the Google Ads cookie, which tells us
-          which of our ads led to a preview or a payment. Until you press Accept, Google’s code does
-          not load and nothing is stored. If you press No thanks, we do not ask again in that
-          browser. To change your answer, clear this site’s data in your browser. We use no
-          analytics cookies and no remarketing. Invite pages your guests open set no cookies.
+          the phone that opened it. Google Ads also sets a cookie on our site and preview pages. It
+          tells us which of our ads led to a preview or a payment. We use no analytics cookies and
+          no remarketing. You can block or delete cookies in your browser settings. Invite pages
+          your guests open set no cookies.
         </p>
       </section>
 

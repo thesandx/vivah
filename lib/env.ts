@@ -402,7 +402,7 @@ const firebaseAppId = pattern(
 /**
  * Google Ads measurement (ADR-0013). Public, like the Firebase config: these
  * ids appear in the page source of every site that uses them. Fixed at BUILD
- * time (trap 8). An empty id turns the tag and the consent banner off.
+ * time (trap 8). An empty id turns the tag off.
  */
 const googleAdsId = pattern(
   'NEXT_PUBLIC_GOOGLE_ADS_ID',

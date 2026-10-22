@@ -269,7 +269,7 @@ jobs:
           # disabled, which closes every write route rather than opening one.
           #
           # The Google Ads values are public variables too (ADR-0013). Unset,
-          # the site has no Google tag and no consent banner.
+          # the site has no Google tag.
           build-args: |
             NEXT_PUBLIC_APP_URL=${{ vars.APP_URL || format('https://{0}', vars.ROOT_DOMAIN || 'vivah.online') }}
             NEXT_PUBLIC_APP_NAME=${{ vars.APP_NAME || 'vivah.online' }}

@@ -226,13 +226,10 @@ export default async function PreviewPage({
   }
 
   return (
-    // No consent banner here (ADR-0013): it would cover the pay button. A
-    // purchase counts when the couple accepted on the product site.
     <GoogleAds
       adsId={env.googleAds.id}
       signupLabel={env.googleAds.signupLabel}
       purchaseLabel={env.googleAds.purchaseLabel}
-      askConsent={false}
     >
       <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
         {published && payment === 'success' && lead.weddingSlug !== undefined && (

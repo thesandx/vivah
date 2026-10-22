@@ -1,13 +1,7 @@
 /**
  * Google Ads measurement: the names and checks the browser and the server
  * share. Pure, so a test needs no browser. ADR-0013 records the decision.
- *
- * The tag loads only after the visitor presses "Accept" on the consent
- * banner. Before that, nothing is stored and nothing is sent to Google.
  */
-
-/** Where the visitor's answer to the consent banner is kept, in `localStorage`. */
-export const CONSENT_STORAGE_KEY = 'vivah_ad_consent';
 
 /**
  * Where the click id from an ad is kept, in `sessionStorage`, until the
@@ -18,15 +12,8 @@ export const GCLID_STORAGE_KEY = 'vivah_gclid';
 /** Prefix of the `sessionStorage` key that stops a conversion counting twice in one tab. */
 export const CONVERSION_SENT_PREFIX = 'vivah_conversion_sent:';
 
-export type AdConsent = 'granted' | 'denied';
-
 /** The two conversion actions made in Google Ads (see the setup guide). */
 export type ConversionKind = 'signup' | 'purchase';
-
-/** The answer stored by the banner, or `null` when the visitor has not answered. */
-export function parseConsent(raw: string | null | undefined): AdConsent | null {
-  return raw === 'granted' || raw === 'denied' ? raw : null;
-}
 
 /**
  * A Google click id is URL-safe base64. Anything else is not stored, so a

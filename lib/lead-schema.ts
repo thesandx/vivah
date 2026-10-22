@@ -96,8 +96,8 @@ export const leadRequestSchema = z
      */
     website: z.string().max(200).optional(),
     /**
-     * The Google Ads click id, sent only when the visitor accepted the ad
-     * cookie (ADR-0013). Kept on the lead so a payment made in another
+     * The Google Ads click id, when the visitor came from an ad
+     * (ADR-0013). Kept on the lead so a payment made in another
      * browser can still be matched to the ad by an upload.
      */
     gclid: z

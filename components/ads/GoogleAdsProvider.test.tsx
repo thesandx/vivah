@@ -1,9 +1,9 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { GoogleAds, GoogleAdsProvider } from '@/components/ads/GoogleAdsProvider';
 import { useGoogleAds } from '@/hooks/useGoogleAds';
-import { CONSENT_STORAGE_KEY, GCLID_STORAGE_KEY } from '@/lib/google-ads';
+import { GCLID_STORAGE_KEY } from '@/lib/google-ads';
 
 // next/script needs the Next runtime. Stand in a marker for the loaded script.
 vi.mock('next/script', () => ({
@@ -31,7 +31,7 @@ function Probe() {
   );
 }
 
-/** The `send_to` of every conversion event in Google's queue. */
+/** The parameters of every conversion event in Google's queue. */
 function conversions(): unknown[] {
   return (window.dataLayer ?? [])
     .map((entry) => Array.from(entry as ArrayLike<unknown>))
@@ -40,7 +40,6 @@ function conversions(): unknown[] {
 }
 
 beforeEach(() => {
-  window.localStorage.clear();
   window.sessionStorage.clear();
   window.dataLayer = [];
 });
@@ -50,38 +49,16 @@ afterEach(() => {
 });
 
 describe('GoogleAdsProvider', () => {
-  it('asks first, and loads nothing before an answer', () => {
+  it('loads the tag for this account at once, with no banner', () => {
     render(<GoogleAdsProvider {...PROPS}>page</GoogleAdsProvider>);
-    expect(screen.getByRole('region', { name: 'Cookie choice' })).toBeInTheDocument();
-    expect(screen.queryByTestId('gtag-script')).toBeNull();
-  });
-
-  it('loads the tag after Accept, and remembers the answer', () => {
-    render(<GoogleAdsProvider {...PROPS}>page</GoogleAdsProvider>);
-    fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
-    expect(window.localStorage.getItem(CONSENT_STORAGE_KEY)).toBe('granted');
-    expect(screen.queryByRole('region', { name: 'Cookie choice' })).toBeNull();
     expect(screen.getByTestId('gtag-script')).toHaveAttribute(
       'data-src',
       'https://www.googletagmanager.com/gtag/js?id=AW-123456789',
     );
-  });
-
-  it('loads nothing after No thanks, and sends no conversion', () => {
-    render(
-      <GoogleAdsProvider {...PROPS}>
-        <Probe />
-      </GoogleAdsProvider>,
-    );
-    fireEvent.click(screen.getByRole('button', { name: 'No thanks' }));
-    fireEvent.click(screen.getByRole('button', { name: 'signup' }));
-    expect(window.localStorage.getItem(CONSENT_STORAGE_KEY)).toBe('denied');
-    expect(screen.queryByTestId('gtag-script')).toBeNull();
-    expect(conversions()).toEqual([]);
+    expect(screen.queryByRole('button')).toBeNull();
   });
 
   it('sends each conversion with its label, and a purchase once per payment', () => {
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, 'granted');
     render(
       <GoogleAdsProvider {...PROPS}>
         <Probe />
@@ -102,7 +79,6 @@ describe('GoogleAdsProvider', () => {
   });
 
   it('skips a conversion whose label is not set', () => {
-    window.localStorage.setItem(CONSENT_STORAGE_KEY, 'granted');
     render(
       <GoogleAdsProvider {...PROPS} signupLabel="">
         <Probe />
@@ -112,35 +88,28 @@ describe('GoogleAdsProvider', () => {
     expect(conversions()).toEqual([]);
   });
 
-  it('keeps the click id from the address, and gives it out only with consent', () => {
+  it('keeps the click id from the address for the lead', () => {
     window.history.replaceState(null, '', '/?gclid=Cj0KCQjw_abc-123XYZ');
+    const page = () => (
+      <GoogleAdsProvider {...PROPS}>
+        <Probe />
+      </GoogleAdsProvider>
+    );
+    const { rerender } = render(page());
+    expect(window.sessionStorage.getItem(GCLID_STORAGE_KEY)).toBe('Cj0KCQjw_abc-123XYZ');
+    // The form reads the click id when it submits, after the first render.
+    rerender(page());
+    expect(screen.getByTestId('gclid')).toHaveTextContent('Cj0KCQjw_abc-123XYZ');
+  });
+
+  it('ignores a click id that is not one', () => {
+    window.history.replaceState(null, '', '/?gclid=%3Cb%3E');
     render(
       <GoogleAdsProvider {...PROPS}>
         <Probe />
       </GoogleAdsProvider>,
     );
-    expect(window.sessionStorage.getItem(GCLID_STORAGE_KEY)).toBe('Cj0KCQjw_abc-123XYZ');
     expect(screen.getByTestId('gclid')).toHaveTextContent('none');
-    fireEvent.click(screen.getByRole('button', { name: 'Accept' }));
-    expect(screen.getByTestId('gclid')).toHaveTextContent('Cj0KCQjw_abc-123XYZ');
-  });
-
-  it('shows no banner where it is told not to ask', () => {
-    render(
-      <GoogleAdsProvider {...PROPS} askConsent={false}>
-        page
-      </GoogleAdsProvider>,
-    );
-    expect(screen.queryByRole('region', { name: 'Cookie choice' })).toBeNull();
-  });
-
-  it('follows an answer given in another tab', () => {
-    render(<GoogleAdsProvider {...PROPS}>page</GoogleAdsProvider>);
-    act(() => {
-      window.localStorage.setItem(CONSENT_STORAGE_KEY, 'denied');
-      window.dispatchEvent(new Event('storage'));
-    });
-    expect(screen.queryByRole('region', { name: 'Cookie choice' })).toBeNull();
   });
 });
 
@@ -152,7 +121,7 @@ describe('GoogleAds', () => {
       </GoogleAds>,
     );
     expect(screen.getByText('page')).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: 'Cookie choice' })).toBeNull();
+    expect(screen.queryByTestId('gtag-script')).toBeNull();
   });
 });
 

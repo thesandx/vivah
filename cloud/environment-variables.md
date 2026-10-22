@@ -429,7 +429,7 @@ Grant access before you set the `*_SECRET_SECRET` variables. A deploy that mount
 
 ## Google Ads configuration
 
-The Google tag and the two conversion events. [ADR-0013](../docs/adr/0013-measure-google-ads-after-consent.md) records the design.
+The Google tag and the two conversion events. [ADR-0013](../docs/adr/0013-measure-google-ads-conversions.md) records the design.
 
 | Variable                                | Where it comes from                         | Secret |
 | --------------------------------------- | ------------------------------------------- | ------ |
@@ -439,7 +439,7 @@ The Google tag and the two conversion events. [ADR-0013](../docs/adr/0013-measur
 
 All three are build arguments, so a change takes effect at the next deploy (trap 8). They are public: Google prints them in the page source of every site that uses them.
 
-Without `GOOGLE_ADS_ID`, the site has no Google tag and no consent banner. With it, the banner shows on the product site and the preview page, and the tag loads only after "Accept". A missing label turns off only that conversion.
+Without `GOOGLE_ADS_ID`, the site has no Google tag. With it, the tag loads on the product site and the preview page. A missing label turns off only that conversion.
 
 To turn it on:
 

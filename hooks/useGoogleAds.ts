@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from 'react';
 
-import type { AdConsent, ConversionKind } from '@/lib/google-ads';
+import type { ConversionKind } from '@/lib/google-ads';
 
 /** What a conversion carries beyond its kind. */
 export interface ConversionDetails {
@@ -17,13 +17,9 @@ export interface ConversionDetails {
  * (`components/ads/`). ADR-0013.
  */
 export interface GoogleAdsState {
-  /** The visitor's answer to the banner. `null`: not answered. `undefined`: not read yet. */
-  consent: AdConsent | null | undefined;
-  accept: () => void;
-  decline: () => void;
-  /** The click id of the ad that brought this tab here, only with consent. */
+  /** The click id of the ad that brought this tab here, or `null`. */
   gclidForLead: () => string | null;
-  /** Sends a conversion. Does nothing without consent or without its label. */
+  /** Sends a conversion. Does nothing when its label is not set. */
   reportConversion: (kind: ConversionKind, details?: ConversionDetails) => void;
 }
 
@@ -31,9 +27,6 @@ export const GoogleAdsContext = createContext<GoogleAdsState | null>(null);
 
 /** Outside the provider, or with no Google Ads id, measurement is off. */
 const OFF: GoogleAdsState = {
-  consent: null,
-  accept: () => undefined,
-  decline: () => undefined,
   gclidForLead: () => null,
   reportConversion: () => undefined,
 };

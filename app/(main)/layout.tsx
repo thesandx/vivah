@@ -33,7 +33,7 @@ const FOOTER_LINKS = [
  *
  * The WhatsApp button floats on every page here, so help is one tap away.
  *
- * `GoogleAds` asks for ad consent and counts sign-ups (ADR-0013). It is off
+ * `GoogleAds` loads the Google tag and counts sign-ups (ADR-0013). It is off
  * when no Google Ads id was set at build time.
  *
  * A couple's invite does not use this shell. See `app/(invite)/layout.tsx`.

@@ -13,8 +13,7 @@ export interface PurchaseConversionProps {
 
 /**
  * Reports a purchase to Google Ads on the payment-success screen. Renders
- * nothing. Waits for consent: if the visitor accepts on this screen, it
- * reports then.
+ * nothing.
  */
 export function PurchaseConversion({ valueRupees, paymentId }: PurchaseConversionProps) {
   const { reportConversion } = useGoogleAds();

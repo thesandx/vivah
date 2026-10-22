@@ -1,19 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { conversionTarget, gtagScriptUrl, parseConsent, parseGclid } from '@/lib/google-ads';
-
-describe('parseConsent', () => {
-  it('reads the two answers', () => {
-    expect(parseConsent('granted')).toBe('granted');
-    expect(parseConsent('denied')).toBe('denied');
-  });
-
-  it('treats anything else as no answer', () => {
-    expect(parseConsent(null)).toBeNull();
-    expect(parseConsent(undefined)).toBeNull();
-    expect(parseConsent('yes')).toBeNull();
-  });
-});
+import { conversionTarget, gtagScriptUrl, parseGclid } from '@/lib/google-ads';
 
 describe('parseGclid', () => {
   it('keeps a click id', () => {

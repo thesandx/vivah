@@ -91,8 +91,8 @@ export const leadSchema = z.object({
    */
   desiredSlug: z.string().optional(),
   /**
-   * The Google Ads click id from the sign-up card, when the couple accepted
-   * the ad cookie (ADR-0013). Matches a payment made in another browser to
+   * The Google Ads click id from the sign-up card, when the couple came
+   * from an ad (ADR-0013). Matches a payment made in another browser to
    * the ad, by an upload. Never queried, so it needs no index.
    */
   gclid: z.string().max(200).optional(),

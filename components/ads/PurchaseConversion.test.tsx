@@ -8,9 +8,6 @@ describe('PurchaseConversion', () => {
   it('reports the purchase with its amount and payment id', () => {
     const reportConversion = vi.fn();
     const state: GoogleAdsState = {
-      consent: 'granted',
-      accept: vi.fn(),
-      decline: vi.fn(),
       gclidForLead: () => null,
       reportConversion,
     };
