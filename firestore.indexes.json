@@ -153,6 +153,51 @@
       "collectionGroup": "adminAudit",
       "fieldPath": "adminUid",
       "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "visitId",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "seq",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "sectionMs",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "clicks",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "steps",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "lead",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "campaign",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "visitBeacons",
+      "fieldPath": "expireAt",
+      "indexes": []
     }
   ]
 }

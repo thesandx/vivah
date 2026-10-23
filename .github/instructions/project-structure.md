@@ -15,6 +15,7 @@ Where every file goes, and why. **This layout is fixed** — see rule 1 in [codi
 │   ├── api/                #   Route handlers (server-side HTTP endpoints)
 │   │   ├── health/         #     GET /api/health — liveness probe
 │   │   ├── leads/          #     POST /api/leads — anonymous lead capture (ADR-0006)
+│   │   ├── visits/         #     POST /api/visits — home page visit beacons (ADR-0014)
 │   │   └── og/[slug]/      #     GET /api/og/<slug> — the invite's link preview image
 │   ├── p/[id]/             #   GET /p/<lead id> — binds a preview link to a browser
 │   ├── error.tsx           #   Route-segment error boundary (Client Component)

@@ -75,7 +75,7 @@ export function SignupDialogProvider({ children }: SignupDialogProviderProps) {
         title="Make your wedding website"
         titleHidden
       >
-        <LeadForm headingId={DIALOG_HEADING_ID} />
+        <LeadForm headingId={DIALOG_HEADING_ID} place="dialog" />
       </Dialog>
     </SignupDialogContext>
   );

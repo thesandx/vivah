@@ -59,7 +59,7 @@ export function StickySignupBar({ afterId, line, action }: StickySignupBarProps)
     >
       <div className="bg-surface border-line rounded-pill shadow-hard-lg pointer-events-auto flex w-full max-w-xl items-center gap-4 border-2 p-1 sm:pl-6">
         <p className="text-ink hidden flex-1 font-semibold sm:block">{line}</p>
-        <SignupButton size="md" className="w-full sm:w-auto">
+        <SignupButton size="md" className="w-full sm:w-auto" data-track-cta="sticky-bar">
           {action}
         </SignupButton>
       </div>

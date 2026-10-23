@@ -14,6 +14,7 @@ import {
   startStepImageUploadAction,
 } from '@/app/(admin)/admin/actions';
 import { TestimonialsAdmin } from '@/app/(admin)/admin/testimonials-view';
+import { VisitorsView } from '@/app/(admin)/admin/visitors-view';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminFilters } from '@/components/admin/AdminFilters';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
@@ -85,6 +86,7 @@ const VIEWS = [
   { value: 'invites', label: 'Invites' },
   { value: 'deleted', label: 'Deleted' },
   { value: 'previews', label: 'Previews' },
+  { value: 'visitors', label: 'Visitors' },
   { value: 'activity', label: 'Activity' },
   { value: 'home', label: 'Home page' },
 ] as const;
@@ -130,6 +132,7 @@ export default async function AdminPage({
         {view === 'invites' && <InvitesView params={params} tab="invites" />}
         {view === 'deleted' && <InvitesView params={params} tab="deleted" />}
         {view === 'previews' && <PreviewsView params={params} />}
+        {view === 'visitors' && <VisitorsView params={params} />}
         {view === 'activity' && <ActivityView />}
         {view === 'home' && <HomePageView />}
       </main>
