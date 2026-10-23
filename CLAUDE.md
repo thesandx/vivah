@@ -22,21 +22,21 @@ A clean install, a full build, a `--no-cache` Docker build and a running contain
 
 |                           | Version    | Note                                     |
 | ------------------------- | ---------- | ---------------------------------------- |
-| Next.js                   | `16.2.10`  | App Router, Turbopack                    |
-| React / React DOM         | `19.2.7`   |                                          |
-| TypeScript                | `^6.0.3`   | Major bump; **do not add `baseUrl`**     |
-| ESLint                    | `^9.39.5`  | **Pinned to 9 deliberately** — see traps |
-| `eslint-config-next`      | `16.2.10`  | Must track the Next version              |
+| Next.js                   | `16.4.2`   | App Router, Turbopack                    |
+| React / React DOM         | `19.3.1`   |                                          |
+| TypeScript                | `^6.0.3`   | **Pinned to 6 deliberately** — see traps |
+| ESLint                    | `^10.13.0` | Flat config                              |
+| `eslint-config-next`      | `16.4.2`   | Must track the Next version              |
 | Tailwind CSS              | `^4.3.3`   | v4, CSS-first config                     |
-| Vitest                    | `^4.1.10`  | jsdom + React Testing Library            |
-| Node                      | `>=22.0.0` | `.nvmrc` pins `22.20.0`                  |
+| Vitest                    | `^5.0.5`   | jsdom + React Testing Library            |
+| Node                      | `>=22.0.0` | `.nvmrc` pins `22.23.4`                  |
 | pnpm                      | `11.15.1`  | Via `packageManager` + corepack          |
 | `@google-cloud/firestore` | `^9.2.0`   | Native mode, named database              |
 | `@google-cloud/storage`   | `^8.2.0`   | V4 signed URLs, no key file              |
 | zod                       | `^4.6.5`   | Runtime validation at every boundary     |
 | `server-only`             | `^0.0.1`   | Makes a client import a build error      |
-| `firebase`                | `^12.19.0` | Client SDK, **auth only** — never data   |
-| `firebase-admin`          | `^14.4.0`  | Verifies and mints sessions. No key file |
+| `firebase`                | `^13.1.0`  | Client SDK, **auth only** — never data   |
+| `firebase-admin`          | `^14.5.0`  | Verifies and mints sessions. No key file |
 
 The production image is ~64 MB compressed, boots in ~2s, stops on `SIGTERM` in ~1s, and runs as `uid=1001(nextjs)` on a read-only root filesystem.
 
@@ -279,7 +279,7 @@ Things that look wrong and are not. **Read the full entry in [`docs/traps.md`](.
 
 1. [`pnpm typecheck` runs `next typegen` first](./docs/traps.md#1-pnpm-typecheck-runs-next-typegen-first)
 2. [`tsconfig.json` has no `baseUrl`](./docs/traps.md#2-tsconfigjson-has-no-baseurl)
-3. [ESLint is pinned to 9, not 10](./docs/traps.md#3-eslint-is-pinned-to-9-not-10)
+3. [TypeScript is pinned to 6, not 7](./docs/traps.md#3-typescript-is-pinned-to-6-not-7)
 4. [`next.config.ts` has no `eslint` key](./docs/traps.md#4-nextconfigts-has-no-eslint-key)
 5. [pnpm `minimumReleaseAge` and Dependabot `cooldown` are coupled](./docs/traps.md#5-pnpm-minimumreleaseage-and-dependabot-cooldown-are-coupled)
 6. [`output: 'standalone'` is load-bearing](./docs/traps.md#6-output-standalone-is-load-bearing)
@@ -425,7 +425,7 @@ Two pnpm safety nets will stop you, and both are deliberate:
 - **`Ignored build scripts`** → the package wants a lifecycle script. Add to `allowBuilds` in `pnpm-workspace.yaml` and explain why.
 - **`ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`** → the version is under 24h old. pnpm adds an entry to `minimumReleaseAgeExclude`; commit it, then **prune it** once the version ages past the window. Empty is the healthy steady state.
 
-**Upgrade philosophy:** `latest` on npm is not the same as _supported_. This repo tracks what `create-next-app` scaffolds, because that is what the framework tests. TypeScript 7 and ESLint 10 are both "latest" and both break the toolchain today.
+**Upgrade philosophy:** `latest` on npm is not the same as _supported_. This repo tracks what `create-next-app` scaffolds, because that is what the framework tests. TypeScript 7 is "latest" and breaks the toolchain today.
 
 ---
 

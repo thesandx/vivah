@@ -18,16 +18,17 @@ Do not replace the script with a bare `tsc --noEmit`. It then fails on a fresh c
 
 Deliberately removed. TypeScript 6 raises `TS5101: Option 'baseUrl' is deprecated and will stop functioning in TypeScript 7.0`. `paths` entries resolve relative to the `tsconfig.json` that declares them, so `baseUrl` was never needed. **Do not add it back**; it will break the build on the current TypeScript.
 
-### 3. ESLint is pinned to 9, not 10
+### 3. TypeScript is pinned to 6, not 7
 
-Not neglect. ESLint 10 fails with:
+Not neglect. With TypeScript 7, `pnpm lint` fails at once with:
 
 ```
-TypeError: Error while loading rule 'react/display-name':
-contextOrFilename.getFilename is not a function
+Error: typescript-eslint does not support TS 7.0.
 ```
 
-`eslint-plugin-react`, pulled in transitively by `eslint-config-next`, still uses the ESLint 9 rule-context API. Nothing in this repo can configure around it. Dependabot will keep proposing 10; it stays closed until `eslint-config-next` ships support.
+`typescript-eslint` comes in through `eslint-config-next`. It reads types with the TypeScript compiler API, and TypeScript 7 does not have that API yet. Dependabot will keep proposing 7. It stays closed until `typescript-eslint` supports it.
+
+ESLint used to be pinned to 9 for the same kind of reason: `eslint-plugin-react` used the ESLint 9 rule-context API. `eslint-config-next` 16.4 fixed that, so ESLint is on 10 since 23 Oct 2026.
 
 ### 4. `next.config.ts` has no `eslint` key
 

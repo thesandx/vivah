@@ -72,6 +72,4 @@ minimumReleaseAge: 1440
 # install this before it had aged". Prune entries once the version is older
 # than minimumReleaseAge — they are then redundant, and a stale list quietly
 # widens the hole. Empty is the healthy steady state.
-minimumReleaseAgeExclude:
-  - "@testing-library/jest-dom@7.0.0"
-  - prettier@3.9.6
+minimumReleaseAgeExclude: []

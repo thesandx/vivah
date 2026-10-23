@@ -397,7 +397,7 @@ jobs:
             echo "::error::FIREBASE_HOSTING_ENABLED is true but firebase.json is missing."
             exit 1
           fi
-          npx --yes firebase-tools@15.31.0 deploy \
+          npx --yes firebase-tools@15.34.1 deploy \
             --only hosting \
             --project "$FIREBASE_PROJECT" \
             --non-interactive \

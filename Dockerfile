@@ -14,8 +14,8 @@
 # replace this with a `COPY . .` of the whole tree.
 ###############################################################################
 
-ARG NODE_VERSION=22.20.0
-ARG ALPINE_VERSION=3.21
+ARG NODE_VERSION=22.23.4
+ARG ALPINE_VERSION=3.23
 
 ###############################################################################
 # base
