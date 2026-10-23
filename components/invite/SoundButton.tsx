@@ -1,18 +1,24 @@
 import { cn } from '@/lib/utils';
 
 /**
- * The round rose button pinned to the top right of an open invite that pauses and plays the
- * couple's song. While the song plays, three bars move inside it. A plain
- * component: `InviteGate` holds the audio and passes the state in.
+ * The round button pinned to the top right of an open invite that turns the
+ * couple's song off and on. It shows a speaker, so a guest sees at once what
+ * it does: with sound waves that light up in turn while the song plays, and
+ * with a rose slash through it while the song is off. A gold ring on a dark
+ * plum circle, in the invite's own colours. A plain component: `InviteGate`
+ * holds the audio and passes the state in.
  */
 
 export interface SoundButtonProps {
   playing: boolean;
-  /** The song's name, for the accessible name: "Pause Kesariya". */
+  /** The song's name, for the accessible name: "Turn off our song, Kesariya". */
   title: string;
   onToggle: () => void;
   className?: string;
 }
+
+/** The speaker's cone, with soft, rounded corners, drawn in a 32-unit box. */
+const CONE = 'M9.5 11.5h1.5l6.6-5.4a1.3 1.3 0 0 1 2.1 1v17.8a1.3 1.3 0 0 1-2.1 1L11 20.5H9.5Z';
 
 export function SoundButton({
   playing,
@@ -24,34 +30,32 @@ export function SoundButton({
     <button
       type="button"
       onClick={onToggle}
-      aria-label={`${playing ? 'Pause' : 'Play'} our song, ${title}`}
+      aria-label={`${playing ? 'Turn off' : 'Turn on'} our song, ${title}`}
       aria-pressed={playing}
       className={cn(
-        'squish bg-brand text-on-brand shadow-brand rounded-pill inline-grid size-12 place-items-center',
+        'squish bg-plum-night border-haldi rounded-pill shadow-hard inline-grid size-12 place-items-center border-2',
         className,
       )}
     >
-      {playing ? (
-        <span aria-hidden="true" className="flex h-5 items-end gap-1">
-          {[0, 300, 150].map((delay) => (
-            <span
-              key={delay}
-              className="bg-on-brand animate-sound-bar block h-5 w-1 origin-bottom rounded-pill"
-              style={{ animationDelay: `${delay}ms` }}
+      <svg viewBox="0 0 32 32" aria-hidden="true" className="size-8" fill="none">
+        <path d={CONE} className="fill-jewel-light" />
+        <rect x="4.5" y="11.5" width="6.5" height="9" rx="2.2" className="fill-haldi" />
+        {playing ? (
+          <g className="stroke-haldi" strokeWidth="2.2" strokeLinecap="round">
+            <path
+              d="M23 12.5a5 5 0 0 1 0 7"
+              className="animate-sound-wave motion-reduce:animate-none"
             />
-          ))}
-        </span>
-      ) : (
-        <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6" fill="none">
-          <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5H4Z" className="fill-current" />
-          <path
-            d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
-      )}
+            <path
+              d="M26 9a9.5 9.5 0 0 1 0 14"
+              className="animate-sound-wave motion-reduce:animate-none"
+              style={{ animationDelay: '300ms' }}
+            />
+          </g>
+        ) : (
+          <path d="M5 6 27 26" className="stroke-rani" strokeWidth="3" strokeLinecap="round" />
+        )}
+      </svg>
     </button>
   );
 }

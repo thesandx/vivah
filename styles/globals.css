@@ -208,8 +208,13 @@
   --animate-invite-in: invite-in 900ms var(--ease-settle) backwards;
   /* The seal breathes until it is tapped, so a guest knows where to tap. */
   --animate-seal-pulse: seal-pulse 2.2s ease-in-out infinite;
-  /* The bars on the sound button while the song plays. */
-  --animate-sound-bar: sound-bar 900ms ease-in-out infinite;
+  /* The waves of the speaker on the sound button while the song plays: they
+     light up one after the other, like sound leaving the speaker. */
+  --animate-sound-wave: sound-wave 1.2s ease-in-out infinite;
+  /* The gold ring round "Please tap to open your invitation": it blinks and
+     swells a little, so a guest knows to tap. The product owner asked for it
+     (2026-10-23). */
+  --animate-tap-ring: tap-ring 1.6s ease-in-out infinite;
   /* "Scroll" under the first card: a small nudge downwards. */
   --animate-nudge: nudge 1.8s ease-in-out infinite;
   /* Shri Ganesh on the invite floats, barely: 4px up and down, slowly. */
@@ -354,13 +359,25 @@
     }
   }
 
-  @keyframes sound-bar {
+  @keyframes sound-wave {
     0%,
     100% {
-      transform: scaleY(0.35);
+      opacity: 0.25;
     }
     50% {
-      transform: scaleY(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes tap-ring {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.2;
+      transform: scale(1.08);
     }
   }
 

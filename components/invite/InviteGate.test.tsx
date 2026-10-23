@@ -79,7 +79,7 @@ describe('InviteGate', () => {
       vi.advanceTimersByTime(1500);
     });
     // jsdom never fires `playing`, so the button offers to play.
-    expect(screen.getByRole('button', { name: 'Play our song, Kesariya' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Turn on our song, Kesariya' })).toBeInTheDocument();
     play.mockRestore();
     pause.mockRestore();
   });
