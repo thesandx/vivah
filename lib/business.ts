@@ -54,6 +54,8 @@ export const PRICE_FROM_RUPEES = 499;
  */
 export const PAPER_CARDS = {
   cost: '₹5,000 to ₹50,000+',
+  /** The low end alone, for the publish banner's short price card. */
+  costFrom: '₹5,000+',
   readyIn: '2 to 4 weeks',
 } as const;
 
