@@ -8,6 +8,7 @@ import { DemoVideo } from '@/components/home/DemoVideo';
 import { FeatureList } from '@/components/home/FeatureList';
 import { GuestPreview } from '@/components/home/GuestPreview';
 import { HowItWorks } from '@/components/home/HowItWorks';
+import { LiveInvitePhone } from '@/components/home/LiveInvitePhone';
 import { PaperVsDigital } from '@/components/home/PaperVsDigital';
 import { SectionHeading } from '@/components/home/SectionHeading';
 import { PageShell } from '@/components/layout/PageShell';
@@ -23,7 +24,7 @@ import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { BUSINESS, PRICE_FROM_RUPEES, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
-import { SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
+import { SAMPLE_GUEST, SAMPLE_SLUG, sampleWedding } from '@/lib/sample-invite';
 import { organizationSchema, siteOrigin, webApplicationSchema } from '@/lib/seo';
 import { inviteHref } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
@@ -76,6 +77,13 @@ const PROMISES = [
   'See it free before you pay',
 ];
 
+/** What a visitor can try in the live sample, in the order the invite shows it. */
+const SAMPLE_TRIES = [
+  'Tap Shri Ganesh to open the invite',
+  'Scratch the gold to see the wedding date',
+  'Scroll for the functions, the countdown and the venue map',
+];
+
 const GUIDES = [
   { href: '/help', label: 'Help and questions couples ask' },
   { href: '/whatsapp-wedding-invitation', label: 'Wedding invitation for WhatsApp' },
@@ -106,6 +114,8 @@ export const dynamic = 'force-dynamic';
 export default function HomePage() {
   const chatUrl = whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO);
   const origin = siteOrigin(env.rootDomain, env.appUrl);
+  const sampleUrl = `${inviteHref(SAMPLE_SLUG, env.rootDomain)}/${SAMPLE_GUEST}`;
+  const sample = sampleWedding(new Date());
 
   return (
     <PageShell>
@@ -157,6 +167,34 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* The sample invite, live in a phone, so a visitor tries it without
+          leaving this page. It loads only when it nears the screen. */}
+        <section aria-labelledby="try-heading" className="flex flex-col gap-8">
+          <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-x-12">
+            <div className="flex flex-col gap-5">
+              <SectionHeading
+                id="try-heading"
+                eyebrow="Try it here"
+                title="Open a real invite, right on this page"
+                intro={`This is the invite your guests get, with their own name on it. Here the guest is ${SAMPLE_GUEST}.`}
+              />
+              <ul className="hidden flex-col gap-3 lg:flex">
+                {SAMPLE_TRIES.map((step) => (
+                  <li key={step} className="flex items-center gap-3">
+                    <Tick />
+                    {step}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <LiveInvitePhone src={sampleUrl} bride={sample.bride} groom={sample.groom} />
+          </div>
+          <SectionCta
+            line="Now imagine your names on it, and every guest smiling at theirs."
+            action="Make one for us"
+          />
         </section>
 
         <section aria-labelledby="board-heading" className="flex flex-col gap-8">
@@ -242,7 +280,7 @@ export default function HomePage() {
             {/* The sample couple's site (`lib/sample-invite.ts`), in a new tab so
               the visitor comes back to this page. */}
             <a
-              href={`${inviteHref(SAMPLE_SLUG, env.rootDomain)}/${SAMPLE_GUEST}`}
+              href={sampleUrl}
               target="_blank"
               rel="noopener"
               className={buttonStyles({ variant: 'secondary', size: 'lg' })}

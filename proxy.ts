@@ -2,8 +2,9 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { isValidCoupleSlug } from '@/lib/couple-slug';
 import { env } from '@/lib/env';
+import { SAMPLE_SLUG } from '@/lib/sample-invite';
 import { isLinkPreviewAgent } from '@/lib/seo';
-import { inviteUrl, resolveSiteSurface } from '@/lib/site-host';
+import { inviteUrl, normaliseHost, resolveSiteSurface } from '@/lib/site-host';
 
 /**
  * Host routing: one Next.js app serves the product site and every couple's
@@ -18,6 +19,11 @@ import { inviteUrl, resolveSiteSurface } from '@/lib/site-host';
  *
  * The visitor's host is in `X-Forwarded-Host`, set by the Cloudflare Worker.
  * `Host` is the Cloud Run address. See `cloud/domain-routing.md`.
+ *
+ * The sample invite is the one page another page may frame: the home page
+ * shows it, live, inside a phone. `next.config.ts` leaves its
+ * `X-Frame-Options: DENY` off, and this file sends `frame-ancestors` in its
+ * place, naming the product site only.
  *
  * The invite pages live in the `app/(invite)` route group, which has no site
  * header. That is decided by the route, not by `usePathname()` in a
@@ -36,7 +42,14 @@ export function proxy(request: NextRequest): NextResponse {
     // page's Open Graph tags sit too far down for WhatsApp on Android to read.
     const base = isLinkPreviewAgent(request.headers.get('user-agent')) ? '/api/share' : '/site';
     target.pathname = `${base}/${slug}${pathname === '/' ? '' : pathname}`;
-    return NextResponse.rewrite(target);
+    const response = NextResponse.rewrite(target);
+    if (slug === SAMPLE_SLUG) {
+      response.headers.set(
+        'Content-Security-Policy',
+        `frame-ancestors 'self' https://${normaliseHost(env.rootDomain)}`,
+      );
+    }
+    return response;
   }
 
   // The product site never shows an invite under its own address: send the
@@ -51,7 +64,13 @@ export function proxy(request: NextRequest): NextResponse {
     );
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+  // Without host routing (local development), the home page frames the
+  // sample at its internal path, on the same origin.
+  if (siteSlug === SAMPLE_SLUG) {
+    response.headers.set('Content-Security-Policy', "frame-ancestors 'self'");
+  }
+  return response;
 }
 
 export const config = {
