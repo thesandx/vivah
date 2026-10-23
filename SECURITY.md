@@ -118,7 +118,7 @@ The recovery steps, the rules for a bulk write and the quarterly restore test ar
 
 ### Application
 
-- Security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) set in `next.config.ts`; `X-Powered-By` removed.
+- Security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`) set in `next.config.ts`; `X-Powered-By` removed. The sample invite is the one page without `X-Frame-Options: DENY`. The home page shows it in a phone. `proxy.ts` sends `frame-ancestors` for it, and names only the product site.
 - The app validates environment configuration at startup. A missing required variable fails the revision instead of serving broken responses.
 - Secrets come from Secret Manager at runtime, never from build args (visible in `docker history`) and never from `NEXT_PUBLIC_*` (shipped to every browser).
 - Every module in `services/` starts with `import 'server-only'`, so a Client Component importing the data layer is a build failure rather than an SDK in a browser bundle.

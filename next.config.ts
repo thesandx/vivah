@@ -43,13 +43,23 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
           {
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(), browsing-topics=()',
           },
         ],
+      },
+      // No page may be framed, except the sample invite: the home page shows
+      // it, live, inside a phone. `proxy.ts` sends `frame-ancestors` for the
+      // sample instead, because the product site's own address is known only
+      // at runtime. The slug is `SAMPLE_SLUG` in `lib/sample-invite.ts`;
+      // `proxy.test.ts` checks the two agree. The sample is reached at its
+      // own host, or at `/site/riya-arjun` without host routing.
+      {
+        source: '/:path((?!site/riya-arjun(?:/|$)).*)',
+        missing: [{ type: 'header', key: 'x-forwarded-host', value: 'riya-arjun\\..*' }],
+        headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
       },
     ];
   },

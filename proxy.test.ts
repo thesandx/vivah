@@ -61,4 +61,22 @@ describe('proxy', () => {
     const response = proxy(request('/'));
     expect(rewriteOf(response)).toBeNull();
   });
+
+  it('lets only the product site frame the sample invite', () => {
+    const sample = proxy(request('/Kartheek', 'riya-arjun.vivah.online'));
+    expect(sample.headers.get('content-security-policy')).toBe(
+      "frame-ancestors 'self' https://vivah.online",
+    );
+    const couple = proxy(request('/Kartheek', 'raadha-shyam.vivah.online'));
+    expect(couple.headers.get('content-security-policy')).toBeNull();
+  });
+
+  it('names the same sample slug as the X-Frame-Options exemption in next.config.ts', async () => {
+    const { SAMPLE_SLUG } = await import('@/lib/sample-invite');
+    const { default: config } = await import('./next.config');
+    const rules = (await config.headers?.()) ?? [];
+    const deny = rules.find((rule) => rule.headers.some((h) => h.key === 'X-Frame-Options'));
+    expect(deny?.source).toContain(`site/${SAMPLE_SLUG}(`);
+    expect(deny?.missing?.[0]?.value).toBe(`${SAMPLE_SLUG}\\..*`);
+  });
 });
