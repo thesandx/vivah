@@ -6,7 +6,7 @@ import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/in
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Alert } from '@/components/ui/Alert';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
-import { PAYMENT_METHODS } from '@/lib/business';
+import { PAPER_CARDS, PAYMENT_METHODS } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
 /**
@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
  *
  * Closed, it is a one-line bar (the price and "Continue") while the couple
  * reads their invite. At the foot of the page it grows to the full sheet: the
- * price against every guest at no extra charge, one green button and the trust lines.
+ * price against what paper cards cost, one green button and the trust lines.
  * Scrolling up shrinks it back. The green button on either goes straight to
  * payment (the product owner, 2026-10-16): the couple chose their address on
  * the sign-up card, so there is nothing left to ask. Only "See everything you
@@ -27,8 +27,8 @@ import { cn } from '@/lib/utils';
  * It is a transaction surface, so it is set apart from the invite behind it:
  * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
  * tokens). Only the couple's names keep the invite's serif. Every claim on it
- * is true today: the price is `PRICE_FROM_RUPEES` (passed in), and there is
- * no limit on guests or on sharing (the product owner's pick, 2026-10-17). No ratings, no couple counts and no refund
+ * is true today: the price is `PRICE_FROM_RUPEES` (passed in), and the
+ * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No ratings, no couple counts and no refund
  * promise (the product owner removed it, 2026-10-16).
  *
  * `mode` says what the button does. `live`: it opens Cashfree's page
@@ -316,9 +316,11 @@ export function PublishBanner({
                 </span>
               </div>
               <div className="text-small text-pay-muted flex flex-col text-right">
-                <span>Every guest</span>
-                <span className="text-pay-ink font-semibold">No charge per guest</span>
-                <span>Share as many times as you like</span>
+                <span>Paper cards cost</span>
+                <span className="text-pay-ink font-semibold tabular-nums">
+                  {PAPER_CARDS.costFrom}
+                </span>
+                <span>and take {PAPER_CARDS.readyIn}</span>
               </div>
             </div>
 
