@@ -14,6 +14,7 @@ import type { LinkPreviewCard } from '@/lib/link-preview-page';
 import { logger } from '@/lib/logger';
 import { isSampleSlug, sampleWedding } from '@/lib/sample-invite';
 import { editDetailsUrl, inviteDomainLabel, madeByUrl } from '@/lib/site-host';
+import type { WeddingFunction } from '@/lib/wedding-functions';
 import { songUrl } from '@/lib/wedding-songs';
 import { isGuestLinkDeleted } from '@/services/guest-link.service';
 import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
@@ -38,6 +39,7 @@ interface Invite {
   venueCity: string | null;
   venueMapsUrl: string | null;
   rsvpPhoneE164: string | null;
+  functions: readonly WeddingFunction[];
   song: { name: string; src: string } | null;
   unavailable: boolean;
   /** The sample invite: watermarked, and its edit link and RSVP are left out. */
@@ -56,6 +58,7 @@ function fromWedding(wedding: WeddingDocument): Invite {
     venueCity: wedding.venueCity ?? null,
     venueMapsUrl: wedding.venueMapsUrl ?? null,
     rsvpPhoneE164: wedding.ownerPhoneE164,
+    functions: wedding.functions ?? [],
     song:
       wedding.song === undefined
         ? null
@@ -196,6 +199,7 @@ export async function CoupleInvite({
             venueCity={wedding.venueCity}
             venueMapsUrl={wedding.venueMapsUrl}
             rsvpPhoneE164={wedding.rsvpPhoneE164}
+            functions={wedding.functions}
             madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
             {...(!wedding.sample && {
               editDetailsUrl: editDetailsUrl(wedding.slug, env.rootDomain, env.appUrl),

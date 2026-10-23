@@ -8,6 +8,7 @@ import { capitalizeName } from '@/lib/guest-name';
 import type { LeadRequest } from '@/lib/lead-schema';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { previewClosed, timerStarted, viewEndsAtFrom } from '@/lib/preview-timer';
+import { FUNCTION_KINDS } from '@/lib/wedding-functions';
 import { type ChosenSong, chosenSongSchema } from '@/lib/wedding-songs';
 import { createRepository, type StoredDocument } from '@/services/repository';
 
@@ -102,6 +103,13 @@ export const leadSchema = z.object({
    * and a card with no songs have none.
    */
   song: chosenSongSchema.optional(),
+  /**
+   * The functions besides the wedding the couple is having, chosen on the
+   * sign-up card: kinds only, no dates. The preview shows a card for each;
+   * publishing copies them to the wedding. Optional: older leads, and a
+   * couple who skipped the step, have none.
+   */
+  functions: z.array(z.enum(FUNCTION_KINDS)).max(FUNCTION_KINDS.length).optional(),
 });
 
 export type LeadPayload = z.infer<typeof leadSchema>;
@@ -142,8 +150,9 @@ export function leadTokenMatches(
 export async function createLead(
   // `weddingDate` stays nullable here: the sign-up card requires it now, but
   // leads stored before that have none, and the store keeps one shape.
-  input: Omit<LeadRequest, 'songSlot' | 'weddingDate'> & {
+  input: Omit<LeadRequest, 'songSlot' | 'weddingDate' | 'functions'> & {
     weddingDate: string | null;
+    functions?: LeadRequest['functions'];
     song?: ChosenSong | null;
   },
   now: Date = new Date(),
@@ -161,6 +170,8 @@ export async function createLead(
     ...(input.slug !== null && { desiredSlug: input.slug }),
     ...(input.song !== undefined && input.song !== null && { song: input.song }),
     ...(input.gclid !== undefined && { gclid: input.gclid }),
+    ...(input.functions !== undefined &&
+      input.functions.length > 0 && { functions: input.functions }),
   });
 }
 

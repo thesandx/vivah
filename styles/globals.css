@@ -1307,6 +1307,265 @@
   color: rgb(255 246 222 / 0.45);
 }
 
+/* The "Wedding Festivities" section: one card per function, on a timeline,
+   from the product owner's design (`components/invite/WeddingFestivities.tsx`).
+   Each card takes its jewel tone from a `jewel-fn-<kind>` class, which sets
+   `--fn` (the tone) and `--fn-hi` (the light end of the medallion). */
+@utility jewel-bg-festivities {
+  padding: 52px 22px 56px 14px;
+  color: var(--color-jewel-light);
+  background:
+    radial-gradient(circle at 50% 0%, rgb(255 210 74 / 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, #6a1e24 0%, #5c1329 40%, #4f0e2c 70%, #3c0a1f 100%);
+
+  & .jewel-jaali {
+    opacity: 0.16;
+    filter: hue-rotate(-20deg);
+  }
+}
+
+@utility jewel-fn-tilak {
+  --fn: #c8102e;
+  --fn-hi: #ff5a3c;
+}
+
+@utility jewel-fn-haldi {
+  --fn: #a87508;
+  --fn-hi: #ffd24a;
+}
+
+@utility jewel-fn-mehndi {
+  --fn: #0b7a55;
+  --fn-hi: #3fbf8a;
+}
+
+@utility jewel-fn-sangeet {
+  --fn: #3b2a7a;
+  --fn-hi: #8a6ae0;
+}
+
+@utility jewel-fn-wedding {
+  --fn: #0e7c7b;
+  --fn-hi: #2bb3ad;
+}
+
+@utility jewel-fn-reception {
+  --fn: #c2185b;
+  --fn-hi: #ff5c9a;
+}
+
+@utility jewel-fn-title {
+  font-family: var(--font-jewel);
+  font-size: clamp(32px, 10vw, 44px);
+  line-height: 1.14;
+  color: #ffe2a8;
+  text-shadow: 0 2px 18px rgb(0 0 0 / 0.35);
+}
+
+@utility jewel-fn-lede {
+  max-width: 310px;
+  margin: 14px auto 0;
+  font-family: var(--font-jewel);
+  font-size: 15.5px;
+  font-style: italic;
+  line-height: 1.6;
+  color: rgb(255 246 222 / 0.85);
+}
+
+@utility jewel-fn-list {
+  display: grid;
+  gap: 22px;
+  margin-top: 40px;
+  text-align: left;
+}
+
+/* One row: the medallion on the rail, then the card. The rail runs from
+   this medallion down to the next one. */
+@utility jewel-fn-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 54px 1fr;
+  column-gap: 12px;
+  align-items: start;
+
+  &:not(:last-child)::before {
+    position: absolute;
+    top: 36px;
+    left: 26px;
+    width: 2px;
+    height: calc(100% + 22px);
+    content: '';
+    background: linear-gradient(180deg, #d4af37, #b8892a);
+  }
+}
+
+@utility jewel-fn-medal {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin-top: 10px;
+  border-radius: 50%;
+  color: #fff;
+  background: radial-gradient(circle at 35% 30%, var(--fn-hi) 0%, var(--fn) 72%);
+  box-shadow:
+    0 0 0 3px #4f0e2c,
+    0 0 0 5px #d4af37,
+    0 8px 18px rgb(0 0 0 / 0.4);
+}
+
+@utility jewel-fn-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 16px 14px 20px;
+  border: 1.5px solid rgb(212 175 55 / 0.7);
+  border-radius: 18px;
+  color: var(--color-jewel-ink);
+  background: linear-gradient(180deg, #fffdf8 0%, #fff6e6 100%);
+  box-shadow:
+    0 14px 32px rgb(0 0 0 / 0.28),
+    inset 0 0 0 4px #fffdf8,
+    inset 0 0 0 5.5px rgb(212 175 55 / 0.35);
+
+  /* The stripe down the left edge, in the card's tone. */
+  &::before {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 4px;
+    content: '';
+    background: linear-gradient(180deg, var(--fn-hi), var(--fn));
+  }
+}
+
+@utility jewel-fn-lotus {
+  position: absolute;
+  right: 6px;
+  bottom: 4px;
+  width: 58px;
+  height: 58px;
+  color: var(--fn);
+  opacity: 0.16;
+  pointer-events: none;
+}
+
+@utility jewel-fn-tag {
+  font-family: var(--font-jewel);
+  font-size: 10.5px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--color-jewel-gold);
+}
+
+@utility jewel-fn-name {
+  margin-top: 2px;
+  font-family: var(--font-jewel);
+  font-size: 29px;
+  line-height: 1.2;
+  color: var(--fn);
+}
+
+@utility jewel-fn-when {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+  margin-top: 12px;
+}
+
+@utility jewel-fn-time {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-jewel);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: #fff;
+  background: linear-gradient(100deg, var(--fn), color-mix(in srgb, var(--fn) 78%, #000));
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--fn) 35%, transparent);
+}
+
+@utility jewel-fn-date {
+  font-family: var(--font-jewel);
+  font-size: 13.5px;
+  letter-spacing: 0.06em;
+  color: var(--color-jewel-ink);
+}
+
+@utility jewel-fn-where {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+@utility jewel-fn-venue {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  min-width: 0;
+  font-family: var(--font-jewel);
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.35;
+  color: var(--color-jewel-ink-soft);
+
+  & svg {
+    flex-shrink: 0;
+    color: var(--fn);
+  }
+}
+
+/* The link is 44px tall, for a finger; the pill inside is the spec's size. */
+@utility jewel-fn-dir {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 44px;
+  transition: transform 160ms ease;
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+@utility jewel-fn-dir-pill {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 11px;
+  border: 1.5px solid var(--fn);
+  border-radius: 999px;
+  font-family: var(--font-jewel);
+  font-size: 10px;
+  font-style: italic;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fn);
+  background: rgb(255 253 248 / 0.9);
+}
+
+/* A detail the couple has not added yet, in the unpaid preview. */
+@utility jewel-fn-faint {
+  opacity: 0.45;
+}
+
+@utility jewel-fn-note {
+  margin-top: 26px;
+  font-family: var(--font-jewel);
+  font-size: 15px;
+  font-style: italic;
+  text-align: center;
+  color: var(--color-jewel-haldi);
+}
+
 @keyframes jewel-bob {
   0%,
   100% {

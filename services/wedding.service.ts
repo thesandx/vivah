@@ -10,6 +10,11 @@ import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { phoneHintDigits } from '@/lib/phone';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
+import {
+  emptyFunction,
+  type WeddingFunction,
+  weddingFunctionsSchema,
+} from '@/lib/wedding-functions';
 import { chosenSongSchema, type SongSlot } from '@/lib/wedding-songs';
 import {
   type LeadDocument,
@@ -79,6 +84,13 @@ export const weddingSchema = z.object({
    * Never autoplays. Optional: absent means no music.
    */
   song: chosenSongSchema.optional(),
+  /**
+   * The functions besides the wedding (tilak, haldi, mehndi, sangeet,
+   * reception), each with its own date, time and venue. One entry per kind,
+   * so the list is bounded. Optional: absent or empty means the invite has
+   * no "Wedding Festivities" section.
+   */
+  functions: weddingFunctionsSchema.optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;
@@ -172,6 +184,23 @@ export async function updateWeddingSong(
   if (song === null) return { ok: false, reason: 'invalid' };
   await weddings.update(wedding.id, { song });
   return { ok: true, name: song.name };
+}
+
+/**
+ * Saves the functions besides the wedding, with their dates and venues. Only
+ * the couple's own number may change them; a stranger gets `not-found`.
+ */
+export async function updateWeddingFunctions(
+  slug: string,
+  callerPhoneE164: string | null,
+  functions: readonly WeddingFunction[],
+): Promise<{ ok: true } | { ok: false; reason: 'not-found' }> {
+  const wedding = await getWeddingBySlug(slug);
+  if (wedding === null || !canEditWedding(callerPhoneE164, wedding.ownerPhoneE164)) {
+    return { ok: false, reason: 'not-found' };
+  }
+  await weddings.update(wedding.id, { functions: [...functions] });
+  return { ok: true };
 }
 
 /**
@@ -327,6 +356,8 @@ export function writePublish(
     ownerPhoneE164: lead.phoneE164,
     leadId: lead.id,
     ...(lead.song !== undefined && { song: lead.song }),
+    ...(lead.functions !== undefined &&
+      lead.functions.length > 0 && { functions: lead.functions.map(emptyFunction) }),
   });
   slugClaims
     .inTransaction(tx)

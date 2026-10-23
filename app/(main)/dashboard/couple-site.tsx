@@ -1,4 +1,5 @@
 import { SignOutButton } from '@/components/auth/SignOutButton';
+import { FunctionsForm } from '@/components/dashboard/FunctionsForm';
 import { GuestLinks } from '@/components/dashboard/GuestLinks';
 import { SongPicker } from '@/components/dashboard/SongPicker';
 import { WeddingDetailsForm } from '@/components/dashboard/WeddingDetailsForm';
@@ -14,12 +15,17 @@ import { listGuestLinks } from '@/services/guest-link.service';
 import type { WeddingDocument } from '@/services/wedding.service';
 import { listSongOptions } from '@/services/wedding-songs.service';
 
-import { createGuestLinkAction, deleteGuestLinkAction, saveSongAction } from './actions';
+import {
+  createGuestLinkAction,
+  deleteGuestLinkAction,
+  saveFunctionsAction,
+  saveSongAction,
+} from './actions';
 import { saveWeddingDetailsAction } from './edit/[slug]/actions';
 
 /**
  * A couple's own site in the dashboard: the address, the details (read-only
- * until "Edit details") and the guest links. `/dashboard` shows it for the
+ * until "Edit details"), the functions, the song and the guest links. `/dashboard` shows it for the
  * couple's site; `/dashboard/edit/<slug>` shows it for any other site on the
  * same number.
  *
@@ -91,6 +97,21 @@ export async function CoupleSite({
               venueCity: wedding.venueCity ?? '',
               venueMapsUrl: wedding.venueMapsUrl ?? '',
             }}
+          />
+        </Card>
+
+        <Card className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-heading">Your functions</h2>
+            <p className="text-small text-ink-soft">
+              Tilak, haldi, mehndi, sangeet and reception, each with its own date and venue. Your
+              invite shows them with the wedding, in date order.
+            </p>
+          </div>
+          <FunctionsForm
+            initial={wedding.functions ?? []}
+            save={saveFunctionsAction.bind(null, wedding.slug)}
+            inviteHref={inviteHref(wedding.slug, env.rootDomain)}
           />
         </Card>
 

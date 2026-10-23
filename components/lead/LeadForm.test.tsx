@@ -52,9 +52,10 @@ function leadCalls(): Parameters<typeof fetch>[] {
   return fetchMock.mock.calls.filter(([url]) => String(url) === '/api/leads');
 }
 
-/** From the second step to the third, once the addresses arrive. */
+/** From the second step past the functions to the address, once the addresses arrive. */
 async function toAddress(): Promise<void> {
-  fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Add our functions' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Skip, just the wedding' }));
   expect(await screen.findByLabelText('raadha-shyam.vivah.online')).toBeChecked();
 }
 
@@ -186,7 +187,7 @@ describe('LeadForm', () => {
     fireEvent.change(screen.getByLabelText('WhatsApp number'), { target: { value: '9876543210' } });
     expect(screen.getByLabelText('Wedding date')).toBeRequired();
     expect(screen.queryByLabelText("I'll add the date later")).not.toBeInTheDocument();
-    const next = screen.getByRole('button', { name: 'Choose our address' });
+    const next = screen.getByRole('button', { name: 'Add our functions' });
     expect(next).toBeDisabled();
 
     fillDate();
@@ -202,10 +203,31 @@ describe('LeadForm', () => {
     expect(screen.getByText('Send my preview on WhatsApp')).toBeInTheDocument();
     expect(screen.getByText(/You also sign in with it later/)).toBeInTheDocument();
     expect(screen.queryByText(/only for your invite/)).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Choose our address' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Add our functions' })).toBeEnabled();
   });
 
-  it('offers free addresses on the third step, and checks a typed one', async () => {
+  it('asks for the functions on the third step, and sends the ticked ones', async () => {
+    serve(() => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201));
+    render(<LeadForm />);
+    fillNames();
+    fillDetails();
+    fireEvent.click(screen.getByRole('button', { name: 'Add our functions' }));
+
+    expect(screen.getByRole('heading', { name: 'Your functions' })).toBeInTheDocument();
+    expect(screen.getByText(/add the date, time and venue of each function/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Skip, just the wedding' })).toBeEnabled();
+    fireEvent.click(screen.getByLabelText('Reception'));
+    fireEvent.click(screen.getByLabelText('Haldi'));
+    expect(screen.getByLabelText('Haldi')).toBeChecked();
+    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+    await screen.findByLabelText('raadha-shyam.vivah.online');
+    fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
+
+    const body = JSON.parse(String(leadCalls()[0]?.[1]?.body)) as Record<string, unknown>;
+    expect(body).toMatchObject({ functions: ['haldi', 'reception'] });
+  });
+
+  it('offers free addresses on the fourth step, and checks a typed one', async () => {
     serve(() => json({}, 500));
     render(<LeadForm />);
     fillNames();
@@ -226,8 +248,8 @@ describe('LeadForm', () => {
     expect(make).toBeEnabled();
 
     // Back and forward again keeps the choice and does not ask twice.
-    fireEvent.click(screen.getByRole('button', { name: 'Back to your big day' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Back to your functions' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Skip, just the wedding' }));
     expect(screen.getByLabelText('Your address')).toHaveValue('virushka');
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('bride='))).toHaveLength(1);
   });
@@ -331,7 +353,7 @@ describe('LeadForm', () => {
     expect(screen.queryByLabelText('raadha-shyam.vivah.online')).not.toBeInTheDocument();
   });
 
-  it('adds a fourth step to choose a song when there are songs, and sends its slot', async () => {
+  it('adds a fifth step to choose a song when there are songs, and sends its slot', async () => {
     serve(
       () => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201),
       ['raadha-shyam'],
@@ -342,14 +364,13 @@ describe('LeadForm', () => {
     );
     render(<LeadForm />);
     fillNames();
-    expect(await screen.findByText('Step 2 of 4')).toBeInTheDocument();
+    expect(await screen.findByText('Step 2 of 5')).toBeInTheDocument();
     fillDetails();
-    fireEvent.click(screen.getByRole('button', { name: 'Choose our address' }));
-    await screen.findByLabelText('raadha-shyam.vivah.online');
+    await toAddress();
     fireEvent.click(screen.getByRole('button', { name: 'Choose our song' }));
 
     expect(screen.getByRole('heading', { name: 'Your song' })).toBeInTheDocument();
-    expect(screen.getByText('Step 4 of 4')).toBeInTheDocument();
+    expect(screen.getByText('Step 5 of 5')).toBeInTheDocument();
     expect(screen.getByLabelText('Kesariya')).toBeChecked();
     expect(
       screen.getByText(/You can change your song anytime from your dashboard\./),
@@ -365,11 +386,11 @@ describe('LeadForm', () => {
     expect(screen.getByText('Cueing up Tum Hi Ho')).toBeInTheDocument();
   });
 
-  it('keeps three steps when no songs are set', async () => {
+  it('keeps four steps when no songs are set', async () => {
     serve(() => json({ previewPath: '/p/AbCdEfGhIjKlMnOpQrSt' }, 201));
     render(<LeadForm />);
     fillNames();
-    expect(await screen.findByText('Step 2 of 3')).toBeInTheDocument();
+    expect(await screen.findByText('Step 2 of 4')).toBeInTheDocument();
     fillDetails();
     await toAddress();
     expect(screen.getByRole('button', { name: 'Make my website' })).toBeEnabled();

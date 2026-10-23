@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 import {
+  changePreviewFunctionsAction,
   changePreviewSongAction,
   deleteLeadAction,
   makePreviewLiveAction,
@@ -18,6 +19,7 @@ import { SongPicker } from '@/components/dashboard/SongPicker';
 import { AppBar } from '@/components/layout/AppBar';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { ContactLink } from '@/components/ui/ContactLink';
 import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
@@ -35,6 +37,7 @@ import {
 import { siteOrigin } from '@/lib/seo';
 import { inviteHostLabel } from '@/lib/site-host';
 import { formatWeddingDate } from '@/lib/wedding-date';
+import { FESTIVITY_LABELS, FUNCTION_KINDS } from '@/lib/wedding-functions';
 import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { welcomeMessage } from '@/lib/welcome-message';
 import { getLeadForAdmin } from '@/services/admin.service';
@@ -334,6 +337,42 @@ export default async function AdminPreviewPage({
                   confirmLabel: 'Make live',
                 }}
               />
+            </Card>
+          )}
+
+          {lead.deletedAt === null && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Functions</h2>
+              <p className="text-small text-ink-soft">
+                {wedding !== null
+                  ? 'The couple has paid. Edit the live invite’s functions, with their dates and venues, on the invite’s page.'
+                  : 'The functions the preview shows with the wedding. Dates and venues are added after payment.'}
+              </p>
+              {wedding !== null ? (
+                <Link
+                  href={`/admin/invites/${wedding.id}`}
+                  className={buttonStyles({ variant: 'secondary' })}
+                >
+                  Open the live invite
+                </Link>
+              ) : (
+                <AdminActionForm
+                  action={changePreviewFunctionsAction.bind(null, lead.id)}
+                  label="Save functions"
+                >
+                  <div className="grid gap-1 sm:grid-cols-2">
+                    {FUNCTION_KINDS.map((kind) => (
+                      <Checkbox
+                        key={kind}
+                        label={FESTIVITY_LABELS[kind].name}
+                        name="functions"
+                        value={kind}
+                        defaultChecked={(lead.functions ?? []).includes(kind)}
+                      />
+                    ))}
+                  </div>
+                </AdminActionForm>
+              )}
             </Card>
           )}
 

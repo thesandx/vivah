@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Countdown } from '@/components/invite/Countdown';
 import { PetalShower } from '@/components/invite/PetalShower';
 import { SaveTheDateCards } from '@/components/invite/SaveTheDateCards';
+import { WeddingFestivities } from '@/components/invite/WeddingFestivities';
 import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-contact';
 import { cn } from '@/lib/utils';
 import {
@@ -12,12 +13,14 @@ import {
   weddingDateParts,
   weddingStartsAt,
 } from '@/lib/wedding-date';
+import { festivityCards, type WeddingFunction } from '@/lib/wedding-functions';
 
 /**
  * The couple's invite page, built to the product owner's jewel design spec:
  * a 430px column of jewel-toned blocks on ivory. Shri Ganesh in a mehrab arch
  * over the names, a scratch-to-reveal date, the day in a peacock block with
- * a countdown, the venue card, a vermilion RSVP block and a rani-pink close.
+ * a countdown, the venue card, the festivities timeline when the couple has
+ * more functions, a vermilion RSVP block and a rani-pink close.
  * Marigold garlands hang between the blocks, and marigold and rose petals
  * drift down over it all (`PetalShower`, CSS only).
  *
@@ -70,6 +73,14 @@ export interface ShubhVivahInviteProps {
    * "Venue to be shared soon".
    */
   venuePlaceholder?: boolean;
+  /**
+   * The functions besides the wedding (tilak, haldi, mehndi, sangeet,
+   * reception). With at least one, a "Wedding Festivities" timeline shows
+   * after the venue, with the wedding among them, sorted by date. With none,
+   * the section is left out. The preview's placeholders follow
+   * `venuePlaceholder`.
+   */
+  functions?: readonly WeddingFunction[];
   className?: string;
 }
 
@@ -201,12 +212,20 @@ export function ShubhVivahInvite({
   editDetailsUrl,
   stickyRsvp = true,
   venuePlaceholder = false,
+  functions = [],
   className,
 }: ShubhVivahInviteProps) {
   const mapsUrl = venueMapsUrl !== null && isGoogleMapsUrl(venueMapsUrl) ? venueMapsUrl : null;
   const parts = weddingDate === null ? null : weddingDateParts(weddingDate);
   const time = ceremonyTime === null ? null : formatWeddingTime(ceremonyTime);
   const location = [venueName, venueCity].filter((part) => part !== null).join(', ');
+  const festivities = festivityCards(functions, {
+    date: weddingDate,
+    time: ceremonyTime,
+    // One line on the card, as in the design: the venue's name, or the town.
+    venue: venueName ?? venueCity,
+    mapsUrl,
+  });
   const calendarUrl =
     weddingDate === null
       ? null
@@ -389,6 +408,13 @@ export function ShubhVivahInvite({
           </div>
         </section>
         <Garland />
+
+        {festivities.length > 0 && (
+          <>
+            <WeddingFestivities cards={festivities} placeholder={venuePlaceholder} />
+            <Garland />
+          </>
+        )}
 
         {rsvpPhoneE164 !== null && (
           <section aria-label="RSVP" className="jewel-section jewel-bg-rsvp">
