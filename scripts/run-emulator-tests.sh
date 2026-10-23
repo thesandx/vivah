@@ -43,7 +43,7 @@ PORT="${FIRESTORE_EMULATOR_PORT:-8085}"
 HOST="127.0.0.1"
 LOG_FILE="$(mktemp -t firestore-emulator.XXXXXX.log)"
 EMULATOR_PID=""
-FIREBASE_TOOLS_VERSION="15.31.0" # keep equal to the pin in deploy.yml
+FIREBASE_TOOLS_VERSION="15.34.1" # keep equal to the pin in deploy.yml
 CONFIG_DIR=""
 
 if [[ -t 1 ]]; then
