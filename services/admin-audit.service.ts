@@ -29,6 +29,7 @@ export const ADMIN_ACTIONS = [
   'wedding-restored',
   'wedding-address-released',
   'preview-reactivated',
+  'preview-made-live',
   'preview-deleted',
   'preview-restored',
   'preview-song-changed',

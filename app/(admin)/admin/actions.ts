@@ -21,6 +21,7 @@ import {
   deleteLead,
   deleteWedding,
   editWeddingDetails,
+  makePreviewLive,
   reactivatePreview,
   releaseWeddingAddress,
   restoreLead,
@@ -161,6 +162,16 @@ export async function releaseAddressAction(id: string): Promise<ActionState> {
 
 export async function reactivatePreviewAction(id: string): Promise<ActionState> {
   return run('reactivate-preview', id, (uid) => reactivatePreview(id, uid));
+}
+
+/** Makes a preview live at the typed address, with no payment on the site. */
+export async function makePreviewLiveAction(
+  id: string,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const slug = text(form, 'slug').toLowerCase();
+  return run('make-live', id, (uid) => makePreviewLive(id, slug, uid));
 }
 
 export async function deleteLeadAction(id: string): Promise<ActionState> {
