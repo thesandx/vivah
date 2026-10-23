@@ -5,6 +5,7 @@ import { parseGclid } from '@/lib/google-ads';
 import { capitalizeName } from '@/lib/guest-name';
 import { toE164 } from '@/lib/phone';
 import { todayInIndia } from '@/lib/wedding-date';
+import { cleanFunctionKinds, FUNCTION_KINDS } from '@/lib/wedding-functions';
 import { parseSongSlot } from '@/lib/wedding-songs';
 
 /**
@@ -67,8 +68,8 @@ export const leadRequestSchema = z
      */
     consent: z.boolean().optional(),
     /**
-     * The invite address the couple chose on step 3: `radha-shyam`. Optional,
-     * so a page cached before step 3 existed still works; the preview page
+     * The invite address the couple chose on step 4: `radha-shyam`. Optional,
+     * so a page cached before the address step existed still works; the preview page
      * then offers addresses instead. Nothing is reserved until publishing.
      */
     slug: z
@@ -80,7 +81,16 @@ export const leadRequestSchema = z
       })
       .optional(),
     /**
-     * The song the couple chose on step 4, by slot. Optional: the step shows
+     * The functions the couple is having besides the wedding, chosen on
+     * step 3: `['haldi', 'reception']`. Optional and may be empty: the step
+     * can be skipped, and a page cached before it existed sends nothing.
+     */
+    functions: z
+      .array(z.enum(FUNCTION_KINDS, 'Choose from the functions listed.'))
+      .max(FUNCTION_KINDS.length)
+      .optional(),
+    /**
+     * The song the couple chose on step 5, by slot. Optional: the step shows
      * only when an admin has added songs. The server copies the song itself
      * onto the lead, so the body never names a file.
      */
@@ -119,6 +129,7 @@ export const leadRequestSchema = z
       phoneE164: phone.e164,
       slug: body.slug ?? null,
       songSlot: body.songSlot === undefined ? null : parseSongSlot(body.songSlot),
+      functions: cleanFunctionKinds(body.functions ?? []),
       isBot: body.website !== undefined && body.website.trim() !== '',
       ...(body.gclid !== undefined && { gclid: body.gclid }),
     };

@@ -24,6 +24,7 @@ import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { previewClosesAt } from '@/lib/preview-timer';
 import { siteOrigin } from '@/lib/seo';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
+import { emptyFunction } from '@/lib/wedding-functions';
 import { songUrl } from '@/lib/wedding-songs';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
 import { paymentMode, paymentProviderName } from '@/services/payment.service';
@@ -277,6 +278,7 @@ export default async function PreviewPage({
               madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
               stickyRsvp={false}
               venuePlaceholder
+              functions={(lead.functions ?? []).map(emptyFunction)}
               className="flex-1"
             />
           </main>

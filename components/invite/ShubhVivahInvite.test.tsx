@@ -130,4 +130,55 @@ describe('ShubhVivahInvite', () => {
     render(<ShubhVivahInvite {...full} venueMapsUrl="https://evil.example/maps" />);
     expect(screen.queryByRole('link', { name: /wedding venue/i })).not.toBeInTheDocument();
   });
+
+  it('leaves the festivities out when the couple chose no function', () => {
+    render(<ShubhVivahInvite {...full} />);
+    expect(screen.queryByRole('region', { name: 'Wedding festivities' })).not.toBeInTheDocument();
+  });
+
+  it('lists the functions with the wedding, in date order, after the venue', () => {
+    render(
+      <ShubhVivahInvite
+        {...full}
+        functions={[
+          {
+            kind: 'reception',
+            date: '2026-03-10',
+            time: '20:30',
+            venue: 'Deera Nilayam Lawns',
+            mapsUrl: 'https://maps.app.goo.gl/Ek5VHxyC6qYr2sW86',
+          },
+          { kind: 'haldi', date: '2026-03-08', time: '10:00', venue: null, mapsUrl: null },
+        ]}
+      />,
+    );
+    const section = screen.getByRole('region', { name: 'Wedding festivities' });
+    const names = [...section.querySelectorAll('h3')].map((heading) => heading.textContent);
+    expect(names).toEqual(['Haldi', 'Wedding', 'Reception']);
+    expect(section).toHaveTextContent('Sun · 8 Mar 2026');
+    expect(section).toHaveTextContent('Venue to be shared soon');
+    expect(screen.getByRole('link', { name: 'Directions to the reception' })).toHaveAttribute(
+      'href',
+      'https://maps.app.goo.gl/Ek5VHxyC6qYr2sW86',
+    );
+    const venue = screen.getByRole('region', { name: 'The venue' });
+    expect(venue.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('shows faint placeholders in the unpaid preview', () => {
+    render(
+      <ShubhVivahInvite
+        {...full}
+        ceremonyTime={null}
+        venueName={null}
+        venueCity={null}
+        venueMapsUrl={null}
+        venuePlaceholder
+        functions={[{ kind: 'mehndi', date: null, time: null, venue: null, mapsUrl: null }]}
+      />,
+    );
+    const section = screen.getByRole('region', { name: 'Wedding festivities' });
+    expect(section).toHaveTextContent('You can add the dates and venues after payment.');
+    expect(section).not.toHaveTextContent('to be shared soon');
+  });
 });

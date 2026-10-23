@@ -26,8 +26,18 @@ describe('leadRequestSchema', () => {
       phoneE164: '+919876543210',
       slug: null,
       songSlot: null,
+      functions: [],
       isBot: false,
     });
+  });
+
+  it('keeps the chosen functions once each, in the usual order', () => {
+    const parsed = leadRequestSchema.parse({
+      ...VALID,
+      functions: ['reception', 'haldi', 'reception'],
+    });
+    expect(parsed.functions).toEqual(['haldi', 'reception']);
+    expect(leadRequestSchema.safeParse({ ...VALID, functions: ['roka'] }).success).toBe(false);
   });
 
   it('saves each name with a capital first letter, however it was typed', () => {

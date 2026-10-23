@@ -104,7 +104,7 @@ export function CalendarArt({ isoDate, className }: ArtProps & { isoDate: string
   );
 }
 
-/** Step 3: a browser window with a heart, for the website's own address. */
+/** Step 4: a browser window with a heart, for the website's own address. */
 export function AddressArt({ className }: ArtProps) {
   return (
     <svg viewBox="0 0 64 52" aria-hidden="true" className={cn('h-14 w-16', className)}>
@@ -128,7 +128,42 @@ export function AddressArt({ className }: ArtProps) {
   );
 }
 
-/** Step 4: two music notes with a small heart, for the couple's song. */
+/** Step 3: a diya beside a marigold, for the functions round the wedding. */
+export function FestivitiesArt({ className }: ArtProps) {
+  return (
+    <svg viewBox="0 0 64 56" aria-hidden="true" className={cn('h-14 w-16', className)}>
+      <path
+        d="M4 36h30c-1.2 7-7.3 11-15 11S5.2 43 4 36Z"
+        className="fill-peach stroke-ink"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M19 14c4 4.4 5 7.6 5 10a5 5 0 0 1-10 0c0-2.4 1-5.6 5-10Z"
+        className="fill-butter stroke-ink"
+        strokeWidth="3"
+        strokeLinejoin="round"
+      />
+      <g transform="translate(46 26)">
+        {[0, 60, 120, 180, 240, 300].map((angle) => (
+          <ellipse
+            key={angle}
+            cx="0"
+            cy="-8"
+            rx="4.6"
+            ry="7"
+            transform={`rotate(${angle})`}
+            className="fill-brand stroke-ink"
+            strokeWidth="2.4"
+          />
+        ))}
+        <circle r="4.4" className="fill-butter stroke-ink" strokeWidth="2.4" />
+      </g>
+    </svg>
+  );
+}
+
+/** Step 5: two music notes with a small heart, for the couple's song. */
 export function SongArt({ className }: ArtProps) {
   return (
     <svg viewBox="0 0 64 56" aria-hidden="true" className={cn('h-14 w-16', className)}>

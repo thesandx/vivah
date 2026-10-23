@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import type { ActionState } from '@/components/admin/AdminActionForm';
 import type { StepUploadStart } from '@/components/admin/StepImageUpload';
+import type { FunctionsSaveState } from '@/components/dashboard/FunctionsForm';
 import type { SongSaveResult } from '@/components/dashboard/SongPicker';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
 import type { UploadStart } from '@/hooks/useImageUpload';
@@ -15,12 +16,14 @@ import { parseKind } from '@/lib/testimonials';
 import { parseSongSlot } from '@/lib/wedding-songs';
 import {
   type AdminResult,
+  changePreviewFunctions,
   changePreviewSong,
   changeWeddingAddress,
   changeWeddingPhone,
   deleteLead,
   deleteWedding,
   editWeddingDetails,
+  editWeddingFunctions,
   makePreviewLive,
   reactivatePreview,
   releaseWeddingAddress,
@@ -110,6 +113,49 @@ export async function saveWeddingDetailsAsAdmin(
     logger.error('Admin save failed', error, { id, uid: adminUid });
     return { status: 'error', message: 'Your changes were not saved. Try again.' };
   }
+}
+
+export async function saveWeddingFunctionsAsAdmin(
+  id: string,
+  _state: FunctionsSaveState,
+  form: FormData,
+): Promise<FunctionsSaveState> {
+  let adminUid: string;
+  try {
+    adminUid = (await requireAdmin()).uid;
+  } catch {
+    return { status: 'error', message: SIGN_IN_AGAIN_MESSAGE };
+  }
+  try {
+    const fields = Object.fromEntries(
+      [...form.entries()].filter(
+        (entry): entry is [string, string] => typeof entry[1] === 'string',
+      ),
+    );
+    const result = await editWeddingFunctions(id, fields, adminUid);
+    if (result.ok) {
+      revalidatePath('/admin', 'layout');
+      return { status: 'saved' };
+    }
+    return {
+      status: 'error',
+      message: result.message,
+      ...(result.fieldErrors !== undefined && { errors: result.fieldErrors }),
+    };
+  } catch (error) {
+    logger.error('Admin functions save failed', error, { id, uid: adminUid });
+    return { status: 'error', message: 'Your changes were not saved. Try again.' };
+  }
+}
+
+/** Changes which functions an unpaid preview shows. */
+export async function changePreviewFunctionsAction(
+  id: string,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const kinds = form.getAll('functions');
+  return run('preview-functions', id, (uid) => changePreviewFunctions(id, kinds, uid));
 }
 
 export async function changeWeddingPhoneAction(

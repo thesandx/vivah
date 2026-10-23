@@ -13,7 +13,12 @@
  * 7 December, at a Delhi venue. The venue is invented. The sample has no
  * phone number, so the RSVP section does not show: a real person's number
  * must never appear on it.
+ *
+ * The sample has every function (tilak to reception) over four days round
+ * the wedding, so a visitor sees the "Wedding Festivities" timeline full.
  */
+
+import type { WeddingFunction } from '@/lib/wedding-functions';
 
 /** The sample's address: `riya-arjun.vivah.online`. */
 export const SAMPLE_SLUG = 'riya-arjun';
@@ -38,6 +43,8 @@ export interface SampleWedding {
   venueName: string;
   venueCity: string;
   venueMapsUrl: string;
+  /** Every function, dated round the wedding day. */
+  functions: WeddingFunction[];
 }
 
 /**
@@ -53,16 +60,62 @@ export function sampleWeddingDate(now: Date): string {
   }
 }
 
+/** `isoDate` moved by `days`: `addDays('2026-12-07', -2)` is `2026-12-05`. */
+function addDays(isoDate: string, days: number): string {
+  return new Date(Date.parse(`${isoDate}T00:00:00Z`) + days * DAY_MS).toISOString().slice(0, 10);
+}
+
+const VENUE_MAPS_URL = 'https://www.google.com/maps/place/Chhatarpur,+New+Delhi';
+
 /** The sample couple and their day, for the invite and its link preview. */
 export function sampleWedding(now: Date): SampleWedding {
+  const weddingDate = sampleWeddingDate(now);
+  const on = (days: number) => addDays(weddingDate, days);
   return {
     bride: 'Riya',
     groom: 'Arjun',
-    weddingDate: sampleWeddingDate(now),
+    weddingDate,
     ceremonyTime: '19:00',
     venueName: 'The Grand Pavilion, Chhatarpur',
     venueCity: 'New Delhi, Delhi',
-    venueMapsUrl: 'https://www.google.com/maps/place/Chhatarpur,+New+Delhi',
+    venueMapsUrl: VENUE_MAPS_URL,
+    functions: [
+      {
+        kind: 'tilak',
+        date: on(-2),
+        time: '11:00',
+        venue: 'Residence, Vasant Kunj',
+        mapsUrl: 'https://www.google.com/maps/place/Vasant+Kunj,+New+Delhi',
+      },
+      {
+        kind: 'haldi',
+        date: on(-1),
+        time: '10:00',
+        venue: 'Grand Pavilion Lawns',
+        mapsUrl: VENUE_MAPS_URL,
+      },
+      {
+        kind: 'mehndi',
+        date: on(-1),
+        time: '15:30',
+        venue: 'Grand Pavilion Courtyard',
+        mapsUrl: VENUE_MAPS_URL,
+      },
+      {
+        kind: 'sangeet',
+        date: on(-1),
+        time: '19:30',
+        venue: 'Grand Pavilion Banquet',
+        mapsUrl: VENUE_MAPS_URL,
+      },
+      {
+        kind: 'reception',
+        date: on(1),
+        time: '20:30',
+        venue: 'Grand Pavilion Lawns',
+        mapsUrl: VENUE_MAPS_URL,
+      },
+    ],
   };
 }
 

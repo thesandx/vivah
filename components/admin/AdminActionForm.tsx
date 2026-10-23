@@ -35,6 +35,8 @@ export interface AdminActionFormProps {
     prefix?: string;
     inputMode?: 'text' | 'tel';
   };
+  /** Other fields to send with the action, such as a row of checkboxes. */
+  children?: React.ReactNode;
   /** Ask before acting. For anything a guest would notice. */
   confirm?: { title: string; body: string; confirmLabel: string };
   className?: string;
@@ -45,6 +47,7 @@ export function AdminActionForm({
   label,
   variant = 'secondary',
   field,
+  children,
   confirm,
   className,
 }: AdminActionFormProps): React.JSX.Element {
@@ -79,6 +82,7 @@ export function AdminActionForm({
           required
         />
       )}
+      {children}
 
       <Button
         type={confirm === undefined ? 'submit' : 'button'}

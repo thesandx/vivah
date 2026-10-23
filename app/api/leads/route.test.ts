@@ -74,6 +74,7 @@ describe('POST /api/leads', () => {
       phoneE164: '+919876543210',
       slug: null,
       songSlot: null,
+      functions: [],
       song: null,
       isBot: false,
     });

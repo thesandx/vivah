@@ -12,6 +12,7 @@ import {
   slugClaimId,
   slugClaims,
   updateWeddingDetails,
+  updateWeddingFunctions,
   updateWeddingSong,
   weddings,
   weddingsOwnedBy,
@@ -71,6 +72,18 @@ describeEmulator('publishWedding (emulator)', () => {
     const { id, token } = await openedLead(song);
     await publishWedding(id, token, slug);
     expect((await getWeddingBySlug(slug))?.song).toEqual(song);
+  });
+
+  it('carries the chosen functions from the lead to the wedding, with no details yet', async () => {
+    const slug = uniqueSlug('fn');
+    const id = await createLead({ ...REQUEST, song: null, functions: ['haldi', 'reception'] });
+    expect((await leads.getOrThrow(id)).functions).toEqual(['haldi', 'reception']);
+    const { newToken } = await openPreviewLink(id, undefined);
+    await publishWedding(id, newToken ?? '', slug);
+    expect((await getWeddingBySlug(slug))?.functions).toEqual([
+      { kind: 'haldi', date: null, time: null, venue: null, mapsUrl: null },
+      { kind: 'reception', date: null, time: null, venue: null, mapsUrl: null },
+    ]);
   });
 
   it('never gives a second couple an address that is taken', async () => {
@@ -221,6 +234,24 @@ describeEmulator('the dashboards (emulator)', () => {
 
     expect(await updateWeddingSong(slug, phone, 2)).toEqual({ ok: true, name: 'Kesariya' });
     expect((await getWeddingBySlug(slug))?.song).toEqual(song);
+  });
+
+  it('lets the couple save their functions, and nobody else', async () => {
+    const { slug, phone } = await ownedWedding();
+    const haldi = {
+      kind: 'haldi' as const,
+      date: '2026-12-29',
+      time: '10:00',
+      venue: 'Deera Nilayam Lawns',
+      mapsUrl: null,
+    };
+    expect(await updateWeddingFunctions(slug, '+919000000000', [haldi])).toEqual({
+      ok: false,
+      reason: 'not-found',
+    });
+    expect((await getWeddingBySlug(slug))?.functions).toBeUndefined();
+    expect(await updateWeddingFunctions(slug, phone, [haldi])).toEqual({ ok: true });
+    expect((await getWeddingBySlug(slug))?.functions).toEqual([haldi]);
   });
 
   it('names the fields that are wrong and saves nothing', async () => {

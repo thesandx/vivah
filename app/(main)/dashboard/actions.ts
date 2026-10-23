@@ -2,16 +2,18 @@
 
 import { revalidatePath } from 'next/cache';
 
+import type { FunctionsSaveState } from '@/components/dashboard/FunctionsForm';
 import type { CreateLinkState, DeleteLinkResult } from '@/components/dashboard/GuestLinks';
 import type { SongSaveResult } from '@/components/dashboard/SongPicker';
 import { logger } from '@/lib/logger';
+import { parseWeddingFunctions } from '@/lib/wedding-functions';
 import { parseSongSlot } from '@/lib/wedding-songs';
 import { requireUser } from '@/services/auth.service';
 import { createGuestLink, deleteGuestLink } from '@/services/guest-link.service';
-import { updateWeddingSong } from '@/services/wedding.service';
+import { updateWeddingFunctions, updateWeddingSong } from '@/services/wedding.service';
 
 /**
- * The dashboard's guest-link and song writes.
+ * The dashboard's guest-link, song and functions writes.
  *
  * `requireUser()` first: a Server Action is a public endpoint, whatever page
  * shows the form. The caller's phone number comes from the verified session,
@@ -86,5 +88,38 @@ export async function saveSongAction(slug: string, rawSlot: unknown): Promise<So
   } catch (error) {
     logger.error('Changing the wedding song failed', error, { slug, uid: user.uid });
     return { ok: false, message: 'Your song was not saved. Try again.' };
+  }
+}
+
+export async function saveFunctionsAction(
+  slug: string,
+  _state: FunctionsSaveState,
+  form: FormData,
+): Promise<FunctionsSaveState> {
+  const user = await requireUser();
+  const fields = Object.fromEntries(
+    [...form.entries()].filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+  );
+  const parsed = parseWeddingFunctions(fields);
+  if (!parsed.ok) {
+    return {
+      status: 'error',
+      message: 'Some details need a fix. See the fields marked below.',
+      errors: parsed.errors,
+    };
+  }
+  try {
+    const result = await updateWeddingFunctions(slug, user.phoneNumber, parsed.functions);
+    if (!result.ok) return { status: 'error', message: 'This invite is not on your number.' };
+    logger.info('Wedding functions saved', {
+      slug,
+      uid: user.uid,
+      count: parsed.functions.length,
+    });
+    refreshDashboard(slug);
+    return { status: 'saved' };
+  } catch (error) {
+    logger.error('Saving wedding functions failed', error, { slug, uid: user.uid });
+    return { status: 'error', message: 'Your functions were not saved. Try again.' };
   }
 }

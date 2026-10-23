@@ -5,6 +5,12 @@ import { FieldValue } from '@google-cloud/firestore';
 import { slugProblem } from '@/lib/couple-slug';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
+import {
+  cleanFunctionKinds,
+  FESTIVITY_LABELS,
+  type FunctionKind,
+  parseWeddingFunctions,
+} from '@/lib/wedding-functions';
 import type { SongSlot } from '@/lib/wedding-songs';
 import {
   type AdminAction,
@@ -85,7 +91,13 @@ function isDocumentId(id: string): boolean {
 /** The outcome of an admin change. `message` is shown to the admin. */
 export type AdminResult =
   | { ok: true; message: string }
-  | { ok: false; message: string; errors?: Partial<Record<keyof WeddingDetails, string>> };
+  | {
+      ok: false;
+      message: string;
+      errors?: Partial<Record<keyof WeddingDetails, string>>;
+      /** Problems keyed by form field name, for the functions form. */
+      fieldErrors?: Record<string, string>;
+    };
 
 function audit(
   action: AdminAction,
@@ -125,6 +137,37 @@ export async function editWeddingDetails(
     adminUid,
   );
   return { ok: true, message: 'Saved. Guests see the change now.' };
+}
+
+/** The functions as words, for an audit entry: `haldi, reception` or `none`. */
+function kindList(kinds: readonly FunctionKind[]): string {
+  return kinds.length === 0 ? 'none' : kinds.join(', ');
+}
+
+/**
+ * Saves the functions besides the wedding, with their dates and venues, as
+ * the couple's dashboard does.
+ */
+export async function editWeddingFunctions(
+  id: string,
+  form: Record<string, unknown>,
+  adminUid: string,
+): Promise<AdminResult> {
+  const wedding = await getWeddingForAdmin(id);
+  if (wedding === null) return NOT_FOUND;
+  const parsed = parseWeddingFunctions(form);
+  if (!parsed.ok) {
+    return { ok: false, message: 'Some details need a fix.', fieldErrors: parsed.errors };
+  }
+  await weddings.update(id, { functions: parsed.functions });
+  await audit(
+    'wedding-functions-edited',
+    'wedding',
+    id,
+    `Saved the functions on ${wedding.slug}: ${kindList(parsed.functions.map((entry) => entry.kind))}.`,
+    adminUid,
+  );
+  return { ok: true, message: 'Saved. Guests see the functions now.' };
 }
 
 /**
@@ -488,6 +531,36 @@ export async function restoreLead(id: string, adminUid: string): Promise<AdminRe
     adminUid,
   );
   return { ok: true, message: 'Restored.' };
+}
+
+/**
+ * Changes which functions a preview shows. A preview has kinds only, no
+ * dates. Once the couple has paid, the live invite's functions are edited
+ * on the invite's own page instead, so this leaves the wedding alone.
+ */
+export async function changePreviewFunctions(
+  id: string,
+  values: readonly unknown[],
+  adminUid: string,
+): Promise<AdminResult> {
+  const lead = await getLeadForAdmin(id);
+  if (lead === null || lead.deletedAt !== null) return NOT_FOUND;
+  const kinds = cleanFunctionKinds(values);
+  await leads.update(id, { functions: kinds });
+  await audit(
+    'preview-functions-changed',
+    'lead',
+    id,
+    `Set the functions for ${lead.bride} & ${lead.groom} to ${kindList(kinds)}.`,
+    adminUid,
+  );
+  return {
+    ok: true,
+    message:
+      kinds.length === 0
+        ? 'The preview shows no functions now.'
+        : `The preview now shows ${kinds.map((kind) => FESTIVITY_LABELS[kind].name).join(', ')}.`,
+  };
 }
 
 /**
