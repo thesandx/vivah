@@ -1,7 +1,7 @@
 import { SITE_CONTENT_COLLECTION } from '@/lib/how-it-works';
 
 /**
- * The site's uploaded videos (the home page's demo and the two on `/help`):
+ * The site's uploaded videos (the home page's demo and the three on `/help`):
  * the rules for the file an admin uploads from the Home page tab of `/admin`. Pure, no I/O, so they are tested without a
  * bucket. `services/demo-video.service.ts` stores and signs the file.
  *
@@ -22,10 +22,16 @@ import { SITE_CONTENT_COLLECTION } from '@/lib/how-it-works';
  * - `demo` — the home page's "Watch a demo".
  * - `help-edit-details` — `/help`, "Change the time, venue or map".
  * - `help-guest-invite` — `/help`, "Make and send a personal invite".
+ * - `help-functions` — `/help`, "Add your haldi, mehndi and other functions".
  *
  * They share every rule below: the type, the size, fast start and the names.
  */
-export const SITE_VIDEO_SLOTS = ['demo', 'help-edit-details', 'help-guest-invite'] as const;
+export const SITE_VIDEO_SLOTS = [
+  'demo',
+  'help-edit-details',
+  'help-guest-invite',
+  'help-functions',
+] as const;
 
 export type SiteVideoSlot = (typeof SITE_VIDEO_SLOTS)[number];
 
