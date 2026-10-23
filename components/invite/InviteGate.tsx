@@ -262,7 +262,12 @@ export function InviteGate({
             )}
           >
             <span className="font-script text-hero text-surface">{greeting}</span>
-            <span className="font-display text-heading text-surface">
+            {/* The gold ring blinks round the words, so a guest knows to tap. */}
+            <span className="font-display text-surface border-haldi rounded-pill relative mt-2 border-2 px-5 py-2.5 font-semibold">
+              <span
+                aria-hidden="true"
+                className="border-haldi rounded-pill animate-tap-ring pointer-events-none absolute -inset-2 border-2 motion-reduce:animate-none"
+              />
               Please tap to open your invitation
             </span>
           </span>
