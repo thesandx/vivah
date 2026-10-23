@@ -74,6 +74,13 @@ describe('HomeTestimonials', () => {
       '/api/testimonials/review/Review1234567890?v=abc',
     );
     expect(screen.getByRole('button', { name: 'Write ours next' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Make the family go aww' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make the family go aww' })).toHaveAttribute(
+      'data-track-cta',
+      'chats-cta',
+    );
+    expect(screen.getByRole('button', { name: 'Write ours next' })).toHaveAttribute(
+      'data-track-cta',
+      'reviews-cta',
+    );
   });
 });

@@ -28,6 +28,7 @@ import { PlayButton } from '@/components/ui/PlayButton';
 import { RadioGroup } from '@/components/ui/RadioGroup';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { useGoogleAds } from '@/hooks/useGoogleAds';
+import { type SignupPlace, useVisitTracking } from '@/hooks/useVisitTracking';
 import { capitalizeName } from '@/lib/guest-name';
 import { indianMobileDigits, toE164 } from '@/lib/phone';
 import { cn } from '@/lib/utils';
@@ -115,10 +116,25 @@ function prefersReducedMotion(): boolean {
 export interface LeadFormProps {
   /** The id of the card's heading: the home page links to it. Default: `start`. */
   headingId?: string;
+  /** Which card this is, for the home page's visit report (ADR-0014). Default: `hero`. */
+  place?: SignupPlace;
   className?: string;
 }
 
-export function LeadForm({ headingId = 'start', className }: LeadFormProps): React.JSX.Element {
+/** The steps the visit report counts, by the card's step names. */
+const TRACKED_STEPS = {
+  details: 'details',
+  functions: 'functions',
+  address: 'address',
+  song: 'song',
+} as const;
+
+export function LeadForm({
+  headingId = 'start',
+  place = 'hero',
+  className,
+}: LeadFormProps): React.JSX.Element {
+  const tracking = useVisitTracking();
   const [bride, setBride] = useState('');
   const [groom, setGroom] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
@@ -192,6 +208,9 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   ] as const;
 
   function go(next: Step, way: keyof typeof STEP_MOTION): void {
+    if (next in TRACKED_STEPS) {
+      tracking.trackStep(TRACKED_STEPS[next as keyof typeof TRACKED_STEPS], place);
+    }
     moved.current = true;
     setDirection(way);
     setStep(next);
@@ -383,6 +402,8 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
       setWhatsappSent(body.whatsappSent === true);
       setPreviewPath(body.previewPath);
       ads.reportConversion('signup');
+      const leadId = body.previewPath.split('/').at(-1);
+      if (leadId !== undefined) tracking.trackLead(leadId, place);
     } catch (caught) {
       setError(
         caught instanceof Error && caught.name !== 'TimeoutError'
@@ -425,7 +446,11 @@ export function LeadForm({ headingId = 'start', className }: LeadFormProps): Rea
   );
 
   return (
-    <div ref={root} className={cn('flex w-full scroll-mt-24 flex-col', className)}>
+    <div
+      ref={root}
+      onFocus={() => tracking.trackStep('started', place)}
+      className={cn('flex w-full scroll-mt-24 flex-col', className)}
+    >
       {step === 'names' && (
         <form
           key="names"

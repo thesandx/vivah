@@ -20,6 +20,7 @@ export function WhatsAppButton({ className }: WhatsAppButtonProps) {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
+      data-track-cta="whatsapp-float"
       className={cn(
         'bg-whatsapp text-surface border-surface shadow-hard-lg fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 grid size-14 place-items-center rounded-full border-2 transition-transform hover:-translate-y-0.5 md:right-6 md:bottom-6',
         className,

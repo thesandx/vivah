@@ -46,7 +46,11 @@ export async function HomeTestimonials() {
       {headline !== '' && <LovedByBanner headline={headline} />}
 
       {reviews.length > 0 && (
-        <section aria-labelledby="reviews-heading" className="flex flex-col gap-6">
+        <section
+          aria-labelledby="reviews-heading"
+          data-track-section="reviews"
+          className="flex flex-col gap-6"
+        >
           <SectionHeading
             id="reviews-heading"
             eyebrow="Love notes"
@@ -72,12 +76,17 @@ export async function HomeTestimonials() {
           <SectionCta
             line="The next love note here could be about the two of you."
             action="Write ours next"
+            trackId="reviews-cta"
           />
         </section>
       )}
 
       {chats.length > 0 && (
-        <section aria-labelledby="chats-heading" className="flex flex-col gap-6">
+        <section
+          aria-labelledby="chats-heading"
+          data-track-section="chats"
+          className="flex flex-col gap-6"
+        >
           <SectionHeading
             id="chats-heading"
             eyebrow="In the chats"
@@ -103,6 +112,7 @@ export async function HomeTestimonials() {
           <SectionCta
             line="Let the family group gush over the two of you next."
             action="Make the family go aww"
+            trackId="chats-cta"
           />
         </section>
       )}

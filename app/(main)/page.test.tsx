@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 import HomePage from '@/app/(main)/page';
+import { HOME_CTAS, HOME_SECTIONS } from '@/lib/visit-tracking';
 
 // The testimonials are an async Server Component with its own test.
 vi.mock('@/app/(main)/home-testimonials', () => ({ HomeTestimonials: () => null }));
@@ -73,5 +74,26 @@ describe('HomePage', () => {
         'dialog',
       );
     }
+  });
+
+  it('marks every section and call to action for the visit report, with known ids', () => {
+    const { container } = render(<HomePage />);
+    const sections = [...container.querySelectorAll('[data-track-section]')].map((element) =>
+      element.getAttribute('data-track-section'),
+    );
+    // The reviews and the chats stream in from Firestore; their own test covers them.
+    expect(sections).toEqual(
+      HOME_SECTIONS.map((section) => section.id).filter((id) => id !== 'reviews' && id !== 'chats'),
+    );
+    const known = new Set<string>(HOME_CTAS.map((cta) => cta.id));
+    const ctas = [...container.querySelectorAll('[data-track-cta]')].map(
+      (element) => element.getAttribute('data-track-cta') ?? '',
+    );
+    expect(ctas.filter((id) => !known.has(id))).toEqual([]);
+    for (const id of ['try-cta', 'guests-cta', 'how-cta', 'features-cta', 'compare-cta']) {
+      expect(ctas).toContain(id);
+    }
+    expect(ctas).toContain('final-cta');
+    expect(ctas).toContain('sticky-bar');
   });
 });

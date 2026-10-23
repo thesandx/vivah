@@ -117,7 +117,12 @@ export function DemoVideo({ video, steps }: DemoVideoProps) {
 
   return (
     <div ref={anchor} className="flex flex-col">
-      <Button variant="secondary" onClick={openDialog} className="self-start">
+      <Button
+        variant="secondary"
+        onClick={openDialog}
+        className="self-start"
+        data-track-cta="demo-video"
+      >
         <PlayIcon />
         Watch a demo
       </Button>

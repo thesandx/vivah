@@ -66,6 +66,12 @@ export default function PrivacyPage() {
             stop abuse. Kept for 30 days.
           </li>
           <li>
+            <strong className="text-ink">How you use our home page</strong>: which sections you see
+            and for how long, which buttons you tap, and how far you fill in the sign-up card. It is
+            kept with a random number for your browser tab, never with your name or number, to make
+            the page better. We set no cookie for it. Kept for 12 months.
+          </li>
+          <li>
             <strong className="text-ink">The Google Ads click id</strong>, only if you came from one
             of our ads, to learn which ads bring couples to us. Kept as long as your preview or
             invite.
@@ -147,8 +153,8 @@ export default function PrivacyPage() {
           We set one cookie to keep you signed in to your dashboard, and one to keep your preview on
           the phone that opened it. Google Ads also sets a cookie on our site and preview pages. It
           tells us which of our ads led to a preview or a payment. We use no analytics cookies and
-          no remarketing. You can block or delete cookies in your browser settings. Invite pages
-          your guests open set no cookies.
+          no remarketing. Our own home page measurement sets no cookie. You can block or delete
+          cookies in your browser settings. Invite pages your guests open set no cookies.
         </p>
       </section>
 

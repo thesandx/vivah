@@ -1,6 +1,7 @@
 import { THREAD_PATH } from '@/components/lead/HeartThread';
 import { SignupButton } from '@/components/lead/SignupButton';
 import { cn } from '@/lib/utils';
+import type { CtaId } from '@/lib/visit-tracking';
 
 /**
  * The invitation at the end of a home page section: one line in the words of
@@ -15,10 +16,12 @@ export interface SectionCtaProps {
   line: string;
   /** The button label, a verb phrase in the couple's voice: "Begin our forever". */
   action: string;
+  /** The button's id in the home page's visit report (ADR-0014). */
+  trackId?: CtaId;
   className?: string;
 }
 
-export function SectionCta({ line, action, className }: SectionCtaProps) {
+export function SectionCta({ line, action, trackId, className }: SectionCtaProps) {
   return (
     <div
       className={cn(
@@ -38,7 +41,9 @@ export function SectionCta({ line, action, className }: SectionCtaProps) {
         />
       </svg>
       <p className="text-heading max-w-prose md:flex-1">{line}</p>
-      <SignupButton className="w-full shrink-0 sm:w-auto">{action}</SignupButton>
+      <SignupButton className="w-full shrink-0 sm:w-auto" data-track-cta={trackId}>
+        {action}
+      </SignupButton>
     </div>
   );
 }
