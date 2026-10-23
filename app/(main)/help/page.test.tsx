@@ -17,10 +17,13 @@ vi.mock('@/app/(main)/help/help-how-to', () => ({
  * React Testing Library renders it directly. See docs/testing.md.
  */
 describe('HelpPage', () => {
-  it('shows both how-tos', () => {
+  it('shows the three how-tos', () => {
     render(<HelpPage />);
     expect(
       screen.getByRole('heading', { level: 2, name: 'Change the time, venue or map' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Add your haldi, mehndi and other functions' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('heading', {
@@ -33,7 +36,9 @@ describe('HelpPage', () => {
   it('names the dashboard buttons in its steps', () => {
     render(<HelpPage />);
     expect(screen.getByText('Find “Your details” and tap “Edit details”.')).toBeInTheDocument();
-    expect(screen.getAllByText(/tap “Send OTP”/)).toHaveLength(2);
+    expect(screen.getAllByText(/tap “Send OTP”/)).toHaveLength(3);
+    expect(screen.getByText(/Tick Haldi/)).toBeInTheDocument();
+    expect(screen.getByText(/Tap “Save functions”/)).toBeInTheDocument();
     expect(screen.getByText(/Tap “Make link”/)).toBeInTheDocument();
     expect(screen.getByText(/Tap “Send on WhatsApp”/)).toBeInTheDocument();
   });

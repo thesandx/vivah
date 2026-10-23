@@ -86,10 +86,12 @@ describe('demo video', () => {
     expect(siteVideoFolder('demo')).toBe('siteContent/demo-video/');
     expect(siteVideoFolder('help-edit-details')).toBe('siteContent/help-edit-details-video/');
     expect(siteVideoDocId('help-guest-invite')).toBe('help-guest-invite-video');
+    expect(siteVideoFolder('help-functions')).toBe('siteContent/help-functions-video/');
   });
 
   it('reads only the known slots', () => {
     expect(parseSiteVideoSlot('help-edit-details')).toBe('help-edit-details');
+    expect(parseSiteVideoSlot('help-functions')).toBe('help-functions');
     expect(parseSiteVideoSlot('users')).toBeNull();
     expect(parseSiteVideoSlot(3)).toBeNull();
   });

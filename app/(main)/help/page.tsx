@@ -15,12 +15,13 @@ import { faqPageSchema, PRODUCT_FAQS, SHARE_IMAGE } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 
 /**
- * `GET /help` — the "Help" tab. Two how-tos for a couple whose site is live,
+ * `GET /help` — the "Help" tab. Three how-tos for a couple whose site is live,
  * each with its walkthrough video, then the questions couples ask, then the
  * way to `/contact`.
  *
  * The steps name the buttons exactly as the dashboard shows them
- * (`components/dashboard/WeddingDetailsForm.tsx`, `GuestLinks.tsx`) and the
+ * (`components/dashboard/WeddingDetailsForm.tsx`, `FunctionsForm.tsx`,
+ * `GuestLinks.tsx`) and the
  * sign-in screens (`components/auth/SignInPanel.tsx`). Change them together.
  *
  * The admin uploads each video from the Home page tab of `/admin`, like the
@@ -29,9 +30,9 @@ import { cn } from '@/lib/utils';
  * upload shows without a deploy.
  */
 
-const TITLE = 'Help: edit your wedding details and send guest invites';
+const TITLE = 'Help: edit your wedding details, add functions and send guest invites';
 const DESCRIPTION =
-  'How to change your wedding time, venue and map in your vivah.online dashboard, how to make a personal invite link for each guest and send it on WhatsApp, and answers to common questions.';
+  'How to change your wedding time, venue and map in your vivah.online dashboard, add your haldi, mehndi, sangeet and other functions, make a personal invite link for each guest and send it on WhatsApp, and answers to common questions.';
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -57,6 +58,17 @@ const EDIT_STEPS = [
   'Tap “Save details”. When you see “Saved”, your guests see the new details. Tap “Open your invite” to check.',
 ];
 
+/** Haldi is the example. Each function has the same four fields. */
+const FUNCTION_STEPS = [
+  ...SIGN_IN_STEPS,
+  'Find “Your functions” and tap “Add functions”. If you chose functions when you signed up, the button says “Edit functions”.',
+  'Tick Haldi. Four fields open below it.',
+  'Choose the date and type the time. The time is India time.',
+  'Type the venue, for example “The Grand Pavilion Lawns, Chhatarpur”.',
+  'To add the map, open Google Maps and search for the haldi venue. Tap Share, then “Copy link”. Come back and paste the link in “Google Maps link”.',
+  'Tap “Save functions”. When you see “Saved”, your invite shows Haldi in “Wedding Festivities”, with its own date, time and map. Tap “Open your invite” to check.',
+];
+
 const INVITE_STEPS = [
   ...SIGN_IN_STEPS,
   'Find “Guest invite links”.',
@@ -80,6 +92,22 @@ const HOW_TOS: readonly (HowTo & { slot: SiteVideoSlot })[] = [
     tips: [
       'On your live invite, the “Your wedding? Edit details” link at the bottom also takes you to your dashboard.',
       'Tap Cancel to leave without a change.',
+    ],
+  },
+  {
+    id: 'functions',
+    eyebrow: 'Your functions',
+    title: 'Add your haldi, mehndi and other functions',
+    intro:
+      'Your invite can show tilak, haldi, mehndi, sangeet and reception with the wedding, each with its own date, time, venue and map. The steps below add haldi. The steps are the same for every function: tick its name and fill in its fields.',
+    steps: FUNCTION_STEPS,
+    slot: 'help-functions',
+    videoLabel: 'Video: add the haldi to your invite in the dashboard',
+    tips: [
+      'To add more than one function, tick each one and fill in its fields, then tap “Save functions” once.',
+      'Your invite lists the functions in date order. If you change a date, the function moves to its new place.',
+      'Do not know a detail yet? Leave it empty and add it later. Your link stays the same.',
+      'To remove a function, tap “Edit functions”, untick it, then tap “Save functions”.',
     ],
   },
   {
@@ -111,9 +139,9 @@ export default function HelpPage() {
       <header className="flex max-w-prose flex-col gap-5">
         <h1 className="text-hero">How can we help?</h1>
         <p className="text-ink-soft">
-          Your dashboard is where you change your wedding details and make an invite for each guest.
-          Sign in at vivah.online/dashboard with the phone number that your personal link came to.
-          Each step below names the button you tap.
+          Your dashboard is where you change your wedding details, add your functions and make an
+          invite for each guest. Sign in at vivah.online/dashboard with the phone number that your
+          personal link came to. Each step below names the button you tap.
         </p>
         <nav aria-label="On this page">
           <ul className="flex flex-col gap-x-6 sm:flex-row sm:flex-wrap">

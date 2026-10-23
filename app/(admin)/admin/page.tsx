@@ -508,6 +508,13 @@ const SITE_VIDEO_ADMIN: Record<
     removeTitle: 'Remove the guest invite video?',
     removeBody: 'The help page shows only the steps. The file stays in storage.',
   },
+  'help-functions': {
+    title: 'Help video: functions',
+    intro:
+      'The help page plays this next to “Add your haldi, mehndi and other functions”. With no video, only the steps show. A new upload replaces the video at once.',
+    removeTitle: 'Remove the functions video?',
+    removeBody: 'The help page shows only the steps. The file stays in storage.',
+  },
 };
 
 /** One uploaded video: the home page's demo, or one on `/help`. */
