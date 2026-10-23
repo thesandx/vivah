@@ -72,6 +72,10 @@ export default {
 
 The app does not check `X-Router-Secret` yet. Until it does, the `*.run.app` URL also serves the app directly.
 
+## Short links
+
+`vivah.online/ig` is the link in the Instagram bio. Instagram shows the bio link as plain text, so the tagged address is kept out of sight. `app/ig/route.ts` answers a 307 to `/?utm_source=instagram&utm_medium=organic&utm_campaign=bio`. The Location is relative, so the browser stays on the visitor's host. `/admin` > Visitors counts the visit under Instagram, campaign `bio`.
+
 ## Test it locally
 
 1. Set `ROOT_DOMAIN=localhost.test` in `.env.local`.
