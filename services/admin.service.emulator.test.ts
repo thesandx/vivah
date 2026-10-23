@@ -10,6 +10,7 @@ import {
   deleteWedding,
   getWeddingForAdmin,
   listAllWeddings,
+  makePreviewLive,
   reactivatePreview,
   releaseWeddingAddress,
   restoreLead,
@@ -189,6 +190,56 @@ describeEmulator('admin operations (emulator)', () => {
   it('will not reactivate a paid preview', async () => {
     const { leadId } = await published();
     expect((await reactivatePreview(leadId, ADMIN)).ok).toBe(false);
+  });
+
+  it('makes a preview live with no payment, once, at a free address', async () => {
+    const leadId = await createLead({
+      bride: 'Meera',
+      groom: 'Kabir',
+      weddingDate: null,
+      phoneE164: '+919876543210',
+      slug: null,
+      isBot: false,
+    });
+    // The preview closed days ago: the admin may still make it live.
+    await openPreviewLink(leadId, undefined, new Date(Date.now() - 3 * 86_400_000));
+    const taken = await published();
+    expect(await makePreviewLive(leadId, taken.slug, ADMIN)).toMatchObject({
+      ok: false,
+      message: expect.stringMatching(/taken/),
+    });
+    expect((await makePreviewLive(leadId, 'Not A Slug!', ADMIN)).ok).toBe(false);
+
+    const slug = uniqueSlug('manual');
+    expect((await makePreviewLive(leadId, slug, ADMIN)).ok).toBe(true);
+    const wedding = await getWeddingBySlug(slug);
+    expect(wedding).toMatchObject({ leadId, bride: 'Meera', groom: 'Kabir' });
+    expect(await slugClaims.get(slugClaimId(slug))).toMatchObject({ weddingId: wedding?.id });
+    const lead = await leads.getOrThrow(leadId);
+    expect(lead).toMatchObject({ status: 'paid', weddingSlug: slug });
+    expect(lead.paidAt).toBeUndefined();
+    expect(await auditFor(leadId)).toContain('preview-made-live');
+
+    // A second go answers with the address it already has.
+    expect(await makePreviewLive(leadId, uniqueSlug('again'), ADMIN)).toMatchObject({
+      ok: false,
+      message: expect.stringContaining(slug),
+    });
+  });
+
+  it('will not make a deleted preview live', async () => {
+    const leadId = await createLead({
+      bride: 'Tara',
+      groom: 'Dev',
+      weddingDate: null,
+      phoneE164: '+919876543210',
+      slug: null,
+      isBot: false,
+    });
+    await deleteLead(leadId, ADMIN);
+    const slug = uniqueSlug('deleted');
+    expect((await makePreviewLive(leadId, slug, ADMIN)).ok).toBe(false);
+    expect(await getWeddingBySlug(slug)).toBeNull();
   });
 
   it('changes a preview song, and the live invite song once paid', async () => {
