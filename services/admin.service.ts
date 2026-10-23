@@ -21,13 +21,14 @@ import {
   type WeddingDocument,
   weddings,
   type WeddingStatus,
+  writePublish,
 } from '@/services/wedding.service';
 import { songInSlot } from '@/services/wedding-songs.service';
 
 /**
  * What `/admin` does to the data: list everything, edit a wedding, pause it,
- * move it to a new address, delete and restore it, reactivate a preview and
- * change its song.
+ * move it to a new address, delete and restore it, reactivate a preview,
+ * make a preview live without a payment, and change its song.
  *
  * Every function takes the admin's uid, from `requireAdmin()`, and writes an
  * entry to the audit log. Deletes are soft. The one permanent delete is a
@@ -404,6 +405,60 @@ export async function reactivatePreview(
     ok: true,
     message: 'Reactivated. The next open starts a fresh 30 minutes. Send the link again.',
   };
+}
+
+/**
+ * Makes a preview live at `slug` with no payment through the site: for a
+ * couple who paid another way (UPI to the business number, cash), or who
+ * gets the invite free. The same writes as a paid publish (`writePublish`),
+ * in one transaction: the wedding, the claim on the address, and the lead
+ * marked paid. So the live site has no watermark and no timer, like any
+ * other.
+ *
+ * It sets no `paidAt` or `paymentId`: no payment document exists, and the
+ * purchase conversion counts only real payments. The audit entry is the
+ * record that an admin did it. A lead that paid already but lost its address
+ * to another couple keeps its payment fields and goes live here too.
+ *
+ * The preview's expiry and timer do not matter: the admin decides.
+ */
+export async function makePreviewLive(
+  id: string,
+  slug: string,
+  adminUid: string,
+): Promise<AdminResult> {
+  const problem = slugProblem(slug);
+  if (problem !== null) return { ok: false, message: problem };
+  if (!isDocumentId(id)) return NOT_FOUND;
+
+  return slugClaims.runTransaction(async (claimsTx, tx) => {
+    // All reads first: a Firestore transaction refuses a read after a write.
+    const lead = await leads.inTransaction(tx).get(id);
+    const claim = await claimsTx.get(slugClaimId(slug));
+    const existing = await tx.get(weddingAtSlugQuery(slug));
+    if (lead === null || lead.deletedAt !== null) return NOT_FOUND;
+    if (lead.weddingSlug !== undefined) {
+      return {
+        ok: false,
+        message: `It is live already, at ${lead.weddingSlug}.`,
+      } as AdminResult;
+    }
+    if (claim !== null || !existing.empty) {
+      return { ok: false, message: `${slug} is taken. Pick another address.` } as AdminResult;
+    }
+    writePublish(tx, lead, slug);
+    recordAdminActionIn(tx, {
+      action: 'preview-made-live',
+      targetType: 'lead',
+      targetId: id,
+      detail: `Made ${lead.bride} & ${lead.groom} live at ${slug} with no payment on the site.`,
+      adminUid,
+    });
+    return {
+      ok: true,
+      message: `Live at ${slug}. Send the couple the welcome message.`,
+    } as AdminResult;
+  });
 }
 
 export async function deleteLead(id: string, adminUid: string): Promise<AdminResult> {

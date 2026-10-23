@@ -1,11 +1,10 @@
 import 'server-only';
 
-import { BUSINESS } from '@/lib/business';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
-import { formatPhoneForDisplay } from '@/lib/phone';
 import { siteOrigin } from '@/lib/seo';
 import { formatWeddingDate } from '@/lib/wedding-date';
+import { welcomeMessage } from '@/lib/welcome-message';
 
 /**
  * Tells the team on Telegram that a couple made a preview, so somebody sends
@@ -146,7 +145,6 @@ export interface PaymentNotice {
 export function paymentMessages(notice: PaymentNotice): string[] {
   const origin = siteOrigin(env.rootDomain, env.appUrl);
   const host = new URL(origin).host;
-  const site = `https://${notice.slug}.${host}`;
   const amount = `₹${notice.amountRupees.toLocaleString('en-IN')}`;
   const headline = {
     published: `Paid ${amount}: ${notice.bride} & ${notice.groom} are live at ${notice.slug}.${host}`,
@@ -160,26 +158,13 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   ].join('\n');
   if (notice.kind !== 'published') return [alert];
 
-  const forCouple = [
-    `Congratulations ${notice.bride} & ${notice.groom}! 🎉💍`,
-    '',
-    'Your personal wedding site is live now ✨',
-    `👉 ${site}`,
-    '',
-    'Next, make it truly yours:',
-    '📍 Add your venue, time and map',
-    '💌 Create a personal invite link for every guest, with their name on it',
-    '',
-    `Do both at ${origin}/dashboard. Sign in with your number ${formatPhoneForDisplay(notice.phoneE164)}.`,
-    '',
-    `See how to add your venue and send guest invites, step by step: ${origin}/help`,
-    '',
-    `Need any help? Chat with us right here on WhatsApp, or email us at ${BUSINESS.email}.`,
-    '',
-    'Once again, many congratulations on your wedding! Wishing you both a lifetime of love and laughter 💛🙏',
-    '',
-    'Team Vivah 💛',
-  ].join('\n');
+  const forCouple = welcomeMessage({
+    bride: notice.bride,
+    groom: notice.groom,
+    slug: notice.slug,
+    phoneE164: notice.phoneE164,
+    origin,
+  });
   return [alert, forCouple, notice.phoneE164];
 }
 

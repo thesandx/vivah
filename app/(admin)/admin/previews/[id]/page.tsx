@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import {
   changePreviewSongAction,
   deleteLeadAction,
+  makePreviewLiveAction,
   reactivatePreviewAction,
   restoreLeadAction,
 } from '@/app/(admin)/admin/actions';
@@ -32,21 +33,25 @@ import {
   openAgainMessage,
 } from '@/lib/preview-nudges';
 import { siteOrigin } from '@/lib/seo';
+import { inviteHostLabel } from '@/lib/site-host';
 import { formatWeddingDate } from '@/lib/wedding-date';
 import { type SongOption, songUrl } from '@/lib/wedding-songs';
+import { welcomeMessage } from '@/lib/welcome-message';
 import { getLeadForAdmin } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
-import { getWeddingBySlug } from '@/services/wedding.service';
+import type { LeadDocument } from '@/services/lead.service';
+import { checkSlug, freeSlugSuggestions, getWeddingBySlug } from '@/services/wedding.service';
 import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * `GET /admin/previews/<lead id>` — one preview: who asked, when it expires,
- * and the buttons to reactivate it, send it again, delete or restore it.
+ * and the buttons to reactivate it, send it again, make it live without a
+ * payment, delete or restore it.
  */
 
 export const metadata: Metadata = {
   title: 'Admin: preview',
-  description: 'Reactivate, resend or delete one invite preview.',
+  description: 'Reactivate, resend, make live or delete one invite preview.',
   robots: { index: false, follow: false },
 };
 
@@ -67,16 +72,29 @@ export default async function AdminPreviewPage({
 
   const now = new Date();
   const state = leadState(lead, now);
-  const [wedding, songs] = await Promise.all([
+  const canMakeLive = lead.deletedAt === null && lead.weddingSlug === undefined;
+  const [wedding, songs, liveSuggestion] = await Promise.all([
     lead.weddingSlug === undefined ? null : getWeddingBySlug(lead.weddingSlug),
     songOptions(),
+    canMakeLive ? addressSuggestion(lead) : '',
   ]);
   const currentSong = lead.song ?? null;
   const currentSlot =
     currentSong === null
       ? null
       : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
-  const link = `${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`;
+  const origin = siteOrigin(env.rootDomain, env.appUrl);
+  const link = `${origin}/p/${lead.id}`;
+  const welcome =
+    wedding === null
+      ? null
+      : welcomeMessage({
+          bride: lead.bride,
+          groom: lead.groom,
+          slug: wedding.slug,
+          phoneE164: lead.phoneE164,
+          origin,
+        });
   // The link goes last: WhatsApp on Android shows no link preview for a
   // typed-in message whose link is followed by more text.
   const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview. It stays open for 30 minutes from when you open it, so please complete payment within that time.\n\n${link}`;
@@ -263,6 +281,62 @@ export default async function AdminPreviewPage({
             </>
           )}
 
+          {welcome !== null && wedding !== null && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Welcome message</h2>
+              <p className="text-small text-ink-soft">
+                The invite is live at {inviteHostLabel(wedding.slug, env.rootDomain)}. Send the
+                couple their link, their dashboard sign-in and the help page.
+              </p>
+              <details className="border-line rounded-card border-2">
+                <summary className="flex min-h-11 cursor-pointer items-center px-4 py-3 font-semibold">
+                  Read the message
+                </summary>
+                <p className="text-small text-ink-soft border-line border-t-2 p-4 whitespace-pre-line break-words">
+                  {welcome}
+                </p>
+              </details>
+              <div className="flex flex-wrap gap-3">
+                <a
+                  href={whatsAppChatUrl(lead.phoneE164, welcome)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={buttonStyles({ variant: 'primary' })}
+                >
+                  Send welcome on WhatsApp
+                </a>
+                <CopyButton value={welcome} label="Copy message" />
+              </div>
+            </Card>
+          )}
+
+          {canMakeLive && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Make live without payment</h2>
+              <p className="text-small text-ink-soft">
+                For a couple who paid another way, such as UPI to the business number, or who gets
+                the invite free. The invite goes live at this address now, with no watermark and no
+                timer, exactly as after a payment. No payment is recorded.
+              </p>
+              <AdminActionForm
+                action={makePreviewLiveAction.bind(null, lead.id)}
+                label="Make live"
+                variant="primary"
+                field={{
+                  name: 'slug',
+                  label: 'Address',
+                  defaultValue: liveSuggestion,
+                  hint: `Lowercase letters, digits and hyphens. Becomes <address>.${env.rootDomain || 'vivah.online'}.`,
+                }}
+                confirm={{
+                  title: `Make ${lead.bride} & ${lead.groom} live?`,
+                  body: 'The invite goes live at the address you typed, with no payment. Guests can open it at once. To undo it, delete the invite from Invites.',
+                  confirmLabel: 'Make live',
+                }}
+              />
+            </Card>
+          )}
+
           {lead.deletedAt === null && (
             <Card className="flex flex-col gap-4">
               <h2 className="text-heading">Song</h2>
@@ -309,6 +383,19 @@ export default async function AdminPreviewPage({
       </main>
     </>
   );
+}
+
+/**
+ * The address the Make live card offers: the one the couple chose on the
+ * sign-up card when it is still free, otherwise the first free suggestion
+ * from their names. Empty when none is free: the admin types one.
+ */
+async function addressSuggestion(lead: LeadDocument): Promise<string> {
+  if (lead.desiredSlug !== undefined && (await checkSlug(lead.desiredSlug)).available) {
+    return lead.desiredSlug;
+  }
+  const [first] = await freeSlugSuggestions(lead.bride, lead.groom, 1);
+  return first ?? '';
 }
 
 /** The songs to choose from. A failed read hides the choice, not the page. */
