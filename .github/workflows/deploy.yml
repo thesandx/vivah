@@ -131,12 +131,21 @@ jobs:
           #     service name. APP_SLUG allows 49, so a longer name overflowed
           #     and the deploy failed on a limit nothing warned about.
           #
-          # The RUN NUMBER comes first because it is the uniquifier and must
-          # never be truncated. The short SHA follows for readability, and is
-          # what gets trimmed when a long service name leaves no room.
-          # Traceability does not depend on it: the image tag and the
-          # `commit-sha` label both carry the full SHA.
-          SUFFIX="r${GITHUB_RUN_NUMBER}-${GITHUB_SHA:0:7}"
+          #   - "Re-run jobs" keeps the run number, so a re-run of a deploy
+          #     whose first attempt had already created its revision collided
+          #     on that name. The attempt number goes in from attempt 2:
+          #     r113-e5cbbf7, then r113a2-e5cbbf7.
+          #
+          # The RUN NUMBER and ATTEMPT come first because they are the
+          # uniquifier and must never be truncated. The short SHA follows for
+          # readability, and is what gets trimmed when a long service name
+          # leaves no room. Traceability does not depend on it: the image tag
+          # and the `commit-sha` label both carry the full SHA.
+          RUN_ID="r${GITHUB_RUN_NUMBER}"
+          if [[ "${GITHUB_RUN_ATTEMPT:-1}" -gt 1 ]]; then
+            RUN_ID="${RUN_ID}a${GITHUB_RUN_ATTEMPT}"
+          fi
+          SUFFIX="${RUN_ID}-${GITHUB_SHA:0:7}"
           BUDGET=$((63 - ${#SERVICE_NAME} - 1))
 
           if [[ "$BUDGET" -lt 4 ]]; then
