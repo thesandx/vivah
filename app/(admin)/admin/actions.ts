@@ -12,6 +12,7 @@ import { parseDemoUploadKind, parseSiteVideoSlot } from '@/lib/demo-video';
 import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
+import { ERASE_CONFIRM_WORD, parseEraseIds } from '@/lib/test-data-cleanup';
 import { parseKind } from '@/lib/testimonials';
 import { parseSongSlot } from '@/lib/wedding-songs';
 import {
@@ -24,6 +25,7 @@ import {
   deleteWedding,
   editWeddingDetails,
   editWeddingFunctions,
+  eraseTestData,
   makePreviewLive,
   reactivatePreview,
   releaseWeddingAddress,
@@ -228,6 +230,32 @@ export async function deleteLeadAction(id: string): Promise<ActionState> {
 
 export async function restoreLeadAction(id: string): Promise<ActionState> {
   return run('restore-lead', id, (uid) => restoreLead(id, uid));
+}
+
+/**
+ * "Clear test data": erases the ticked previews and deleted invites for
+ * good (ADR-0016). Acts only when the admin typed the confirm word.
+ */
+export async function eraseTestDataAction(
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  if (text(form, 'confirm').toUpperCase() !== ERASE_CONFIRM_WORD) {
+    return { status: 'error', message: `Type ${ERASE_CONFIRM_WORD} to confirm. Nothing changed.` };
+  }
+  const leadIds = parseEraseIds(form.getAll('lead'));
+  const weddingIds = parseEraseIds(form.getAll('wedding'));
+  if (leadIds.length === 0 && weddingIds.length === 0) {
+    return { status: 'error', message: 'Tick at least one row. Nothing changed.' };
+  }
+  return run('erase-test-data', 'bulk', async (uid) => {
+    const result = await eraseTestData(leadIds, weddingIds, uid);
+    const kept = result.kept === 0 ? '' : ` Kept ${result.kept} that are live.`;
+    return {
+      ok: true,
+      message: `Erased ${result.erasedLeads} previews and ${result.erasedWeddings} deleted invites.${kept}`,
+    };
+  });
 }
 
 /**

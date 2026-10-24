@@ -143,6 +143,18 @@ export default async function AdminPage({
   );
 }
 
+/** To `/admin/clean-up`, where test previews and deleted invites are erased. */
+function ClearTestDataLink() {
+  return (
+    <Link
+      href="/admin/clean-up"
+      className={buttonStyles({ variant: 'secondary', className: 'self-start' })}
+    >
+      Clear test data
+    </Link>
+  );
+}
+
 function CappedNotice({ capped }: { capped: boolean }) {
   return capped ? (
     <Alert tone="info" title="Showing the newest 2,000 only.">
@@ -179,6 +191,7 @@ async function InvitesView({ params, tab }: { params: SearchParams; tab: 'invite
             ? 'Their addresses are free for other couples. Open one to restore it at any free address.'
             : `${counts.get('live') ?? 0} live · ${counts.get('unavailable') ?? 0} unavailable`}
         </p>
+        {tab === 'deleted' && <ClearTestDataLink />}
       </header>
       <AdminFilters
         view={tab}
@@ -285,6 +298,7 @@ async function PreviewsView({ params }: { params: SearchParams }) {
           {counts.get('sent') ?? 0} not opened · {counts.get('opened') ?? 0} opened ·{' '}
           {counts.get('expired') ?? 0} expired · {counts.get('paid') ?? 0} paid
         </p>
+        <ClearTestDataLink />
       </header>
       <AdminFilters
         view="previews"
