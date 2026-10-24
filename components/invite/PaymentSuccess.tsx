@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 export interface PaymentSuccessProps {
   /** Where the countdown goes: the couple's live invite. */
   liveUrl: string;
-  /** The address as the couple reads it: `riya-arjun.vivah.online`. */
+  /** The address as the couple reads it: `priya-rahul.vivah.online`. */
   hostLabel: string;
 }
 

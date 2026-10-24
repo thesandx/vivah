@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 import { isValidCoupleSlug } from '@/lib/couple-slug';
 import { env } from '@/lib/env';
-import { SAMPLE_SLUG } from '@/lib/sample-invite';
+import { isOldSampleSlug, SAMPLE_SLUG } from '@/lib/sample-invite';
 import { isLinkPreviewAgent } from '@/lib/seo';
 import { inviteUrl, normaliseHost, resolveSiteSurface } from '@/lib/site-host';
 
@@ -11,10 +11,11 @@ import { inviteUrl, normaliseHost, resolveSiteSurface } from '@/lib/site-host';
  * invite. `proxy.ts` is the Next.js 16 name for middleware.
  *
  *   raadha-shyam.vivah.online/          → rewrite to /site/raadha-shyam
- *   raadha-shyam.vivah.online/Kartheek  → rewrite to /site/raadha-shyam/Kartheek
- *   the same, from WhatsApp's fetcher   → rewrite to /api/share/raadha-shyam/Kartheek
+ *   raadha-shyam.vivah.online/Neha  → rewrite to /site/raadha-shyam/Neha
+ *   the same, from WhatsApp's fetcher   → rewrite to /api/share/raadha-shyam/Neha
  *   vivah.online/site/raadha-shyam      → redirect to raadha-shyam.vivah.online
  *   vivah.online/site/raadha-shyam/K    → redirect to raadha-shyam.vivah.online/K
+ *   riya-arjun.vivah.online/K           → redirect to the sample's current address
  *   everything else                   → unchanged
  *
  * The visitor's host is in `X-Forwarded-Host`, set by the Cloudflare Worker.
@@ -33,6 +34,13 @@ export function proxy(request: NextRequest): NextResponse {
   const host = request.headers.get('x-forwarded-host') ?? request.headers.get('host') ?? '';
   const surface = resolveSiteSurface(host, env.rootDomain);
   const { pathname } = request.nextUrl;
+
+  if (surface.kind === 'invite' && isOldSampleSlug(surface.slug)) {
+    return NextResponse.redirect(
+      `${inviteUrl(SAMPLE_SLUG, env.rootDomain)}${pathname === '/' ? '' : pathname}`,
+      308,
+    );
+  }
 
   if (surface.kind === 'invite') {
     // `_` is not a valid slug, so the invite page answers 404 without a read.

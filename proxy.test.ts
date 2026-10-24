@@ -40,21 +40,21 @@ describe('proxy', () => {
   });
 
   it("sends WhatsApp's link-preview fetcher to the small share page", () => {
-    const req = request('/Kartheek', 'raadha-shyam.vivah.online');
+    const req = request('/Neha', 'raadha-shyam.vivah.online');
     req.headers.set('user-agent', 'WhatsApp/2.23.20.0 A');
     const response = proxy(req);
-    expect(new URL(rewriteOf(response) ?? '').pathname).toBe('/api/share/raadha-shyam/Kartheek');
+    expect(new URL(rewriteOf(response) ?? '').pathname).toBe('/api/share/raadha-shyam/Neha');
   });
 
   it("rewrites a guest's link to the guest page", () => {
-    const response = proxy(request('/Kartheek-ji', 'raadha-shyam.vivah.online'));
-    expect(new URL(rewriteOf(response) ?? '').pathname).toBe('/site/raadha-shyam/Kartheek-ji');
+    const response = proxy(request('/Neha-ji', 'raadha-shyam.vivah.online'));
+    expect(new URL(rewriteOf(response) ?? '').pathname).toBe('/site/raadha-shyam/Neha-ji');
   });
 
   it('keeps the guest name when it redirects /site/<slug>/<guest>', () => {
-    const response = proxy(request('/site/raadha-shyam/Kartheek', 'vivah.online'));
+    const response = proxy(request('/site/raadha-shyam/Neha', 'vivah.online'));
     expect(response.status).toBe(308);
-    expect(response.headers.get('location')).toBe('https://raadha-shyam.vivah.online/Kartheek');
+    expect(response.headers.get('location')).toBe('https://raadha-shyam.vivah.online/Neha');
   });
 
   it('falls back to the Host header when the Worker is bypassed', () => {
@@ -62,12 +62,20 @@ describe('proxy', () => {
     expect(rewriteOf(response)).toBeNull();
   });
 
+  it('sends the old sample address to the current one, keeping the guest', () => {
+    const response = proxy(request('/Neha', 'riya-arjun.vivah.online'));
+    expect(response.status).toBe(308);
+    expect(response.headers.get('location')).toBe('https://priya-rahul.vivah.online/Neha');
+    const home = proxy(request('/', 'riya-arjun.vivah.online'));
+    expect(home.headers.get('location')).toBe('https://priya-rahul.vivah.online/');
+  });
+
   it('lets only the product site frame the sample invite', () => {
-    const sample = proxy(request('/Kartheek', 'riya-arjun.vivah.online'));
+    const sample = proxy(request('/Neha', 'priya-rahul.vivah.online'));
     expect(sample.headers.get('content-security-policy')).toBe(
       "frame-ancestors 'self' https://vivah.online",
     );
-    const couple = proxy(request('/Kartheek', 'raadha-shyam.vivah.online'));
+    const couple = proxy(request('/Neha', 'raadha-shyam.vivah.online'));
     expect(couple.headers.get('content-security-policy')).toBeNull();
   });
 

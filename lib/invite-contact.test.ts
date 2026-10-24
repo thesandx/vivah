@@ -4,10 +4,10 @@ import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-con
 
 describe('invite contact links', () => {
   it('prefills the RSVP with the guest name', () => {
-    const url = new URL(rsvpWhatsAppUrl('+917983873235', 'Anushka', 'Sandeep', 'Kartheek'));
+    const url = new URL(rsvpWhatsAppUrl('+917983873235', 'Anushka', 'Sandeep', 'Neha'));
     expect(url.origin + url.pathname).toBe('https://wa.me/917983873235');
     expect(url.searchParams.get('text')).toBe(
-      'Hi Anushka & Sandeep, I (Kartheek) will be attending the wedding!',
+      'Hi Anushka & Sandeep, I (Neha) will be attending the wedding!',
     );
     expect(new URL(rsvpWhatsAppUrl('+917983873235', 'A', 'B', null)).searchParams.get('text')).toBe(
       'Hi A & B, I will be attending the wedding!',
@@ -15,7 +15,7 @@ describe('invite contact links', () => {
   });
 
   it('sends a given message instead of the RSVP line', () => {
-    const url = new URL(rsvpWhatsAppUrl('+919546342507', 'Riya', 'Arjun', 'Kartheek', 'Hi Team'));
+    const url = new URL(rsvpWhatsAppUrl('+919546342507', 'Priya', 'Rahul', 'Neha', 'Hi Team'));
     expect(url.searchParams.get('text')).toBe('Hi Team');
   });
 

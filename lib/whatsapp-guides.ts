@@ -218,7 +218,7 @@ export const LANDING_FAQS: readonly Faq[] = [
   {
     question: 'Can every guest get an invitation with their own name?',
     answer:
-      'Yes. Each guest gets their own link, and the invite opens with their name, for example "Hi Kartheek". You make the links from your dashboard and send each one on WhatsApp.',
+      'Yes. Each guest gets their own link, and the invite opens with their name, for example "Hi Neha". You make the links from your dashboard and send each one on WhatsApp.',
   },
   {
     question: 'How do guests RSVP?',

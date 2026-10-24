@@ -4,11 +4,11 @@ import { escapeHtml, linkPreviewHtml } from '@/lib/link-preview-page';
 
 const CARD = {
   title: `Radha & Shyam's Wedding Invitation`,
-  description: 'Hi "Kartheek", you are invited.',
-  url: 'https://radha-shyam.vivah.online/Kartheek',
+  description: 'Hi "Neha", you are invited.',
+  url: 'https://radha-shyam.vivah.online/Neha',
   siteName: 'vivah.online',
   image: {
-    url: 'https://radha-shyam.vivah.online/api/og/radha-shyam?guest=Kartheek',
+    url: 'https://radha-shyam.vivah.online/api/og/radha-shyam?guest=Neha',
     width: 1080,
     height: 1350,
     alt: 'Wedding invitation of Radha and Shyam',
@@ -21,7 +21,7 @@ describe('linkPreviewHtml', () => {
     expect(html.length).toBeLessThan(3000);
     expect(html.indexOf('og:image')).toBeLessThan(1500);
     expect(html).toContain(
-      '<meta property="og:image" content="https://radha-shyam.vivah.online/api/og/radha-shyam?guest=Kartheek">',
+      '<meta property="og:image" content="https://radha-shyam.vivah.online/api/og/radha-shyam?guest=Neha">',
     );
     expect(html).toContain('<meta property="og:image:height" content="1350">');
   });

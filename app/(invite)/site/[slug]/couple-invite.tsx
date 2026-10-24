@@ -23,7 +23,7 @@ import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * The couple's invite, shared by the plain link (`sara.vivah.online`) and a
- * guest's link (`sara.vivah.online/Kartheek`). The two routes differ only in
+ * guest's link (`sara.vivah.online/Neha`). The two routes differ only in
  * the guest name, so both render through here.
  */
 

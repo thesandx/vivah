@@ -6,7 +6,7 @@ import { ShubhVivahInvite, type ShubhVivahInviteProps } from '@/components/invit
 const full: ShubhVivahInviteProps = {
   bride: 'Anushka',
   groom: 'Sandeep',
-  guestName: 'Kartheek',
+  guestName: 'Neha',
   weddingDate: '2026-03-09',
   ceremonyTime: '19:00',
   venueName: 'The Grand Pavilion',
@@ -19,7 +19,7 @@ const full: ShubhVivahInviteProps = {
 describe('ShubhVivahInvite', () => {
   it('greets the guest and shows the couple, the day, time and place', () => {
     render(<ShubhVivahInvite {...full} />);
-    expect(screen.getByText('Dear Kartheek,')).toBeInTheDocument();
+    expect(screen.getByText('Dear Neha,')).toBeInTheDocument();
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Anushka&Sandeep');
     expect(screen.getByText('Monday, 9 March 2026')).toBeInTheDocument();
     expect(screen.getByText('7:00 PM onwards')).toBeInTheDocument();
@@ -54,7 +54,7 @@ describe('ShubhVivahInvite', () => {
     );
     const rsvp = screen.getByRole('link', { name: /rsvp now/i }).getAttribute('href') ?? '';
     expect(rsvp).toMatch(/^https:\/\/wa\.me\/917983873235\?text=/);
-    expect(decodeURIComponent(rsvp)).toContain('I (Kartheek) will be attending');
+    expect(decodeURIComponent(rsvp)).toContain('I (Neha) will be attending');
     expect(screen.getByRole('link', { name: '+91 79838 73235' })).toHaveAttribute(
       'href',
       'tel:+917983873235',

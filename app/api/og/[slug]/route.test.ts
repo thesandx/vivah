@@ -60,7 +60,7 @@ describe('GET /api/og/<slug>', () => {
 
   it('draws the sample invite, which has no wedding document', async () => {
     getWeddingBySlug.mockResolvedValue(null);
-    expect((await get('riya-arjun')).status).toBe(200);
+    expect((await get('priya-rahul')).status).toBe(200);
     expect((await get('anushka')).status).toBe(404);
   });
 

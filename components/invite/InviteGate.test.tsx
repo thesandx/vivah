@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InviteGate } from '@/components/invite/InviteGate';
 
 function renderGate(
-  guestName: string | null = 'Kartheek',
+  guestName: string | null = 'Neha',
   extra: Partial<React.ComponentProps<typeof InviteGate>> = {},
 ) {
   return render(
@@ -29,7 +29,7 @@ describe('InviteGate', () => {
 
   it('greets the guest by name over the Ganesh card', () => {
     renderGate();
-    expect(screen.getByText('Hi Kartheek')).toBeInTheDocument();
+    expect(screen.getByText('Hi Neha')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /tap to open/i })).toBeInTheDocument();
   });
 
@@ -44,7 +44,7 @@ describe('InviteGate', () => {
     act(() => {
       vi.advanceTimersByTime(1500);
     });
-    expect(screen.queryByText('Hi Kartheek')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hi Neha')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'The invite' })).toBeInTheDocument();
   });
 
@@ -59,7 +59,7 @@ describe('InviteGate', () => {
     act(() => {
       vi.advanceTimersByTime(5000);
     });
-    expect(screen.getByText('Hi Kartheek')).toBeInTheDocument();
+    expect(screen.getByText('Hi Neha')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /tap to open/i })).toBeInTheDocument();
   });
 
@@ -68,7 +68,7 @@ describe('InviteGate', () => {
       .spyOn(window.HTMLMediaElement.prototype, 'play')
       .mockImplementation(() => Promise.resolve());
     const pause = vi.spyOn(window.HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
-    const { container } = renderGate('Kartheek', {
+    const { container } = renderGate('Neha', {
       song: { name: 'Kesariya', src: '/api/songs/a.mp3' },
     });
     expect(container.querySelector('audio')).not.toHaveAttribute('autoplay');
@@ -132,6 +132,6 @@ describe('InviteGate', () => {
     act(() => {
       vi.advanceTimersByTime(1500);
     });
-    expect(screen.getByText('Hi Kartheek')).toBeInTheDocument();
+    expect(screen.getByText('Hi Neha')).toBeInTheDocument();
   });
 });

@@ -50,7 +50,7 @@ function webhook(body: string, signature?: string): Request {
 beforeEach(() => {
   vi.clearAllMocks();
   cashfree.enabled = true;
-  completePayment.mockResolvedValue({ state: 'published', leadId: 'x', slug: 'riya-arjun' });
+  completePayment.mockResolvedValue({ state: 'published', leadId: 'x', slug: 'priya-rahul' });
 });
 
 describe('POST /api/payments/cashfree', () => {

@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 type Params = { params: Promise<{ slug: string; guest: string }> };
 
 /**
- * A guest's own link: `sara.vivah.online/Kartheek` greets "Hi Kartheek" on
+ * A guest's own link: `sara.vivah.online/Neha` greets "Hi Neha" on
  * the envelope and in the WhatsApp preview. `proxy.ts` rewrites it here.
  */
 export async function generateMetadata({ params }: Params): Promise<Metadata> {

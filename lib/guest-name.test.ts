@@ -11,10 +11,10 @@ import {
 
 describe('parseGuestName', () => {
   it.each([
-    ['Kartheek', 'Kartheek'],
-    ['kartheek', 'Kartheek'],
-    ['Kartheek-ji', 'Kartheek ji'],
-    ['Kartheek%20ji', 'Kartheek ji'],
+    ['Neha', 'Neha'],
+    ['neha', 'Neha'],
+    ['Neha-ji', 'Neha ji'],
+    ['Neha%20ji', 'Neha ji'],
     ['Sharma_ji_and_family', 'Sharma ji and family'],
     ['Dr.%20Rao', 'Dr. Rao'],
     ["D'Souza", "D'Souza"],
@@ -29,10 +29,10 @@ describe('parseGuestName', () => {
     ['', 'empty'],
     ['---', 'only separators'],
     ['<script>', 'markup'],
-    ['Kartheek123', 'digits'],
+    ['Neha123', 'digits'],
     ['%E0%A4', 'a broken encoding'],
     ['a'.repeat(MAX_GUEST_NAME_LENGTH + 1), 'too long'],
-    ['.Kartheek', 'a leading dot'],
+    ['.Neha', 'a leading dot'],
   ])('refuses %s (%s)', (segment) => {
     expect(parseGuestName(segment)).toBeNull();
   });
@@ -40,7 +40,7 @@ describe('parseGuestName', () => {
 
 describe('guestPath', () => {
   it('turns spaces into hyphens', () => {
-    expect(guestPath('Kartheek ji')).toBe('/Kartheek-ji');
+    expect(guestPath('Neha ji')).toBe('/Neha-ji');
   });
 
   it('round-trips through parseGuestName', () => {

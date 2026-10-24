@@ -5,7 +5,7 @@
 
 /**
  * A WhatsApp chat with the couple, with the reply already typed:
- * `Hi Radha & Shyam, I (Kartheek) will be attending the wedding!`.
+ * `Hi Radha & Shyam, I (Neha) will be attending the wedding!`.
  * `wa.me` takes the number as digits only, with no plus sign.
  */
 export function rsvpWhatsAppUrl(
