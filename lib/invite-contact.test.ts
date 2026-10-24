@@ -14,6 +14,11 @@ describe('invite contact links', () => {
     );
   });
 
+  it('sends a given message instead of the RSVP line', () => {
+    const url = new URL(rsvpWhatsAppUrl('+919546342507', 'Riya', 'Arjun', 'Kartheek', 'Hi Team'));
+    expect(url.searchParams.get('text')).toBe('Hi Team');
+  });
+
   it('groups an Indian number the way people write it', () => {
     expect(displayPhone('+917983873235')).toBe('+91 79838 73235');
     expect(displayPhone('+6591234567')).toBe('+6591234567');

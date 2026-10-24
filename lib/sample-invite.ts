@@ -10,9 +10,9 @@
  * the real wedding wins and the sample does not show.
  *
  * The couple, the day and the venue match the demo video: Riya and Arjun,
- * 7 December, at a Delhi venue. The venue is invented. The sample has no
- * phone number, so the RSVP section does not show: a real person's number
- * must never appear on it.
+ * 7 December, at a Delhi venue. The venue is invented. The RSVP section
+ * uses our business WhatsApp number, never a couple's, and its button sends
+ * `SAMPLE_RSVP_MESSAGE`: a visitor who taps it is asking us for a site.
  *
  * The sample has every function (tilak to reception) over four days round
  * the wedding, so a visitor sees the "Wedding Festivities" timeline full.
@@ -28,6 +28,10 @@ export const SAMPLE_SLUG = 'riya-arjun';
  * A visitor sees what a guest sees, with a name on the card.
  */
 export const SAMPLE_GUEST = 'Kartheek';
+
+/** What the sample's RSVP button sends to our business WhatsApp (Sandeep's wording). */
+export const SAMPLE_RSVP_MESSAGE =
+  'Hi Team Vivah, i want to create same website for my wedding as well';
 
 /** The sample's wedding day is the next 7 December at least this many days away. */
 const MIN_DAYS_AHEAD = 30;
