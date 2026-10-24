@@ -4,6 +4,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 import { z } from 'zod';
 
+import { appliedCouponSchema } from '@/lib/coupons';
 import { capitalizeName } from '@/lib/guest-name';
 import type { LeadRequest } from '@/lib/lead-schema';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
@@ -85,6 +86,12 @@ export const leadSchema = z.object({
    */
   paidAt: z.date().optional(),
   paymentId: z.string().optional(),
+  /**
+   * The coupon the couple paid with, or the one the admin named on "Make
+   * live". Set with `status: 'paid'`. `/admin` > Coupons counts the uses of
+   * each code from it, for a referral cashback. ADR-0015.
+   */
+  coupon: appliedCouponSchema.optional(),
   /**
    * The address the couple chose on the sign-up card. A wish, not a claim:
    * publishing reserves it, or the preview page offers others if it was

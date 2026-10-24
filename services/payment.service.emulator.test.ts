@@ -159,6 +159,26 @@ describeEmulator('payments (emulator)', () => {
     expect(await completePayment(paymentId)).toEqual({ state: 'published', leadId: id, slug });
   });
 
+  it('charges the couponed price, and records the coupon on the lead once paid', async () => {
+    const slug = uniqueSlug('coupon');
+    const { id } = await openedLead();
+    const result = await startPayment(id, slug, 639, new Date(), { code: 'NEW20', percentOff: 20 });
+    expect(result.state).toBe('redirect');
+    const paymentId = new URL(created.at(-1)?.returnUrl ?? '').searchParams.get('payment') ?? '';
+    expect(await payments.getOrThrow(paymentId)).toMatchObject({
+      amountRupees: 639,
+      coupon: { code: 'NEW20', percentOff: 20 },
+    });
+
+    link.status = 'PAID';
+    link.paid = 639;
+    expect((await completePayment(paymentId)).state).toBe('published');
+    expect(await leads.getOrThrow(id)).toMatchObject({
+      status: 'paid',
+      coupon: { code: 'NEW20', percentOff: 20 },
+    });
+  });
+
   it('never publishes on a short amount', async () => {
     const slug = uniqueSlug('short');
     const { id } = await openedLead();

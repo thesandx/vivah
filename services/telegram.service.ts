@@ -129,6 +129,8 @@ export interface PaymentNotice {
   groom: string;
   /** E.164. Never logged. */
   phoneE164: string;
+  /** The coupon the couple paid with, for a referral cashback. ADR-0015. */
+  couponCode?: string;
 }
 
 /**
@@ -153,6 +155,7 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   }[notice.kind];
   const alert = [
     headline,
+    ...(notice.couponCode === undefined ? [] : [`Coupon: ${notice.couponCode}`]),
     `Admin: ${origin}/admin/previews/${notice.leadId}`,
     `Payment: ${notice.paymentId}`,
   ].join('\n');

@@ -346,7 +346,7 @@ export function writePublish(
   tx: Transaction,
   lead: LeadDocument,
   slug: string,
-  paid: Pick<Partial<LeadPayload>, 'paidAt' | 'paymentId'> = {},
+  paid: Pick<Partial<LeadPayload>, 'paidAt' | 'paymentId' | 'coupon'> = {},
 ): void {
   const weddingId = weddings.inTransaction(tx).create({
     slug,

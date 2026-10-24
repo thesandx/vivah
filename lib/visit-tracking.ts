@@ -61,6 +61,7 @@ export const HOME_CTAS = [
   { id: 'final-sample', label: '“See a real invite”', signup: false },
   { id: 'final-whatsapp', label: '“Ask us on WhatsApp” (last section)', signup: false },
   { id: 'whatsapp-float', label: 'Floating WhatsApp button', signup: false },
+  { id: 'offer-ribbon', label: 'Coupon ribbon at the top', signup: false },
 ] as const;
 
 export type CtaId = (typeof HOME_CTAS)[number]['id'];
