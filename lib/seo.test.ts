@@ -113,7 +113,7 @@ describe('schema', () => {
     expect(app.featureList).toBe(PRODUCT_FEATURES);
     expect(PRODUCT_FEATURES.some((feature) => feature.includes('dashboard'))).toBe(true);
     expect(PRODUCT_FEATURES.some((feature) => feature.startsWith('RSVP on WhatsApp'))).toBe(true);
-    expect(app.offers).toMatchObject({ priceCurrency: 'INR', price: 499 });
+    expect(app.offers).toMatchObject({ priceCurrency: 'INR', price: 799 });
   });
 
   it('answers the dashboard and RSVP questions on the help page', () => {

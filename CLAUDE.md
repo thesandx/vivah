@@ -326,7 +326,7 @@ Violations here are defects, not style disagreements.
 - **Never disable a CI check to make a PR green.** Fix the code, or change the check deliberately and say why.
 - **Never put a secret in a Docker build arg.** Visible in `docker history`. Use Secret Manager at runtime.
 - **Never push, claim work is done, or open a PR without `pnpm validate` green.** Run it locally first — `format:check` included. CI must never fail from your end. See [Verification protocol](#verification-protocol).
-- **Never delete data permanently without a reason on the line.** Use `softDelete`. `hardDelete`, `recursiveDelete` and a raw `.delete()` are for erasure requests and the admin "Clear test data" page ([ADR-0015](./docs/adr/0015-erase-test-data-from-admin.md)) only, each with `// eslint-disable-next-line data-safety/no-permanent-delete -- <why>`. A revert does not bring deleted data back. See [`docs/data-recovery.md`](./docs/data-recovery.md).
+- **Never delete data permanently without a reason on the line.** Use `softDelete`. `hardDelete`, `recursiveDelete` and a raw `.delete()` are for erasure requests and the admin "Clear test data" page ([ADR-0016](./docs/adr/0016-erase-test-data-from-admin.md)) only, each with `// eslint-disable-next-line data-safety/no-permanent-delete -- <why>`. A revert does not bring deleted data back. See [`docs/data-recovery.md`](./docs/data-recovery.md).
 - **Never run a bulk write without a dry run and a restore point.** A backfill or cleanup script defaults to a dry run, writes only with `--apply`, limits each run, and never deletes. Write down the time before you run it. See [Before a bulk write](./docs/data-recovery.md#before-a-bulk-write-or-a-migration).
 - **Never turn off database delete protection, point-in-time recovery or the backup schedule.** `tests/data-safety.test.ts` fails if the bootstrap stops setting them.
 - **Never give an agent session production data credentials.** A human runs a bulk write or a recovery against production.
@@ -468,7 +468,8 @@ Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of
 | [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                      |
 | [0013](./docs/adr/0013-measure-google-ads-conversions.md)              | The Google tag counts previews and purchases as conversions; no remarketing, no analytics          |
 | [0014](./docs/adr/0014-measure-home-page-visits-first-party.md)        | Our own beacon measures home page visits for `/admin`; no cookie, no third party                   |
-| [0015](./docs/adr/0015-erase-test-data-from-admin.md)                  | `/admin/clean-up` erases ticked test previews and deleted invites; never live ones, never payments |
+| [0015](./docs/adr/0015-take-coupon-codes-at-payment.md)                | Coupon codes take a percentage off ₹799; the server prices every order; a home page ribbon         |
+| [0016](./docs/adr/0016-erase-test-data-from-admin.md)                  | `/admin/clean-up` erases ticked test previews and deleted invites; never live ones, never payments |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

@@ -3,6 +3,7 @@ import 'server-only';
 import { FieldValue } from '@google-cloud/firestore';
 
 import { slugProblem } from '@/lib/couple-slug';
+import { type AppliedCoupon, normalizeCouponCode } from '@/lib/coupons';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { ERASE_LIMIT, liveLeadIds } from '@/lib/test-data-cleanup';
 import { parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
@@ -18,6 +19,7 @@ import {
   recordAdminAction,
   recordAdminActionIn,
 } from '@/services/admin-audit.service';
+import { findCoupon } from '@/services/coupon.service';
 import { eraseGuestLinks } from '@/services/guest-link.service';
 import { type LeadDocument, leads } from '@/services/lead.service';
 import { MAX_PAGE_SIZE, type Repository, type StoredDocument } from '@/services/repository';
@@ -42,7 +44,7 @@ import { songInSlot } from '@/services/wedding-songs.service';
  * entry to the audit log. Deletes are soft. Two things are permanent: a
  * slug claim, which is a lock, not data (see `deleteWedding`), and the
  * "Clear test data" erase, which the admin asks for row by row (see
- * `eraseTestData`, ADR-0015).
+ * `eraseTestData`, ADR-0016).
  */
 
 /** The most rows an admin list loads. Far above today's volume. */
@@ -473,10 +475,24 @@ export async function makePreviewLive(
   id: string,
   slug: string,
   adminUid: string,
+  couponCode = '',
 ): Promise<AdminResult> {
   const problem = slugProblem(slug);
   if (problem !== null) return { ok: false, message: problem };
   if (!isDocumentId(id)) return NOT_FOUND;
+  // A coupon the couple used off the site, so its referral counts. On or
+  // off: an admin may honour a code that has just ended. ADR-0015.
+  let coupon: AppliedCoupon | null = null;
+  if (normalizeCouponCode(couponCode) !== '') {
+    const found = await findCoupon(couponCode);
+    if (found === null) {
+      return {
+        ok: false,
+        message: `No coupon has the code ${normalizeCouponCode(couponCode)}. Leave it empty, or make it in Coupons first.`,
+      };
+    }
+    coupon = { code: found.code, percentOff: found.percentOff };
+  }
 
   return slugClaims.runTransaction(async (claimsTx, tx) => {
     // All reads first: a Firestore transaction refuses a read after a write.
@@ -493,12 +509,14 @@ export async function makePreviewLive(
     if (claim !== null || !existing.empty) {
       return { ok: false, message: `${slug} is taken. Pick another address.` } as AdminResult;
     }
-    writePublish(tx, lead, slug);
+    writePublish(tx, lead, slug, coupon === null ? {} : { coupon });
     recordAdminActionIn(tx, {
       action: 'preview-made-live',
       targetType: 'lead',
       targetId: id,
-      detail: `Made ${lead.bride} & ${lead.groom} live at ${slug} with no payment on the site.`,
+      detail: `Made ${lead.bride} & ${lead.groom} live at ${slug} with no payment on the site${
+        coupon === null ? '' : `, with coupon ${coupon.code}`
+      }.`,
       adminUid,
     });
     return {
@@ -612,7 +630,7 @@ export interface EraseResult {
 }
 
 /**
- * Erases test rows for good, on the admin's request (ADR-0015): previews
+ * Erases test rows for good, on the admin's request (ADR-0016): previews
  * (`leads`) and DELETED invites (`weddings`, with their guest links and any
  * claim they still hold on an address).
  *
@@ -641,12 +659,12 @@ export async function eraseTestData(
     }
     const claim = await slugClaims.get(slugClaimId(wedding.slug));
     if (claim !== null && claim.weddingId === id) {
-      // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing test data (ADR-0015); a claim is a lock, not data
+      // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing test data (ADR-0016); a claim is a lock, not data
       await slugClaims.hardDelete(slugClaimId(wedding.slug));
     }
     // The guest links first: a subcollection outlives its parent document.
     await eraseGuestLinks(id);
-    // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a deleted test invite, row by row (ADR-0015)
+    // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a deleted test invite, row by row (ADR-0016)
     await weddings.hardDelete(id);
     result.erasedWeddings += 1;
     await audit(
@@ -668,7 +686,7 @@ export async function eraseTestData(
       result.kept += 1;
       continue;
     }
-    // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a test preview, row by row (ADR-0015)
+    // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a test preview, row by row (ADR-0016)
     await leads.hardDelete(id);
     result.erasedLeads += 1;
     await audit(

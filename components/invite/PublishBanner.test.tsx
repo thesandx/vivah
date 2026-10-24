@@ -151,4 +151,47 @@ describe('PublishBanner modes', () => {
     expect(screen.getByRole('button', { name: 'Publish our invite' })).toBeInTheDocument();
     expect(screen.getByText(/nothing more to pay/)).toBeInTheDocument();
   });
+
+  it('takes a coupon when live: the price drops, and the pay button sends the code', async () => {
+    const publish = vi.fn(() => new Promise<{ ok: false; message: string }>(() => undefined));
+    const applyCoupon = vi.fn(() =>
+      Promise.resolve({ ok: true as const, code: 'NEW20', percentOff: 20, payableRupees: 399 }),
+    );
+    render(
+      <PublishBanner
+        bride="Riya"
+        groom="Arjun"
+        leadId="lead-1"
+        chosen="riya-arjun"
+        suggestions={[]}
+        domainLabel="vivah.online"
+        priceRupees={499}
+        mode="live"
+        providerName="Razorpay"
+        checkSlug={() => Promise.resolve({ available: true })}
+        publish={publish}
+        applyCoupon={applyCoupon}
+        couponOffer={{ code: 'NEW20', percentOff: 20 }}
+      />,
+    );
+    fireEvent.click(
+      screen.getAllByRole('button', { name: 'Apply NEW20 · 20% off' })[0] as HTMLElement,
+    );
+    expect(applyCoupon).toHaveBeenCalledWith('NEW20');
+    expect(
+      await screen.findByRole('button', { name: 'Continue to payment · ₹399' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('was')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
+    expect(screen.getByText('Coupon NEW20 (20% off)')).toBeInTheDocument();
+    expect(screen.getByText('−₹100')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Pay ₹399 and publish' }));
+    expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun', 'NEW20');
+  });
+
+  it('offers no coupon line in test mode', () => {
+    renderBanner();
+    expect(screen.queryByRole('button', { name: 'Have a coupon code?' })).not.toBeInTheDocument();
+  });
 });

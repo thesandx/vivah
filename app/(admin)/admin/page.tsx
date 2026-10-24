@@ -13,6 +13,7 @@ import {
   startSongUploadAction,
   startStepImageUploadAction,
 } from '@/app/(admin)/admin/actions';
+import { CouponsView } from '@/app/(admin)/admin/coupons-view';
 import { TestimonialsAdmin } from '@/app/(admin)/admin/testimonials-view';
 import { VisitorsView } from '@/app/(admin)/admin/visitors-view';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
@@ -87,6 +88,7 @@ const VIEWS = [
   { value: 'deleted', label: 'Deleted' },
   { value: 'previews', label: 'Previews' },
   { value: 'visitors', label: 'Visitors' },
+  { value: 'coupons', label: 'Coupons' },
   { value: 'activity', label: 'Activity' },
   { value: 'home', label: 'Home page' },
 ] as const;
@@ -133,6 +135,7 @@ export default async function AdminPage({
         {view === 'deleted' && <InvitesView params={params} tab="deleted" />}
         {view === 'previews' && <PreviewsView params={params} />}
         {view === 'visitors' && <VisitorsView params={params} />}
+        {view === 'coupons' && <CouponsView />}
         {view === 'activity' && <ActivityView />}
         {view === 'home' && <HomePageView />}
       </main>
@@ -391,6 +394,17 @@ async function ActivityView() {
                       className="text-brand font-semibold underline underline-offset-4"
                     >
                       Open the home page tab
+                    </Link>
+                  </>
+                )}
+                {entry.targetType === 'coupon' && (
+                  <>
+                    {' · '}
+                    <Link
+                      href="/admin?view=coupons"
+                      className="text-brand font-semibold underline underline-offset-4"
+                    >
+                      Open coupons
                     </Link>
                   </>
                 )}

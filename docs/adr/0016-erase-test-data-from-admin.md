@@ -1,4 +1,4 @@
-# ADR-0015: Erase test data from the admin dashboard
+# ADR-0016: Erase test data from the admin dashboard
 
 - **Status:** Accepted
 - **Date:** 2026-10-24

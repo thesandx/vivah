@@ -49,13 +49,17 @@ export const ADMIN_ACTIONS = [
   'demo-video-removed',
   'help-video-changed',
   'help-video-removed',
+  'coupon-created',
+  'coupon-turned-on',
+  'coupon-turned-off',
+  'ribbon-changed',
 ] as const;
 
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
 
 export const adminAuditSchema = z.object({
   action: z.enum(ADMIN_ACTIONS),
-  targetType: z.enum(['wedding', 'lead', 'admin', 'site']),
+  targetType: z.enum(['wedding', 'lead', 'admin', 'site', 'coupon']),
   /** The document id the action touched. */
   targetId: z.string().min(1).max(128),
   /** What happened, in words. No phone numbers, no email addresses. */

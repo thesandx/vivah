@@ -25,7 +25,7 @@ import { getAdminSession } from '@/services/admin-session.service';
 /**
  * `GET /admin/clean-up` — "Clear test data": every preview and every deleted
  * invite, with a box to tick, and one button that erases the ticked rows for
- * good (ADR-0015).
+ * good (ADR-0016).
  *
  * A couple who paid and whose invite is live is never offered: they show
  * under "Kept", with no box, and the server refuses them too. Payments and

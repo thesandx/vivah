@@ -42,10 +42,12 @@ export const SOCIAL = {
 } as const;
 
 /**
- * The price of the basic plan, in rupees, one time. From the PRD's pricing
- * (₹499 basic, ₹799 with more events). The home page prints it.
+ * The list price, in rupees, one time. The home page prints it, and the pay
+ * button charges it less any coupon the couple applies (`lib/coupons.ts`).
+ * The product owner raised it from ₹499 to ₹799 on 2026-10-24, with coupon
+ * codes, so a couple sees a discount when they ask for one. ADR-0015.
  */
-export const PRICE_FROM_RUPEES = 499;
+export const PRICE_FROM_RUPEES = 799;
 
 /**
  * What paper cards cost and how long they take, as the home page's "paper or

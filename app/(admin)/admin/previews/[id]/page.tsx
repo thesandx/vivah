@@ -21,6 +21,7 @@ import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { ContactLink } from '@/components/ui/ContactLink';
+import { Input } from '@/components/ui/Input';
 import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
@@ -141,6 +142,20 @@ export default async function AdminPreviewPage({
                 {lead.firstOpenedAt === null ? 'Not yet' : formatAdminTime(lead.firstOpenedAt)}
               </dd>
             </div>
+            {lead.coupon !== undefined && (
+              <div>
+                <dt className="text-ink-soft">Coupon</dt>
+                <dd>
+                  <Link
+                    href="/admin?view=coupons"
+                    className="text-brand font-semibold underline underline-offset-4"
+                  >
+                    {lead.coupon.code}
+                  </Link>{' '}
+                  · {lead.coupon.percentOff}% off
+                </dd>
+              </div>
+            )}
             {lead.status !== 'paid' && (
               <div>
                 <dt className="text-ink-soft">30-minute timer</dt>
@@ -319,7 +334,8 @@ export default async function AdminPreviewPage({
               <p className="text-small text-ink-soft">
                 For a couple who paid another way, such as UPI to the business number, or who gets
                 the invite free. The invite goes live at this address now, with no watermark and no
-                timer, exactly as after a payment. No payment is recorded.
+                timer, exactly as after a payment. No payment is recorded. If they used a coupon
+                code, type it, so the referral counts in Coupons.
               </p>
               <AdminActionForm
                 action={makePreviewLiveAction.bind(null, lead.id)}
@@ -331,12 +347,21 @@ export default async function AdminPreviewPage({
                   defaultValue: liveSuggestion,
                   hint: `Lowercase letters, digits and hyphens. Becomes <address>.${env.rootDomain || 'vivah.online'}.`,
                 }}
+
                 confirm={{
                   title: `Make ${lead.bride} & ${lead.groom} live?`,
                   body: 'The invite goes live at the address you typed, with no payment. Guests can open it at once. To undo it, delete the invite from Invites.',
                   confirmLabel: 'Make live',
                 }}
-              />
+              >
+                <Input
+                  label="Coupon code (optional)"
+                  name="coupon"
+                  hint="Leave it empty when they used no code."
+                  autoComplete="off"
+                  code
+                />
+              </AdminActionForm>
             </Card>
           )}
 

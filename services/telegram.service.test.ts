@@ -135,6 +135,13 @@ describe('payment notices', () => {
     expect(phone).toBe('+919876543210');
   });
 
+  it('names the coupon in the alert, for a referral cashback', () => {
+    const [alert] = paymentMessages({ ...PAYMENT, kind: 'published', couponCode: 'NEW20' });
+    expect(alert).toContain('Coupon: NEW20');
+    const [plain] = paymentMessages({ ...PAYMENT, kind: 'published' });
+    expect(plain).not.toContain('Coupon');
+  });
+
   it('sends the alert alone when nothing was published', () => {
     expect(paymentMessages({ ...PAYMENT, kind: 'address-taken' })).toEqual([
       expect.stringContaining('was taken'),

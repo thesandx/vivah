@@ -1,13 +1,14 @@
 'use server';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { z } from 'zod';
 
-import { PRICE_FROM_RUPEES } from '@/lib/business';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
+import { clientIp, RateLimiter } from '@/lib/rate-limit';
 import { inviteHref } from '@/lib/site-host';
+import { quotePrice } from '@/services/coupon.service';
 import { paymentMode, startPayment } from '@/services/payment.service';
 import { checkSlug, publishWedding, type SlugAvailability } from '@/services/wedding.service';
 import type { RazorpayCheckout } from '@/types/razorpay-checkout';
@@ -30,6 +31,48 @@ const MAX_INPUT_LENGTH = 100;
 
 const slugInput = z.string().max(MAX_INPUT_LENGTH);
 const leadIdInput = z.string().max(MAX_INPUT_LENGTH);
+/** A coupon code as typed. `lib/coupons.ts` decides whether it is one. */
+const couponInput = z.string().max(40);
+
+/**
+ * Each visitor may try 20 coupon codes in 10 minutes. Enough for typos; too
+ * few to guess somebody's referral code by trying them all. ADR-0015.
+ */
+const couponTries = new RateLimiter({ limit: 20, windowMs: 10 * 60_000 });
+
+export type CouponActionResult =
+  | { ok: true; code: string; percentOff: number; payableRupees: number }
+  | { ok: false; message: string };
+
+/**
+ * Checks a coupon code for the payment sheet and answers the new price. A
+ * read: it changes nothing. The pay button prices the order again on the
+ * server (`publishAction`), so this answer only decides what the sheet shows.
+ */
+export async function applyCouponAction(code: unknown): Promise<CouponActionResult> {
+  const parsed = couponInput.safeParse(code);
+  if (!parsed.success || parsed.data.trim() === '') {
+    return { ok: false, message: 'Type your coupon code.' };
+  }
+  const limit = couponTries.hit(clientIp(await headers()));
+  if (!limit.allowed) {
+    return { ok: false, message: 'Too many tries. Wait a few minutes and try again.' };
+  }
+  try {
+    const quote = await quotePrice(parsed.data);
+    if (!quote.ok) return quote;
+    if (quote.coupon === null) return { ok: false, message: 'Type your coupon code.' };
+    return {
+      ok: true,
+      code: quote.coupon.code,
+      percentOff: quote.coupon.percentOff,
+      payableRupees: quote.payableRupees,
+    };
+  } catch (error) {
+    logger.error('Checking a coupon failed', error);
+    return { ok: false, message: 'We could not check this code. Try again.' };
+  }
+}
 
 /** Is this address free? A read: it changes nothing. */
 export async function checkSlugAction(slug: unknown): Promise<SlugAvailability> {
@@ -67,20 +110,43 @@ const FAILURE: Record<string, string> = {
  * Razorpay's checkout (ADR-0012). In test mode it publishes at once
  * (ADR-0007).
  */
-export async function publishAction(leadId: unknown, slug: unknown): Promise<PublishActionResult> {
+export async function publishAction(
+  leadId: unknown,
+  slug: unknown,
+  coupon?: unknown,
+): Promise<PublishActionResult> {
   const parsedId = leadIdInput.safeParse(leadId);
   const parsedSlug = slugInput.safeParse(slug);
+  const parsedCoupon = couponInput.optional().safeParse(coupon);
   if (!parsedId.success || !parsedSlug.success) {
     return { ok: false, message: 'Choose an address first.' };
   }
+  if (!parsedCoupon.success) return { ok: false, message: 'This code does not work.' };
   return paymentMode() === 'test'
     ? testPublish(parsedId.data, parsedSlug.data)
-    : pay(parsedId.data, parsedSlug.data);
+    : pay(parsedId.data, parsedSlug.data, parsedCoupon.data ?? null);
 }
 
-async function pay(leadId: string, slug: string): Promise<PublishActionResult> {
+/**
+ * Prices the order on the server, from the code the sheet sends, and starts
+ * the payment. A code the admin turned off since the sheet applied it stops
+ * here with a sentence, so the couple is never charged a price they did not
+ * see.
+ */
+async function pay(
+  leadId: string,
+  slug: string,
+  coupon: string | null,
+): Promise<PublishActionResult> {
   try {
-    const result = await startPayment(leadId, slug, PRICE_FROM_RUPEES);
+    const quote = await quotePrice(coupon);
+    if (!quote.ok) {
+      return {
+        ok: false,
+        message: 'Your coupon code no longer works. Remove it to pay the full price.',
+      };
+    }
+    const result = await startPayment(leadId, slug, quote.payableRupees, new Date(), quote.coupon);
     switch (result.state) {
       case 'redirect':
         return { ok: true, url: result.url, to: 'payment' };
