@@ -181,4 +181,10 @@ describe('ShubhVivahInvite', () => {
     expect(section).toHaveTextContent('You can add the dates and venues after payment.');
     expect(section).not.toHaveTextContent('to be shared soon');
   });
+
+  it('sends the given RSVP message, as the sample invite does', () => {
+    render(<ShubhVivahInvite {...full} rsvpMessage="Hi Team Vivah" />);
+    const rsvp = screen.getByRole('link', { name: /rsvp now/i }).getAttribute('href') ?? '';
+    expect(new URL(rsvp).searchParams.get('text')).toBe('Hi Team Vivah');
+  });
 });
