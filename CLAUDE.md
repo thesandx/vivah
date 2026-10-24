@@ -326,7 +326,7 @@ Violations here are defects, not style disagreements.
 - **Never disable a CI check to make a PR green.** Fix the code, or change the check deliberately and say why.
 - **Never put a secret in a Docker build arg.** Visible in `docker history`. Use Secret Manager at runtime.
 - **Never push, claim work is done, or open a PR without `pnpm validate` green.** Run it locally first — `format:check` included. CI must never fail from your end. See [Verification protocol](#verification-protocol).
-- **Never delete data permanently without a reason on the line.** Use `softDelete`. `hardDelete`, `recursiveDelete` and a raw `.delete()` are for erasure requests only, each with `// eslint-disable-next-line data-safety/no-permanent-delete -- <why>`. A revert does not bring deleted data back. See [`docs/data-recovery.md`](./docs/data-recovery.md).
+- **Never delete data permanently without a reason on the line.** Use `softDelete`. `hardDelete`, `recursiveDelete` and a raw `.delete()` are for erasure requests and the admin "Clear test data" page ([ADR-0015](./docs/adr/0015-erase-test-data-from-admin.md)) only, each with `// eslint-disable-next-line data-safety/no-permanent-delete -- <why>`. A revert does not bring deleted data back. See [`docs/data-recovery.md`](./docs/data-recovery.md).
 - **Never run a bulk write without a dry run and a restore point.** A backfill or cleanup script defaults to a dry run, writes only with `--apply`, limits each run, and never deletes. Write down the time before you run it. See [Before a bulk write](./docs/data-recovery.md#before-a-bulk-write-or-a-migration).
 - **Never turn off database delete protection, point-in-time recovery or the backup schedule.** `tests/data-safety.test.ts` fails if the bootstrap stops setting them.
 - **Never give an agent session production data credentials.** A human runs a bulk write or a recovery against production.
@@ -452,22 +452,23 @@ Full model in [`SECURITY.md`](./SECURITY.md).
 
 Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of them.
 
-| ADR                                                                    | Decision                                                                                     |
-| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [0001](./docs/adr/0001-use-cloud-run-for-hosting.md)                   | Cloud Run for hosting — over Vercel, GKE, App Engine, a VM                                   |
-| [0002](./docs/adr/0002-use-workload-identity-federation.md)            | Workload Identity Federation — no service account keys, ever                                 |
-| [0003](./docs/adr/0003-scope-workload-identity-to-the-github-owner.md) | WIF provider scoped to the GitHub owner; the repository pin lives in the IAM binding         |
-| [0004](./docs/adr/0004-use-firestore-and-cloud-storage.md)             | Firestore + Cloud Storage — over Cloud SQL, over a per-app project                           |
-| [0005](./docs/adr/0005-use-firebase-auth-for-sign-in.md)               | Firebase Auth with server-side session cookies — over Auth.js, over client-only auth         |
-| [0006](./docs/adr/0006-accept-anonymous-lead-capture.md)               | `POST /api/leads` is the one write with no session, and how it stays narrow                  |
-| [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment in development |
-| [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                |
-| [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks               |
-| [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                 |
-| [0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)    | Cashfree Payment Links; the webhook and return publish from Cashfree's own record            |
-| [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                |
-| [0013](./docs/adr/0013-measure-google-ads-conversions.md)              | The Google tag counts previews and purchases as conversions; no remarketing, no analytics    |
-| [0014](./docs/adr/0014-measure-home-page-visits-first-party.md)        | Our own beacon measures home page visits for `/admin`; no cookie, no third party             |
+| ADR                                                                    | Decision                                                                                           |
+| ---------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| [0001](./docs/adr/0001-use-cloud-run-for-hosting.md)                   | Cloud Run for hosting — over Vercel, GKE, App Engine, a VM                                         |
+| [0002](./docs/adr/0002-use-workload-identity-federation.md)            | Workload Identity Federation — no service account keys, ever                                       |
+| [0003](./docs/adr/0003-scope-workload-identity-to-the-github-owner.md) | WIF provider scoped to the GitHub owner; the repository pin lives in the IAM binding               |
+| [0004](./docs/adr/0004-use-firestore-and-cloud-storage.md)             | Firestore + Cloud Storage — over Cloud SQL, over a per-app project                                 |
+| [0005](./docs/adr/0005-use-firebase-auth-for-sign-in.md)               | Firebase Auth with server-side session cookies — over Auth.js, over client-only auth               |
+| [0006](./docs/adr/0006-accept-anonymous-lead-capture.md)               | `POST /api/leads` is the one write with no session, and how it stays narrow                        |
+| [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment in development       |
+| [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                      |
+| [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks                     |
+| [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                       |
+| [0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)    | Cashfree Payment Links; the webhook and return publish from Cashfree's own record                  |
+| [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                      |
+| [0013](./docs/adr/0013-measure-google-ads-conversions.md)              | The Google tag counts previews and purchases as conversions; no remarketing, no analytics          |
+| [0014](./docs/adr/0014-measure-home-page-visits-first-party.md)        | Our own beacon measures home page visits for `/admin`; no cookie, no third party                   |
+| [0015](./docs/adr/0015-erase-test-data-from-admin.md)                  | `/admin/clean-up` erases ticked test previews and deleted invites; never live ones, never payments |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

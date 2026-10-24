@@ -38,7 +38,7 @@ Each layer stops a different failure. No single layer is sufficient.
 ## Rules for code that changes data
 
 1. **Use `softDelete`.** Reads exclude the document, and `restore` returns it.
-2. **Use `hardDelete` only for an erasure request.** Put the reason on the line: `// eslint-disable-next-line data-safety/no-permanent-delete -- erasure request`. `deleteUserProfile` in `services/user.service.ts` is the example.
+2. **Use `hardDelete` only for an erasure request.** Put the reason on the line: `// eslint-disable-next-line data-safety/no-permanent-delete -- erasure request`. `deleteUserProfile` in `services/user.service.ts` is the example. The admin "Clear test data" page is the one other use ([ADR-0015](./adr/0015-erase-test-data-from-admin.md)): the admin ticks each row, and live invites are refused.
 3. **Do not disable the rule for a whole file.** Each permanent delete is a separate decision, and a reviewer must see each one.
 4. **Do not call `.delete()` on a document reference, a batch or a transaction** in application code. Use the repository.
 5. **Do not use `recursiveDelete`** in application code. It removes a document and every subcollection below it.

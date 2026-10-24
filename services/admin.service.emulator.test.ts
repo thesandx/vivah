@@ -8,6 +8,7 @@ import {
   changeWeddingAddress,
   deleteLead,
   deleteWedding,
+  eraseTestData,
   getWeddingForAdmin,
   listAllWeddings,
   makePreviewLive,
@@ -18,6 +19,7 @@ import {
   setWeddingStatus,
 } from '@/services/admin.service';
 import { adminAudit } from '@/services/admin-audit.service';
+import { createGuestLink, listGuestLinks } from '@/services/guest-link.service';
 import { createLead, getPreview, leads, openPreviewLink } from '@/services/lead.service';
 import {
   checkSlug,
@@ -258,5 +260,43 @@ describeEmulator('admin operations (emulator)', () => {
     expect((await leads.getOrThrow(leadId)).song).toEqual(song);
     expect((await getWeddingBySlug(slug))?.song).toEqual(song);
     expect(await auditFor(leadId)).toContain('preview-song-changed');
+  });
+  it('erases test rows for good, and never a live invite or its preview', async () => {
+    const live = await published();
+    const gone = await published();
+    expect((await createGuestLink(gone.slug, '+919876543210', 'Neha')).ok).toBe(true);
+    await deleteWedding(gone.weddingId, ADMIN);
+    const unpaid = await createLead({
+      bride: 'Test',
+      groom: 'Lead',
+      weddingDate: null,
+      phoneE164: '+919876543210',
+      slug: null,
+      isBot: false,
+    });
+
+    const result = await eraseTestData(
+      [live.leadId, gone.leadId, unpaid],
+      [live.weddingId, gone.weddingId],
+      ADMIN,
+    );
+
+    expect(result).toEqual({ erasedLeads: 2, erasedWeddings: 1, kept: 2 });
+    expect(await getWeddingForAdmin(gone.weddingId)).toBeNull();
+    expect(await listGuestLinks(gone.weddingId)).toEqual([]);
+    expect(await leads.get(gone.leadId, { includeDeleted: true })).toBeNull();
+    expect(await leads.get(unpaid, { includeDeleted: true })).toBeNull();
+    // The live couple is untouched.
+    expect((await getWeddingBySlug(live.slug))?.id).toBe(live.weddingId);
+    expect(await leads.get(live.leadId)).not.toBeNull();
+    expect(await auditFor(gone.weddingId)).toContain('test-data-erased');
+    expect(await auditFor(unpaid)).toContain('test-data-erased');
+
+    // Running it again finds nothing left to do.
+    expect(await eraseTestData([gone.leadId], [gone.weddingId], ADMIN)).toEqual({
+      erasedLeads: 0,
+      erasedWeddings: 0,
+      kept: 0,
+    });
   });
 });

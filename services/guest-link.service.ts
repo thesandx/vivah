@@ -86,6 +86,26 @@ export async function listGuestLinks(weddingId: string): Promise<GuestLinkDocume
 }
 
 /**
+ * Erases every link of a wedding, deleted ones too, for good. Only for the
+ * admin's "Clear test data", on a wedding that is erased next (ADR-0015).
+ * Returns how many it erased.
+ */
+export async function eraseGuestLinks(weddingId: string): Promise<number> {
+  const repository = guestLinksOf(weddingId);
+  let erased = 0;
+  for (;;) {
+    // Each pass reads the first page again: the previous page is gone.
+    const page = await repository.list({ limit: PAGE_SIZE, includeDeleted: true });
+    for (const link of page.items) {
+      // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a deleted test invite (ADR-0015)
+      await repository.hardDelete(link.id);
+      erased += 1;
+    }
+    if (page.nextCursor === null || page.items.length === 0) return erased;
+  }
+}
+
+/**
  * Whether the guest segment of an invite link was deleted by the couple.
  * `false` for a link the dashboard never made, so a hand-typed name keeps
  * working.

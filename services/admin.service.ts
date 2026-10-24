@@ -4,6 +4,7 @@ import { FieldValue } from '@google-cloud/firestore';
 
 import { slugProblem } from '@/lib/couple-slug';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
+import { ERASE_LIMIT, liveLeadIds } from '@/lib/test-data-cleanup';
 import { parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import {
   cleanFunctionKinds,
@@ -17,6 +18,7 @@ import {
   recordAdminAction,
   recordAdminActionIn,
 } from '@/services/admin-audit.service';
+import { eraseGuestLinks } from '@/services/guest-link.service';
 import { type LeadDocument, leads } from '@/services/lead.service';
 import { MAX_PAGE_SIZE, type Repository, type StoredDocument } from '@/services/repository';
 import {
@@ -37,8 +39,10 @@ import { songInSlot } from '@/services/wedding-songs.service';
  * make a preview live without a payment, and change its song.
  *
  * Every function takes the admin's uid, from `requireAdmin()`, and writes an
- * entry to the audit log. Deletes are soft. The one permanent delete is a
- * slug claim, which is a lock, not data: see `deleteWedding`.
+ * entry to the audit log. Deletes are soft. Two things are permanent: a
+ * slug claim, which is a lock, not data (see `deleteWedding`), and the
+ * "Clear test data" erase, which the admin asks for row by row (see
+ * `eraseTestData`, ADR-0015).
  */
 
 /** The most rows an admin list loads. Far above today's volume. */
@@ -597,4 +601,84 @@ export async function changePreviewSong(
       ? `${song.name} is now the song on the preview and the live invite.`
       : `${song.name} is now the preview's song.`,
   };
+}
+
+/** What `eraseTestData` did, for the admin's message. */
+export interface EraseResult {
+  erasedLeads: number;
+  erasedWeddings: number;
+  /** Rows it refused: a live invite or its preview. */
+  kept: number;
+}
+
+/**
+ * Erases test rows for good, on the admin's request (ADR-0015): previews
+ * (`leads`) and DELETED invites (`weddings`, with their guest links and any
+ * claim they still hold on an address).
+ *
+ * It refuses a live invite, and the preview of a live invite: only a
+ * deleted invite can go, so a paid couple's site never vanishes from here.
+ * It keeps every `payments` document, which is the record for accounting
+ * and refunds, and the audit log, which gets one entry per erased row.
+ *
+ * Not one transaction: each row is erased on its own, so a failure part way
+ * leaves the rest as they were, and running it again finishes the job.
+ * Point-in-time recovery keeps 7 days (docs/data-recovery.md).
+ */
+export async function eraseTestData(
+  leadIds: readonly string[],
+  weddingIds: readonly string[],
+  adminUid: string,
+): Promise<EraseResult> {
+  const result: EraseResult = { erasedLeads: 0, erasedWeddings: 0, kept: 0 };
+
+  for (const id of weddingIds.slice(0, ERASE_LIMIT)) {
+    const wedding = await getWeddingForAdmin(id);
+    if (wedding === null) continue;
+    if (wedding.deletedAt === null) {
+      result.kept += 1;
+      continue;
+    }
+    const claim = await slugClaims.get(slugClaimId(wedding.slug));
+    if (claim !== null && claim.weddingId === id) {
+      // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing test data (ADR-0015); a claim is a lock, not data
+      await slugClaims.hardDelete(slugClaimId(wedding.slug));
+    }
+    // The guest links first: a subcollection outlives its parent document.
+    await eraseGuestLinks(id);
+    // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a deleted test invite, row by row (ADR-0015)
+    await weddings.hardDelete(id);
+    result.erasedWeddings += 1;
+    await audit(
+      'test-data-erased',
+      'wedding',
+      id,
+      `Erased the deleted invite ${wedding.slug} (${wedding.bride} & ${wedding.groom}) for good.`,
+      adminUid,
+    );
+  }
+
+  // Read after the weddings are gone, so a lead whose only invite was just
+  // erased counts as not live.
+  const live = liveLeadIds((await listAllWeddings()).items);
+  for (const id of leadIds.slice(0, ERASE_LIMIT)) {
+    const lead = await getLeadForAdmin(id);
+    if (lead === null) continue;
+    if (live.has(id)) {
+      result.kept += 1;
+      continue;
+    }
+    // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a test preview, row by row (ADR-0015)
+    await leads.hardDelete(id);
+    result.erasedLeads += 1;
+    await audit(
+      'test-data-erased',
+      'lead',
+      id,
+      `Erased the preview for ${lead.bride} & ${lead.groom} for good.`,
+      adminUid,
+    );
+  }
+
+  return result;
 }
