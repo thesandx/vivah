@@ -163,11 +163,12 @@ describeEmulator('createRepository (emulator)', () => {
     });
 
     it('generates ids that are not sequential or time-ordered', async () => {
-      const ids = await seed(5, 'owner-hotspot');
+      const ids = await seed(10, 'owner-hotspot');
       const sorted = [...ids].sort();
       // Auto ids are random, so insertion order and lexical order agreeing for
-      // five documents would be a 1-in-120 coincidence — and a red flag that
-      // someone swapped in timestamp-prefixed ids, which hotspot on write.
+      // ten documents is a 1-in-3.6-million coincidence (five gave 1 in 120,
+      // which failed CI for real) — and a red flag that someone swapped in
+      // timestamp-prefixed ids, which hotspot on write.
       expect(ids).not.toEqual(sorted);
     });
 
