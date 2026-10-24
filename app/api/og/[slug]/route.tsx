@@ -12,8 +12,8 @@ import { formatWeddingDate } from '@/lib/wedding-date';
 import { getWeddingBySlug } from '@/services/wedding.service';
 
 /**
- * `GET /api/og/<slug>?guest=Kartheek` — the portrait card in a guest's
- * WhatsApp link preview: "Hi Kartheek, we joyfully invite you to celebrate
+ * `GET /api/og/<slug>?guest=Neha` — the portrait card in a guest's
+ * WhatsApp link preview: "Hi Neha, we joyfully invite you to celebrate
  * our wedding", the couple's names and the day, in Martel, inside an arch.
  * `lib/invite-meta.ts` puts this URL in `og:image`.
  *

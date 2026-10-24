@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 export interface LiveInvitePhoneProps {
-  /** The sample invite's address, with a guest's name: `https://riya-arjun.vivah.online/Kartheek`. */
+  /** The sample invite's address, with a guest's name: `https://priya-rahul.vivah.online/Neha`. */
   src: string;
   /** The bride's and the groom's first names, for the cover and the frame's title. */
   bride: string;

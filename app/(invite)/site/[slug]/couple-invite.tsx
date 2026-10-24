@@ -7,12 +7,13 @@ import { InviteUnavailable } from '@/components/invite/InviteUnavailable';
 import { PreviewShield } from '@/components/invite/PreviewShield';
 import { PreviewWatermark } from '@/components/invite/PreviewWatermark';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
+import { BUSINESS } from '@/lib/business';
 import { env } from '@/lib/env';
 import { parseGuestName } from '@/lib/guest-name';
 import { inviteCard, inviteMetadata, type InviteMetaInput } from '@/lib/invite-meta';
 import type { LinkPreviewCard } from '@/lib/link-preview-page';
 import { logger } from '@/lib/logger';
-import { isSampleSlug, sampleWedding } from '@/lib/sample-invite';
+import { isSampleSlug, SAMPLE_RSVP_MESSAGE, sampleWedding } from '@/lib/sample-invite';
 import { editDetailsUrl, inviteDomainLabel, madeByUrl } from '@/lib/site-host';
 import type { WeddingFunction } from '@/lib/wedding-functions';
 import { songUrl } from '@/lib/wedding-songs';
@@ -22,7 +23,7 @@ import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * The couple's invite, shared by the plain link (`sara.vivah.online`) and a
- * guest's link (`sara.vivah.online/Kartheek`). The two routes differ only in
+ * guest's link (`sara.vivah.online/Neha`). The two routes differ only in
  * the guest name, so both render through here.
  */
 
@@ -42,7 +43,7 @@ interface Invite {
   functions: readonly WeddingFunction[];
   song: { name: string; src: string } | null;
   unavailable: boolean;
-  /** The sample invite: watermarked, and its edit link and RSVP are left out. */
+  /** The sample invite: watermarked, no edit link, and its RSVP goes to us. */
   sample: boolean;
 }
 
@@ -84,7 +85,8 @@ async function sampleInvite(slug: string): Promise<Invite> {
     ...sampleWedding(new Date()),
     id: null,
     slug,
-    rsvpPhoneE164: null,
+    // Our business number, never a couple's: a tap asks us for a site.
+    rsvpPhoneE164: BUSINESS.whatsAppE164,
     song,
     unavailable: false,
     sample: true,
@@ -199,6 +201,7 @@ export async function CoupleInvite({
             venueCity={wedding.venueCity}
             venueMapsUrl={wedding.venueMapsUrl}
             rsvpPhoneE164={wedding.rsvpPhoneE164}
+            {...(wedding.sample && { rsvpMessage: SAMPLE_RSVP_MESSAGE })}
             functions={wedding.functions}
             madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
             {...(!wedding.sample && {

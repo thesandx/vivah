@@ -27,7 +27,7 @@ import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.servi
  * A deleted link is soft-deleted and its id stays taken, so a new guest never
  * inherits a link the couple already removed.
  *
- * A link typed by hand (`/Kartheek`), as before this collection existed, has
+ * A link typed by hand (`/Neha`), as before this collection existed, has
  * no document. It keeps greeting the guest by name.
  */
 

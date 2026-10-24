@@ -10,7 +10,7 @@ function renderBanner() {
       bride="Riya"
       groom="Arjun"
       leadId="lead-1"
-      chosen="riya-arjun"
+      chosen="priya-rahul"
       suggestions={[]}
       domainLabel="vivah.online"
       priceRupees={499}
@@ -41,7 +41,7 @@ describe('PublishBanner', () => {
   it('goes straight to payment from the green button, without the checkout', async () => {
     const { publish } = renderBanner();
     fireEvent.click(screen.getByRole('button', { name: 'Continue to publish' }));
-    expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun');
+    expect(publish).toHaveBeenCalledWith('lead-1', 'priya-rahul');
     expect(screen.queryByText('Total, paid once')).not.toBeInTheDocument();
     const working = await screen.findByRole('button', { name: 'Publishing your invite' });
     expect(working).toBeDisabled();
@@ -52,7 +52,7 @@ describe('PublishBanner', () => {
   it('opens the checkout from "See everything you get", with the pay button above the ways to pay', () => {
     const { publish } = renderBanner();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
-    expect(screen.getByText('riya-arjun.vivah.online')).toBeInTheDocument();
+    expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('Total, paid once')).toBeInTheDocument();
     expect(screen.getByText(/nothing is charged/)).toBeInTheDocument();
     expect(screen.queryByText(/refund/i)).not.toBeInTheDocument();
@@ -60,7 +60,7 @@ describe('PublishBanner', () => {
     const methods = screen.getByRole('list', { name: 'Ways to pay' });
     expect(button.compareDocumentPosition(methods) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     fireEvent.click(button);
-    expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun');
+    expect(publish).toHaveBeenCalledWith('lead-1', 'priya-rahul');
   });
 
   it('shows the button working, and refuses a second tap', async () => {
@@ -100,7 +100,7 @@ describe('PublishBanner', () => {
     });
     const { publish } = renderBanner();
     fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
-    expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun');
+    expect(publish).toHaveBeenCalledWith('lead-1', 'priya-rahul');
     Object.defineProperty(document.documentElement, 'scrollHeight', {
       value: 0,
       configurable: true,
@@ -124,7 +124,7 @@ describe('PublishBanner modes', () => {
         bride="Riya"
         groom="Arjun"
         leadId="lead-1"
-        chosen="riya-arjun"
+        chosen="priya-rahul"
         suggestions={[]}
         domainLabel="vivah.online"
         priceRupees={499}

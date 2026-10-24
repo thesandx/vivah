@@ -5,7 +5,7 @@
 
 /**
  * A WhatsApp chat with the couple, with the reply already typed:
- * `Hi Radha & Shyam, I (Kartheek) will be attending the wedding!`.
+ * `Hi Radha & Shyam, I (Neha) will be attending the wedding!`.
  * `wa.me` takes the number as digits only, with no plus sign.
  */
 export function rsvpWhatsAppUrl(
@@ -13,9 +13,11 @@ export function rsvpWhatsAppUrl(
   bride: string,
   groom: string,
   guestName: string | null,
+  /** A message to send instead of the guest's "I will be attending". */
+  message?: string,
 ): string {
   const who = guestName === null ? 'I' : `I (${guestName})`;
-  const text = `Hi ${bride} & ${groom}, ${who} will be attending the wedding!`;
+  const text = message ?? `Hi ${bride} & ${groom}, ${who} will be attending the wedding!`;
   return `https://wa.me/${phoneE164.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`;
 }
 

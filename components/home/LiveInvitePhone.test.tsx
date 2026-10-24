@@ -22,7 +22,7 @@ class FakeResizeObserver {
   disconnect() {}
 }
 
-const SRC = 'https://riya-arjun.vivah.online/Kartheek';
+const SRC = 'https://priya-rahul.vivah.online/Neha';
 
 beforeEach(() => {
   intersect = null;
@@ -38,7 +38,7 @@ afterEach(() => {
 });
 
 function renderPhone() {
-  return render(<LiveInvitePhone src={SRC} bride="Riya" groom="Arjun" />);
+  return render(<LiveInvitePhone src={SRC} bride="Priya" groom="Rahul" />);
 }
 
 const frame = (container: HTMLElement) => container.querySelector('iframe');

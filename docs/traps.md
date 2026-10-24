@@ -271,10 +271,18 @@ pick up a changed repository variable is an ordinary thing to want.
 name. `APP_SLUG` allows 49, so a longer name overflowed a limit nothing warned
 about.
 
-`deploy.yml` builds the suffix as `r<run-number>-<short-sha>`, truncated to
-whatever the service name leaves. **The run number comes first on purpose:** it
-is the uniquifier and must never be trimmed, so truncation eats the SHA, which
-is decorative. Traceability does not depend on it — the image tag and the
+**Re-run jobs keeps the run number.** If the first attempt created its
+revision and then failed, the re-run collides on the same name:
+
+```
+ERROR: (gcloud.run.deploy) Found a conflicting revision name vivah-r113-e5cbbf7.
+```
+
+`deploy.yml` builds the suffix as `r<run-number>-<short-sha>`. From attempt 2,
+the attempt number follows the run number: `r113a2-e5cbbf7`. The suffix is
+truncated to whatever the service name leaves. **The run number and the attempt
+come first on purpose:** they are the uniquifier and must never be trimmed, so
+truncation eats the SHA, which is decorative. Traceability does not depend on it — the image tag and the
 `commit-sha` label both carry the full SHA.
 
 ### 28. `dumb-init` is PID 1

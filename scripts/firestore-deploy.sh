@@ -175,8 +175,22 @@ deploy_indexes() {
   # supported remedy for a monotonically increasing field under a high write
   # rate — an always-increasing indexed value sends every write to the same end
   # of the index, which is a hotspot Firestore cannot split.
+  #
+  # Two rules keep this step fast. Each new exemption is a long-running
+  # operation, about 6 minutes, even on an empty collection. Nine new ones
+  # once held the deploy past its 30-minute job timeout.
+  #
+  #   - A field that is already exempt is skipped. `describe` shows it with no
+  #     indexes of its own and not inheriting the database defaults.
+  #   - A new exemption is sent with `--async`. Nothing queries an exempt
+  #     field, so the app does not wait for it, and the operation finishes on
+  #     the server after the job moves on.
+  #
+  # An exemption only saves index storage and write cost. A field whose update
+  # is still running, or is refused for that reason, warns and does not fail
+  # the deploy; the next deploy tries it again.
   # -------------------------------------------------------------------------
-  local override collection_group field_path index_count
+  local override collection_group field_path index_count current
   while IFS= read -r override; do
     [[ -n "$override" ]] || continue
 
@@ -189,13 +203,28 @@ deploy_indexes() {
       continue
     fi
 
+    if current="$(gcloud firestore indexes fields describe "$field_path" \
+          --project="$PROJECT_ID" \
+          --database="$DATABASE_ID" \
+          --collection-group="$collection_group" \
+          --format=json 2>/dev/null)" \
+       && jq -e '(.indexConfig.usesAncestorConfig // false) == false
+                 and ((.indexConfig.indexes // []) | length) == 0' \
+            <<<"$current" >/dev/null 2>&1; then
+      skip "${collection_group}.${field_path} is already exempt"
+      continue
+    fi
+
     if output="$(gcloud firestore indexes fields update "$field_path" \
           --project="$PROJECT_ID" \
           --database="$DATABASE_ID" \
           --collection-group="$collection_group" \
           --disable-indexes \
+          --async \
           --quiet 2>&1)"; then
-      ok "Exempted ${collection_group}.${field_path} from single-field indexing"
+      ok "Exempting ${collection_group}.${field_path} from single-field indexing (finishes on the server)"
+    elif grep -qiE 'in progress|FAILED_PRECONDITION|ABORTED|concurrent' <<<"$output"; then
+      warn "${collection_group}.${field_path}: an earlier update is still running; the next deploy checks it again"
     else
       printf '%s\n' "$output" >&2
       die "Failed to update the field exemption for ${collection_group}.${field_path}"

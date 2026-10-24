@@ -47,7 +47,7 @@ export function inviteOrigin(slug: string, rootDomain: string, appUrl: string): 
     : inviteUrl(slug, rootDomain);
 }
 
-/** The preview image for a guest: `<origin>/api/og/sara?guest=Kartheek`. */
+/** The preview image for a guest: `<origin>/api/og/sara?guest=Neha`. */
 export function ogImageUrl(input: InviteMetaInput): string {
   // The API route is outside the host rewrite, so it answers on every host.
   // Behind routing it uses the couple's host; without it, the app's URL.
@@ -65,7 +65,7 @@ export function inviteTitle(bride: string, groom: string, weddingDate: string | 
   return weddingDate === null ? base : `${base} | ${formatShortWeddingDate(weddingDate)}`;
 }
 
-/** `Hi Kartheek, you are invited to the wedding of Radha and Shyam on …`. */
+/** `Hi Neha, you are invited to the wedding of Radha and Shyam on …`. */
 export function inviteDescription(
   bride: string,
   groom: string,
