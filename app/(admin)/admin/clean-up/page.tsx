@@ -10,6 +10,7 @@ import { AppBar } from '@/components/layout/AppBar';
 import { Alert } from '@/components/ui/Alert';
 import { Card } from '@/components/ui/Card';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { Input } from '@/components/ui/Input';
 import { formatAdminTime, leadState } from '@/lib/admin-list';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
@@ -87,11 +88,6 @@ export default async function AdminCleanUpPage(): Promise<React.JSX.Element> {
           action={eraseTestDataAction}
           label="Erase ticked rows"
           variant="primary"
-          field={{
-            name: 'confirm',
-            label: `Type ${ERASE_CONFIRM_WORD} to confirm`,
-            hint: 'Capital letters. This guards against a stray tap.',
-          }}
           confirm={{
             title: 'Erase the ticked rows for good?',
             body: 'The ticked previews and deleted invites go for good, with their guest links. Live invites, payments and the activity log stay.',
@@ -135,6 +131,17 @@ export default async function AdminCleanUpPage(): Promise<React.JSX.Element> {
               )}
             </Card>
           </div>
+          {/* Next to the button, not above the long lists, and not `required`:
+              the dialog makes the page inert, so the browser cannot focus an
+              empty required field and the submit failed with no message. The
+              server checks the word and says what is missing. */}
+          <Input
+            label={`Type ${ERASE_CONFIRM_WORD} to confirm`}
+            name="confirm"
+            hint="Capital letters. This guards against a stray tap."
+            autoComplete="off"
+            className="sm:max-w-xs"
+          />
         </AdminActionForm>
 
         <section className="flex flex-col gap-3">
