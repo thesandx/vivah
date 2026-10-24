@@ -6,6 +6,8 @@ import { HOME_CTAS, HOME_SECTIONS } from '@/lib/visit-tracking';
 
 // The testimonials are an async Server Component with its own test.
 vi.mock('@/app/(main)/home-testimonials', () => ({ HomeTestimonials: () => null }));
+// So is the coupon ribbon; `OfferRibbon` has its own test.
+vi.mock('@/app/(main)/home-ribbon', () => ({ HomeRibbon: () => null }));
 
 /**
  * Smoke test for the home page. `HomePage` is a synchronous Server Component,
@@ -24,7 +26,7 @@ describe('HomePage', () => {
 
   it('names the price under the headline', () => {
     render(<HomePage />);
-    expect(screen.getByText('just ₹499')).toBeInTheDocument();
+    expect(screen.getByText('just ₹799')).toBeInTheDocument();
   });
 
   it('offers a WhatsApp chat with a first message', () => {

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { HomeDemoVideo } from '@/app/(main)/home-demo-video';
+import { HomeRibbon } from '@/app/(main)/home-ribbon';
 import { HomeTestimonials } from '@/app/(main)/home-testimonials';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
 import { DemoVideo } from '@/components/home/DemoVideo';
@@ -123,248 +124,254 @@ export default function HomePage() {
   const sample = sampleWedding(new Date());
 
   return (
-    <PageShell>
-      <VisitTracker>
-        <SignupDialogProvider>
-          <JsonLd data={organizationSchema(origin, env.appName)} />
-          <JsonLd data={webApplicationSchema(origin, env.appName)} />
+    <>
+      {/* The admin's coupon ribbon. No Suspense of its own, so the page waits
+        for it rather than jump when it arrives; the read is cached, and gives
+        up after 1.5 seconds. ADR-0015. */}
+      <HomeRibbon href={`#${FORM_ID}`} />
+      <PageShell>
+        <VisitTracker>
+          <SignupDialogProvider>
+            <JsonLd data={organizationSchema(origin, env.appName)} />
+            <JsonLd data={webApplicationSchema(origin, env.appName)} />
 
-          {/* The hero. Three grid items, so a phone gets words, form, promises,
+            {/* The hero. Three grid items, so a phone gets words, form, promises,
           and a desktop gets the form beside the words. */}
-          <section
-            aria-labelledby="hero-heading"
-            data-track-section="hero"
-            className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-x-12"
-          >
-            <div className="flex flex-col gap-5 lg:col-start-1 lg:self-end">
-              <p className="bg-brand-soft rounded-pill text-small self-start px-4 py-1.5 font-semibold">
-                Wedding websites and digital invites
-              </p>
-              <h1 id="hero-heading" className="text-hero">
-                Create your personal wedding website in{' '}
-                <span className="font-script decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
-                  5 minutes
-                </span>
-              </h1>
-              <p className="text-heading text-ink-soft max-w-prose font-normal">
-                Get your personal wedding site and send personalised digital invites to friends and
-                family at{' '}
-                <span className="decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
-                  just ₹{PRICE_FROM_RUPEES.toLocaleString('en-IN')}
-                </span>
-                .
-              </p>
-            </div>
-
-            <div
-              id={SIGNUP_CARD_ID}
-              className="flex flex-col gap-3 lg:col-start-2 lg:row-span-2 lg:row-start-1"
+            <section
+              aria-labelledby="hero-heading"
+              data-track-section="hero"
+              className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-x-12"
             >
-              <p className="text-heading text-center">
-                See it free, and pay only when you love it.
-              </p>
-              <Card as="section" className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4">
-                <LeadForm headingId={FORM_ID} />
-              </Card>
-            </div>
+              <div className="flex flex-col gap-5 lg:col-start-1 lg:self-end">
+                <p className="bg-brand-soft rounded-pill text-small self-start px-4 py-1.5 font-semibold">
+                  Wedding websites and digital invites
+                </p>
+                <h1 id="hero-heading" className="text-hero">
+                  Create your personal wedding website in{' '}
+                  <span className="font-script decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
+                    5 minutes
+                  </span>
+                </h1>
+                <p className="text-heading text-ink-soft max-w-prose font-normal">
+                  Get your personal wedding site and send personalised digital invites to friends
+                  and family at{' '}
+                  <span className="decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
+                    just ₹{PRICE_FROM_RUPEES.toLocaleString('en-IN')}
+                  </span>
+                  .
+                </p>
+              </div>
 
-            <ul className="flex flex-col gap-3 lg:col-start-1 lg:self-start">
-              {PROMISES.map((promise) => (
-                <li key={promise} className="flex items-center gap-3">
-                  <Tick />
-                  {promise}
-                </li>
-              ))}
-            </ul>
-          </section>
+              <div
+                id={SIGNUP_CARD_ID}
+                className="flex flex-col gap-3 lg:col-start-2 lg:row-span-2 lg:row-start-1"
+              >
+                <p className="text-heading text-center">
+                  See it free, and pay only when you love it.
+                </p>
+                <Card as="section" className="shadow-hard-lg flex scroll-mt-24 flex-col gap-4">
+                  <LeadForm headingId={FORM_ID} />
+                </Card>
+              </div>
 
-          {/* The sample invite, live in a phone, so a visitor tries it without
+              <ul className="flex flex-col gap-3 lg:col-start-1 lg:self-start">
+                {PROMISES.map((promise) => (
+                  <li key={promise} className="flex items-center gap-3">
+                    <Tick />
+                    {promise}
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            {/* The sample invite, live in a phone, so a visitor tries it without
           leaving this page. It loads only when it nears the screen. */}
-          <section
-            aria-labelledby="try-heading"
-            data-track-section="try"
-            className="flex flex-col gap-8"
-          >
-            <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-x-12">
+            <section
+              aria-labelledby="try-heading"
+              data-track-section="try"
+              className="flex flex-col gap-8"
+            >
+              <div className="grid gap-8 lg:grid-cols-2 lg:items-center lg:gap-x-12">
+                <div className="flex flex-col gap-5">
+                  <SectionHeading
+                    id="try-heading"
+                    eyebrow="Try it here"
+                    title="Open a real invite, right on this page"
+                    intro={`This is the invite your guests get, with their own name on it. Here the guest is ${SAMPLE_GUEST}.`}
+                  />
+                  <ul className="hidden flex-col gap-3 lg:flex">
+                    {SAMPLE_TRIES.map((step) => (
+                      <li key={step} className="flex items-center gap-3">
+                        <Tick />
+                        {step}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <LiveInvitePhone src={sampleUrl} bride={sample.bride} groom={sample.groom} />
+              </div>
+              <SectionCta
+                line="Now imagine your names on it, and every guest smiling at theirs."
+                action="Make one for us"
+                trackId="try-cta"
+              />
+            </section>
+
+            <section
+              aria-labelledby="board-heading"
+              data-track-section="guests"
+              className="flex flex-col gap-8"
+            >
               <div className="flex flex-col gap-5">
                 <SectionHeading
-                  id="try-heading"
-                  eyebrow="Try it here"
-                  title="Open a real invite, right on this page"
-                  intro={`This is the invite your guests get, with their own name on it. Here the guest is ${SAMPLE_GUEST}.`}
+                  id="board-heading"
+                  eyebrow="What your guests see"
+                  title="Everything about your wedding, on one link"
+                  intro="Shri Ganesh greets every guest by name. Then your song, a date to scratch open, the countdown, the venue map and a WhatsApp RSVP."
                 />
-                <ul className="hidden flex-col gap-3 lg:flex">
-                  {SAMPLE_TRIES.map((step) => (
-                    <li key={step} className="flex items-center gap-3">
-                      <Tick />
-                      {step}
-                    </li>
-                  ))}
-                </ul>
+                {/* The steps show until the uploaded video's URL arrives. */}
+                <Suspense fallback={<DemoVideo video={null} steps={DEMO_STEPS} />}>
+                  <HomeDemoVideo />
+                </Suspense>
               </div>
-              <LiveInvitePhone src={sampleUrl} bride={sample.bride} groom={sample.groom} />
-            </div>
-            <SectionCta
-              line="Now imagine your names on it, and every guest smiling at theirs."
-              action="Make one for us"
-              trackId="try-cta"
-            />
-          </section>
-
-          <section
-            aria-labelledby="board-heading"
-            data-track-section="guests"
-            className="flex flex-col gap-8"
-          >
-            <div className="flex flex-col gap-5">
-              <SectionHeading
-                id="board-heading"
-                eyebrow="What your guests see"
-                title="Everything about your wedding, on one link"
-                intro="Shri Ganesh greets every guest by name. Then your song, a date to scratch open, the countdown, the venue map and a WhatsApp RSVP."
+              <GuestPreview />
+              <SectionCta
+                line="Picture every guest opening your love story, with their own name on it."
+                action="Write our love story"
+                trackId="guests-cta"
               />
-              {/* The steps show until the uploaded video's URL arrives. */}
-              <Suspense fallback={<DemoVideo video={null} steps={DEMO_STEPS} />}>
-                <HomeDemoVideo />
-              </Suspense>
-            </div>
-            <GuestPreview />
-            <SectionCta
-              line="Picture every guest opening your love story, with their own name on it."
-              action="Write our love story"
-              trackId="guests-cta"
-            />
-          </section>
+            </section>
 
-          <section
-            aria-labelledby="steps-heading"
-            data-track-section="how"
-            className="flex flex-col gap-8"
-          >
-            <SectionHeading
-              id="steps-heading"
-              eyebrow="How it works"
-              title="Three steps to your wedding website"
-              intro="No designer, no app and no waiting. You do it from your phone."
-            />
-            <HowItWorks />
-            <SectionCta
-              line="Three steps tonight. A lifetime of “remember when”."
-              action="Begin our forever"
-              trackId="how-cta"
-            />
-          </section>
+            <section
+              aria-labelledby="steps-heading"
+              data-track-section="how"
+              className="flex flex-col gap-8"
+            >
+              <SectionHeading
+                id="steps-heading"
+                eyebrow="How it works"
+                title="Three steps to your wedding website"
+                intro="No designer, no app and no waiting. You do it from your phone."
+              />
+              <HowItWorks />
+              <SectionCta
+                line="Three steps tonight. A lifetime of “remember when”."
+                action="Begin our forever"
+                trackId="how-cta"
+              />
+            </section>
 
-          <section
-            aria-labelledby="features-heading"
-            data-track-section="features"
-            className="flex flex-col gap-8"
-          >
-            <SectionHeading
-              id="features-heading"
-              eyebrow="Everything included"
-              title="Made for Indian weddings"
-              intro="Everything your guests need, in one invite that opens on any phone."
-            />
-            <FeatureList />
-            <SectionCta
-              line="From the haldi to the vidaai, every moment deserves a home."
-              action="Give our wedding a home"
-              trackId="features-cta"
-            />
-          </section>
+            <section
+              aria-labelledby="features-heading"
+              data-track-section="features"
+              className="flex flex-col gap-8"
+            >
+              <SectionHeading
+                id="features-heading"
+                eyebrow="Everything included"
+                title="Made for Indian weddings"
+                intro="Everything your guests need, in one invite that opens on any phone."
+              />
+              <FeatureList />
+              <SectionCta
+                line="From the haldi to the vidaai, every moment deserves a home."
+                action="Give our wedding a home"
+                trackId="features-cta"
+              />
+            </section>
 
-          <section
-            aria-labelledby="compare-heading"
-            data-track-section="compare"
-            className="flex flex-col gap-8"
-          >
-            <SectionHeading
-              id="compare-heading"
-              eyebrow="Why go digital?"
-              title="Paper cards or a wedding website"
-              intro="Keep the printed card for the elders if you like. Send everyone else a link."
-            />
-            <PaperVsDigital />
-            <SectionCta
-              line="Paper cards fade. Your love story stays one tap away."
-              action="Make our invite timeless"
-              trackId="compare-cta"
-            />
-          </section>
+            <section
+              aria-labelledby="compare-heading"
+              data-track-section="compare"
+              className="flex flex-col gap-8"
+            >
+              <SectionHeading
+                id="compare-heading"
+                eyebrow="Why go digital?"
+                title="Paper cards or a wedding website"
+                intro="Keep the printed card for the elders if you like. Send everyone else a link."
+              />
+              <PaperVsDigital />
+              <SectionCta
+                line="Paper cards fade. Your love story stays one tap away."
+                action="Make our invite timeless"
+                trackId="compare-cta"
+              />
+            </section>
 
-          {/* Streams in after the rest of the page, so a slow read never holds
+            {/* Streams in after the rest of the page, so a slow read never holds
           the page back. */}
-          <Suspense fallback={null}>
-            <HomeTestimonials />
-          </Suspense>
+            <Suspense fallback={null}>
+              <HomeTestimonials />
+            </Suspense>
 
-          <section
-            aria-labelledby="cta-heading"
-            data-track-section="final"
-            className="bg-brand-soft rounded-sheet flex flex-col items-center gap-5 px-6 py-12 text-center sm:px-12"
-          >
-            <h2 id="cta-heading" className="text-title max-w-prose">
-              Your love story deserves its own website
-            </h2>
-            <p className="text-ink-soft max-w-prose">
-              Two names and five minutes. See it free, fall in love with it, and pay only then.
-            </p>
-            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-              <SignupButton data-track-cta="final-cta">Show us our wedding website</SignupButton>
-              {/* The sample couple's site (`lib/sample-invite.ts`), in a new tab so
+            <section
+              aria-labelledby="cta-heading"
+              data-track-section="final"
+              className="bg-brand-soft rounded-sheet flex flex-col items-center gap-5 px-6 py-12 text-center sm:px-12"
+            >
+              <h2 id="cta-heading" className="text-title max-w-prose">
+                Your love story deserves its own website
+              </h2>
+              <p className="text-ink-soft max-w-prose">
+                Two names and five minutes. See it free, fall in love with it, and pay only then.
+              </p>
+              <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
+                <SignupButton data-track-cta="final-cta">Show us our wedding website</SignupButton>
+                {/* The sample couple's site (`lib/sample-invite.ts`), in a new tab so
               the visitor comes back to this page. */}
-              <a
-                href={sampleUrl}
-                target="_blank"
-                rel="noopener"
-                data-track-cta="final-sample"
-                className={buttonStyles({ variant: 'secondary', size: 'lg' })}
-              >
-                See a real invite
-              </a>
-              <a
-                href={chatUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                data-track-cta="final-whatsapp"
-                className={cn(buttonStyles({ variant: 'secondary', size: 'lg' }), 'gap-2')}
-              >
-                <WhatsAppIcon />
-                Ask us on WhatsApp
-              </a>
-            </div>
-          </section>
+                <a
+                  href={sampleUrl}
+                  target="_blank"
+                  rel="noopener"
+                  data-track-cta="final-sample"
+                  className={buttonStyles({ variant: 'secondary', size: 'lg' })}
+                >
+                  See a real invite
+                </a>
+                <a
+                  href={chatUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-track-cta="final-whatsapp"
+                  className={cn(buttonStyles({ variant: 'secondary', size: 'lg' }), 'gap-2')}
+                >
+                  <WhatsAppIcon />
+                  Ask us on WhatsApp
+                </a>
+              </div>
+            </section>
 
-          <nav
-            aria-labelledby="guides-heading"
-            data-track-section="guides"
-            className="flex flex-col gap-3"
-          >
-            <h2 id="guides-heading" className="text-heading">
-              Help and guides
-            </h2>
-            <ul className="flex flex-col gap-x-6 sm:flex-row sm:flex-wrap">
-              {GUIDES.map((guide) => (
-                <li key={guide.href}>
-                  <Link
-                    href={guide.href}
-                    className="text-ink decoration-brand inline-flex min-h-11 items-center underline decoration-2 underline-offset-4"
-                  >
-                    {guide.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
+            <nav
+              aria-labelledby="guides-heading"
+              data-track-section="guides"
+              className="flex flex-col gap-3"
+            >
+              <h2 id="guides-heading" className="text-heading">
+                Help and guides
+              </h2>
+              <ul className="flex flex-col gap-x-6 sm:flex-row sm:flex-wrap">
+                {GUIDES.map((guide) => (
+                  <li key={guide.href}>
+                    <Link
+                      href={guide.href}
+                      className="text-ink decoration-brand inline-flex min-h-11 items-center underline decoration-2 underline-offset-4"
+                    >
+                      {guide.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
 
-          <StickySignupBar
-            afterId={SIGNUP_CARD_ID}
-            line="Your forever starts with two names."
-            action="Begin our love story"
-          />
-        </SignupDialogProvider>
-      </VisitTracker>
-    </PageShell>
+            <StickySignupBar
+              afterId={SIGNUP_CARD_ID}
+              line="Your forever starts with two names."
+              action="Begin our love story"
+            />
+          </SignupDialogProvider>
+        </VisitTracker>
+      </PageShell>
+    </>
   );
 }

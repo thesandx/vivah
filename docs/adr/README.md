@@ -46,3 +46,4 @@ Do **not** write one for a routine choice with an obvious answer. An ADR per pul
 | [0012](./0012-add-razorpay-as-a-second-payment-provider.md)   | Add Razorpay Standard Checkout as a second payment provider           | Accepted |
 | [0013](./0013-measure-google-ads-conversions.md)              | Measure Google Ads conversions                                        | Accepted |
 | [0014](./0014-measure-home-page-visits-first-party.md)        | Measure home page visits with our own beacon                          | Accepted |
+| [0015](./0015-take-coupon-codes-at-payment.md)                | Take coupon codes at payment, priced on the server                    | Accepted |

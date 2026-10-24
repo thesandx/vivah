@@ -20,17 +20,19 @@ import { buttonStyles } from '@/components/ui/Button';
 import { Face } from '@/components/ui/Face';
 import { BUSINESS, PRICE_FROM_RUPEES, whatsAppChatUrl } from '@/lib/business';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
 import { previewClosesAt } from '@/lib/preview-timer';
 import { siteOrigin } from '@/lib/seo';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { emptyFunction } from '@/lib/wedding-functions';
 import { songUrl } from '@/lib/wedding-songs';
+import { getHomeRibbon } from '@/services/coupon.service';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
-import { paymentMode, paymentProviderName } from '@/services/payment.service';
+import { paymentMode, paymentProviderName, payments } from '@/services/payment.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
-import { checkSlugAction, publishAction } from './actions';
+import { applyCouponAction, checkSlugAction, publishAction } from './actions';
 
 export const metadata: Metadata = {
   title: 'Your invite preview',
@@ -169,6 +171,15 @@ export default async function PreviewPage({
         : undefined;
   const suggestions =
     published || chosen !== undefined ? [] : await freeSlugSuggestions(lead.bride, lead.groom);
+  // The home page ribbon's code, offered on the sheet in one tap. ADR-0015.
+  const couponOffer =
+    !published && !paidWithoutAddress && mode === 'live' ? await getHomeRibbon() : null;
+  // What the couple actually paid, after any coupon, for the purchase
+  // conversion. The list price when the payment cannot be read.
+  const paidRupees =
+    published && payment === 'success' && lead.paymentId !== undefined
+      ? await paidAmount(lead.paymentId)
+      : PRICE_FROM_RUPEES;
 
   let dock: React.ReactNode;
   if (published && lead.weddingSlug !== undefined) {
@@ -222,6 +233,8 @@ export default async function PreviewPage({
         {...(providerName !== null && { providerName })}
         checkSlug={checkSlugAction}
         publish={publishAction}
+        applyCoupon={applyCouponAction}
+        {...(couponOffer !== null && { couponOffer })}
       />
     );
   }
@@ -240,9 +253,9 @@ export default async function PreviewPage({
           />
         )}
         {/* Only a real payment: a free test publish has no payment id. The
-          price is what the pay button charged (PRICE_FROM_RUPEES). */}
+          value is what the couple paid, after any coupon. */}
         {published && payment === 'success' && lead.paymentId !== undefined && (
-          <PurchaseConversion valueRupees={PRICE_FROM_RUPEES} paymentId={lead.paymentId} />
+          <PurchaseConversion valueRupees={paidRupees} paymentId={lead.paymentId} />
         )}
         {!published && (
           <>
@@ -286,4 +299,18 @@ export default async function PreviewPage({
       </InviteTheme>
     </GoogleAds>
   );
+}
+
+/** What a payment took, in rupees, after any coupon. The list price when it cannot be read. */
+async function paidAmount(paymentId: string): Promise<number> {
+  try {
+    const record = await payments.get(paymentId);
+    return record?.amountPaid ?? record?.amountRupees ?? PRICE_FROM_RUPEES;
+  } catch (error) {
+    logger.warn('Reading a payment for the purchase conversion failed', {
+      paymentId,
+      reason: error instanceof Error ? error.message : String(error),
+    });
+    return PRICE_FROM_RUPEES;
+  }
 }

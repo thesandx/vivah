@@ -1,7 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
+import {
+  type AppliedCouponView,
+  type ApplyCouponResult,
+  CouponField,
+} from '@/components/invite/CouponField';
 import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/invite/SlugPicker';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Alert } from '@/components/ui/Alert';
@@ -37,8 +42,12 @@ import { cn } from '@/lib/utils';
  * `paid`: the couple paid, but their address went to another couple first,
  * so they pick another and publish with nothing more to pay.
  *
- * A Client Component for the open state. The address check and the publish
- * are Server Actions the page passes in, through `SlugPicker`.
+ * When live, each view carries the coupon line (`CouponField`, ADR-0015).
+ * An applied code shows the list price struck through and the new total;
+ * the pay button sends the code, and the server prices the order again.
+ *
+ * A Client Component for the open state. The address check, the coupon check
+ * and the publish are Server Actions the page passes in.
  */
 
 export type PaymentBannerMode = 'live' | 'test' | 'paid';
@@ -53,14 +62,19 @@ export interface PublishBannerProps {
   suggestions: readonly string[];
   /** `vivah.online`. */
   domainLabel: string;
-  /** The one-time price, in rupees. */
+  /** The one-time list price, in rupees, before any coupon. */
   priceRupees: number;
   /** Whether the couple chose a song, so the copy only promises what is there. */
   hasSong?: boolean;
   /** Shown above the address when the chosen one was taken meanwhile. */
   notice?: React.ReactNode;
   checkSlug: (slug: string) => Promise<SlugCheck>;
-  publish: (leadId: string, slug: string) => Promise<PublishOutcome>;
+  /** Starts the payment. `coupon` is the applied code, when there is one. */
+  publish: (leadId: string, slug: string, coupon?: string) => Promise<PublishOutcome>;
+  /** Checks a coupon code. Without it, the sheet offers no coupon line. */
+  applyCoupon?: (code: string) => Promise<ApplyCouponResult>;
+  /** The code the home page ribbon offers, to apply in one tap. */
+  couponOffer?: { code: string; percentOff: number };
   /** What the button does. Default: `test`. */
   mode?: PaymentBannerMode;
   /** Who takes the money when `live`: `Cashfree` or `Razorpay`. */
@@ -173,17 +187,31 @@ export function PublishBanner({
   notice,
   checkSlug,
   publish,
+  applyCoupon,
+  couponOffer,
   mode = 'test',
   providerName,
   className,
 }: PublishBannerProps): React.JSX.Element {
   const live = mode === 'live';
+  const [coupon, setCoupon] = useState<AppliedCouponView | null>(null);
   const [open, setOpen] = useState(notice !== undefined);
   // Closed, the banner is a short bar while the couple reads their invite,
   // and grows to the full sheet once they reach the foot of the page.
   // Scrolling up again shrinks it back.
   const [atFoot, setAtFoot] = useState(false);
-  const price = `₹${priceRupees.toLocaleString('en-IN')}`;
+  const listPrice = `₹${priceRupees.toLocaleString('en-IN')}`;
+  const price = `₹${(coupon?.payableRupees ?? priceRupees).toLocaleString('en-IN')}`;
+  const saving =
+    coupon === null ? null : `−₹${(priceRupees - coupon.payableRupees).toLocaleString('en-IN')}`;
+
+  // The pay buttons send the applied code. Without one, the call is the
+  // same as before coupons existed.
+  const publishWithCoupon = useCallback(
+    (id: string, slug: string) =>
+      coupon === null ? publish(id, slug) : publish(id, slug, coupon.code),
+    [publish, coupon],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -216,8 +244,35 @@ export function PublishBanner({
 
   // The closed sheet's green button pays at once, for the address the couple
   // chose. Without one, it opens the checkout, where they pick an address.
-  const direct = usePublishInvite(leadId, publish);
+  const direct = usePublishInvite(leadId, publishWithCoupon);
   const directWorking = direct.status !== 'idle';
+
+  const couponLine = (className?: string) =>
+    live && applyCoupon !== undefined ? (
+      <CouponField
+        applied={coupon}
+        applyCoupon={applyCoupon}
+        onApplied={(next) => {
+          setCoupon(next);
+          direct.setError(null);
+        }}
+        onRemove={() => {
+          setCoupon(null);
+          direct.setError(null);
+        }}
+        {...(couponOffer !== undefined && { offer: couponOffer })}
+        disabled={directWorking}
+        {...(className !== undefined && { className })}
+      />
+    ) : null;
+  // The struck list price beside a discounted one.
+  const wasPrice =
+    coupon === null ? null : (
+      <s className="text-pay-muted font-normal">
+        <span className="sr-only">was </span>
+        {listPrice}
+      </s>
+    );
   function payNow(): void {
     if (chosen === undefined) {
       setOpen(true);
@@ -271,7 +326,7 @@ export function PublishBanner({
               <div className="flex min-w-0 flex-col">
                 <p className="text-body text-pay-ink font-semibold">Your invite is ready</p>
                 <p className="text-small text-pay-body tabular-nums">
-                  {price} once · No charge per guest
+                  {wasPrice} {price} once · No charge per guest
                 </p>
               </div>
               <button
@@ -291,6 +346,7 @@ export function PublishBanner({
                 Continue
               </button>
             </div>
+            {couponLine()}
           </div>
         ) : !open ? (
           <div className="animate-rise-in flex flex-col gap-3">
@@ -311,6 +367,7 @@ export function PublishBanner({
               <div className="flex shrink-0 flex-col">
                 <span className="text-small text-pay-body">One-time payment</span>
                 <span className="text-pay-ink tabular-nums">
+                  {wasPrice !== null && <span className="text-body">{wasPrice} </span>}
                   <span className="text-title font-bold tracking-tight">{price}</span>{' '}
                   <span className="text-small text-pay-body">once</span>
                 </span>
@@ -323,6 +380,8 @@ export function PublishBanner({
                 <span>and take {PAPER_CARDS.readyIn}</span>
               </div>
             </div>
+
+            {couponLine()}
 
             {directError}
 
@@ -414,7 +473,7 @@ export function PublishBanner({
               suggestions={suggestions}
               domainLabel={domainLabel}
               checkSlug={checkSlug}
-              publish={publish}
+              publish={publishWithCoupon}
               actionLabel={live ? `Pay ${price} and publish` : 'Publish our invite'}
               workingLabel={live ? 'Opening payment' : 'Publishing your invite'}
               footer={
@@ -431,8 +490,16 @@ export function PublishBanner({
               <dl className="border-pay-line text-body flex flex-col gap-2 border-t-2 pt-4 tabular-nums">
                 <div className="flex justify-between gap-3">
                   <dt>Wedding website and invite</dt>
-                  <dd className="text-pay-ink">{price}</dd>
+                  <dd className="text-pay-ink">{listPrice}</dd>
                 </div>
+                {coupon !== null && (
+                  <div className="text-pay-action flex justify-between gap-3 font-semibold">
+                    <dt>
+                      Coupon {coupon.code} ({coupon.percentOff}% off)
+                    </dt>
+                    <dd>{saving}</dd>
+                  </div>
+                )}
                 <div className="flex justify-between gap-3">
                   <dt>A personal link for every guest</dt>
                   <dd className="text-pay-ink">Included</dd>
@@ -442,6 +509,7 @@ export function PublishBanner({
                   <dd className="text-heading">{price}</dd>
                 </div>
               </dl>
+              {couponLine()}
             </SlugPicker>
           </>
         )}

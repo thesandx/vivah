@@ -468,6 +468,7 @@ Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of
 | [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                |
 | [0013](./docs/adr/0013-measure-google-ads-conversions.md)              | The Google tag counts previews and purchases as conversions; no remarketing, no analytics    |
 | [0014](./docs/adr/0014-measure-home-page-visits-first-party.md)        | Our own beacon measures home page visits for `/admin`; no cookie, no third party             |
+| [0015](./docs/adr/0015-take-coupon-codes-at-payment.md)                | Coupon codes take a percentage off ₹799; the server prices every order; a home page ribbon   |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

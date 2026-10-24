@@ -32,6 +32,7 @@ import {
   setWeddingStatus,
 } from '@/services/admin.service';
 import { requireAdmin } from '@/services/admin-session.service';
+import { createCoupon, saveRibbon, setCouponActive } from '@/services/coupon.service';
 import {
   createDemoVideoUpload,
   removeDemoVideo,
@@ -217,7 +218,8 @@ export async function makePreviewLiveAction(
   form: FormData,
 ): Promise<ActionState> {
   const slug = text(form, 'slug').toLowerCase();
-  return run('make-live', id, (uid) => makePreviewLive(id, slug, uid));
+  const coupon = text(form, 'coupon');
+  return run('make-live', id, (uid) => makePreviewLive(id, slug, uid, coupon));
 }
 
 export async function deleteLeadAction(id: string): Promise<ActionState> {
@@ -447,4 +449,36 @@ export async function removeDemoVideoAction(rawSlot: string): Promise<ActionStat
   const slot = parseSiteVideoSlot(rawSlot);
   if (slot === null) return { status: 'error', message: NO_SLOT };
   return run('demo-video-remove', slot, (uid) => removeDemoVideo(uid, slot));
+}
+
+/** Makes a coupon from the Coupons tab's form. ADR-0015. */
+export async function createCouponAction(
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const fields = {
+    code: text(form, 'code'),
+    percentOff: text(form, 'percentOff'),
+    note: text(form, 'note'),
+  };
+  return run('coupon-create', fields.code, (uid) => createCoupon(fields, uid));
+}
+
+export async function turnCouponOnAction(id: string): Promise<ActionState> {
+  return run('coupon-on', id, (uid) => setCouponActive(id, true, uid));
+}
+
+export async function turnCouponOffAction(id: string): Promise<ActionState> {
+  return run('coupon-off', id, (uid) => setCouponActive(id, false, uid));
+}
+
+/** Shows the home page ribbon with the chosen coupon. */
+export async function saveRibbonAction(_state: ActionState, form: FormData): Promise<ActionState> {
+  const code = text(form, 'coupon');
+  if (code === '') return { status: 'error', message: 'Choose a coupon to show.' };
+  return run('ribbon', 'home-ribbon', (uid) => saveRibbon(code, uid));
+}
+
+export async function hideRibbonAction(): Promise<ActionState> {
+  return run('ribbon-hide', 'home-ribbon', (uid) => saveRibbon(null, uid));
 }

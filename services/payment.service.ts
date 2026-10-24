@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { PAYMENT_PROVIDER_NAMES } from '@/lib/business';
 import { cashfreeCustomerPhone, cashfreeLinkId } from '@/lib/cashfree';
 import { slugProblem } from '@/lib/couple-slug';
+import { type AppliedCoupon, appliedCouponSchema } from '@/lib/coupons';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { razorpayCheckoutSignatureValid, razorpayReceipt } from '@/lib/razorpay';
@@ -56,8 +57,13 @@ export const paymentSchema = z.object({
   leadId: z.string().min(1).max(128),
   /** The address the couple was paying for. */
   slug: z.string().min(1).max(63),
-  /** What the link asks for, in rupees. */
+  /** What the link asks for, in rupees: the list price less any coupon. */
   amountRupees: z.number().positive(),
+  /**
+   * The coupon the couple applied, checked on the server when the payment
+   * started. The lead gets it once the payment settles. ADR-0015.
+   */
+  coupon: appliedCouponSchema.optional(),
   /** Who holds the link. Absent on documents from before Razorpay: Cashfree. */
   provider: z.enum(PAYMENT_PROVIDERS).optional(),
   /** Which account the link lives in: test (`sandbox`) or live (`production`). */
@@ -139,12 +145,16 @@ export type StartPaymentResult =
  *
  * A lead that paid already but lost its address to another couple publishes
  * at the new one here, with no second payment.
+ *
+ * `amountRupees` is what the server priced (`quotePrice`), with `coupon`
+ * when a code took something off. Never a price from the page.
  */
 export async function startPayment(
   leadId: string,
   slug: string,
   amountRupees: number,
   now: Date = new Date(),
+  coupon: AppliedCoupon | null = null,
 ): Promise<StartPaymentResult> {
   const problem = slugProblem(slug);
   if (problem !== null) return { state: 'invalid', message: problem };
@@ -167,6 +177,7 @@ export async function startPayment(
     leadId,
     slug,
     amountRupees,
+    ...(coupon !== null && { coupon }),
     provider,
     environment,
     status: 'created',
@@ -180,7 +191,7 @@ export async function startPayment(
     phoneE164: lead.phoneE164,
     origin,
     expiresAt: new Date(now.getTime() + LINK_LIFETIME_MS),
-    notes: { lead_id: leadId, slug },
+    notes: { lead_id: leadId, slug, ...(coupon !== null && { coupon: coupon.code }) },
   };
   try {
     if (provider === 'razorpay') {
@@ -265,6 +276,11 @@ const PAYMENT_BRAND = 'Vivah';
 /** The couple's fields a payment notice needs. */
 function coupleOf(lead: LeadDocument): { bride: string; groom: string; phoneE164: string } {
   return { bride: lead.bride, groom: lead.groom, phoneE164: lead.phoneE164 };
+}
+
+/** The coupon line for a payment notice, when the couple used one. */
+function couponOf(payment: PaymentPayload): { couponCode?: string } {
+  return payment.coupon === undefined ? {} : { couponCode: payment.coupon.code };
 }
 
 /** Publishes a lead that paid already, at a new address. No payment. */
@@ -411,7 +427,11 @@ export async function completePayment(
       paymentsTx.update(paymentId, { ...paid, outcome: 'duplicate' });
       return { state: 'duplicate' as const, lead };
     }
-    const fields = { paidAt: now, paymentId };
+    const fields = {
+      paidAt: now,
+      paymentId,
+      ...(payment.coupon !== undefined && { coupon: payment.coupon }),
+    };
     if (claim === null && existing.empty) {
       writePublish(tx, lead, payment.slug, fields);
       paymentsTx.update(paymentId, { ...paid, outcome: 'published' });
@@ -452,6 +472,7 @@ export async function completePayment(
         slug: payment.slug,
         amountRupees: amountPaid,
         kind: 'published',
+        ...couponOf(payment),
         ...coupleOf(result.lead),
       });
       return { state: 'published', leadId: payment.leadId, slug: payment.slug };
@@ -462,6 +483,7 @@ export async function completePayment(
         slug: payment.slug,
         amountRupees: amountPaid,
         kind: 'address-taken',
+        ...couponOf(payment),
         ...coupleOf(result.lead),
       });
       return { state: 'address-taken', leadId: payment.leadId };
