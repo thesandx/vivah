@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 /**
  * The opening of a couple's invite: the Shri Ganesh card stands over the
  * invite on a dark rose glow, and greets the guest by name
- * ("Hi Kartheek"). A tap starts the couple's song, the dark cover dissolves,
+ * ("Hi Neha"). A tap starts the couple's song, the dark cover dissolves,
  * and the card lifts up and off the screen with a soft gold light behind it.
  *
  * The invite is not hidden under the card, only covered, so it shows through
@@ -46,7 +46,7 @@ type Phase = 'closed' | 'opening' | 'open';
 export interface InviteGateProps {
   /** The guest this link was made for, or `null` for the plain link. */
   guestName: string | null;
-  /** The couple's names, for the screen reader's label: `Riya & Arjun`. */
+  /** The couple's names, for the screen reader's label: `Priya & Rahul`. */
   couple: string;
   /** The couple's song. The tap that opens the invite starts it. */
   song?: { name: string; src: string } | null;

@@ -43,7 +43,7 @@ beforeEach(() => {
 
 describe('POST /api/payments/razorpay/confirm', () => {
   it('sends a published couple to the success screen', async () => {
-    confirm.mockResolvedValue({ state: 'published', leadId: 'lead1', slug: 'riya-arjun' });
+    confirm.mockResolvedValue({ state: 'published', leadId: 'lead1', slug: 'priya-rahul' });
     const response = await POST(post(ANSWER));
     expect(await response.json()).toEqual({ url: '/preview/lead1?payment=success' });
     expect(confirm).toHaveBeenCalledWith(PAYMENT_ID, {

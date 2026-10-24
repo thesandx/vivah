@@ -1,4 +1,4 @@
-import { isSampleSlug } from '@/lib/sample-invite';
+import { isOldSampleSlug, isSampleSlug } from '@/lib/sample-invite';
 
 /**
  * Couple slugs: the first label of an invite host, e.g. `raadha-shyam` in
@@ -37,9 +37,12 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   'www',
 ]);
 
-/** True when no couple can take `slug`: the product's own labels and the sample invite. */
+/**
+ * True when no couple can take `slug`: the product's own labels and the
+ * sample invite's addresses, old and current.
+ */
 function isKeptForVivah(slug: string): boolean {
-  return RESERVED_SLUGS.has(slug) || isSampleSlug(slug);
+  return RESERVED_SLUGS.has(slug) || isSampleSlug(slug) || isOldSampleSlug(slug);
 }
 
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
@@ -142,7 +145,7 @@ export function slugCandidates(bride: string, groom: string): string[] {
     withSuffix(base, index + 2),
   );
   return [...new Set([...ordered, ...numbered])].filter(
-    (slug) => isValidCoupleSlug(slug) && !isSampleSlug(slug),
+    (slug) => isValidCoupleSlug(slug) && !isKeptForVivah(slug),
   );
 }
 

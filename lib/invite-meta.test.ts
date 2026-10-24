@@ -27,8 +27,8 @@ describe('invite link preview', () => {
   });
 
   it('greets the guest in the description', () => {
-    expect(inviteDescription('Sara', 'Kabir', '2026-03-09', 'Kartheek')).toBe(
-      'Hi Kartheek, you are invited to the wedding of Sara and Kabir on Monday, 9 March 2026.',
+    expect(inviteDescription('Sara', 'Kabir', '2026-03-09', 'Neha')).toBe(
+      'Hi Neha, you are invited to the wedding of Sara and Kabir on Monday, 9 March 2026.',
     );
     expect(inviteDescription('Sara', 'Kabir', null, null)).toBe(
       'You are invited to the wedding of Sara and Kabir.',
@@ -45,8 +45,8 @@ describe('invite link preview', () => {
   });
 
   it('points the image at the OG route with the guest name', () => {
-    expect(ogImageUrl({ ...base, guestName: 'Kartheek ji' })).toBe(
-      'https://sara.vivah.online/api/og/sara?guest=Kartheek%20ji',
+    expect(ogImageUrl({ ...base, guestName: 'Neha ji' })).toBe(
+      'https://sara.vivah.online/api/og/sara?guest=Neha%20ji',
     );
     expect(ogImageUrl({ ...base, rootDomain: '' })).toBe('https://app.example/api/og/sara');
   });
@@ -57,12 +57,12 @@ describe('invite link preview', () => {
     expect(plain.openGraph).toMatchObject({ url: 'https://sara.vivah.online' });
     expect(plain.robots).toBeUndefined();
 
-    const guest = inviteMetadata({ ...base, guestName: 'Kartheek ji' });
+    const guest = inviteMetadata({ ...base, guestName: 'Neha ji' });
     expect(guest.openGraph).toMatchObject({
-      url: 'https://sara.vivah.online/Kartheek-ji',
+      url: 'https://sara.vivah.online/Neha-ji',
       images: [{ width: 1080, height: 1350 }],
     });
-    expect(guest.description).toMatch(/^Hi Kartheek ji, /);
+    expect(guest.description).toMatch(/^Hi Neha ji, /);
     expect(guest.robots).toEqual({ index: false, follow: false });
   });
 

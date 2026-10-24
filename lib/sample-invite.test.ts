@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import { isValidCoupleSlug } from '@/lib/couple-slug';
-import { isSampleSlug, SAMPLE_SLUG, sampleWedding, sampleWeddingDate } from '@/lib/sample-invite';
+import {
+  isOldSampleSlug,
+  isSampleSlug,
+  SAMPLE_SLUG,
+  sampleWedding,
+  sampleWeddingDate,
+} from '@/lib/sample-invite';
 import { weddingFunctionsSchema } from '@/lib/wedding-functions';
 
 describe('sampleWeddingDate', () => {
@@ -17,9 +23,13 @@ describe('sampleWeddingDate', () => {
 });
 
 describe('sampleWedding', () => {
-  it('is Riya and Arjun at a Delhi venue', () => {
+  it('is Priya and Rahul at a Delhi venue', () => {
     const wedding = sampleWedding(new Date('2026-10-18T00:00:00Z'));
-    expect(wedding).toMatchObject({ bride: 'Riya', groom: 'Arjun', venueCity: 'New Delhi, Delhi' });
+    expect(wedding).toMatchObject({
+      bride: 'Priya',
+      groom: 'Rahul',
+      venueCity: 'New Delhi, Delhi',
+    });
   });
 
   it('has every function, dated round the wedding day', () => {
@@ -38,7 +48,9 @@ describe('sampleWedding', () => {
 describe('the sample address', () => {
   it('is a valid host label, so the router serves it', () => {
     expect(isValidCoupleSlug(SAMPLE_SLUG)).toBe(true);
-    expect(isSampleSlug('riya-arjun')).toBe(true);
-    expect(isSampleSlug('riya-arjun-2')).toBe(false);
+    expect(isSampleSlug('priya-rahul')).toBe(true);
+    expect(isSampleSlug('priya-rahul-2')).toBe(false);
+    expect(isSampleSlug('riya-arjun')).toBe(false);
+    expect(isOldSampleSlug('riya-arjun')).toBe(true);
   });
 });

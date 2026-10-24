@@ -20,8 +20,8 @@ describe('PaymentSuccess', () => {
   it('says the payment worked, builds the site, counts down and opens it', () => {
     render(
       <PaymentSuccess
-        liveUrl="https://riya-arjun.vivah.online"
-        hostLabel="riya-arjun.vivah.online"
+        liveUrl="https://priya-rahul.vivah.online"
+        hostLabel="priya-rahul.vivah.online"
       />,
     );
     expect(screen.getByRole('heading', { name: 'Payment successful' })).toBeInTheDocument();
@@ -39,19 +39,19 @@ describe('PaymentSuccess', () => {
     expect(screen.getByText('1')).toBeInTheDocument();
     expect(assign).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(1000));
-    expect(assign).toHaveBeenCalledWith('https://riya-arjun.vivah.online');
+    expect(assign).toHaveBeenCalledWith('https://priya-rahul.vivah.online');
   });
 
   it('lets the couple open the site at once', () => {
     render(
       <PaymentSuccess
-        liveUrl="https://riya-arjun.vivah.online"
-        hostLabel="riya-arjun.vivah.online"
+        liveUrl="https://priya-rahul.vivah.online"
+        hostLabel="priya-rahul.vivah.online"
       />,
     );
     expect(screen.getByRole('link', { name: 'Open it now' })).toHaveAttribute(
       'href',
-      'https://riya-arjun.vivah.online',
+      'https://priya-rahul.vivah.online',
     );
   });
 });

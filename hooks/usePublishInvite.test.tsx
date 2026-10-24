@@ -60,7 +60,7 @@ afterEach(() => {
 
 async function openCheckout() {
   const hook = renderHook(() => usePublishInvite('lead1', publish));
-  await act(() => hook.result.current.run('riya-arjun'));
+  await act(() => hook.result.current.run('priya-rahul'));
   await waitFor(() => expect(opened).not.toBeNull());
   return hook;
 }

@@ -81,18 +81,18 @@ describeEmulator('guest links (emulator)', () => {
   });
 
   it('shows a deleted link as the general invite, and never reuses it', async () => {
-    await createGuestLink(wedding.slug, OWNER, 'Kartheek');
-    expect(await isGuestLinkDeleted(wedding.id, 'Kartheek')).toBe(false);
+    await createGuestLink(wedding.slug, OWNER, 'Neha');
+    expect(await isGuestLinkDeleted(wedding.id, 'Neha')).toBe(false);
 
-    expect(await deleteGuestLink(wedding.slug, OWNER, guestLinkId('kartheek'))).toEqual({
+    expect(await deleteGuestLink(wedding.slug, OWNER, guestLinkId('neha'))).toEqual({
       ok: true,
     });
-    expect(await isGuestLinkDeleted(wedding.id, 'kartheek')).toBe(true);
+    expect(await isGuestLinkDeleted(wedding.id, 'neha')).toBe(true);
     const segments = (await listGuestLinks(wedding.id)).map((link) => link.segment);
-    expect(segments).not.toContain('Kartheek');
+    expect(segments).not.toContain('Neha');
 
-    const again = await createGuestLink(wedding.slug, OWNER, 'Kartheek');
-    expect(again).toMatchObject({ ok: true, link: { segment: 'Kartheek-2' } });
+    const again = await createGuestLink(wedding.slug, OWNER, 'Neha');
+    expect(again).toMatchObject({ ok: true, link: { segment: 'Neha-2' } });
   });
 
   it('keeps a hand-typed link working', async () => {

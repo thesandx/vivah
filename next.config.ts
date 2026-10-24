@@ -55,10 +55,10 @@ const nextConfig: NextConfig = {
       // sample instead, because the product site's own address is known only
       // at runtime. The slug is `SAMPLE_SLUG` in `lib/sample-invite.ts`;
       // `proxy.test.ts` checks the two agree. The sample is reached at its
-      // own host, or at `/site/riya-arjun` without host routing.
+      // own host, or at `/site/priya-rahul` without host routing.
       {
-        source: '/:path((?!site/riya-arjun(?:/|$)).*)',
-        missing: [{ type: 'header', key: 'x-forwarded-host', value: 'riya-arjun\\..*' }],
+        source: '/:path((?!site/priya-rahul(?:/|$)).*)',
+        missing: [{ type: 'header', key: 'x-forwarded-host', value: 'priya-rahul\\..*' }],
         headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
       },
     ];

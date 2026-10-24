@@ -49,7 +49,7 @@ describe('classifySource', () => {
     expect(classifySource('', '', HOST)).toBe('direct');
     expect(classifySource('', 'not a url', HOST)).toBe('direct');
     expect(classifySource('', 'https://vivah.online/help', HOST)).toBe('direct');
-    expect(classifySource('', 'https://riya-arjun.vivah.online/', `www.${HOST}`)).toBe('direct');
+    expect(classifySource('', 'https://priya-rahul.vivah.online/', `www.${HOST}`)).toBe('direct');
   });
 });
 

@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
 /**
  * `GET /api/share/<slug>/<guest>` — the invite as a link-preview fetcher sees
  * it. `proxy.ts` rewrites a WhatsApp or Facebook request for
- * `sara.vivah.online/Kartheek` here, so the fetcher gets the Open Graph tags
+ * `sara.vivah.online/Neha` here, so the fetcher gets the Open Graph tags
  * at the very top of a small page. The real page carries ~75 KB of inlined
  * CSS before them, which WhatsApp on Android does not read past. See
  * `lib/link-preview-page.ts`.

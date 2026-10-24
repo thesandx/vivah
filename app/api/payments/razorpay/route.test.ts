@@ -46,7 +46,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   razorpay.enabled = true;
   razorpay.webhookSecret = 'whsec_test_secret';
-  completePayment.mockResolvedValue({ state: 'published', leadId: 'x', slug: 'riya-arjun' });
+  completePayment.mockResolvedValue({ state: 'published', leadId: 'x', slug: 'priya-rahul' });
 });
 
 describe('POST /api/payments/razorpay', () => {

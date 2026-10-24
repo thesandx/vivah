@@ -52,6 +52,11 @@ export interface ShubhVivahInviteProps {
   /** The couple's WhatsApp number for RSVPs and calls. `null` hides both. */
   rsvpPhoneE164: string | null;
   /**
+   * The RSVP button's WhatsApp message, instead of "I will be attending".
+   * The sample invite uses it, so a visitor's tap asks us for a site.
+   */
+  rsvpMessage?: string;
+  /**
    * The product's home page, for the "Made with ♥ by vivah.online" credit
    * at the foot of every invite. Each guest who taps it is a possible couple.
    */
@@ -208,6 +213,7 @@ export function ShubhVivahInvite({
   venueCity,
   venueMapsUrl,
   rsvpPhoneE164,
+  rsvpMessage,
   madeByUrl,
   editDetailsUrl,
   stickyRsvp = true,
@@ -432,7 +438,7 @@ export function ShubhVivahInvite({
               {/* Sticky on a phone, so the RSVP stays in reach while the guest
                   scrolls (PRD). In place from md up. */}
               <a
-                href={rsvpWhatsAppUrl(rsvpPhoneE164, bride, groom, guestName)}
+                href={rsvpWhatsAppUrl(rsvpPhoneE164, bride, groom, guestName, rsvpMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(

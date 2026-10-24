@@ -1,5 +1,5 @@
 /**
- * The sample invite: a made-up couple's site at `riya-arjun.vivah.online`,
+ * The sample invite: a made-up couple's site at `priya-rahul.vivah.online`,
  * which the home page links to as "See a real invite". Pure, so it is tested
  * without Firestore.
  *
@@ -9,10 +9,10 @@
  * address suggestions skip it. If a real wedding already holds the address,
  * the real wedding wins and the sample does not show.
  *
- * The couple, the day and the venue match the demo video: Riya and Arjun,
- * 7 December, at a Delhi venue. The venue is invented. The sample has no
- * phone number, so the RSVP section does not show: a real person's number
- * must never appear on it.
+ * The couple, the day and the venue match the demo video: Priya and Rahul,
+ * 7 December, at a Delhi venue. The venue is invented. The RSVP section
+ * uses our business WhatsApp number, never a couple's, and its button sends
+ * `SAMPLE_RSVP_MESSAGE`: a visitor who taps it is asking us for a site.
  *
  * The sample has every function (tilak to reception) over four days round
  * the wedding, so a visitor sees the "Wedding Festivities" timeline full.
@@ -20,14 +20,25 @@
 
 import type { WeddingFunction } from '@/lib/wedding-functions';
 
-/** The sample's address: `riya-arjun.vivah.online`. */
-export const SAMPLE_SLUG = 'riya-arjun';
+/** The sample's address: `priya-rahul.vivah.online`. */
+export const SAMPLE_SLUG = 'priya-rahul';
 
 /**
- * The guest the home page's link greets: `riya-arjun.vivah.online/Kartheek`.
+ * The sample's earlier addresses. `proxy.ts` sends a visitor on one of them
+ * to `SAMPLE_SLUG`, so a link shared before the move still opens the sample,
+ * and no couple can take one.
+ */
+export const OLD_SAMPLE_SLUGS: readonly string[] = ['riya-arjun'];
+
+/**
+ * The guest the home page's link greets: `priya-rahul.vivah.online/Neha`.
  * A visitor sees what a guest sees, with a name on the card.
  */
-export const SAMPLE_GUEST = 'Kartheek';
+export const SAMPLE_GUEST = 'Neha';
+
+/** What the sample's RSVP button sends to our business WhatsApp (Sandeep's wording). */
+export const SAMPLE_RSVP_MESSAGE =
+  'Hi Team Vivah, i want to create same website for my wedding as well';
 
 /** The sample's wedding day is the next 7 December at least this many days away. */
 const MIN_DAYS_AHEAD = 30;
@@ -72,8 +83,8 @@ export function sampleWedding(now: Date): SampleWedding {
   const weddingDate = sampleWeddingDate(now);
   const on = (days: number) => addDays(weddingDate, days);
   return {
-    bride: 'Riya',
-    groom: 'Arjun',
+    bride: 'Priya',
+    groom: 'Rahul',
     weddingDate,
     ceremonyTime: '19:00',
     venueName: 'The Grand Pavilion, Chhatarpur',
@@ -122,4 +133,9 @@ export function sampleWedding(now: Date): SampleWedding {
 /** True when `slug` is the sample's address. */
 export function isSampleSlug(slug: string): boolean {
   return slug === SAMPLE_SLUG;
+}
+
+/** True when `slug` is one of the sample's earlier addresses. */
+export function isOldSampleSlug(slug: string): boolean {
+  return OLD_SAMPLE_SLUGS.includes(slug);
 }

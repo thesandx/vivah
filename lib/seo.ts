@@ -38,7 +38,7 @@ export const PRODUCT_FEATURES: readonly string[] = [
   'Make a personal invite link for each guest by typing their name in the dashboard',
   'Copy each guest link, or send it on WhatsApp in one tap, from the dashboard',
   'Delete a guest link from the dashboard',
-  'Each guest’s invite opens with a Shri Ganesh card that greets them by name (“Hi Kartheek”) and waits for their tap',
+  'Each guest’s invite opens with a Shri Ganesh card that greets them by name (“Hi Neha”) and waits for their tap',
   'A link preview card in WhatsApp with the guest’s name, the couple’s names and the date',
   'The Vakratunda shloka and Shri Ganesh over the couple’s names',
   'The wedding date hidden under gold foil cards that guests scratch to reveal',
