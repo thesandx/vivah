@@ -1,3 +1,4 @@
+import type { NameOrder } from '@/lib/couple-names';
 import { isOldSampleSlug, isSampleSlug } from '@/lib/sample-invite';
 
 /**
@@ -147,6 +148,22 @@ export function slugCandidates(bride: string, groom: string): string[] {
   return [...new Set([...ordered, ...numbered])].filter(
     (slug) => isValidCoupleSlug(slug) && !isKeptForVivah(slug),
   );
+}
+
+/**
+ * Whose name the couple put first in the address they chose: `rahul-priya`
+ * for Priya and Rahul gives `'groom-first'`, `priya-rahul` gives
+ * `'bride-first'`. The preview then shows the names in the same order.
+ * `null` when the address starts with neither first name (`virushka`), or
+ * with both, as when the two names start the same way.
+ */
+export function nameOrderFromSlug(slug: string, bride: string, groom: string): NameOrder | null {
+  const startsWith = (part: string) =>
+    part !== '' && (slug === part || slug.startsWith(`${part}-`));
+  const brideFirst = startsWith(slugifyFirstName(bride));
+  const groomFirst = startsWith(slugifyFirstName(groom));
+  if (brideFirst === groomFirst) return null;
+  return groomFirst ? 'groom-first' : 'bride-first';
 }
 
 /**

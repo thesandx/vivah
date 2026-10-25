@@ -35,6 +35,8 @@ export interface NewLeadNotice {
   leadId: string;
   bride: string;
   groom: string;
+  /** Whose name comes first. Absent: the bride's. */
+  nameOrder?: NameOrder;
   /** `YYYY-MM-DD`. */
   weddingDate: string;
   /** The address the couple chose, or `null`. */
@@ -54,13 +56,13 @@ export function newLeadMessages(notice: NewLeadNotice): [string, string, string]
     notice.slug === null ? `your own ${host} link` : `your own link, ${notice.slug}.${host}`;
 
   const alert = [
-    `New preview: ${notice.bride} & ${notice.groom}`,
+    `New preview: ${coupleNames(notice)}`,
     `Wedding: ${formatWeddingDate(notice.weddingDate)}`,
     `Admin: ${origin}/admin/previews/${notice.leadId}`,
   ].join('\n');
 
   const forCouple = [
-    `Namaste ${notice.bride} & ${notice.groom} 🙏`,
+    `Namaste ${coupleNames(notice)} 🙏`,
     'Congratulations on your wedding! 🎉',
     '',
     'We made your wedding invite, and it looks beautiful ✨ Tap to see it:',
