@@ -108,7 +108,10 @@ describeEmulator('publishWedding (emulator)', () => {
     expect(results.map((result) => result.state).sort()).toEqual(['published', 'taken']);
     const page = await weddings.list({ limit: 10, where: [['slug', '==', slug]] });
     expect(page.items).toHaveLength(1);
-  });
+    // The emulator holds the losing transaction until its lock times out,
+    // then the client retries it: on a busy CI runner that alone can pass
+    // the default 5 s, so this test gets more time. Nothing is skipped.
+  }, 30_000);
 
   it('treats a wedding written without a claim as taken', async () => {
     const slug = uniqueSlug('legacy');
