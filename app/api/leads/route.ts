@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { coupleNames as joinCoupleNames } from '@/lib/couple-names';
+import { nameOrderFromSlug } from '@/lib/couple-slug';
 import { mapHttpError } from '@/lib/http-errors';
 import { type LeadRequest, leadRequestSchema } from '@/lib/lead-schema';
 import { logger } from '@/lib/logger';
@@ -106,13 +108,20 @@ export async function POST(request: Request): Promise<NextResponse> {
     // Awaited, not fired after the response: Cloud Run may pause the CPU
     // once a response is sent. Both run at once, each under its own timeout,
     // and neither throws.
-    const coupleNames = `${lead.bride} & ${lead.groom}`;
+    // The same order the preview shows: the address may put the groom first.
+    const nameOrder =
+      lead.slug === null ? null : nameOrderFromSlug(lead.slug, lead.bride, lead.groom);
+    const couple = {
+      bride: lead.bride,
+      groom: lead.groom,
+      ...(nameOrder !== null && { nameOrder }),
+    };
+    const coupleNames = joinCoupleNames(couple);
     const [whatsappSent] = await Promise.all([
       sendPreviewLink({ phoneE164: lead.phoneE164, coupleNames, leadId: id }),
       notifyNewLead({
         leadId: id,
-        bride: lead.bride,
-        groom: lead.groom,
+        ...couple,
         weddingDate: lead.weddingDate,
         slug: lead.slug,
         phoneE164: lead.phoneE164,

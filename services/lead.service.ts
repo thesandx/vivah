@@ -5,6 +5,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { z } from 'zod';
 
 import { NAME_ORDERS } from '@/lib/couple-names';
+import { nameOrderFromSlug } from '@/lib/couple-slug';
 import { appliedCouponSchema } from '@/lib/coupons';
 import { capitalizeName } from '@/lib/guest-name';
 import type { LeadRequest } from '@/lib/lead-schema';
@@ -119,8 +120,10 @@ export const leadSchema = z.object({
    */
   functions: z.array(z.enum(FUNCTION_KINDS)).max(FUNCTION_KINDS.length).optional(),
   /**
-   * Whose name the preview shows first. Set by an admin on
-   * `/admin/previews/<id>`; publishing copies it to the wedding. Optional:
+   * Whose name the preview shows first. Read from the address the couple
+   * chose on the sign-up card (`rahul-priya` puts the groom first), and an
+   * admin can change it on `/admin/previews/<id>`. Publishing copies it to
+   * the wedding. Optional:
    * absent means the bride's name first (`lib/couple-names.ts`).
    */
   nameOrder: z.enum(NAME_ORDERS).optional(),
@@ -171,6 +174,8 @@ export async function createLead(
   },
   now: Date = new Date(),
 ): Promise<string> {
+  const nameOrder =
+    input.slug === null ? null : nameOrderFromSlug(input.slug, input.bride, input.groom);
   return leads.create({
     bride: input.bride,
     groom: input.groom,
@@ -182,6 +187,7 @@ export async function createLead(
     previewTokenHash: null,
     firstOpenedAt: null,
     ...(input.slug !== null && { desiredSlug: input.slug }),
+    ...(nameOrder !== null && { nameOrder }),
     ...(input.song !== undefined && input.song !== null && { song: input.song }),
     ...(input.gclid !== undefined && { gclid: input.gclid }),
     ...(input.functions !== undefined &&
