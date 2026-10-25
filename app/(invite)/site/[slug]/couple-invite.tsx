@@ -19,6 +19,7 @@ import { editDetailsUrl, inviteDomainLabel, madeByUrl } from '@/lib/site-host';
 import type { WeddingFunction } from '@/lib/wedding-functions';
 import { songUrl } from '@/lib/wedding-songs';
 import { isGuestLinkDeleted } from '@/services/guest-link.service';
+import { getSampleVenues } from '@/services/sample-invite.service';
 import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
 import { listSongOptions } from '@/services/wedding-songs.service';
 
@@ -74,9 +75,12 @@ function fromWedding(wedding: WeddingDocument): Invite {
 
 /**
  * The sample invite (`lib/sample-invite.ts`), with the first song on the
- * sign-up card. A failed song read shows the sample without music.
+ * sign-up card and the venues the admin chose. A failed song read shows the
+ * sample without music; a failed venue read shows the default venues.
  */
 async function sampleInvite(slug: string): Promise<Invite> {
+  // Read in parallel with the songs; `getSampleVenues` never throws.
+  const venues = getSampleVenues();
   let song: Invite['song'] = null;
   try {
     const [first] = await listSongOptions();
@@ -85,7 +89,7 @@ async function sampleInvite(slug: string): Promise<Invite> {
     logger.error('Reading the songs for the sample invite failed', error);
   }
   return {
-    ...sampleWedding(new Date()),
+    ...sampleWedding(new Date(), await venues),
     id: null,
     slug,
     // Our business number, never a couple's: a tap asks us for a site.
