@@ -78,6 +78,9 @@ const GOOGLE_ADS_ID_PATTERN = /^AW-\d{6,15}$/;
 /** A Google Ads conversion label: the part after the slash in `send_to`. */
 const GOOGLE_ADS_LABEL_PATTERN = /^[A-Za-z0-9_-]{4,64}$/;
 
+/** A Meta Pixel (dataset) id: digits only, e.g. `1234567890123456`. */
+const META_PIXEL_ID_PATTERN = /^\d{10,20}$/;
+
 class EnvValidationError extends Error {
   constructor(issues: readonly string[]) {
     super(
@@ -425,6 +428,18 @@ const googleAdsPurchaseLabel = pattern(
   'must be a Google Ads conversion label (4-64 letters, digits, _ and -)',
 );
 
+/**
+ * Meta Pixel measurement (ADR-0017). Public, like the Google Ads ids: Meta
+ * prints it in the page source. Fixed at BUILD time (trap 8). Empty turns the
+ * Pixel off.
+ */
+const metaPixelId = pattern(
+  'NEXT_PUBLIC_META_PIXEL_ID',
+  process.env.NEXT_PUBLIC_META_PIXEL_ID,
+  META_PIXEL_ID_PATTERN,
+  'must be a Meta Pixel id (10-20 digits)',
+);
+
 const authEnabled =
   firebaseApiKey !== '' &&
   firebaseAuthDomain !== '' &&
@@ -614,6 +629,9 @@ export const env = {
     signupLabel: googleAdsSignupLabel,
     purchaseLabel: googleAdsPurchaseLabel,
   },
+
+  /** The Meta Pixel id (ADR-0017). Empty: no Pixel. */
+  metaPixelId,
 
   /**
    * Session cookie lifetime. Firebase caps a session cookie at 14 days, so

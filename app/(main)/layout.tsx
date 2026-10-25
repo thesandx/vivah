@@ -1,4 +1,5 @@
 import { GoogleAds } from '@/components/ads/GoogleAdsProvider';
+import { MetaPixel } from '@/components/ads/MetaPixel';
 import { Footer } from '@/components/layout/Footer';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SocialLinks } from '@/components/layout/SocialLinks';
@@ -34,7 +35,8 @@ const FOOTER_LINKS = [
  * The WhatsApp button floats on every page here, so help is one tap away.
  *
  * `GoogleAds` loads the Google tag and counts sign-ups (ADR-0013). It is off
- * when no Google Ads id was set at build time.
+ * when no Google Ads id was set at build time. `MetaPixel` does the same for
+ * Meta (ADR-0017).
  *
  * A couple's invite does not use this shell. See `app/(invite)/layout.tsx`.
  */
@@ -48,6 +50,7 @@ export default function MainLayout({ children }: Readonly<{ children: React.Reac
       signupLabel={env.googleAds.signupLabel}
       purchaseLabel={env.googleAds.purchaseLabel}
     >
+      <MetaPixel pixelId={env.metaPixelId} />
       <div className="flex flex-1 flex-col pb-24 md:pb-0">
         <SiteHeader appName={env.appName} />
         {children}

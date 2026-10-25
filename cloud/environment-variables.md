@@ -449,6 +449,27 @@ To turn it on:
 
 ---
 
+## Meta Pixel configuration
+
+The Meta Pixel and its two events. [ADR-0017](../docs/adr/0017-measure-meta-ads-conversions.md) records the design.
+
+| Variable                    | Where it comes from             | Secret |
+| --------------------------- | ------------------------------- | ------ |
+| `NEXT_PUBLIC_META_PIXEL_ID` | GitHub variable `META_PIXEL_ID` | No     |
+
+It is a build argument, so a change takes effect at the next deploy (trap 8). It is public: Meta prints it in the page source of every site that uses it.
+
+Without `META_PIXEL_ID`, the site has no Meta Pixel. With it, the Pixel loads on the product site and the preview page. It sends `Lead` when the sign-up card makes a preview, and `Purchase` with the amount on the payment-success screen. It sends no `PageView`, and Meta's automatic event collection is off.
+
+To turn it on:
+
+1. In Meta Events Manager, open Connect data sources > Web, and make a Pixel (dataset) named "vivah.online".
+2. Choose to install the code manually, and copy the Pixel id (digits only). Do not paste Meta's code into the site.
+3. Set the GitHub variable `META_PIXEL_ID`, and deploy.
+4. In Events Manager > the Pixel > Settings, turn off "Automatic advanced matching". The site sends no customer data, and this setting must not add it.
+
+---
+
 ## Platform-injected variables
 
 Cloud Run sets these; do not define them yourself.

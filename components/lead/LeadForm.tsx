@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+import { reportMetaConversion } from '@/components/ads/MetaPixel';
 import {
   AddressChoice,
   type AddressValue,
@@ -402,6 +403,7 @@ export function LeadForm({
       setWhatsappSent(body.whatsappSent === true);
       setPreviewPath(body.previewPath);
       ads.reportConversion('signup');
+      reportMetaConversion('signup');
       const leadId = body.previewPath.split('/').at(-1);
       if (leadId !== undefined) tracking.trackLead(leadId, place);
     } catch (caught) {

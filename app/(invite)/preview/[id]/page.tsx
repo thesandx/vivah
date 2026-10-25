@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 
 import { GoogleAds } from '@/components/ads/GoogleAdsProvider';
+import { MetaPixel } from '@/components/ads/MetaPixel';
 import { PurchaseConversion } from '@/components/ads/PurchaseConversion';
 import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteTheme } from '@/components/invite/InviteTheme';
@@ -248,6 +249,9 @@ export default async function PreviewPage({
       purchaseLabel={env.googleAds.purchaseLabel}
     >
       <InviteTheme className="bg-paper text-body flex flex-1 flex-col">
+        {/* Before PurchaseConversion: React runs sibling effects in order, so
+          the Pixel is set up before the purchase is reported (ADR-0017). */}
+        <MetaPixel pixelId={env.metaPixelId} />
         {published && payment === 'success' && lead.weddingSlug !== undefined && (
           <PaymentSuccess
             liveUrl={inviteHref(lead.weddingSlug, env.rootDomain)}
