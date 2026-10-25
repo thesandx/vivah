@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { SONGS_DOC_ID } from '@/lib/wedding-songs';
 import {
+  changePreviewNameOrder,
   changePreviewSong,
   changeWeddingAddress,
   deleteLead,
@@ -260,6 +261,20 @@ describeEmulator('admin operations (emulator)', () => {
     expect((await leads.getOrThrow(leadId)).song).toEqual(song);
     expect((await getWeddingBySlug(slug))?.song).toEqual(song);
     expect(await auditFor(leadId)).toContain('preview-song-changed');
+  });
+
+  it('changes the name order on a preview and its live invite, never the address', async () => {
+    const { leadId, slug } = await published();
+    const result = await changePreviewNameOrder(leadId, 'groom-first', ADMIN);
+    expect(result).toEqual({
+      ok: true,
+      message: 'The preview and the live invite now say Shyam & Radha.',
+    });
+    expect((await leads.getOrThrow(leadId)).nameOrder).toBe('groom-first');
+    const wedding = await getWeddingBySlug(slug);
+    expect(wedding?.nameOrder).toBe('groom-first');
+    expect(wedding?.slug).toBe(slug);
+    expect(await auditFor(leadId)).toContain('preview-name-order-changed');
   });
   it('erases test rows for good, and never a live invite or its preview', async () => {
     const live = await published();

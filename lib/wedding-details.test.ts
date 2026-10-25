@@ -20,6 +20,15 @@ describe('parseWeddingDetails', () => {
     });
   });
 
+  it('reads the name order, and leaves it out when the form has none', () => {
+    const chosen = parseWeddingDetails({ ...FORM, nameOrder: 'groom-first' });
+    expect(chosen.ok && chosen.details.nameOrder).toBe('groom-first');
+    const cached = parseWeddingDetails(FORM);
+    expect(cached.ok && 'nameOrder' in cached.details).toBe(false);
+    const wrong = parseWeddingDetails({ ...FORM, nameOrder: 'groom' });
+    expect(!wrong.ok && wrong.errors.nameOrder).toBe('Choose whose name comes first.');
+  });
+
   it('turns an empty optional field into null, which clears it', () => {
     const result = parseWeddingDetails({
       ...FORM,

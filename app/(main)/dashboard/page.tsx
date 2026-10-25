@@ -7,6 +7,7 @@ import { AppBar } from '@/components/layout/AppBar';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { coupleNames } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel } from '@/lib/site-host';
@@ -74,7 +75,7 @@ export default async function DashboardPage({
                   {others.map((wedding) => (
                     <Card key={wedding.id} as="li" className="flex flex-col gap-3">
                       <p className="font-display text-heading break-words">
-                        {wedding.bride} &amp; {wedding.groom}
+                        {coupleNames(wedding)}
                       </p>
                       <p className="text-small text-ink-soft break-all">
                         {inviteHostLabel(wedding.slug, env.rootDomain)}

@@ -6,6 +6,7 @@
 
 import { z } from 'zod';
 
+import { NAME_ORDERS } from '@/lib/couple-names';
 import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 
@@ -40,6 +41,11 @@ export const weddingDetailsSchema = z.object({
     (value) => value === null || isGoogleMapsUrl(value),
     'Paste the link from Google Maps > Share.',
   ),
+  /**
+   * Whose name comes first. Optional: a form cached before the choice
+   * existed sends none, and then the saved order stays as it is.
+   */
+  nameOrder: z.enum(NAME_ORDERS, 'Choose whose name comes first.').optional(),
 });
 
 export type WeddingDetails = z.output<typeof weddingDetailsSchema>;
@@ -62,6 +68,7 @@ export function parseWeddingDetails(form: Record<string, unknown>): DetailsResul
     venueName: text('venueName'),
     venueCity: text('venueCity'),
     venueMapsUrl: text('venueMapsUrl'),
+    ...(form.nameOrder !== undefined && { nameOrder: form.nameOrder }),
   });
   if (parsed.success) return { ok: true, details: parsed.data };
   const errors: Partial<Record<keyof WeddingDetails, string>> = {};

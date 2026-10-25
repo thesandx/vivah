@@ -2,6 +2,7 @@ import 'server-only';
 
 import { FieldValue } from '@google-cloud/firestore';
 
+import { coupleNames, DEFAULT_NAME_ORDER, type NameOrder } from '@/lib/couple-names';
 import { slugProblem } from '@/lib/couple-slug';
 import { type AppliedCoupon, normalizeCouponCode } from '@/lib/coupons';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
@@ -131,7 +132,8 @@ export async function editWeddingDetails(
   }
   await weddings.update(id, parsed.details);
   const changed = (Object.keys(parsed.details) as (keyof WeddingDetails)[]).filter(
-    (key) => (wedding[key] ?? null) !== parsed.details[key],
+    (key) =>
+      (wedding[key] ?? (key === 'nameOrder' ? DEFAULT_NAME_ORDER : null)) !== parsed.details[key],
   );
   await audit(
     'wedding-edited',
@@ -618,6 +620,38 @@ export async function changePreviewSong(
     message: live
       ? `${song.name} is now the song on the preview and the live invite.`
       : `${song.name} is now the preview's song.`,
+  };
+}
+
+/**
+ * Sets whose name a preview shows first. When the couple has paid, the live
+ * invite gets the same order, so the two never disagree. The address never
+ * changes with it: links already shared must keep working.
+ */
+export async function changePreviewNameOrder(
+  id: string,
+  nameOrder: NameOrder,
+  adminUid: string,
+): Promise<AdminResult> {
+  const lead = await getLeadForAdmin(id);
+  if (lead === null || lead.deletedAt !== null) return NOT_FOUND;
+  await leads.update(id, { nameOrder });
+  const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
+  const live = wedding !== null && wedding.leadId === id;
+  if (live) await weddings.update(wedding.id, { nameOrder });
+  const names = coupleNames({ ...lead, nameOrder });
+  await audit(
+    'preview-name-order-changed',
+    'lead',
+    id,
+    `Set the name order to ${names}${live ? ', on the live invite too' : ''}.`,
+    adminUid,
+  );
+  return {
+    ok: true,
+    message: live
+      ? `The preview and the live invite now say ${names}.`
+      : `The preview now says ${names}.`,
   };
 }
 

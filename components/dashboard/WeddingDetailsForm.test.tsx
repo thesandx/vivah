@@ -6,6 +6,7 @@ import { type SaveState, WeddingDetailsForm } from './WeddingDetailsForm';
 const INITIAL = {
   bride: 'Anushka',
   groom: 'Sandeep',
+  nameOrder: 'bride-first',
   weddingDate: '2026-03-09',
   ceremonyTime: '',
   venueName: '',
@@ -63,6 +64,28 @@ describe('WeddingDetailsForm', () => {
     );
     const sent = save.mock.calls[0]?.[1];
     expect(sent?.get('bride')).toBe('Anushka');
+  });
+
+  it('shows the name order and sends the one chosen', async () => {
+    const save = vi.fn(async (_state: SaveState, _form: FormData): Promise<SaveState> => ({
+      status: 'saved',
+    }));
+    render(
+      <WeddingDetailsForm
+        initial={{ ...INITIAL, nameOrder: 'groom-first' }}
+        save={save}
+        inviteHref="/site/a"
+      />,
+    );
+    expect(screen.getByText('Groom’s name first')).toBeVisible();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit details' }));
+    expect(screen.getByRole('radio', { name: 'Groom’s name first' })).toBeChecked();
+    fireEvent.click(screen.getByRole('radio', { name: 'Bride’s name first' }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save details' }));
+    });
+    expect(save.mock.calls[0]?.[1].get('nameOrder')).toBe('bride-first');
   });
 
   it('shows the message and marks the field that is wrong', async () => {

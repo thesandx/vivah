@@ -8,6 +8,7 @@
  * bookmarked or reloaded.
  */
 
+import type { NameOrder } from '@/lib/couple-names';
 import { previewClosed } from '@/lib/preview-timer';
 
 /** What the admin sees of a wedding's state. */
@@ -18,6 +19,7 @@ export interface WeddingRow {
   slug: string;
   bride: string;
   groom: string;
+  nameOrder?: NameOrder | undefined;
   /** `YYYY-MM-DD`, or `null`. */
   weddingDate: string | null;
   ownerPhoneE164: string;
@@ -38,6 +40,7 @@ export interface LeadRow {
   id: string;
   bride: string;
   groom: string;
+  nameOrder?: NameOrder | undefined;
   weddingDate: string | null;
   phoneE164: string;
   status: 'preview-sent' | 'opened' | 'paid';

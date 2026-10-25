@@ -12,6 +12,7 @@ import { BrandMark } from '@/components/layout/BrandMark';
 import { Alert } from '@/components/ui/Alert';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
 import { PAPER_CARDS, PAYMENT_METHODS } from '@/lib/business';
+import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { cn } from '@/lib/utils';
 
 /**
@@ -55,6 +56,8 @@ export type PaymentBannerMode = 'live' | 'test' | 'paid';
 export interface PublishBannerProps {
   bride: string;
   groom: string;
+  /** Whose name comes first. Default: the bride's. */
+  nameOrder?: NameOrder | undefined;
   leadId: string;
   /** The address the couple chose, checked free just now. */
   chosen?: string;
@@ -178,6 +181,7 @@ function PaymentNote({ mode, providerName }: { mode: PaymentBannerMode; provider
 export function PublishBanner({
   bride,
   groom,
+  nameOrder,
   leadId,
   chosen,
   suggestions,
@@ -427,7 +431,7 @@ export function PublishBanner({
             <div className="flex items-start justify-between gap-3">
               <div className="flex flex-col gap-1">
                 <p className="font-jewel-name text-heading text-pay-ink">
-                  {bride} &amp; {groom}
+                  {coupleNames({ bride, groom, nameOrder })}
                 </p>
                 <h2 className="font-pay text-title text-pay-ink font-bold tracking-tight">
                   Your invite is ready to publish

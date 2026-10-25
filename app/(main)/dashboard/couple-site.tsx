@@ -5,6 +5,7 @@ import { SongPicker } from '@/components/dashboard/SongPicker';
 import { WeddingDetailsForm } from '@/components/dashboard/WeddingDetailsForm';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
+import { coupleNames } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { inviteOrigin } from '@/lib/invite-meta';
 import { logger } from '@/lib/logger';
@@ -46,13 +47,13 @@ export async function CoupleSite({
       ? null
       : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
   const origin = inviteOrigin(wedding.slug, env.rootDomain, env.appUrl);
-  const coupleNames = `${wedding.bride} & ${wedding.groom}`;
+  const names = coupleNames(wedding);
 
   return (
     <>
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="text-title break-words">{coupleNames}</h1>
+          <h1 className="text-title break-words">{names}</h1>
           <a
             href={inviteHref(wedding.slug, env.rootDomain)}
             target="_blank"
@@ -91,6 +92,7 @@ export async function CoupleSite({
             initial={{
               bride: wedding.bride,
               groom: wedding.groom,
+              nameOrder: wedding.nameOrder ?? 'bride-first',
               weddingDate: wedding.weddingDate ?? '',
               ceremonyTime: wedding.ceremonyTime ?? '',
               venueName: wedding.venueName ?? '',
@@ -138,7 +140,7 @@ export async function CoupleSite({
             </p>
           </div>
           <GuestLinks
-            coupleNames={coupleNames}
+            coupleNames={names}
             create={createGuestLinkAction.bind(null, wedding.slug)}
             remove={deleteGuestLinkAction.bind(null, wedding.slug)}
             links={links.map((link) => ({

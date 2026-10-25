@@ -4,6 +4,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 
 import { z } from 'zod';
 
+import { NAME_ORDERS } from '@/lib/couple-names';
 import { appliedCouponSchema } from '@/lib/coupons';
 import { capitalizeName } from '@/lib/guest-name';
 import type { LeadRequest } from '@/lib/lead-schema';
@@ -117,6 +118,12 @@ export const leadSchema = z.object({
    * couple who skipped the step, have none.
    */
   functions: z.array(z.enum(FUNCTION_KINDS)).max(FUNCTION_KINDS.length).optional(),
+  /**
+   * Whose name the preview shows first. Set by an admin on
+   * `/admin/previews/<id>`; publishing copies it to the wedding. Optional:
+   * absent means the bride's name first (`lib/couple-names.ts`).
+   */
+  nameOrder: z.enum(NAME_ORDERS).optional(),
 });
 
 export type LeadPayload = z.infer<typeof leadSchema>;

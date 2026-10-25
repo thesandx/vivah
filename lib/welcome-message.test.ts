@@ -23,6 +23,19 @@ describe('welcomeMessage', () => {
     expect(text).toContain('support@vivah.online');
   });
 
+  it('greets the groom first when the couple chose it', () => {
+    expect(
+      welcomeMessage({
+        bride: 'Riya',
+        groom: 'Aman',
+        nameOrder: 'groom-first',
+        slug: 'riya-aman',
+        phoneE164: '+919876543210',
+        origin: 'https://vivah.online',
+      }),
+    ).toContain('Congratulations Aman & Riya');
+  });
+
   it('builds the site from the origin host, port included', () => {
     expect(
       welcomeMessage({

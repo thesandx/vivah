@@ -19,6 +19,7 @@ import { Alert } from '@/components/ui/Alert';
 import { buttonStyles } from '@/components/ui/Button';
 import { Face } from '@/components/ui/Face';
 import { BUSINESS, PRICE_FROM_RUPEES, whatsAppChatUrl } from '@/lib/business';
+import { coupleNames } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { PREVIEW_COOKIE_NAME } from '@/lib/preview-cookie';
@@ -222,6 +223,7 @@ export default async function PreviewPage({
       <PublishBanner
         bride={lead.bride}
         groom={lead.groom}
+        nameOrder={lead.nameOrder}
         leadId={lead.id}
         {...(chosen !== undefined && { chosen })}
         suggestions={suggestions}
@@ -265,7 +267,7 @@ export default async function PreviewPage({
         )}
         <InviteGate
           guestName={null}
-          couple={`${lead.bride} & ${lead.groom}`}
+          couple={coupleNames(lead)}
           song={song}
           top={
             <PreviewNotch note={published ? 'your invite is live' : 'only you can see this'}>
@@ -281,6 +283,7 @@ export default async function PreviewPage({
             <ShubhVivahInvite
               bride={lead.bride}
               groom={lead.groom}
+              nameOrder={lead.nameOrder}
               guestName={null}
               weddingDate={lead.weddingDate}
               ceremonyTime={null}

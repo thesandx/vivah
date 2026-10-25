@@ -46,6 +46,7 @@ import {
   WEDDING_WHEN_CHOICES,
   weddingState,
 } from '@/lib/admin-list';
+import { coupleNames } from '@/lib/couple-names';
 import { demoVideoRoute, SITE_VIDEO_SLOTS, type SiteVideoSlot } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
@@ -251,7 +252,7 @@ async function InvitesView({ params, tab }: { params: SearchParams; tab: 'invite
               >
                 <span className="flex min-w-0 flex-1 flex-col gap-1">
                   <span className="font-display text-heading break-words">
-                    {wedding.bride} &amp; {wedding.groom}
+                    {coupleNames(wedding)}
                   </span>
                   <span
                     className={cn(
@@ -332,7 +333,7 @@ async function PreviewsView({ params }: { params: SearchParams }) {
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
                     <span className="font-display text-heading break-words">
-                      {lead.bride} &amp; {lead.groom}
+                      {coupleNames(lead)}
                     </span>
                     <span className="text-small text-ink-soft">
                       {formatPhoneForDisplay(lead.phoneE164)} · asked{' '}

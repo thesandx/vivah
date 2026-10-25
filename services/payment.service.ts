@@ -14,7 +14,11 @@ import { CashfreeError, createPaymentLink, getPaymentLink } from '@/services/cas
 import { type LeadDocument, leads } from '@/services/lead.service';
 import * as razorpay from '@/services/razorpay.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
-import { notifyPayment, notifyPaymentFailure } from '@/services/telegram.service';
+import {
+  notifyPayment,
+  notifyPaymentFailure,
+  type PaymentNotice,
+} from '@/services/telegram.service';
 import {
   checkSlug,
   slugClaimId,
@@ -274,8 +278,15 @@ async function startRazorpayOrder(request: LinkRequest): Promise<RazorpayCheckou
 const PAYMENT_BRAND = 'Vivah';
 
 /** The couple's fields a payment notice needs. */
-function coupleOf(lead: LeadDocument): { bride: string; groom: string; phoneE164: string } {
-  return { bride: lead.bride, groom: lead.groom, phoneE164: lead.phoneE164 };
+function coupleOf(
+  lead: LeadDocument,
+): Pick<PaymentNotice, 'bride' | 'groom' | 'nameOrder' | 'phoneE164'> {
+  return {
+    bride: lead.bride,
+    groom: lead.groom,
+    phoneE164: lead.phoneE164,
+    ...(lead.nameOrder !== undefined && { nameOrder: lead.nameOrder }),
+  };
 }
 
 /** The coupon line for a payment notice, when the couple used one. */

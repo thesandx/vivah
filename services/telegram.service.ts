@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { siteOrigin } from '@/lib/seo';
@@ -127,6 +128,8 @@ export interface PaymentNotice {
   /** The couple, for the welcome message once the site is live. */
   bride: string;
   groom: string;
+  /** Whose name comes first. Absent: the bride's. */
+  nameOrder?: NameOrder;
   /** E.164. Never logged. */
   phoneE164: string;
   /** The coupon the couple paid with, for a referral cashback. ADR-0015. */
@@ -148,10 +151,11 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   const origin = siteOrigin(env.rootDomain, env.appUrl);
   const host = new URL(origin).host;
   const amount = `₹${notice.amountRupees.toLocaleString('en-IN')}`;
+  const names = coupleNames(notice);
   const headline = {
-    published: `Paid ${amount}: ${notice.bride} & ${notice.groom} are live at ${notice.slug}.${host}`,
-    'address-taken': `Paid ${amount}, but ${notice.slug}.${host} was taken. ${notice.bride} & ${notice.groom} pick another address on their preview.`,
-    duplicate: `Paid ${amount} a SECOND time by ${notice.bride} & ${notice.groom}. Refund it in the payment dashboard.`,
+    published: `Paid ${amount}: ${names} are live at ${notice.slug}.${host}`,
+    'address-taken': `Paid ${amount}, but ${notice.slug}.${host} was taken. ${names} pick another address on their preview.`,
+    duplicate: `Paid ${amount} a SECOND time by ${names}. Refund it in the payment dashboard.`,
   }[notice.kind];
   const alert = [
     headline,
@@ -164,6 +168,7 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   const forCouple = welcomeMessage({
     bride: notice.bride,
     groom: notice.groom,
+    nameOrder: notice.nameOrder,
     slug: notice.slug,
     phoneE164: notice.phoneE164,
     origin,

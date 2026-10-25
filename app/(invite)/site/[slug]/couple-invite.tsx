@@ -8,6 +8,7 @@ import { PreviewShield } from '@/components/invite/PreviewShield';
 import { PreviewWatermark } from '@/components/invite/PreviewWatermark';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { BUSINESS } from '@/lib/business';
+import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { parseGuestName } from '@/lib/guest-name';
 import { inviteCard, inviteMetadata, type InviteMetaInput } from '@/lib/invite-meta';
@@ -34,6 +35,7 @@ interface Invite {
   slug: string;
   bride: string;
   groom: string;
+  nameOrder?: NameOrder | undefined;
   weddingDate: string | null;
   ceremonyTime: string | null;
   venueName: string | null;
@@ -53,6 +55,7 @@ function fromWedding(wedding: WeddingDocument): Invite {
     slug: wedding.slug,
     bride: wedding.bride,
     groom: wedding.groom,
+    nameOrder: wedding.nameOrder,
     weddingDate: wedding.weddingDate,
     ceremonyTime: wedding.ceremonyTime ?? null,
     venueName: wedding.venueName ?? null,
@@ -135,6 +138,7 @@ async function metaInput(
     slug: wedding.slug,
     bride: wedding.bride,
     groom: wedding.groom,
+    nameOrder: wedding.nameOrder,
     weddingDate: wedding.weddingDate,
     guestName,
     ...(guestName !== null && guestSegment !== null && { guestSegment }),
@@ -183,17 +187,14 @@ export async function CoupleInvite({
 
   return (
     <>
-      <InviteGate
-        guestName={guestName}
-        couple={`${wedding.bride} & ${wedding.groom}`}
-        song={wedding.song}
-      >
+      <InviteGate guestName={guestName} couple={coupleNames(wedding)} song={wedding.song}>
         {/* Full width, not PageShell: the petals run edge to edge, and the
           invite narrows its own text column. */}
         <main className="flex flex-1 flex-col">
           <ShubhVivahInvite
             bride={wedding.bride}
             groom={wedding.groom}
+            nameOrder={wedding.nameOrder}
             guestName={guestName}
             weddingDate={wedding.weddingDate}
             ceremonyTime={wedding.ceremonyTime}

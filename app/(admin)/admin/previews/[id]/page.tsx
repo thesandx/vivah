@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 
 import {
   changePreviewFunctionsAction,
+  changePreviewNameOrderAction,
   changePreviewSongAction,
   deleteLeadAction,
   makePreviewLiveAction,
@@ -22,8 +23,10 @@ import { Card } from '@/components/ui/Card';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { ContactLink } from '@/components/ui/ContactLink';
 import { Input } from '@/components/ui/Input';
+import { RadioGroup } from '@/components/ui/RadioGroup';
 import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
+import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
@@ -87,6 +90,10 @@ export default async function AdminPreviewPage({
     currentSong === null
       ? null
       : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
+  // Once paid, the couple may change the order in their dashboard: the live
+  // invite's order wins, so every message matches what guests see.
+  const nameOrder = wedding?.nameOrder ?? lead.nameOrder;
+  const couple = { bride: lead.bride, groom: lead.groom, nameOrder };
   const origin = siteOrigin(env.rootDomain, env.appUrl);
   const link = `${origin}/p/${lead.id}`;
   const welcome =
@@ -95,22 +102,34 @@ export default async function AdminPreviewPage({
       : welcomeMessage({
           bride: lead.bride,
           groom: lead.groom,
+          nameOrder,
           slug: wedding.slug,
           phoneE164: lead.phoneE164,
           origin,
         });
   // The link goes last: WhatsApp on Android shows no link preview for a
   // typed-in message whose link is followed by more text.
-  const message = `Hi ${lead.bride} & ${lead.groom}, here is your wedding invite preview. It stays open for 30 minutes from when you open it, so please complete payment within that time.\n\n${link}`;
-  const openAgain = openAgainMessage({ bride: lead.bride, groom: lead.groom, link });
+  const message = `Hi ${coupleNames(couple)}, here is your wedding invite preview. It stays open for 30 minutes from when you open it, so please complete payment within that time.\n\n${link}`;
+  const openAgain = openAgainMessage({
+    bride: lead.bride,
+    groom: lead.groom,
+    nameOrder,
+    link,
+  });
   const nudge = nudgeStatus(lead, now);
-  const nudgeInput = { bride: lead.bride, groom: lead.groom, link, rootDomain: env.rootDomain };
+  const nudgeInput = {
+    bride: lead.bride,
+    groom: lead.groom,
+    nameOrder,
+    link,
+    rootDomain: env.rootDomain,
+  };
   const nudgeText = nudge.kind === 'due' ? nudgeMessage(nudge.day, nudgeInput) : null;
 
   return (
     <>
       <AppBar
-        title={`${lead.bride} & ${lead.groom}`}
+        title={coupleNames(couple)}
         back={{ fallbackHref: '/admin?view=previews', label: 'Back to all previews' }}
         end={<AdminSignOutButton />}
       />
@@ -349,7 +368,7 @@ export default async function AdminPreviewPage({
                 }}
 
                 confirm={{
-                  title: `Make ${lead.bride} & ${lead.groom} live?`,
+                  title: `Make ${coupleNames(couple)} live?`,
                   body: 'The invite goes live at the address you typed, with no payment. Guests can open it at once. To undo it, delete the invite from Invites.',
                   confirmLabel: 'Make live',
                 }}
@@ -360,6 +379,30 @@ export default async function AdminPreviewPage({
                   hint="Leave it empty when they used no code."
                   autoComplete="off"
                   code
+                />
+              </AdminActionForm>
+            </Card>
+          )}
+
+          {lead.deletedAt === null && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Name order</h2>
+              <p className="text-small text-ink-soft">
+                Whose name the invite shows first. The address stays the same.
+                {wedding !== null && ' The couple has paid, so the live invite changes too.'}
+              </p>
+              <AdminActionForm
+                action={changePreviewNameOrderAction.bind(null, lead.id)}
+                label="Save name order"
+              >
+                <RadioGroup
+                  label="Show first"
+                  name="nameOrder"
+                  options={NAME_ORDERS.map((order) => ({
+                    value: order,
+                    label: `${NAME_ORDER_LABELS[order]}: ${coupleNames({ ...couple, nameOrder: order })}`,
+                  }))}
+                  defaultValue={nameOrder ?? 'bride-first'}
                 />
               </AdminActionForm>
             </Card>

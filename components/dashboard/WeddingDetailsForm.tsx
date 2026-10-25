@@ -5,6 +5,8 @@ import { useActionState, useState } from 'react';
 import { Alert } from '@/components/ui/Alert';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { RadioGroup } from '@/components/ui/RadioGroup';
+import { NAME_ORDER_LABELS, NAME_ORDERS, parseNameOrder } from '@/lib/couple-names';
 import { capitalizeName } from '@/lib/guest-name';
 import { cn } from '@/lib/utils';
 import { formatWeddingDate, formatWeddingTime } from '@/lib/wedding-date';
@@ -25,7 +27,14 @@ export type SaveState =
   | { status: 'error'; message: string; errors?: Partial<Record<DetailField, string>> };
 
 export type DetailField =
-  'bride' | 'groom' | 'weddingDate' | 'ceremonyTime' | 'venueName' | 'venueCity' | 'venueMapsUrl';
+  | 'bride'
+  | 'groom'
+  | 'nameOrder'
+  | 'weddingDate'
+  | 'ceremonyTime'
+  | 'venueName'
+  | 'venueCity'
+  | 'venueMapsUrl';
 
 export type WeddingDetailValues = Record<DetailField, string>;
 
@@ -40,16 +49,25 @@ export interface WeddingDetailsFormProps {
   className?: string;
 }
 
-/** The read-only rows, in the order the form shows them. */
+const NAME_ORDER_OPTIONS = NAME_ORDERS.map((order) => ({
+  value: order,
+  label: NAME_ORDER_LABELS[order],
+}));
+
 /** Shows a name as it will be saved, the moment the field loses focus: `RIYA` → `Riya`. */
 function tidyName(event: React.FocusEvent<HTMLInputElement>): void {
   event.currentTarget.value = capitalizeName(event.currentTarget.value);
 }
 
+/** The read-only rows, in the order the form shows them. */
 function detailRows(values: WeddingDetailValues): { label: string; value: string | null }[] {
   return [
     { label: "Bride's name", value: values.bride || null },
     { label: "Groom's name", value: values.groom || null },
+    {
+      label: 'Name order',
+      value: NAME_ORDER_LABELS[parseNameOrder(values.nameOrder) ?? 'bride-first'],
+    },
     {
       label: 'Wedding date',
       value: values.weddingDate === '' ? null : formatWeddingDate(values.weddingDate),
@@ -157,6 +175,14 @@ export function WeddingDetailsForm({
           required
           maxLength={60}
           {...error('groom')}
+        />
+        <RadioGroup
+          label="Whose name comes first on your invite?"
+          name="nameOrder"
+          options={NAME_ORDER_OPTIONS}
+          defaultValue={parseNameOrder(initial.nameOrder) ?? 'bride-first'}
+          className="sm:col-span-2"
+          {...error('nameOrder')}
         />
         <Input
           label="Wedding date"
