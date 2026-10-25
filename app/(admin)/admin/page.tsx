@@ -5,8 +5,10 @@ import { notFound } from 'next/navigation';
 import {
   removeDemoVideoAction,
   removeSongAction,
+  resetSampleVenuesAction,
   resetStepImageAction,
   saveDemoVideoAction,
+  saveSampleVenuesAction,
   saveSongAction,
   saveStepImageAction,
   startDemoVideoUploadAction,
@@ -28,6 +30,7 @@ import { AppBar } from '@/components/layout/AppBar';
 import { Alert } from '@/components/ui/Alert';
 import { buttonStyles } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
+import { Input } from '@/components/ui/Input';
 import {
   countBy,
   DELETED_SORT_CHOICES,
@@ -53,14 +56,17 @@ import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { nudgeLabel, nudgeStatus } from '@/lib/preview-nudges';
-import { inviteHostLabel } from '@/lib/site-host';
+import { functionVenueField, SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
+import { inviteHostLabel, inviteHref } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
 import { formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
+import { FESTIVITY_LABELS, FUNCTION_KINDS } from '@/lib/wedding-functions';
 import { SONG_SLOTS, songUrl } from '@/lib/wedding-songs';
 import { listAllLeads, listAllWeddings } from '@/services/admin.service';
 import { recentAdminActions } from '@/services/admin-audit.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { getDemoVideo } from '@/services/demo-video.service';
+import { getSampleVenuesForAdmin } from '@/services/sample-invite.service';
 import { getStepImages } from '@/services/site-content.service';
 import { createSignedReadUrl } from '@/services/storage.service';
 import { getSongSlots } from '@/services/wedding-songs.service';
@@ -509,6 +515,7 @@ async function HomePageView() {
         <SiteVideoAdmin key={slot} slot={slot} />
       ))}
       <SongsAdmin />
+      <SampleVenuesAdmin />
       <TestimonialsAdmin />
     </>
   );
@@ -651,6 +658,115 @@ async function SongsAdmin() {
             );
           })}
         </ol>
+      )}
+    </section>
+  );
+}
+
+/**
+ * The sample invite's venues: the wedding's name, address and map link, and
+ * each function's venue and map link. The home page's "Try it here" phone
+ * shows the same sample, so a save changes both.
+ */
+async function SampleVenuesAdmin() {
+  let venues: Awaited<ReturnType<typeof getSampleVenuesForAdmin>> | null = null;
+  try {
+    venues = await getSampleVenuesForAdmin();
+  } catch (error) {
+    logger.error('Reading the sample invite venues failed', error);
+  }
+  const sampleUrl = `${inviteHref(SAMPLE_SLUG, env.rootDomain)}/${SAMPLE_GUEST}`;
+  return (
+    <section className="flex flex-col gap-4">
+      <h3 className="text-heading">Sample invite venues</h3>
+      <p className="text-ink-soft max-w-prose">
+        The venue names, addresses and Google Maps links on the{' '}
+        <a
+          href={sampleUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-brand font-semibold underline underline-offset-4"
+        >
+          sample invite
+        </a>
+        , and in the “Try it here” phone on the home page. A change shows within a minute.
+      </p>
+      {venues === null ? (
+        <Alert tone="danger" title="The venues could not be read.">
+          Reload the page to try again.
+        </Alert>
+      ) : (
+        <div className="border-line rounded-card bg-surface flex flex-col gap-6 border-2 p-4">
+          <AdminActionForm action={saveSampleVenuesAction} label="Save venues" variant="primary">
+            <fieldset className="flex flex-col gap-4">
+              <legend className="text-heading mb-2">Wedding</legend>
+              <div className="grid gap-4 md:grid-cols-2">
+                <Input
+                  label="Venue name"
+                  name="venueName"
+                  defaultValue={venues.venueName}
+                  maxLength={80}
+                  autoComplete="off"
+                  required
+                />
+                <Input
+                  label="Address (town and state)"
+                  name="venueCity"
+                  defaultValue={venues.venueCity}
+                  maxLength={80}
+                  autoComplete="off"
+                  required
+                />
+              </div>
+              <Input
+                label="Google Maps link"
+                name="venueMapsUrl"
+                type="url"
+                inputMode="url"
+                defaultValue={venues.venueMapsUrl}
+                maxLength={500}
+                autoComplete="off"
+                required
+              />
+            </fieldset>
+            <ol className="grid gap-4 md:grid-cols-2">
+              {FUNCTION_KINDS.map((kind) => (
+                <li key={kind} className="border-line rounded-card border-2 p-4">
+                  <fieldset className="flex flex-col gap-4">
+                    <legend className="text-heading mb-2">{FESTIVITY_LABELS[kind].name}</legend>
+                    <Input
+                      label="Venue"
+                      name={functionVenueField(kind, 'venue')}
+                      defaultValue={venues.functions[kind].venue}
+                      maxLength={100}
+                      autoComplete="off"
+                      required
+                    />
+                    <Input
+                      label="Google Maps link"
+                      name={functionVenueField(kind, 'mapsUrl')}
+                      type="url"
+                      inputMode="url"
+                      defaultValue={venues.functions[kind].mapsUrl}
+                      maxLength={500}
+                      autoComplete="off"
+                      required
+                    />
+                  </fieldset>
+                </li>
+              ))}
+            </ol>
+          </AdminActionForm>
+          <AdminActionForm
+            action={resetSampleVenuesAction}
+            label="Use the default venues"
+            confirm={{
+              title: 'Put back the default venues?',
+              body: 'The sample invite shows the Delhi venues it started with. Your venues are replaced.',
+              confirmLabel: 'Put them back',
+            }}
+          />
+        </div>
       )}
     </section>
   );

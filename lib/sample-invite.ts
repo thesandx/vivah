@@ -16,9 +16,18 @@
  *
  * The sample has every function (tilak to reception) over four days round
  * the wedding, so a visitor sees the "Wedding Festivities" timeline full.
+ *
+ * The admin changes the venue names, addresses and map links from `/admin`
+ * (Home page tab), without a deploy. They live in `siteContent/sample-invite`
+ * (`services/sample-invite.service.ts`). `DEFAULT_SAMPLE_VENUES` is what
+ * shows before the first save, and when that read fails. The names, the
+ * dates and the times stay here, in code.
  */
 
-import type { WeddingFunction } from '@/lib/wedding-functions';
+import { z } from 'zod';
+
+import { isGoogleMapsUrl } from '@/lib/invite-contact';
+import { FUNCTION_KINDS, type FunctionKind, type WeddingFunction } from '@/lib/wedding-functions';
 
 /** The sample's address: `priya-rahul.vivah.online`. */
 export const SAMPLE_SLUG = 'priya-rahul';
@@ -78,55 +87,128 @@ function addDays(isoDate: string, days: number): string {
 
 const VENUE_MAPS_URL = 'https://www.google.com/maps/place/Chhatarpur,+New+Delhi';
 
-/** The sample couple and their day, for the invite and its link preview. */
-export function sampleWedding(now: Date): SampleWedding {
+/** The fixed id of the document that holds the admin's venues. */
+export const SAMPLE_VENUES_DOC_ID = 'sample-invite';
+
+const mapsUrlSchema = z
+  .string()
+  .trim()
+  .max(500)
+  .refine(isGoogleMapsUrl, 'Paste a Google Maps link that starts with https://.');
+
+const functionVenueSchema = z.object({
+  /** The place, in one line, as the function's card prints it. */
+  venue: z.string().trim().min(1, 'Add the venue.').max(100),
+  mapsUrl: mapsUrlSchema,
+});
+
+/** The venues the sample shows: the wedding's, and one per function. */
+export const sampleVenuesSchema = z.object({
+  venueName: z.string().trim().min(1, 'Add the venue name.').max(80),
+  /** The address line under the venue name: town and state. */
+  venueCity: z.string().trim().min(1, 'Add the address.').max(80),
+  venueMapsUrl: mapsUrlSchema,
+  functions: z.object({
+    tilak: functionVenueSchema,
+    haldi: functionVenueSchema,
+    mehndi: functionVenueSchema,
+    sangeet: functionVenueSchema,
+    reception: functionVenueSchema,
+  }),
+});
+
+export type SampleVenues = z.infer<typeof sampleVenuesSchema>;
+
+/** The venues before the admin changes them: one invented Delhi venue. */
+export const DEFAULT_SAMPLE_VENUES: SampleVenues = {
+  venueName: 'The Grand Pavilion, Chhatarpur',
+  venueCity: 'New Delhi, Delhi',
+  venueMapsUrl: VENUE_MAPS_URL,
+  functions: {
+    tilak: {
+      venue: 'Residence, Vasant Kunj',
+      mapsUrl: 'https://www.google.com/maps/place/Vasant+Kunj,+New+Delhi',
+    },
+    haldi: { venue: 'Grand Pavilion Lawns', mapsUrl: VENUE_MAPS_URL },
+    mehndi: { venue: 'Grand Pavilion Courtyard', mapsUrl: VENUE_MAPS_URL },
+    sangeet: { venue: 'Grand Pavilion Banquet', mapsUrl: VENUE_MAPS_URL },
+    reception: { venue: 'Grand Pavilion Lawns', mapsUrl: VENUE_MAPS_URL },
+  },
+};
+
+/** The form field names for one function's venue and map link, such as `haldi-venue`. */
+export function functionVenueField(kind: FunctionKind, part: 'venue' | 'mapsUrl'): string {
+  return `${kind}-${part}`;
+}
+
+export type SampleVenuesParse = { ok: true; venues: SampleVenues } | { ok: false; message: string };
+
+/** Reads the admin's venue form. The first problem comes back in words. */
+export function parseSampleVenuesForm(form: FormData): SampleVenuesParse {
+  const text = (key: string): string => {
+    const value = form.get(key);
+    return typeof value === 'string' ? value : '';
+  };
+  const functions = Object.fromEntries(
+    FUNCTION_KINDS.map((kind) => [
+      kind,
+      {
+        venue: text(functionVenueField(kind, 'venue')),
+        mapsUrl: text(functionVenueField(kind, 'mapsUrl')),
+      },
+    ]),
+  );
+  const parsed = sampleVenuesSchema.safeParse({
+    venueName: text('venueName'),
+    venueCity: text('venueCity'),
+    venueMapsUrl: text('venueMapsUrl'),
+    functions,
+  });
+  if (parsed.success) return { ok: true, venues: parsed.data };
+  const issue = parsed.error.issues[0];
+  const [first, kind] = issue?.path ?? [];
+  const where =
+    first === 'functions' && typeof kind === 'string'
+      ? `${kind.charAt(0).toUpperCase()}${kind.slice(1)}: `
+      : first === 'venueMapsUrl'
+        ? 'Wedding map link: '
+        : '';
+  return { ok: false, message: `${where}${issue?.message ?? 'Check the venues.'}` };
+}
+
+/** When each function happens, in days from the wedding day and `HH:MM`. */
+const FUNCTION_TIMES: Record<FunctionKind, { day: number; time: string }> = {
+  tilak: { day: -2, time: '11:00' },
+  haldi: { day: -1, time: '10:00' },
+  mehndi: { day: -1, time: '15:30' },
+  sangeet: { day: -1, time: '19:30' },
+  reception: { day: 1, time: '20:30' },
+};
+
+/**
+ * The sample couple and their day, for the invite and its link preview.
+ * `venues` are the admin's, or the defaults.
+ */
+export function sampleWedding(
+  now: Date,
+  venues: SampleVenues = DEFAULT_SAMPLE_VENUES,
+): SampleWedding {
   const weddingDate = sampleWeddingDate(now);
-  const on = (days: number) => addDays(weddingDate, days);
   return {
     bride: 'Priya',
     groom: 'Rahul',
     weddingDate,
     ceremonyTime: '19:00',
-    venueName: 'The Grand Pavilion, Chhatarpur',
-    venueCity: 'New Delhi, Delhi',
-    venueMapsUrl: VENUE_MAPS_URL,
-    functions: [
-      {
-        kind: 'tilak',
-        date: on(-2),
-        time: '11:00',
-        venue: 'Residence, Vasant Kunj',
-        mapsUrl: 'https://www.google.com/maps/place/Vasant+Kunj,+New+Delhi',
-      },
-      {
-        kind: 'haldi',
-        date: on(-1),
-        time: '10:00',
-        venue: 'Grand Pavilion Lawns',
-        mapsUrl: VENUE_MAPS_URL,
-      },
-      {
-        kind: 'mehndi',
-        date: on(-1),
-        time: '15:30',
-        venue: 'Grand Pavilion Courtyard',
-        mapsUrl: VENUE_MAPS_URL,
-      },
-      {
-        kind: 'sangeet',
-        date: on(-1),
-        time: '19:30',
-        venue: 'Grand Pavilion Banquet',
-        mapsUrl: VENUE_MAPS_URL,
-      },
-      {
-        kind: 'reception',
-        date: on(1),
-        time: '20:30',
-        venue: 'Grand Pavilion Lawns',
-        mapsUrl: VENUE_MAPS_URL,
-      },
-    ],
+    venueName: venues.venueName,
+    venueCity: venues.venueCity,
+    venueMapsUrl: venues.venueMapsUrl,
+    functions: FUNCTION_KINDS.map((kind) => ({
+      kind,
+      date: addDays(weddingDate, FUNCTION_TIMES[kind].day),
+      time: FUNCTION_TIMES[kind].time,
+      venue: venues.functions[kind].venue,
+      mapsUrl: venues.functions[kind].mapsUrl,
+    })),
   };
 }
 

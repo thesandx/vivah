@@ -13,6 +13,7 @@ import { parseDemoUploadKind, parseSiteVideoSlot } from '@/lib/demo-video';
 import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
+import { parseSampleVenuesForm } from '@/lib/sample-invite';
 import { ERASE_CONFIRM_WORD, parseEraseIds } from '@/lib/test-data-cleanup';
 import { parseKind } from '@/lib/testimonials';
 import { parseSongSlot } from '@/lib/wedding-songs';
@@ -42,6 +43,7 @@ import {
   removeDemoVideo,
   saveDemoVideo,
 } from '@/services/demo-video.service';
+import { resetSampleVenues, saveSampleVenues } from '@/services/sample-invite.service';
 import {
   createStepImageUpload,
   resetStepImage,
@@ -522,4 +524,19 @@ export async function saveRibbonAction(_state: ActionState, form: FormData): Pro
 
 export async function hideRibbonAction(): Promise<ActionState> {
   return run('ribbon-hide', 'home-ribbon', (uid) => saveRibbon(null, uid));
+}
+
+/** Saves the sample invite's venues, names, addresses and map links. */
+export async function saveSampleVenuesAction(
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const parsed = parseSampleVenuesForm(form);
+  if (!parsed.ok) return { status: 'error', message: parsed.message };
+  return run('sample-venues', 'sample-invite', (uid) => saveSampleVenues(parsed.venues, uid));
+}
+
+/** Puts the sample invite's default Delhi venues back. */
+export async function resetSampleVenuesAction(): Promise<ActionState> {
+  return run('sample-venues-reset', 'sample-invite', (uid) => resetSampleVenues(uid));
 }

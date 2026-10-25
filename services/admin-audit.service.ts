@@ -54,6 +54,8 @@ export const ADMIN_ACTIONS = [
   'coupon-turned-on',
   'coupon-turned-off',
   'ribbon-changed',
+  'sample-venues-changed',
+  'sample-venues-reset',
 ] as const;
 
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];
