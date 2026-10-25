@@ -27,6 +27,16 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getByText('Chhatarpur, New Delhi')).toBeInTheDocument();
   });
 
+  it('shows the groom first, in the names, the RSVP and the sign-off, when chosen', () => {
+    render(<ShubhVivahInvite {...full} nameOrder="groom-first" />);
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Sandeep&Anushka');
+    expect(screen.getByText('Sandeep & Anushka')).toBeInTheDocument();
+    const rsvp = screen
+      .getAllByRole('link')
+      .find((link) => link.getAttribute('href')?.startsWith('https://wa.me/'));
+    expect(decodeURIComponent(rsvp?.getAttribute('href') ?? '')).toContain('Hi Sandeep & Anushka');
+  });
+
   it('opens with the Ganesh shloka, as a printed card does', () => {
     render(<ShubhVivahInvite {...full} />);
     expect(screen.getByText('॥ श्री गणेशाय नमः ॥')).toBeInTheDocument();

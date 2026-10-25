@@ -35,6 +35,14 @@ describe('invite link preview', () => {
     );
   });
 
+  it('puts the groom first in the card when the couple chose it', () => {
+    const card = inviteMetadata({ ...base, nameOrder: 'groom-first' });
+    expect(card.title).toEqual({ absolute: "Kabir & Sara's Wedding Invitation | 9 March" });
+    expect(card.description).toBe(
+      'You are invited to the wedding of Kabir and Sara on Monday, 9 March 2026.',
+    );
+  });
+
   it('uses the couple host, or the internal path without routing', () => {
     expect(inviteOrigin('sara', 'vivah.online', 'https://app.example')).toBe(
       'https://sara.vivah.online',

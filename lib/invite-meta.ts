@@ -11,6 +11,7 @@
 
 import type { Metadata } from 'next';
 
+import { coupleNames, type NameOrder, orderedNames } from '@/lib/couple-names';
 import { encodeGuestSegment, guestPath } from '@/lib/guest-name';
 import type { LinkPreviewCard } from '@/lib/link-preview-page';
 import { inviteUrl } from '@/lib/site-host';
@@ -23,6 +24,8 @@ export interface InviteMetaInput {
   slug: string;
   bride: string;
   groom: string;
+  /** Whose name comes first. Absent: the bride's. */
+  nameOrder?: NameOrder | undefined;
   weddingDate: string | null;
   /** The parsed guest name, or `null` for the couple's plain link. */
   guestName: string | null;
@@ -59,22 +62,25 @@ export function ogImageUrl(input: InviteMetaInput): string {
   return `${host}/api/og/${input.slug}${query}`;
 }
 
-/** `Radha & Shyam's Wedding Invitation | 9 March`. */
-export function inviteTitle(bride: string, groom: string, weddingDate: string | null): string {
-  const base = `${bride} & ${groom}'s Wedding Invitation`;
+/**
+ * `Radha & Shyam's Wedding Invitation | 9 March`. The names come in the
+ * couple's order: `orderedNames` gives them.
+ */
+export function inviteTitle(first: string, second: string, weddingDate: string | null): string {
+  const base = `${first} & ${second}'s Wedding Invitation`;
   return weddingDate === null ? base : `${base} | ${formatShortWeddingDate(weddingDate)}`;
 }
 
 /** `Hi Neha, you are invited to the wedding of Radha and Shyam on …`. */
 export function inviteDescription(
-  bride: string,
-  groom: string,
+  first: string,
+  second: string,
   weddingDate: string | null,
   guestName: string | null,
 ): string {
   const greeting = guestName === null ? 'You are' : `Hi ${guestName}, you are`;
   const day = weddingDate === null ? '' : ` on ${formatWeddingDate(weddingDate)}`;
-  return `${greeting} invited to the wedding of ${bride} and ${groom}${day}.`;
+  return `${greeting} invited to the wedding of ${first} and ${second}${day}.`;
 }
 
 /** The card a link-preview fetcher sees for an invite. */
@@ -86,16 +92,17 @@ export function inviteCard(input: InviteMetaInput): LinkPreviewCard {
       : input.guestSegment === undefined
         ? `${origin}${guestPath(input.guestName)}`
         : `${origin}/${encodeGuestSegment(input.guestSegment)}`;
+  const [first, second] = orderedNames(input);
   return {
-    title: inviteTitle(input.bride, input.groom, input.weddingDate),
-    description: inviteDescription(input.bride, input.groom, input.weddingDate, input.guestName),
+    title: inviteTitle(first, second, input.weddingDate),
+    description: inviteDescription(first, second, input.weddingDate, input.guestName),
     url,
     siteName: 'vivah.online',
     image: {
       url: ogImageUrl(input),
       width: OG_IMAGE_WIDTH,
       height: OG_IMAGE_HEIGHT,
-      alt: `Wedding invitation of ${input.bride} and ${input.groom}`,
+      alt: `Wedding invitation of ${coupleNames(input, 'and')}`,
     },
   };
 }

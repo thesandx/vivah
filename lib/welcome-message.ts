@@ -1,4 +1,5 @@
 import { BUSINESS } from '@/lib/business';
+import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { formatPhoneForDisplay } from '@/lib/phone';
 
 /**
@@ -11,6 +12,8 @@ import { formatPhoneForDisplay } from '@/lib/phone';
 export interface WelcomeInput {
   bride: string;
   groom: string;
+  /** Whose name comes first. Absent: the bride's. */
+  nameOrder?: NameOrder | undefined;
   slug: string;
   /** E.164. Shown to the couple as their own sign-in number. */
   phoneE164: string;
@@ -18,10 +21,11 @@ export interface WelcomeInput {
   origin: string;
 }
 
-export function welcomeMessage({ bride, groom, slug, phoneE164, origin }: WelcomeInput): string {
+export function welcomeMessage(input: WelcomeInput): string {
+  const { slug, phoneE164, origin } = input;
   const site = `https://${slug}.${new URL(origin).host}`;
   return [
-    `Congratulations ${bride} & ${groom}! 🎉💍`,
+    `Congratulations ${coupleNames(input)}! 🎉💍`,
     '',
     'Your personal wedding site is live now ✨',
     `👉 ${site}`,

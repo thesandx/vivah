@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import type { Transaction } from '@google-cloud/firestore';
 import { z } from 'zod';
 
+import { NAME_ORDERS } from '@/lib/couple-names';
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
 import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
@@ -91,6 +92,12 @@ export const weddingSchema = z.object({
    * no "Wedding Festivities" section.
    */
   functions: weddingFunctionsSchema.optional(),
+  /**
+   * Whose name the invite shows first, chosen in the dashboard or by an
+   * admin. Optional: absent means the bride's name first, so no backfill.
+   * The slug never follows it: links already shared must keep working.
+   */
+  nameOrder: z.enum(NAME_ORDERS).optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;
@@ -358,6 +365,7 @@ export function writePublish(
     ...(lead.song !== undefined && { song: lead.song }),
     ...(lead.functions !== undefined &&
       lead.functions.length > 0 && { functions: lead.functions.map(emptyFunction) }),
+    ...(lead.nameOrder !== undefined && { nameOrder: lead.nameOrder }),
   });
   slugClaims
     .inTransaction(tx)

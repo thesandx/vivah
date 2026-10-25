@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/Card';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Input } from '@/components/ui/Input';
 import { formatAdminTime, leadState } from '@/lib/admin-list';
+import { coupleNames } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import {
@@ -106,7 +107,7 @@ export default async function AdminCleanUpPage(): Promise<React.JSX.Element> {
                     name="wedding"
                     value={wedding.id}
                     defaultChecked
-                    label={`${wedding.bride} & ${wedding.groom}`}
+                    label={coupleNames(wedding)}
                     hint={`Was ${wedding.slug} · ${formatPhoneForDisplay(wedding.ownerPhoneE164)} · deleted ${formatAdminTime(wedding.deletedAt ?? wedding.updatedAt)}`}
                   />
                 ))
@@ -124,7 +125,7 @@ export default async function AdminCleanUpPage(): Promise<React.JSX.Element> {
                     name="lead"
                     value={lead.id}
                     defaultChecked={choice === 'ticked'}
-                    label={`${lead.bride} & ${lead.groom}`}
+                    label={coupleNames(lead)}
                     hint={`${stateWord(leadState(lead, now))} · ${formatPhoneForDisplay(lead.phoneE164)} · asked ${formatAdminTime(lead.createdAt)}`}
                   />
                 ))
@@ -156,9 +157,7 @@ export default async function AdminCleanUpPage(): Promise<React.JSX.Element> {
                   className="flex flex-col gap-1 p-4 sm:flex-row sm:items-center sm:gap-6"
                 >
                   <span className="flex min-w-0 flex-1 flex-col gap-1">
-                    <span className="font-display break-words">
-                      {lead.bride} &amp; {lead.groom}
-                    </span>
+                    <span className="font-display break-words">{coupleNames(lead)}</span>
                     <span className="text-small text-ink-soft">
                       {lead.weddingSlug ?? ''} · {formatPhoneForDisplay(lead.phoneE164)}
                     </span>

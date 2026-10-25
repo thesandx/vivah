@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { formatAdminTime } from '@/lib/admin-list';
 import { PRICE_FROM_RUPEES } from '@/lib/business';
+import { coupleNames } from '@/lib/couple-names';
 import { discountedPrice, formatRupees, MAX_PERCENT_OFF, usesByCode } from '@/lib/coupons';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
@@ -223,9 +224,7 @@ function CouponList({
                           href={`/admin/previews/${lead.id}`}
                           className="hover:bg-sunken flex flex-col gap-0.5 p-3"
                         >
-                          <span className="font-semibold break-words">
-                            {lead.bride} &amp; {lead.groom}
-                          </span>
+                          <span className="font-semibold break-words">{coupleNames(lead)}</span>
                           <span className="text-small text-ink-soft break-all">
                             {lead.weddingSlug === undefined
                               ? 'Paid, choosing an address'

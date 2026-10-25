@@ -4,6 +4,7 @@ import { Countdown } from '@/components/invite/Countdown';
 import { PetalShower } from '@/components/invite/PetalShower';
 import { SaveTheDateCards } from '@/components/invite/SaveTheDateCards';
 import { WeddingFestivities } from '@/components/invite/WeddingFestivities';
+import { type NameOrder, orderedNames } from '@/lib/couple-names';
 import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-contact';
 import { cn } from '@/lib/utils';
 import {
@@ -38,6 +39,8 @@ import { festivityCards, type WeddingFunction } from '@/lib/wedding-functions';
 export interface ShubhVivahInviteProps {
   bride: string;
   groom: string;
+  /** Whose name comes first. Default: the bride's. */
+  nameOrder?: NameOrder | undefined;
   /** The guest this link was made for, or `null` for the plain link. */
   guestName: string | null;
   /** `YYYY-MM-DD`, or `null` until the couple adds it. */
@@ -206,6 +209,7 @@ function SectionTitle({
 export function ShubhVivahInvite({
   bride,
   groom,
+  nameOrder,
   guestName,
   weddingDate,
   ceremonyTime,
@@ -221,6 +225,7 @@ export function ShubhVivahInvite({
   functions = [],
   className,
 }: ShubhVivahInviteProps) {
+  const [first, second] = orderedNames({ bride, groom, nameOrder });
   const mapsUrl = venueMapsUrl !== null && isGoogleMapsUrl(venueMapsUrl) ? venueMapsUrl : null;
   const parts = weddingDate === null ? null : weddingDateParts(weddingDate);
   const time = ceremonyTime === null ? null : formatWeddingTime(ceremonyTime);
@@ -236,11 +241,11 @@ export function ShubhVivahInvite({
     weddingDate === null
       ? null
       : addToCalendarUrl({
-          title: `${bride} & ${groom}'s wedding`,
+          title: `${first} & ${second}'s wedding`,
           isoDate: weddingDate,
           time: ceremonyTime,
           location: location === '' ? null : location,
-          details: `Join us as ${bride} and ${groom} begin their forever.`,
+          details: `Join us as ${first} and ${second} begin their forever.`,
         });
 
   return (
@@ -273,7 +278,7 @@ export function ShubhVivahInvite({
             {guestName !== null && <p className="jewel-dear">Dear {guestName},</p>}
             <p className="jewel-withhearts">With hearts full of joy, we</p>
             <h1 className="flex flex-col items-center gap-0.5">
-              <span className="jewel-name jewel-foil-light">{bride}</span>
+              <span className="jewel-name jewel-foil-light">{first}</span>
               <span className="text-jewel-sindoor flex items-center gap-3.5">
                 <svg viewBox="0 0 40 20" aria-hidden="true" className="w-8.5 opacity-90">
                   <path d="M2 10h12" stroke="currentColor" strokeWidth="1.3" fill="none" />
@@ -283,7 +288,7 @@ export function ShubhVivahInvite({
                   <path d="M26 10h12" stroke="currentColor" strokeWidth="1.3" fill="none" />
                 </svg>
               </span>
-              <span className="jewel-name jewel-foil-light">{groom}</span>
+              <span className="jewel-name jewel-foil-light">{second}</span>
             </h1>
             <p className="jewel-invite-line">invite you to our wedding</p>
             {/* With a date, the day waits under the scratch cards below. */}
@@ -438,7 +443,7 @@ export function ShubhVivahInvite({
               {/* Sticky on a phone, so the RSVP stays in reach while the guest
                   scrolls (PRD). In place from md up. */}
               <a
-                href={rsvpWhatsAppUrl(rsvpPhoneE164, bride, groom, guestName, rsvpMessage)}
+                href={rsvpWhatsAppUrl(rsvpPhoneE164, first, second, guestName, rsvpMessage)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
@@ -493,7 +498,7 @@ export function ShubhVivahInvite({
             </p>
             <p className="jewel-withlove">With love</p>
             <p className="jewel-sign jewel-foil-dark">
-              {bride} &amp; {groom}
+              {first} &amp; {second}
             </p>
             {/* Small and quiet on purpose (PRD): the couple's invite is the
                 hero, and a credit they would pay to remove helps nobody. */}

@@ -35,6 +35,7 @@ export const ADMIN_ACTIONS = [
   'preview-restored',
   'preview-song-changed',
   'preview-functions-changed',
+  'preview-name-order-changed',
   'test-data-erased',
   'home-image-changed',
   'home-image-reset',

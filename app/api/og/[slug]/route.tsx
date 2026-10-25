@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import { ImageResponse } from 'next/og';
 
+import { orderedNames } from '@/lib/couple-names';
 import { parseGuestName } from '@/lib/guest-name';
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from '@/lib/invite-meta';
 import { drawableInLatinFonts, INVITE_PALETTE } from '@/lib/invite-palette';
@@ -99,8 +100,9 @@ export async function GET(
     const raw = new URL(request.url).searchParams.get('guest');
     const parsed = raw === null ? null : parseGuestName(raw);
     const guest = parsed !== null && drawableInLatinFonts(parsed) ? parsed : null;
-    const showNames = drawableInLatinFonts(`${wedding.bride} & ${wedding.groom}`);
-    const size = nameSize(wedding.bride, wedding.groom);
+    const [first, second] = orderedNames(wedding);
+    const showNames = drawableInLatinFonts(`${first} & ${second}`);
+    const size = nameSize(first, second);
     const { art, regular, bold, heavy } = await loadAssets();
 
     const line = { display: 'flex', justifyContent: 'center', textAlign: 'center' } as const;
@@ -154,7 +156,7 @@ export async function GET(
           </div>
           {showNames && (
             <div style={{ display: 'flex', flexDirection: 'column', marginTop: 30 }}>
-              <div style={name}>{wedding.bride}</div>
+              <div style={name}>{first}</div>
               <div
                 style={{
                   ...line,
@@ -166,7 +168,7 @@ export async function GET(
               >
                 &
               </div>
-              <div style={name}>{wedding.groom}</div>
+              <div style={name}>{second}</div>
             </div>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 26 }}>

@@ -12,6 +12,7 @@
  * WhatsApp on Android shows no link preview when more text follows the link.
  */
 
+import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { buildCoupleSlug } from '@/lib/couple-slug';
 import { daysUntil, todayInIndia } from '@/lib/wedding-date';
 
@@ -63,6 +64,8 @@ export function nudgeLabel(status: NudgeStatus): string | null {
 export interface NudgeInput {
   bride: string;
   groom: string;
+  /** Whose name comes first in the greeting. Absent: the bride's. */
+  nameOrder?: NameOrder | undefined;
   /** The preview link, `https://vivah.online/p/<id>`. */
   link: string;
   /** The root domain, `vivah.online`, for the couple's address on day 6. */
@@ -82,7 +85,7 @@ export const NUDGE_TOPICS: readonly string[] = [
 
 /** The message for one day (1 to 7). Throws for any other day. */
 export function nudgeMessage(day: number, input: NudgeInput): string {
-  const hello = `Namaste ${input.bride} & ${input.groom} 🙏`;
+  const hello = `Namaste ${coupleNames(input)} 🙏`;
   const sign = 'Team Vivah 💛';
   const slug = buildCoupleSlug(input.bride, input.groom);
   const address = slug === null ? 'Your own vivah.online address' : `${slug}.${input.rootDomain}`;
@@ -101,6 +104,8 @@ export function nudgeMessage(day: number, input: NudgeInput): string {
 }
 
 /** The message after the admin reactivates a preview the couple asked to open. */
-export function openAgainMessage(input: Pick<NudgeInput, 'bride' | 'groom' | 'link'>): string {
-  return `Namaste ${input.bride} & ${input.groom} 🙏✨\nYour invite is open again 💌 It stays open for 30 minutes. Love it? Pay and make it yours 💍 Tap "Pay and publish" at the bottom, then share it with all your guests 🎉\nTeam Vivah 💛\n\n${input.link}`;
+export function openAgainMessage(
+  input: Pick<NudgeInput, 'bride' | 'groom' | 'nameOrder' | 'link'>,
+): string {
+  return `Namaste ${coupleNames(input)} 🙏✨\nYour invite is open again 💌 It stays open for 30 minutes. Love it? Pay and make it yours 💍 Tap "Pay and publish" at the bottom, then share it with all your guests 🎉\nTeam Vivah 💛\n\n${input.link}`;
 }

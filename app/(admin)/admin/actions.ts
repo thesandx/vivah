@@ -8,6 +8,7 @@ import type { FunctionsSaveState } from '@/components/dashboard/FunctionsForm';
 import type { SongSaveResult } from '@/components/dashboard/SongPicker';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
 import type { UploadStart } from '@/hooks/useImageUpload';
+import { parseNameOrder } from '@/lib/couple-names';
 import { parseDemoUploadKind, parseSiteVideoSlot } from '@/lib/demo-video';
 import { parseStep } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
@@ -18,6 +19,7 @@ import { parseSongSlot } from '@/lib/wedding-songs';
 import {
   type AdminResult,
   changePreviewFunctions,
+  changePreviewNameOrder,
   changePreviewSong,
   changeWeddingAddress,
   changeWeddingPhone,
@@ -159,6 +161,17 @@ export async function changePreviewFunctionsAction(
 ): Promise<ActionState> {
   const kinds = form.getAll('functions');
   return run('preview-functions', id, (uid) => changePreviewFunctions(id, kinds, uid));
+}
+
+/** Sets whose name a preview shows first, and its live invite's when paid. */
+export async function changePreviewNameOrderAction(
+  id: string,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const nameOrder = parseNameOrder(text(form, 'nameOrder'));
+  if (nameOrder === null) return { status: 'error', message: 'Choose whose name comes first.' };
+  return run('preview-name-order', id, (uid) => changePreviewNameOrder(id, nameOrder, uid));
 }
 
 export async function changeWeddingPhoneAction(

@@ -26,6 +26,7 @@ import { Card } from '@/components/ui/Card';
 import { ContactLink } from '@/components/ui/ContactLink';
 import { formatAdminTime, weddingState } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
+import { coupleNames } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref, inviteUrl } from '@/lib/site-host';
@@ -68,14 +69,14 @@ export default async function AdminInvitePage({
   const link =
     env.rootDomain === '' ? inviteHref(wedding.slug, '') : inviteUrl(wedding.slug, env.rootDomain);
   // The link goes last, so WhatsApp shows its preview (see the previews page).
-  const message = `Hi ${wedding.bride} & ${wedding.groom}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
+  const message = `Hi ${coupleNames(wedding)}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
   const deleted = wedding.deletedAt !== null;
   const restore = deleted ? await restoreChoice(wedding) : null;
 
   return (
     <>
       <AppBar
-        title={`${wedding.bride} & ${wedding.groom}`}
+        title={coupleNames(wedding)}
         back={
           deleted
             ? { fallbackHref: '/admin?view=deleted', label: 'Back to deleted invites' }
@@ -157,6 +158,7 @@ export default async function AdminInvitePage({
               initial={{
                 bride: wedding.bride,
                 groom: wedding.groom,
+                nameOrder: wedding.nameOrder ?? 'bride-first',
                 weddingDate: wedding.weddingDate ?? '',
                 ceremonyTime: wedding.ceremonyTime ?? '',
                 venueName: wedding.venueName ?? '',
