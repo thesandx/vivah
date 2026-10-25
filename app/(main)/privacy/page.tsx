@@ -96,6 +96,10 @@ export default function PrivacyPage() {
             amount. It does not get your names or your number.
           </li>
           <li>
+            Meta (Facebook and Instagram ads). It learns that a visit from our ad led to a preview
+            or a payment, and the amount. It does not get your names or your number.
+          </li>
+          <li>
             Telegram, which tells our team that you made a preview, so we can send it to your
             WhatsApp. It gets your names, wedding date and WhatsApp number.
           </li>
@@ -151,10 +155,10 @@ export default function PrivacyPage() {
         <h2>9. Cookies</h2>
         <p>
           We set one cookie to keep you signed in to your dashboard, and one to keep your preview on
-          the phone that opened it. Google Ads also sets a cookie on our site and preview pages. It
-          tells us which of our ads led to a preview or a payment. We use no analytics cookies and
-          no remarketing. Our own home page measurement sets no cookie. You can block or delete
-          cookies in your browser settings. Invite pages your guests open set no cookies.
+          the phone that opened it. Google Ads and Meta also set cookies on our site and preview
+          pages. They tell us which of our ads led to a preview or a payment. We use no analytics
+          cookies and no remarketing. Our own home page measurement sets no cookie. You can block or
+          delete cookies in your browser settings. Invite pages your guests open set no cookies.
         </p>
       </section>
 

@@ -59,7 +59,7 @@ The server would upload each paid lead's `gclid`. It counts payments in every br
 
 - Purchases per month pass about 50. Then automate the `gclid` upload through the Google Ads API (Option C).
 - We run ads outside India, or India's DPDP rules start to cover cookies. Then add a consent banner (Option B).
-- We add analytics (GA4) or another ad platform.
+- We add analytics (GA4) or another ad platform. ([ADR-0017](./0017-measure-meta-ads-conversions.md) adds the Meta Pixel on the same terms.)
 
 ## References
 
