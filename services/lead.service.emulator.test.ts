@@ -88,6 +88,15 @@ describeEmulator('lead.service (emulator)', () => {
     expect(chosen.desiredSlug).toBe('virushka');
     const none = await leads.getOrThrow(await createLead(REQUEST));
     expect(none.desiredSlug).toBeUndefined();
+    expect(chosen.nameOrder).toBeUndefined();
+    expect(none.nameOrder).toBeUndefined();
+  });
+
+  it('puts the groom first when the chosen address starts with his name', async () => {
+    const lead = await leads.getOrThrow(
+      await createLead({ ...REQUEST, bride: 'Priya', groom: 'Rahul', slug: 'rahul-priya' }),
+    );
+    expect(lead.nameOrder).toBe('groom-first');
   });
 
   it('expires the link after 48 hours', async () => {

@@ -4,6 +4,7 @@ import {
   buildCoupleSlug,
   isValidCoupleSlug,
   MAX_SLUG_LENGTH,
+  nameOrderFromSlug,
   slugCandidates,
   slugifyFirstName,
   slugifyName,
@@ -160,5 +161,20 @@ describe('slugProblem', () => {
     ['riya-arjun', 'kept for Vivah'],
   ])('refuses %s', (slug, message) => {
     expect(slugProblem(slug)).toContain(message);
+  });
+});
+
+describe('nameOrderFromSlug', () => {
+  it('reads whose first name the address starts with', () => {
+    expect(nameOrderFromSlug('rahul-priya', 'Priya Sharma', 'Rahul Verma')).toBe('groom-first');
+    expect(nameOrderFromSlug('rahul-weds-priya', 'Priya', 'Rahul')).toBe('groom-first');
+    expect(nameOrderFromSlug('priya-rahul-2', 'Priya', 'Rahul')).toBe('bride-first');
+    expect(nameOrderFromSlug('rahul', 'Priya', 'Rahul')).toBe('groom-first');
+  });
+
+  it('answers null when the address starts with neither name, or with both', () => {
+    expect(nameOrderFromSlug('virushka', 'Anushka', 'Virat')).toBeNull();
+    expect(nameOrderFromSlug('rahulpriya', 'Priya', 'Rahul')).toBeNull();
+    expect(nameOrderFromSlug('aman-aman', 'Aman', 'Aman')).toBeNull();
   });
 });
