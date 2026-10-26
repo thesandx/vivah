@@ -33,6 +33,11 @@ vi.mock('@/services/repository', () => ({
       if (rows.has(id)) throw new Error('exists');
       rows.set(id, { ...payload, deletedAt: null });
     },
+    async update(id: string, patch: Partial<FakeSession>) {
+      const row = rows.get(id);
+      if (row === undefined) throw new Error('missing');
+      Object.assign(row, patch);
+    },
     async softDelete(id: string) {
       const row = rows.get(id);
       if (row !== undefined) row.deletedAt = new Date();
@@ -161,10 +166,35 @@ describe('the admin sign-in', () => {
     ).rejects.toThrow(/expired/);
   });
 
-  it('ends the session after 12 hours, or at sign-out', async () => {
+  it('keeps the session while the admin visits, and ends it after 90 idle days', async () => {
+    const DAY = 24 * 3_600_000;
+    const pending = await startAdminSignIn(google(), NOW);
+    const { token, maxAgeSeconds } = await finishAdminSignIn(pending.token, phone(), NOW);
+    // The cookie outlives the server session, so the server alone ends it.
+    expect(maxAgeSeconds).toBeGreaterThan(90 * 24 * 3_600);
+
+    // A visit every 60 days keeps the admin signed in for a year.
+    for (let day = 60; day <= 360; day += 60) {
+      expect(await verifyAdminSession(token, new Date(NOW.getTime() + day * DAY))).not.toBeNull();
+    }
+    // 91 days with no visit ends it.
+    expect(await verifyAdminSession(token, new Date(NOW.getTime() + 451 * DAY))).toBeNull();
+  });
+
+  it('renews at most once a day', async () => {
     const pending = await startAdminSignIn(google(), NOW);
     const { token } = await finishAdminSignIn(pending.token, phone(), NOW);
-    expect(await verifyAdminSession(token, new Date(NOW.getTime() + 13 * 3_600_000))).toBeNull();
+    const row = [...rows.values()].find((r) => r.step === 'active' && r.deletedAt === null);
+    const before = row?.expiresAt.getTime();
+    await verifyAdminSession(token, new Date(NOW.getTime() + 3_600_000));
+    expect(row?.expiresAt.getTime()).toBe(before);
+    await verifyAdminSession(token, new Date(NOW.getTime() + 25 * 3_600_000));
+    expect(row?.expiresAt.getTime()).toBeGreaterThan(before ?? Infinity);
+  });
+
+  it('ends the session at sign-out', async () => {
+    const pending = await startAdminSignIn(google(), NOW);
+    const { token } = await finishAdminSignIn(pending.token, phone(), NOW);
 
     await endAdminSession(token);
     expect(await verifyAdminSession(token, NOW)).toBeNull();

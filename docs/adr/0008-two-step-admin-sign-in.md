@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-10-15
 - **Deciders:** Sandeep
+- **Superseded in part by:** [ADR-0018](./0018-keep-the-admin-signed-in-until-sign-out.md) (the session length and the cookie's `SameSite`)
 
 ## Context
 

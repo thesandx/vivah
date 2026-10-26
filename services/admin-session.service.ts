@@ -7,7 +7,9 @@ import { z } from 'zod';
 
 import {
   ADMIN_COOKIE_NAME,
+  ADMIN_COOKIE_SECONDS,
   ADMIN_PENDING_SECONDS,
+  ADMIN_SESSION_RENEW_SECONDS,
   ADMIN_SESSION_SECONDS,
 } from '@/lib/admin-cookie';
 import { env } from '@/lib/env';
@@ -27,6 +29,9 @@ import { createRepository } from '@/services/repository';
  *    phone auth, and posts that ID token. The server checks the number and
  *    that the OTP was entered just now, ends the pending session and opens an
  *    ACTIVE one under a NEW token, so a token seen before step 2 is useless.
+ *
+ * The active session ends at sign-out, or after 90 days with no visit. Each
+ * visit moves the end forward (ADR-0018).
  *
  * Each step is a separate Firebase sign-in. Neither alone opens `/admin`:
  * the Google password without the phone stops at step 2, and the phone
@@ -183,7 +188,7 @@ export async function finishAdminSignIn(
     detail: 'Signed in with Google and an OTP.',
     adminUid: pending.uid,
   });
-  return { token, maxAgeSeconds: ADMIN_SESSION_SECONDS };
+  return { token, maxAgeSeconds: ADMIN_COOKIE_SECONDS };
 }
 
 /** The active admin session for a cookie token, or `null`. */
@@ -196,7 +201,25 @@ export async function verifyAdminSession(
   const session = await adminSessions.get(sessionId);
   if (session === null || session.step !== 'active') return null;
   if (session.expiresAt.getTime() <= now.getTime()) return null;
+  await renewAdminSession(sessionId, session.expiresAt, now);
   return { uid: session.uid, sessionId };
+}
+
+/**
+ * Moves the end of an active session to 90 days from now, at most once a day.
+ * A failed renewal is logged and ignored: the session is still valid until
+ * its current end, so the admin must not be signed out because of it.
+ */
+async function renewAdminSession(sessionId: string, expiresAt: Date, now: Date): Promise<void> {
+  const renewed = new Date(now.getTime() + ADMIN_SESSION_SECONDS * 1000);
+  if (renewed.getTime() - expiresAt.getTime() < ADMIN_SESSION_RENEW_SECONDS * 1000) return;
+  try {
+    await adminSessions.update(sessionId, { expiresAt: renewed });
+  } catch (error) {
+    logger.warn('Renewing the admin session failed', {
+      reason: error instanceof Error ? error.name : 'unknown',
+    });
+  }
 }
 
 /** Whether this browser has passed the Google step and waits for the OTP. */

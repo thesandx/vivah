@@ -171,7 +171,7 @@ The dashboard needs phone sign-in enabled in Firebase, with an SMS region policy
 The admin dashboard lives at `vivah.online/admin`. Nothing on the site links to it. The decision is [ADR-0008](./adr/0008-two-step-admin-sign-in.md).
 
 - **Two steps, each a separate Firebase sign-in.** Step 1 is Google, with the account in `ADMIN_EMAIL`. Step 2 is an OTP to `ADMIN_PHONE`. `services/admin-session.service.ts` checks both ID tokens on the server.
-- **Its own cookie.** The admin session is the `vivah_admin` cookie, not `__session`. Firestore keeps the SHA-256 of its token in `adminSessions`. A session lasts 12 hours. The Google step is good for 10 minutes.
+- **Its own cookie.** The admin session is the `vivah_admin` cookie, not `__session`. Firestore keeps the SHA-256 of its token in `adminSessions`. A session ends at sign-out, or after 90 days with no visit; each visit moves the end forward. The cookie is `SameSite=Lax`, so a link from the Telegram alert opens the page signed in. The Google step is good for 10 minutes. See [ADR-0018](./adr/0018-keep-the-admin-signed-in-until-sign-out.md).
 - **`requireAdmin()` gates every admin write.** It is the first line of every Server Action in `app/(admin)/admin/actions.ts`.
 - **Every change goes to the audit log,** in `adminAudit`. The entry names the record, never a phone number or an email address.
 - **Off unless configured.** With `ADMIN_EMAIL` or `ADMIN_PHONE` unset, `/admin` is a 404.
