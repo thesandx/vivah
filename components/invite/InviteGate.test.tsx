@@ -122,6 +122,24 @@ describe('InviteGate', () => {
     expect(after.defaultPrevented).toBe(false);
   });
 
+  it('lets a swipe reach the page around it when it is in a frame', () => {
+    vi.spyOn(window, 'top', 'get').mockReturnValue({} as Window);
+    renderGate();
+    expect(document.documentElement.style.overflow).toBe('hidden');
+    expect(document.documentElement.style.overscrollBehavior).toBe('');
+    const move = new Event('touchmove', { cancelable: true });
+    document.dispatchEvent(move);
+    expect(move.defaultPrevented).toBe(false);
+    expect(screen.getByRole('button', { name: /tap to open/i })).not.toHaveClass('touch-none');
+
+    fireEvent.click(screen.getByRole('button', { name: /tap to open/i }));
+    act(() => {
+      vi.advanceTimersByTime(1500);
+    });
+    expect(screen.getByRole('heading', { name: 'The invite' })).toBeInTheDocument();
+    expect(document.documentElement.style.overflow).toBe('');
+  });
+
   it('opens only on a tap, never on a swipe or a wheel', () => {
     renderGate();
     const gate = screen.getByRole('button', { name: /tap to open/i });

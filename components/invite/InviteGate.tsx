@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { GaneshCover } from '@/components/invite/GaneshCover';
 import { SoundButton } from '@/components/invite/SoundButton';
@@ -36,6 +36,11 @@ import { cn } from '@/lib/utils';
  * While the card is up, the page behind it cannot scroll: a guest who swiped
  * at the card used to open the invite half way down. The page is held at the
  * top, and only a tap opens it: a swipe on the card does nothing.
+ *
+ * Inside a frame (the live sample in the phone on the home page) the card
+ * does not hold the swipe. There the swipe belongs to the home page: a
+ * visitor who swipes over the phone scrolls past it, and a tap still opens
+ * the invite. `overflow: hidden` alone keeps the invite behind the card still.
  */
 
 /** How long the opening runs: the card's lift ends at 40 + 1300 ms. */
@@ -61,6 +66,20 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+function subscribeToNothing(): () => void {
+  return () => {};
+}
+
+/** True when the page shows inside another page's frame. It never changes. */
+function useInFrame(): boolean {
+  return useSyncExternalStore(
+    subscribeToNothing,
+    () => window.self !== window.top,
+    // The server cannot know. The card holds the swipe until hydration.
+    () => false,
+  );
+}
+
 export function InviteGate({
   guestName,
   couple,
@@ -73,6 +92,7 @@ export function InviteGate({
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const started = useRef(false);
+  const framed = useInFrame();
   const locked = phase !== 'open';
 
   // Start at the top. A browser that restores the scroll position on a
@@ -84,12 +104,19 @@ export function InviteGate({
 
   // Hold the page still behind the card. `overflow: hidden` on the root stops
   // the wheel and the keyboard; the touchmove block stops iOS, which scrolls
-  // the page under a fixed layer whatever the root's overflow says.
+  // the page under a fixed layer whatever the root's overflow says. In a
+  // frame, the swipe must reach the page around it, so neither the block nor
+  // `overscroll-behavior: none` (which stops a scroll leaving the frame) apply.
   useEffect(() => {
     if (!locked) return;
     const root = document.documentElement;
     const previous = { overflow: root.style.overflow, overscroll: root.style.overscrollBehavior };
     root.style.overflow = 'hidden';
+    if (framed) {
+      return () => {
+        root.style.overflow = previous.overflow;
+      };
+    }
     root.style.overscrollBehavior = 'none';
     const block = (event: TouchEvent) => {
       if (event.cancelable) event.preventDefault();
@@ -100,7 +127,7 @@ export function InviteGate({
       root.style.overscrollBehavior = previous.overscroll;
       document.removeEventListener('touchmove', block);
     };
-  }, [locked]);
+  }, [locked, framed]);
 
   useEffect(() => {
     if (phase !== 'opening') return;
@@ -207,7 +234,10 @@ export function InviteGate({
           onClick={open}
           disabled={opening}
           aria-label={`${greeting}. Please tap to open your invitation from ${couple}`}
-          className="fixed inset-0 z-50 block touch-none overflow-hidden overscroll-none select-none"
+          className={cn(
+            'fixed inset-0 z-50 block overflow-hidden select-none',
+            !framed && 'touch-none overscroll-none',
+          )}
         >
           <span
             aria-hidden="true"
