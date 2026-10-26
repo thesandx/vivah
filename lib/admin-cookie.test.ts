@@ -3,13 +3,13 @@ import { describe, expect, it } from 'vitest';
 import { ADMIN_COOKIE_NAME, adminCookie, clearedAdminCookie, maskPhone } from '@/lib/admin-cookie';
 
 describe('admin cookie', () => {
-  it('is httpOnly and strict, and never named __session', () => {
+  it('is httpOnly and lax, so a link from the Telegram alert keeps it, and never named __session', () => {
     const cookie = adminCookie('token', 600, true);
     expect(cookie).toMatchObject({
       name: ADMIN_COOKIE_NAME,
       httpOnly: true,
       secure: true,
-      sameSite: 'strict',
+      sameSite: 'lax',
       path: '/',
       maxAge: 600,
     });

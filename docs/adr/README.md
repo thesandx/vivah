@@ -49,3 +49,4 @@ Do **not** write one for a routine choice with an obvious answer. An ADR per pul
 | [0015](./0015-take-coupon-codes-at-payment.md)                | Take coupon codes at payment, priced on the server                    | Accepted |
 | [0016](./0016-erase-test-data-from-admin.md)                  | Erase test data from the admin dashboard                              | Accepted |
 | [0017](./0017-measure-meta-ads-conversions.md)                | Measure Meta ads conversions with a minimal Meta Pixel                | Accepted |
+| [0018](./0018-keep-the-admin-signed-in-until-sign-out.md)     | Keep the admin signed in until sign-out                               | Accepted |
