@@ -24,7 +24,9 @@ import {
   changePreviewNameOrder,
   changePreviewSong,
   changeWeddingAddress,
+  changeWeddingNameOrder,
   changeWeddingPhone,
+  changeWeddingSong,
   deleteLead,
   deleteWedding,
   editWeddingDetails,
@@ -210,6 +212,17 @@ export async function changePreviewNameOrderAction(
   const nameOrder = parseNameOrder(text(form, 'nameOrder'));
   if (nameOrder === null) return { status: 'error', message: 'Choose whose name comes first.' };
   return run('preview-name-order', id, (uid) => changePreviewNameOrder(id, nameOrder, uid));
+}
+
+/** Sets whose name a live invite shows first, and its preview's too. */
+export async function changeWeddingNameOrderAction(
+  id: string,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const nameOrder = parseNameOrder(text(form, 'nameOrder'));
+  if (nameOrder === null) return { status: 'error', message: 'Choose whose name comes first.' };
+  return run('wedding-name-order', id, (uid) => changeWeddingNameOrder(id, nameOrder, uid));
 }
 
 export async function changeWeddingPhoneAction(
@@ -474,6 +487,17 @@ export async function changePreviewSongAction(
   const slot = parseSongSlot(rawSlot);
   if (slot === null) return { ok: false, message: 'Choose one of the songs.' };
   const state = await run('preview-song', id, (uid) => changePreviewSong(id, slot, uid));
+  return { ok: state.status === 'ok', message: state.status === 'idle' ? '' : state.message };
+}
+
+/** Changes a live invite's song, and the song on the preview it was paid from. */
+export async function changeWeddingSongAction(
+  id: string,
+  rawSlot: unknown,
+): Promise<SongSaveResult> {
+  const slot = parseSongSlot(rawSlot);
+  if (slot === null) return { ok: false, message: 'Choose one of the songs.' };
+  const state = await run('wedding-song', id, (uid) => changeWeddingSong(id, slot, uid));
   return { ok: state.status === 'ok', message: state.status === 'idle' ? '' : state.message };
 }
 

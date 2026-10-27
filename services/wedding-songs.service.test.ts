@@ -40,6 +40,7 @@ vi.mock('@/services/repository', () => ({
 
 const {
   createSongUpload,
+  inviteSong,
   listSongOptions,
   removeSong,
   resetSongsCache,
@@ -71,6 +72,27 @@ describe('wedding songs', () => {
     ]);
     expect(await songInSlot(2)).toBeNull();
     expect(await songInSlot(1)).toEqual(KESARIYA);
+  });
+
+  it("plays the couple's song, or else the first on the list, so no invite is silent", async () => {
+    stored = {
+      slot1: null,
+      slot2: { name: 'Tum Hi Ho', file: 'song-2-d.m4a' },
+      slot3: KESARIYA,
+      slot4: null,
+    };
+    expect(await inviteSong(KESARIYA)).toEqual({
+      name: 'Kesariya',
+      src: '/api/songs/song-1-abc.mp3',
+    });
+    expect(await inviteSong(undefined)).toEqual({
+      name: 'Tum Hi Ho',
+      src: '/api/songs/song-2-d.m4a',
+    });
+  });
+
+  it('opens an invite without music when there are no songs to fall back on', async () => {
+    expect(await inviteSong(undefined)).toBeNull();
   });
 
   it('lists nothing before an admin adds a song', async () => {

@@ -46,6 +46,12 @@ export interface WeddingDetailsFormProps {
   inviteHref: string;
   /** Open as the form, not the read-only text. Default: `false`. */
   startEditing?: boolean;
+  /**
+   * Show the name order here. Default: `true`. `/admin` sets it in its own
+   * card, so it passes `false`: two controls for one field on one page
+   * would let a save in one undo the other.
+   */
+  showNameOrder?: boolean;
   className?: string;
 }
 
@@ -86,6 +92,7 @@ export function WeddingDetailsForm({
   save,
   inviteHref,
   startEditing = false,
+  showNameOrder = true,
   className,
 }: WeddingDetailsFormProps): React.JSX.Element {
   const [editing, setEditing] = useState(startEditing);
@@ -115,14 +122,16 @@ export function WeddingDetailsForm({
     return (
       <div className={cn('flex flex-col gap-5', className)}>
         <dl className="grid gap-5 sm:grid-cols-2">
-          {detailRows(initial).map((row) => (
-            <div key={row.label} className="flex flex-col gap-1">
-              <dt className="text-small text-ink-soft">{row.label}</dt>
-              <dd className={cn('break-words', row.value === null && 'text-ink-soft')}>
-                {row.value ?? 'Not added yet'}
-              </dd>
-            </div>
-          ))}
+          {detailRows(initial)
+            .filter((row) => showNameOrder || row.label !== 'Name order')
+            .map((row) => (
+              <div key={row.label} className="flex flex-col gap-1">
+                <dt className="text-small text-ink-soft">{row.label}</dt>
+                <dd className={cn('break-words', row.value === null && 'text-ink-soft')}>
+                  {row.value ?? 'Not added yet'}
+                </dd>
+              </div>
+            ))}
           <div className="flex flex-col gap-1 sm:col-span-2">
             <dt className="text-small text-ink-soft">Google Maps link</dt>
             <dd className="break-all">
@@ -176,14 +185,16 @@ export function WeddingDetailsForm({
           maxLength={60}
           {...error('groom')}
         />
-        <RadioGroup
-          label="Whose name comes first on your invite?"
-          name="nameOrder"
-          options={NAME_ORDER_OPTIONS}
-          defaultValue={parseNameOrder(initial.nameOrder) ?? 'bride-first'}
-          className="sm:col-span-2"
-          {...error('nameOrder')}
-        />
+        {showNameOrder && (
+          <RadioGroup
+            label="Whose name comes first on your invite?"
+            name="nameOrder"
+            options={NAME_ORDER_OPTIONS}
+            defaultValue={parseNameOrder(initial.nameOrder) ?? 'bride-first'}
+            className="sm:col-span-2"
+            {...error('nameOrder')}
+          />
+        )}
         <Input
           label="Wedding date"
           name="weddingDate"

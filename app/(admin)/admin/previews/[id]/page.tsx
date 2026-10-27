@@ -389,6 +389,9 @@ export default async function AdminPreviewPage({
               <p className="text-small text-ink-soft">
                 Whose name the invite shows first. The address stays the same.
                 {wedding !== null && ' The couple has paid, so the live invite changes too.'}
+                {currentSong === null &&
+                  songs[0] !== undefined &&
+                  ` None chosen yet, so it plays ${songs[0].name}, the first song on the list.`}
               </p>
               <AdminActionForm
                 action={changePreviewNameOrderAction.bind(null, lead.id)}

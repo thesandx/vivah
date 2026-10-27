@@ -5,6 +5,7 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
 import { SITE_CONTENT_COLLECTION } from '@/lib/how-it-works';
+import { logger } from '@/lib/logger';
 import { isTmpPath, parseObjectPath, TMP_PREFIX } from '@/lib/storage-paths';
 import { withTimeout } from '@/lib/utils';
 import {
@@ -99,6 +100,26 @@ export async function listSongOptions(): Promise<SongOption[]> {
     const song = songs[key(slot)];
     return song === null ? [] : [{ slot, name: song.name, src: songUrl(song.file) }];
   });
+}
+
+/**
+ * The song an invite plays: the one the couple chose, or else the first on
+ * the admin's list, so no preview or invite is ever silent. The fallback is
+ * read, not stored: the couple's own choice still wins the moment they make
+ * one. A failed list read gives `null`, and the invite opens without music
+ * rather than failing.
+ */
+export async function inviteSong(
+  chosen: ChosenSong | undefined,
+): Promise<{ name: string; src: string } | null> {
+  if (chosen !== undefined) return { name: chosen.name, src: songUrl(chosen.file) };
+  try {
+    const [first] = await listSongOptions();
+    return first === undefined ? null : { name: first.name, src: first.src };
+  } catch (error) {
+    logger.error('Reading the songs for an invite failed', error);
+    return null;
+  }
 }
 
 /** The song in `slot` now, to copy onto a lead, or `null` when the slot is empty. */

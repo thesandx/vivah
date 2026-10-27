@@ -28,6 +28,30 @@ describe('WeddingDetailsForm', () => {
     expect(screen.getByLabelText('Venue name')).toHaveValue('');
   });
 
+  it('leaves the name order out when the page sets it in its own card', () => {
+    const { unmount } = render(
+      <WeddingDetailsForm
+        initial={INITIAL}
+        save={vi.fn()}
+        inviteHref="/site/a"
+        showNameOrder={false}
+      />,
+    );
+    expect(screen.queryByText('Name order')).toBeNull();
+    unmount();
+    render(
+      <WeddingDetailsForm
+        initial={INITIAL}
+        save={vi.fn()}
+        inviteHref="/site/a"
+        showNameOrder={false}
+        startEditing
+      />,
+    );
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    expect(screen.queryByText('Whose name comes first on your invite?')).toBeNull();
+  });
+
   it('tidies a name the moment its field loses focus', () => {
     render(
       <WeddingDetailsForm initial={INITIAL} save={vi.fn()} inviteHref="/site/a" startEditing />,

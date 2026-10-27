@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation';
 
 import {
   changeWeddingAddressAction,
+  changeWeddingNameOrderAction,
   changeWeddingPhoneAction,
+  changeWeddingSongAction,
   deleteWeddingAction,
   pauseWeddingAction,
   releaseAddressAction,
@@ -21,24 +23,31 @@ import { CopyButton } from '@/components/admin/CopyButton';
 import { StateBadge } from '@/components/admin/StateBadge';
 import { FamiliesForm } from '@/components/dashboard/FamiliesForm';
 import { FunctionsForm } from '@/components/dashboard/FunctionsForm';
+import { SongPicker } from '@/components/dashboard/SongPicker';
 import { WeddingDetailsForm } from '@/components/dashboard/WeddingDetailsForm';
 import { AppBar } from '@/components/layout/AppBar';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ContactLink } from '@/components/ui/ContactLink';
+import { RadioGroup } from '@/components/ui/RadioGroup';
 import { formatAdminTime, weddingState } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
-import { coupleNames } from '@/lib/couple-names';
+import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
+import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref, inviteUrl } from '@/lib/site-host';
+import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { getWeddingForAdmin, weddingHoldsAddress } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
+import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
- * do to it: edit the details, the families and the functions, change the number or the address, make it unavailable,
+ * do to it: edit the details, the name order, the families, the functions and
+ * the song,
+ * change the number or the address, make it unavailable,
  * delete (which frees the address), restore at any free address, and send
  * the link to the couple.
  *
@@ -73,7 +82,15 @@ export default async function AdminInvitePage({
   // The link goes last, so WhatsApp shows its preview (see the previews page).
   const message = `Hi ${coupleNames(wedding)}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
   const deleted = wedding.deletedAt !== null;
-  const restore = deleted ? await restoreChoice(wedding) : null;
+  const [restore, songs] = await Promise.all([
+    deleted ? restoreChoice(wedding) : null,
+    deleted ? [] : songOptions(),
+  ]);
+  const currentSong = wedding.song ?? null;
+  const currentSlot =
+    currentSong === null
+      ? null
+      : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
 
   return (
     <>
@@ -157,6 +174,7 @@ export default async function AdminInvitePage({
             <WeddingDetailsForm
               save={saveWeddingDetailsAsAdmin.bind(null, wedding.id)}
               inviteHref={inviteHref(wedding.slug, env.rootDomain)}
+              showNameOrder={false}
               initial={{
                 bride: wedding.bride,
                 groom: wedding.groom,
@@ -169,6 +187,30 @@ export default async function AdminInvitePage({
               }}
             />
           </Card>
+
+          {!deleted && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Name order</h2>
+              <p className="text-small text-ink-soft">
+                Whose name the invite shows first. The address stays the same. The preview it was
+                paid from changes too.
+              </p>
+              <AdminActionForm
+                action={changeWeddingNameOrderAction.bind(null, wedding.id)}
+                label="Save name order"
+              >
+                <RadioGroup
+                  label="Show first"
+                  name="nameOrder"
+                  options={NAME_ORDERS.map((order) => ({
+                    value: order,
+                    label: `${NAME_ORDER_LABELS[order]}: ${coupleNames({ ...wedding, nameOrder: order })}`,
+                  }))}
+                  defaultValue={wedding.nameOrder ?? 'bride-first'}
+                />
+              </AdminActionForm>
+            </Card>
+          )}
 
           <Card className="flex flex-col gap-4">
             <h2 className="text-heading">Families</h2>
@@ -190,6 +232,25 @@ export default async function AdminInvitePage({
               inviteHref={inviteHref(wedding.slug, env.rootDomain)}
             />
           </Card>
+
+          {!deleted && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Song</h2>
+              <p className="text-small text-ink-soft">
+                The song that starts when a guest taps to open the invite. The preview it was paid
+                from changes too.
+                {currentSong === null &&
+                  songs[0] !== undefined &&
+                  ` None chosen yet, so it plays ${songs[0].name}, the first song on the list.`}
+              </p>
+              <SongPicker
+                songs={songs}
+                currentSlot={currentSlot}
+                currentName={currentSong?.name ?? null}
+                save={changeWeddingSongAction.bind(null, wedding.id)}
+              />
+            </Card>
+          )}
 
           <Card className="flex flex-col gap-4">
             <h2 className="text-heading">Couple&apos;s WhatsApp number</h2>
@@ -335,4 +396,14 @@ async function restoreChoice(
   }
   const [first] = await freeSlugSuggestions(wedding.bride, wedding.groom, 1);
   return { suggestion: first ?? '', holdsAddress };
+}
+
+/** The admin's song list. A failed read shows the card with no songs, not an error page. */
+async function songOptions(): Promise<SongOption[]> {
+  try {
+    return await listSongOptions();
+  } catch (error) {
+    logger.error('Reading the wedding songs failed', error);
+    return [];
+  }
 }
