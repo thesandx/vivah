@@ -150,17 +150,60 @@ export async function createGuestLink(
 ): Promise<GuestLinkResult> {
   const wedding = await ownedWedding(slug, callerPhoneE164);
   if (wedding === null) return NOT_YOURS;
+  return createGuestLinkIn(wedding.id, rawName);
+}
 
+/**
+ * Deletes a guest's link. The guest who opens it afterwards sees the couple's
+ * general invite. A soft delete: `docs/data-recovery.md` brings it back.
+ */
+export async function deleteGuestLink(
+  slug: string,
+  callerPhoneE164: string | null,
+  linkId: string,
+): Promise<{ ok: true } | { ok: false; reason: 'not-found'; message: string }> {
+  const wedding = await ownedWedding(slug, callerPhoneE164);
+  if (wedding === null) return NOT_YOURS;
+  return deleteGuestLinkIn(wedding.id, linkId);
+}
+
+const INVALID_NAME = {
+  ok: false,
+  reason: 'invalid',
+  message: 'Use letters and spaces only, up to 40 characters.',
+} as const;
+
+const ALREADY_GONE = {
+  ok: false,
+  reason: 'not-found',
+  message: 'This link is already gone.',
+} as const;
+
+/** A link id is 64 hex characters. Checked before a read. */
+function isGuestLinkId(linkId: string): boolean {
+  return /^[0-9a-f]{64}$/.test(linkId);
+}
+
+function tooManyCopies(name: string) {
+  return {
+    ok: false as const,
+    reason: 'full' as const,
+    message: `There are already ${MAX_COPIES} links for ${name}. Add a surname to tell them apart.`,
+  };
+}
+
+/**
+ * Makes a link in one wedding. The caller has already checked who may: the
+ * couple's ownership above, or the admin session (`services/admin.service.ts`).
+ */
+export async function createGuestLinkIn(
+  weddingId: string,
+  rawName: string,
+): Promise<GuestLinkResult> {
   const name = parseGuestName(rawName);
-  if (name === null) {
-    return {
-      ok: false,
-      reason: 'invalid',
-      message: 'Use letters and spaces only, up to 40 characters.',
-    };
-  }
+  if (name === null) return INVALID_NAME;
 
-  const repository = guestLinksOf(wedding.id);
+  const repository = guestLinksOf(weddingId);
   if ((await repository.count()) >= MAX_GUEST_LINKS) {
     return {
       ok: false,
@@ -183,34 +226,61 @@ export async function createGuestLink(
       linksTx.createWithId(id, { name, segment });
       return { ok: true as const, link: { name, segment } };
     }
-    return {
-      ok: false as const,
-      reason: 'full' as const,
-      message: `There are already ${MAX_COPIES} links for ${name}. Add a surname to tell them apart.`,
-    };
+    return tooManyCopies(name);
   });
 }
 
 /**
- * Deletes a guest's link. The guest who opens it afterwards sees the couple's
- * general invite. A soft delete: `docs/data-recovery.md` brings it back.
+ * Soft-deletes a link in one wedding. The id is looked up under that wedding
+ * only, so it can never reach another couple's link.
  */
-export async function deleteGuestLink(
-  slug: string,
-  callerPhoneE164: string | null,
+export async function deleteGuestLinkIn(
+  weddingId: string,
   linkId: string,
 ): Promise<{ ok: true } | { ok: false; reason: 'not-found'; message: string }> {
-  const wedding = await ownedWedding(slug, callerPhoneE164);
-  if (wedding === null) return NOT_YOURS;
-  // The id is looked up under the caller's own wedding, so it can never
-  // reach another couple's link.
-  if (!/^[0-9a-f]{64}$/.test(linkId)) {
-    return { ok: false, reason: 'not-found', message: 'This link is already gone.' };
-  }
-  const repository = guestLinksOf(wedding.id);
-  if ((await repository.get(linkId)) === null) {
-    return { ok: false, reason: 'not-found', message: 'This link is already gone.' };
-  }
+  if (!isGuestLinkId(linkId)) return ALREADY_GONE;
+  const repository = guestLinksOf(weddingId);
+  if ((await repository.get(linkId)) === null) return ALREADY_GONE;
   await repository.softDelete(linkId);
   return { ok: true };
+}
+
+/**
+ * Gives a guest's link a new name. The greeting comes from the link itself
+ * (`/Rahul-Sharma`), so a new name is a new link: the old one is
+ * soft-deleted, and its guest sees the couple's general invite. One
+ * transaction does both, so a guest never has two live links or none.
+ *
+ * When the new name folds to the same key (`rahul sharma` → `Rahul Sharma`),
+ * the link keeps its id and only its spelling changes.
+ */
+export async function renameGuestLinkIn(
+  weddingId: string,
+  linkId: string,
+  rawName: string,
+): Promise<GuestLinkResult> {
+  if (!isGuestLinkId(linkId)) return ALREADY_GONE;
+  const name = parseGuestName(rawName);
+  if (name === null) return INVALID_NAME;
+
+  return guestLinksOf(weddingId).runTransaction(async (linksTx) => {
+    // `get` inside a transaction returns deleted links too.
+    const current = await linksTx.get(linkId);
+    if (current === null || current.deletedAt !== null) return ALREADY_GONE;
+    for (let copy = 1; copy <= MAX_COPIES; copy += 1) {
+      const segment = guestLinkSegment(name, copy);
+      const key = guestLinkKey(segment);
+      if (key === null) break;
+      const id = guestLinkId(key);
+      if (id === linkId) {
+        linksTx.update(linkId, { name, segment });
+        return { ok: true as const, link: { name, segment } };
+      }
+      if ((await linksTx.get(id)) !== null) continue;
+      linksTx.createWithId(id, { name, segment });
+      linksTx.softDelete(linkId);
+      return { ok: true as const, link: { name, segment } };
+    }
+    return tooManyCopies(name);
+  });
 }

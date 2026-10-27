@@ -8,6 +8,7 @@ import {
   guestLinkId,
   isGuestLinkDeleted,
   listGuestLinks,
+  renameGuestLinkIn,
 } from '@/services/guest-link.service';
 import { createLead, openPreviewLink } from '@/services/lead.service';
 import { getWeddingBySlug, publishWedding } from '@/services/wedding.service';
@@ -114,5 +115,39 @@ describeEmulator('guest links (emulator)', () => {
     ).toMatchObject({ ok: false, reason: 'not-found' });
     const segments = (await listGuestLinks(wedding.id)).map((link) => link.segment);
     expect(segments).toContain('Meera');
+  });
+
+  it('renames a link: a new link for the new name, the old one deleted', async () => {
+    await createGuestLink(wedding.slug, OWNER, 'Kavya');
+    expect(await renameGuestLinkIn(wedding.id, guestLinkId('kavya'), 'Kavya Rao')).toEqual({
+      ok: true,
+      link: { name: 'Kavya Rao', segment: 'Kavya-Rao' },
+    });
+    expect(await isGuestLinkDeleted(wedding.id, 'Kavya')).toBe(true);
+    const segments = (await listGuestLinks(wedding.id)).map((link) => link.segment);
+    expect(segments).toContain('Kavya-Rao');
+    expect(segments).not.toContain('Kavya');
+  });
+
+  it('keeps the link when only the spelling of the name changes', async () => {
+    await createGuestLink(wedding.slug, OWNER, 'arjun mehta');
+    expect(await renameGuestLinkIn(wedding.id, guestLinkId('arjun-mehta'), 'Arjun Mehta')).toEqual({
+      ok: true,
+      link: { name: 'Arjun Mehta', segment: 'Arjun-Mehta' },
+    });
+    expect(await isGuestLinkDeleted(wedding.id, 'Arjun-Mehta')).toBe(false);
+  });
+
+  it('numbers a renamed link when the new name is taken, and refuses a deleted one', async () => {
+    await createGuestLink(wedding.slug, OWNER, 'Isha');
+    await createGuestLink(wedding.slug, OWNER, 'Tara');
+    expect(await renameGuestLinkIn(wedding.id, guestLinkId('tara'), 'Isha')).toMatchObject({
+      ok: true,
+      link: { segment: 'Isha-2' },
+    });
+    expect(await renameGuestLinkIn(wedding.id, guestLinkId('tara'), 'Tara')).toMatchObject({
+      ok: false,
+      reason: 'not-found',
+    });
   });
 });

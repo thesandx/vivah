@@ -22,7 +22,13 @@ import {
   recordAdminActionIn,
 } from '@/services/admin-audit.service';
 import { findCoupon } from '@/services/coupon.service';
-import { eraseGuestLinks } from '@/services/guest-link.service';
+import {
+  createGuestLinkIn,
+  deleteGuestLinkIn,
+  eraseGuestLinks,
+  type GuestLinkPayload,
+  renameGuestLinkIn,
+} from '@/services/guest-link.service';
 import { type LeadDocument, leads } from '@/services/lead.service';
 import { MAX_PAGE_SIZE, type Repository, type StoredDocument } from '@/services/repository';
 import {
@@ -204,6 +210,92 @@ export async function editWeddingFunctions(
     adminUid,
   );
   return { ok: true, message: 'Saved. Guests see the functions now.' };
+}
+
+/** The outcome of an admin guest-link change: the new link when it made one. */
+export type AdminGuestLinkResult =
+  { ok: true; message: string; link?: GuestLinkPayload } | { ok: false; message: string };
+
+const INVITE_GONE = { ok: false, message: 'That invite no longer exists.' } as const;
+
+/** A live or paused invite. A deleted one takes no new guest links. */
+async function weddingForGuestLinks(id: string): Promise<WeddingDocument | null> {
+  const wedding = await getWeddingForAdmin(id);
+  return wedding === null || wedding.deletedAt !== null ? null : wedding;
+}
+
+/** The first characters of a link id: enough to find it, and no guest's name. */
+function shortLinkId(linkId: string): string {
+  return linkId.slice(0, 8);
+}
+
+/**
+ * Makes a guest link on the couple's behalf, with the same rules as their
+ * dashboard. The audit entry names the invite, never the guest: a guest's
+ * name is a person's name.
+ */
+export async function createGuestLinkAsAdmin(
+  id: string,
+  rawName: string,
+  adminUid: string,
+): Promise<AdminGuestLinkResult> {
+  const wedding = await weddingForGuestLinks(id);
+  if (wedding === null) return INVITE_GONE;
+  const result = await createGuestLinkIn(id, rawName);
+  if (!result.ok) return { ok: false, message: result.message };
+  await audit(
+    'guest-link-created',
+    'wedding',
+    id,
+    `Made a guest link on ${wedding.slug}.`,
+    adminUid,
+  );
+  return { ok: true, message: `${result.link.name}'s link is ready.`, link: result.link };
+}
+
+/** Gives a guest link a new name. The old link stops greeting the guest by name. */
+export async function renameGuestLinkAsAdmin(
+  id: string,
+  linkId: string,
+  rawName: string,
+  adminUid: string,
+): Promise<AdminGuestLinkResult> {
+  const wedding = await weddingForGuestLinks(id);
+  if (wedding === null) return INVITE_GONE;
+  const result = await renameGuestLinkIn(id, linkId, rawName);
+  if (!result.ok) return { ok: false, message: result.message };
+  await audit(
+    'guest-link-renamed',
+    'wedding',
+    id,
+    `Renamed guest link ${shortLinkId(linkId)} on ${wedding.slug}.`,
+    adminUid,
+  );
+  return {
+    ok: true,
+    message: `Saved. The new link greets ${result.link.name}.`,
+    link: result.link,
+  };
+}
+
+/** Deletes a guest link. A soft delete, as in the couple's dashboard. */
+export async function deleteGuestLinkAsAdmin(
+  id: string,
+  linkId: string,
+  adminUid: string,
+): Promise<AdminGuestLinkResult> {
+  const wedding = await weddingForGuestLinks(id);
+  if (wedding === null) return INVITE_GONE;
+  const result = await deleteGuestLinkIn(id, linkId);
+  if (!result.ok) return { ok: false, message: result.message };
+  await audit(
+    'guest-link-deleted',
+    'wedding',
+    id,
+    `Deleted guest link ${shortLinkId(linkId)} on ${wedding.slug}.`,
+    adminUid,
+  );
+  return { ok: true, message: 'Link deleted.' };
 }
 
 /**

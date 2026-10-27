@@ -6,6 +6,11 @@ import type { ActionState } from '@/components/admin/AdminActionForm';
 import type { StepUploadStart } from '@/components/admin/StepImageUpload';
 import type { FamiliesSaveState } from '@/components/dashboard/FamiliesForm';
 import type { FunctionsSaveState } from '@/components/dashboard/FunctionsForm';
+import type {
+  CreateLinkState,
+  DeleteLinkResult,
+  RenameLinkResult,
+} from '@/components/dashboard/GuestLinks';
 import type { SongSaveResult } from '@/components/dashboard/SongPicker';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
 import type { UploadStart } from '@/hooks/useImageUpload';
@@ -19,6 +24,7 @@ import { ERASE_CONFIRM_WORD, parseEraseIds } from '@/lib/test-data-cleanup';
 import { parseKind } from '@/lib/testimonials';
 import { parseSongSlot } from '@/lib/wedding-songs';
 import {
+  type AdminGuestLinkResult,
   type AdminResult,
   changePreviewFunctions,
   changePreviewNameOrder,
@@ -27,6 +33,8 @@ import {
   changeWeddingNameOrder,
   changeWeddingPhone,
   changeWeddingSong,
+  createGuestLinkAsAdmin,
+  deleteGuestLinkAsAdmin,
   deleteLead,
   deleteWedding,
   editWeddingDetails,
@@ -36,6 +44,7 @@ import {
   makePreviewLive,
   reactivatePreview,
   releaseWeddingAddress,
+  renameGuestLinkAsAdmin,
   restoreLead,
   restoreWedding,
   setWeddingStatus,
@@ -499,6 +508,76 @@ export async function changeWeddingSongAction(
   if (slot === null) return { ok: false, message: 'Choose one of the songs.' };
   const state = await run('wedding-song', id, (uid) => changeWeddingSong(id, slot, uid));
   return { ok: state.status === 'ok', message: state.status === 'idle' ? '' : state.message };
+}
+
+/**
+ * The guest links on a live invite, made, renamed and deleted on the couple's
+ * behalf. Their results feed the dashboard's own `GuestLinks` component. A
+ * guest's name is never logged.
+ */
+async function guestLinkChange(
+  name: string,
+  id: string,
+  change: (adminUid: string) => Promise<AdminGuestLinkResult>,
+): Promise<AdminGuestLinkResult> {
+  let adminUid: string;
+  try {
+    adminUid = (await requireAdmin()).uid;
+  } catch {
+    return { ok: false, message: SIGN_IN_AGAIN_MESSAGE };
+  }
+  try {
+    const result = await change(adminUid);
+    if (result.ok) revalidatePath('/admin', 'layout');
+    return result;
+  } catch (error) {
+    logger.error('Admin action failed', error, { action: name, id, uid: adminUid });
+    return { ok: false, message: 'That did not work. Try again.' };
+  }
+}
+
+export async function createGuestLinkAsAdminAction(
+  id: string,
+  _state: CreateLinkState,
+  form: FormData,
+): Promise<CreateLinkState> {
+  const name = text(form, 'guestName');
+  const result = await guestLinkChange('guest-link-create', id, (uid) =>
+    createGuestLinkAsAdmin(id, name, uid),
+  );
+  if (!result.ok || result.link === undefined) {
+    return { status: 'error', message: result.message };
+  }
+  return { status: 'created', name: result.link.name, segment: result.link.segment };
+}
+
+export async function renameGuestLinkAsAdminAction(
+  id: string,
+  linkId: unknown,
+  rawName: unknown,
+): Promise<RenameLinkResult> {
+  if (typeof linkId !== 'string' || typeof rawName !== 'string') {
+    return { ok: false, message: 'That did not work. Reload the page and try again.' };
+  }
+  const result = await guestLinkChange('guest-link-rename', id, (uid) =>
+    renameGuestLinkAsAdmin(id, linkId, rawName, uid),
+  );
+  return result.ok && result.link !== undefined
+    ? { ok: true, name: result.link.name }
+    : { ok: false, message: result.message };
+}
+
+export async function deleteGuestLinkAsAdminAction(
+  id: string,
+  linkId: unknown,
+): Promise<DeleteLinkResult> {
+  if (typeof linkId !== 'string') {
+    return { ok: false, message: 'That did not work. Reload the page and try again.' };
+  }
+  const result = await guestLinkChange('guest-link-delete', id, (uid) =>
+    deleteGuestLinkAsAdmin(id, linkId, uid),
+  );
+  return result.ok ? { ok: true } : { ok: false, message: result.message };
 }
 
 export async function removeSongAction(rawSlot: number): Promise<ActionState> {

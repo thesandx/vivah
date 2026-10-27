@@ -162,6 +162,7 @@ Each site view shows the details as read-only text, and "Edit details" opens the
 - **A stranger gets a 404, not a 403.** The edit page does not tell a stranger that an address exists.
 - **The save checks again.** `saveWeddingDetailsAction` calls `requireUser()`, and `updateWeddingDetails` checks ownership on the server. Hiding a page is not the control.
 - **Guest links check the same way.** `createGuestLinkAction` and `deleteGuestLinkAction` call `requireUser()`, and `services/guest-link.service.ts` checks ownership. A link is looked up under the caller's own wedding only.
+- **An admin manages guest links on `/admin/invites/<id>`.** The admin makes, renames and deletes links for the couple, with the same rules. Each action calls `requireAdmin()` and writes an audit entry. The entry names the invite and a short link id, never the guest. The name is part of the link, so a rename makes a new link and soft-deletes the old one in one transaction. If only the spelling changes, the link keeps its id.
 - **A deleted guest link shows the general invite.** The link is soft-deleted and its id stays taken, so a new guest never gets it. A link typed by hand, with no stored record, keeps greeting the guest by name.
 - **The slug is not editable here.** Guests already have links to it. Only the admin can move an invite.
 - **Logs name the slug and the uid.** Never the phone number, and never a guest's name.

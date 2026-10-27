@@ -7,9 +7,12 @@ import {
   changeWeddingNameOrderAction,
   changeWeddingPhoneAction,
   changeWeddingSongAction,
+  createGuestLinkAsAdminAction,
+  deleteGuestLinkAsAdminAction,
   deleteWeddingAction,
   pauseWeddingAction,
   releaseAddressAction,
+  renameGuestLinkAsAdminAction,
   restoreWeddingAction,
   resumeWeddingAction,
   saveWeddingDetailsAsAdmin,
@@ -23,9 +26,11 @@ import { CopyButton } from '@/components/admin/CopyButton';
 import { StateBadge } from '@/components/admin/StateBadge';
 import { FamiliesForm } from '@/components/dashboard/FamiliesForm';
 import { FunctionsForm } from '@/components/dashboard/FunctionsForm';
+import { GuestLinks } from '@/components/dashboard/GuestLinks';
 import { SongPicker } from '@/components/dashboard/SongPicker';
 import { WeddingDetailsForm } from '@/components/dashboard/WeddingDetailsForm';
 import { AppBar } from '@/components/layout/AppBar';
+import { Alert } from '@/components/ui/Alert';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ContactLink } from '@/components/ui/ContactLink';
@@ -34,19 +39,21 @@ import { formatAdminTime, weddingState } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
+import { inviteOrigin } from '@/lib/invite-meta';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref, inviteUrl } from '@/lib/site-host';
 import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { getWeddingForAdmin, weddingHoldsAddress } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
+import { type GuestLinkDocument, listGuestLinks } from '@/services/guest-link.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
- * do to it: edit the details, the name order, the families, the functions and
- * the song,
+ * do to it: edit the details, the name order, the families, the functions,
+ * the song and the guest links,
  * change the number or the address, make it unavailable,
  * delete (which frees the address), restore at any free address, and send
  * the link to the couple.
@@ -82,10 +89,12 @@ export default async function AdminInvitePage({
   // The link goes last, so WhatsApp shows its preview (see the previews page).
   const message = `Hi ${coupleNames(wedding)}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
   const deleted = wedding.deletedAt !== null;
-  const [restore, songs] = await Promise.all([
+  const [restore, songs, guestLinks] = await Promise.all([
     deleted ? restoreChoice(wedding) : null,
     deleted ? [] : songOptions(),
+    deleted ? [] : guestLinksOf(wedding.id),
   ]);
+  const origin = inviteOrigin(wedding.slug, env.rootDomain, env.appUrl);
   const currentSong = wedding.song ?? null;
   const currentSlot =
     currentSong === null
@@ -252,6 +261,37 @@ export default async function AdminInvitePage({
             </Card>
           )}
 
+          {!deleted && (
+            <Card className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <h2 className="text-heading">
+                  Guest invite links{guestLinks !== null && ` (${guestLinks.length})`}
+                </h2>
+                <p className="text-small text-ink-soft">
+                  The links the couple made for their guests. Make, rename or delete one on their
+                  behalf. The couple sees the same list in their dashboard.
+                </p>
+              </div>
+              {guestLinks === null ? (
+                <Alert tone="danger" title="The guest links did not load.">
+                  Reload the page to try again.
+                </Alert>
+              ) : (
+                <GuestLinks
+                  coupleNames={coupleNames(wedding)}
+                  create={createGuestLinkAsAdminAction.bind(null, wedding.id)}
+                  remove={deleteGuestLinkAsAdminAction.bind(null, wedding.id)}
+                  rename={renameGuestLinkAsAdminAction.bind(null, wedding.id)}
+                  links={guestLinks.map((guestLink) => ({
+                    id: guestLink.id,
+                    name: guestLink.name,
+                    url: `${origin}/${guestLink.segment}`,
+                  }))}
+                />
+              )}
+            </Card>
+          )}
+
           <Card className="flex flex-col gap-4">
             <h2 className="text-heading">Couple&apos;s WhatsApp number</h2>
             <p className="text-small text-ink-soft">
@@ -405,5 +445,15 @@ async function songOptions(): Promise<SongOption[]> {
   } catch (error) {
     logger.error('Reading the wedding songs failed', error);
     return [];
+  }
+}
+
+/** The couple's guest links, or `null` when the read fails: the card says so. */
+async function guestLinksOf(weddingId: string): Promise<GuestLinkDocument[] | null> {
+  try {
+    return await listGuestLinks(weddingId);
+  } catch (error) {
+    logger.error('Reading the guest links failed', error, { weddingId });
+    return null;
   }
 }

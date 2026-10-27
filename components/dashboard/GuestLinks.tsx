@@ -13,7 +13,8 @@ import { cn } from '@/lib/utils';
 /**
  * The couple's guest links: type a guest's name, get their own link, then
  * copy it or send it on WhatsApp. Each link can be deleted, after a
- * confirmation.
+ * confirmation. `/admin` passes `rename` too, so the admin can fix a name
+ * on the couple's behalf.
  *
  * A Client Component for the clipboard, the dialog and the pending states.
  * The writes run on the server, through the Server Actions the page passes
@@ -26,6 +27,9 @@ export type CreateLinkState =
   | { status: 'error'; message: string };
 
 export type DeleteLinkResult = { ok: true } | { ok: false; message: string };
+
+/** `name` is the greeting the new link shows. */
+export type RenameLinkResult = { ok: true; name: string } | { ok: false; message: string };
 
 export interface GuestLinkItem {
   id: string;
@@ -43,6 +47,11 @@ export interface GuestLinksProps {
   create: (state: CreateLinkState, form: FormData) => Promise<CreateLinkState>;
   /** The Server Action that deletes a link, already bound to this wedding. */
   remove: (linkId: string) => Promise<DeleteLinkResult>;
+  /**
+   * The Server Action that gives a link a new name, already bound to this
+   * wedding. Without it, the rows show no Edit button.
+   */
+  rename?: (linkId: string, name: string) => Promise<RenameLinkResult>;
   className?: string;
 }
 
@@ -99,11 +108,23 @@ function WhatsAppShare({ text, name }: { text: string; name: string }) {
   );
 }
 
-export function GuestLinks({ links, coupleNames, create, remove, className }: GuestLinksProps) {
+export function GuestLinks({
+  links,
+  coupleNames,
+  create,
+  remove,
+  rename,
+  className,
+}: GuestLinksProps) {
   const [state, action, pending] = useActionState(create, { status: 'idle' });
   const [confirming, setConfirming] = useState<GuestLinkItem | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, startDelete] = useTransition();
+  const [editing, setEditing] = useState<GuestLinkItem | null>(null);
+  const [newName, setNewName] = useState('');
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [renamed, setRenamed] = useState<string | null>(null);
+  const [renaming, startRename] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
   // Clear the name once its link exists, ready for the next guest.
@@ -118,6 +139,26 @@ export function GuestLinks({ links, coupleNames, create, remove, className }: Gu
       const result = await remove(link.id);
       setDeleteError(result.ok ? null : result.message);
       setConfirming(null);
+    });
+  };
+
+  const startEdit = (link: GuestLinkItem) => {
+    setEditing(link);
+    setNewName(link.name);
+    setRenameError(null);
+  };
+
+  const confirmRename = () => {
+    const link = editing;
+    if (link === null || rename === undefined) return;
+    startRename(async () => {
+      const result = await rename(link.id, newName);
+      if (result.ok) {
+        setRenamed(result.name);
+        setEditing(null);
+      } else {
+        setRenameError(result.message);
+      }
     });
   };
 
@@ -142,6 +183,11 @@ export function GuestLinks({ links, coupleNames, create, remove, className }: Gu
       {state.status === 'created' && (
         <Alert tone="success" title={`${state.name}'s link is ready.`}>
           Copy it, or send it on WhatsApp below.
+        </Alert>
+      )}
+      {renamed !== null && (
+        <Alert tone="success" title={`Saved. The new link greets ${renamed}.`}>
+          Send the new link. The old one now opens the invite without a name.
         </Alert>
       )}
       {deleteError !== null && <Alert tone="danger" title={deleteError} />}
@@ -169,14 +215,24 @@ export function GuestLinks({ links, coupleNames, create, remove, className }: Gu
                     {link.url.replace(/^https?:\/\//, '')}
                   </a>
                 </div>
-                <Button
-                  variant="quiet"
-                  className="shrink-0"
-                  aria-label={`Delete ${link.name}'s link`}
-                  onClick={() => setConfirming(link)}
-                >
-                  Delete
-                </Button>
+                <div className="flex shrink-0 gap-1">
+                  {rename !== undefined && (
+                    <Button
+                      variant="quiet"
+                      aria-label={`Edit ${link.name}'s link`}
+                      onClick={() => startEdit(link)}
+                    >
+                      Edit
+                    </Button>
+                  )}
+                  <Button
+                    variant="quiet"
+                    aria-label={`Delete ${link.name}'s link`}
+                    onClick={() => setConfirming(link)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
                 <CopyButton url={link.url} name={link.name} />
@@ -208,10 +264,46 @@ export function GuestLinks({ links, coupleNames, create, remove, className }: Gu
         }
       >
         <p>
-          If {confirming?.name ?? 'this guest'} opens the link, they see your invite without their
+          If {confirming?.name ?? 'this guest'} opens the link, they see the invite without their
           name. You cannot get this link back.
         </p>
       </Dialog>
+
+      {rename !== undefined && (
+        <Dialog
+          open={editing !== null}
+          onClose={() => {
+            if (!renaming) setEditing(null);
+          }}
+          title="Change this guest's name"
+          actions={
+            <>
+              <Button variant="secondary" disabled={renaming} onClick={() => setEditing(null)}>
+                Cancel
+              </Button>
+              <Button variant="primary" disabled={renaming} onClick={confirmRename}>
+                {renaming ? 'Saving' : 'Save name'}
+              </Button>
+            </>
+          }
+        >
+          <div className="flex flex-col gap-3">
+            <p>
+              The name is part of the link, so this makes a new link. The old link opens the invite
+              without a name. Send the new one after.
+            </p>
+            <Input
+              label="Guest's name"
+              name="newGuestName"
+              maxLength={40}
+              autoComplete="off"
+              value={newName}
+              onChange={(event) => setNewName(event.target.value)}
+              {...(renameError !== null && { error: renameError })}
+            />
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }
