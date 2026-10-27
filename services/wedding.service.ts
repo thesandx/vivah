@@ -11,6 +11,7 @@ import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { phoneHintDigits } from '@/lib/phone';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
+import { type WeddingFamilies, weddingFamiliesSchema } from '@/lib/wedding-families';
 import {
   emptyFunction,
   type WeddingFunction,
@@ -98,6 +99,12 @@ export const weddingSchema = z.object({
    * The slug never follows it: links already shared must keep working.
    */
   nameOrder: z.enum(NAME_ORDERS).optional(),
+  /**
+   * The grandparents' and parents' names on each side, for the invite's
+   * "Our Families" section. Added from the dashboard or `/admin` after
+   * payment. Optional: absent means the section is left out.
+   */
+  families: weddingFamiliesSchema.optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;
@@ -207,6 +214,23 @@ export async function updateWeddingFunctions(
     return { ok: false, reason: 'not-found' };
   }
   await weddings.update(wedding.id, { functions: [...functions] });
+  return { ok: true };
+}
+
+/**
+ * Saves the grandparents' and parents' names on both sides. Only the
+ * couple's own number may change them; a stranger gets `not-found`.
+ */
+export async function updateWeddingFamilies(
+  slug: string,
+  callerPhoneE164: string | null,
+  families: WeddingFamilies,
+): Promise<{ ok: true } | { ok: false; reason: 'not-found' }> {
+  const wedding = await getWeddingBySlug(slug);
+  if (wedding === null || !canEditWedding(callerPhoneE164, wedding.ownerPhoneE164)) {
+    return { ok: false, reason: 'not-found' };
+  }
+  await weddings.update(wedding.id, { families });
   return { ok: true };
 }
 

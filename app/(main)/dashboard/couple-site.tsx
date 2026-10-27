@@ -1,4 +1,5 @@
 import { SignOutButton } from '@/components/auth/SignOutButton';
+import { FamiliesForm } from '@/components/dashboard/FamiliesForm';
 import { FunctionsForm } from '@/components/dashboard/FunctionsForm';
 import { GuestLinks } from '@/components/dashboard/GuestLinks';
 import { SongPicker } from '@/components/dashboard/SongPicker';
@@ -19,6 +20,7 @@ import { listSongOptions } from '@/services/wedding-songs.service';
 import {
   createGuestLinkAction,
   deleteGuestLinkAction,
+  saveFamiliesAction,
   saveFunctionsAction,
   saveSongAction,
 } from './actions';
@@ -26,7 +28,7 @@ import { saveWeddingDetailsAction } from './edit/[slug]/actions';
 
 /**
  * A couple's own site in the dashboard: the address, the details (read-only
- * until "Edit details"), the functions, the song and the guest links. `/dashboard` shows it for the
+ * until "Edit details"), the family names, the functions, the song and the guest links. `/dashboard` shows it for the
  * couple's site; `/dashboard/edit/<slug>` shows it for any other site on the
  * same number.
  *
@@ -99,6 +101,22 @@ export async function CoupleSite({
               venueCity: wedding.venueCity ?? '',
               venueMapsUrl: wedding.venueMapsUrl ?? '',
             }}
+          />
+        </Card>
+
+        <Card className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-heading">Your families</h2>
+            <p className="text-small text-ink-soft">
+              Your parents&rsquo; and grandparents&rsquo; names, on both sides. Your invite shows
+              them in an &ldquo;Our Families&rdquo; section, before the functions.
+            </p>
+          </div>
+          <FamiliesForm
+            initial={wedding.families}
+            nameOrder={wedding.nameOrder}
+            save={saveFamiliesAction.bind(null, wedding.slug)}
+            inviteHref={inviteHref(wedding.slug, env.rootDomain)}
           />
         </Card>
 

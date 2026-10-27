@@ -8,6 +8,7 @@ import { type AppliedCoupon, normalizeCouponCode } from '@/lib/coupons';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { ERASE_LIMIT, liveLeadIds } from '@/lib/test-data-cleanup';
 import { parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
+import { FAMILY_SIDES, familyHasNames, parseWeddingFamilies } from '@/lib/wedding-families';
 import {
   cleanFunctionKinds,
   FESTIVITY_LABELS,
@@ -145,6 +146,33 @@ export async function editWeddingDetails(
     adminUid,
   );
   return { ok: true, message: 'Saved. Guests see the change now.' };
+}
+
+/**
+ * Saves the grandparents' and parents' names on both sides, as the couple's
+ * dashboard does. The audit entry names the sides, never a person's name.
+ */
+export async function editWeddingFamilies(
+  id: string,
+  form: Record<string, unknown>,
+  adminUid: string,
+): Promise<AdminResult> {
+  const wedding = await getWeddingForAdmin(id);
+  if (wedding === null) return NOT_FOUND;
+  const parsed = parseWeddingFamilies(form);
+  if (!parsed.ok) {
+    return { ok: false, message: 'Some names need a fix.', fieldErrors: parsed.errors };
+  }
+  await weddings.update(id, { families: parsed.families });
+  const sides = FAMILY_SIDES.filter((side) => familyHasNames(parsed.families[side]));
+  await audit(
+    'wedding-families-edited',
+    'wedding',
+    id,
+    `Saved the family names on ${wedding.slug}: ${sides.length === 0 ? 'no names' : `${sides.join(' and ')} side`}.`,
+    adminUid,
+  );
+  return { ok: true, message: 'Saved. Guests see the families now.' };
 }
 
 /** The functions as words, for an audit entry: `haldi, reception` or `none`. */
