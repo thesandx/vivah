@@ -261,14 +261,19 @@ describeEmulator('the dashboards (emulator)', () => {
   it('lets the couple save their family names, and nobody else', async () => {
     const { slug, phone } = await ownedWedding();
     const empty = {
-      surname: null,
+      title: null,
       grandmother: null,
       grandfather: null,
       mother: null,
       father: null,
     };
     const families = {
-      groom: { ...empty, surname: 'Gupta', mother: 'Smt. Dezi Gupta', father: 'Shri Rajesh Gupta' },
+      groom: {
+        ...empty,
+        title: 'The Gupta Family',
+        mother: 'Smt. Dezi Gupta',
+        father: 'Shri Rajesh Gupta',
+      },
       bride: empty,
     };
     expect(await updateWeddingFamilies(slug, '+919000000000', families)).toEqual({

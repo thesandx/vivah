@@ -198,14 +198,14 @@ describe('ShubhVivahInvite', () => {
         {...full}
         families={{
           groom: {
-            surname: null,
+            title: null,
             grandmother: null,
             grandfather: null,
             mother: 'Smt. Dezi Gupta',
             father: 'Shri Rajesh Gupta',
           },
           bride: {
-            surname: null,
+            title: null,
             grandmother: null,
             grandfather: null,
             mother: null,
