@@ -519,19 +519,38 @@ export function ShubhVivahInvite({
             <p className="jewel-sign jewel-foil-dark">
               {first} &amp; {second}
             </p>
-            {/* Small and quiet on purpose (PRD): the couple's invite is the
-                hero, and a credit they would pay to remove helps nobody. */}
-            <a
-              href={madeByUrl}
-              target="_blank"
-              rel="noopener"
-              className="jewel-credit inline-flex min-h-11 items-center gap-1"
-            >
-              Made with{' '}
-              <span role="img" aria-label="love" className="text-jewel-haldi">
-                ♥
+            <svg viewBox="0 0 120 14" aria-hidden="true" className="jewel-closing-rule" fill="none">
+              <path d="M2 8h46" stroke="var(--color-jewel-gold-line)" strokeWidth="1" />
+              <path d="M72 8h46" stroke="var(--color-jewel-gold-line)" strokeWidth="1" />
+              <path
+                d="M60 2c1.6 2.6 4.6 4.4 4.6 7.2A4.6 4.6 0 0 1 60 12h0a4.6 4.6 0 0 1-4.6-2.8C55.4 6.4 58.4 4.6 60 2z"
+                fill="var(--color-jewel-marigold)"
+              />
+            </svg>
+            {/* The one place the invite speaks for us: each guest who taps it
+                is a possible couple. A quiet pill, not a banner, so the
+                couple's names stay the hero. */}
+            <a href={madeByUrl} target="_blank" rel="noopener" className="jewel-credit">
+              <span className="jewel-credit-small">
+                Made with{' '}
+                <span role="img" aria-label="love" className="jewel-credit-heart">
+                  ♥
+                </span>{' '}
+                by
               </span>{' '}
-              by <span className="text-jewel-haldi">vivah.online</span>
+              <span className="jewel-credit-brand">vivah.online</span>
+              <svg
+                viewBox="0 0 8 14"
+                aria-hidden="true"
+                className="jewel-credit-arrow"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M1.5 1.5L6.5 7l-5 5.5" />
+              </svg>
             </a>
             {editDetailsUrl !== undefined && (
               <a
