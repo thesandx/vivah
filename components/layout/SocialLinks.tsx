@@ -7,7 +7,7 @@ export interface SocialLinksProps {
   instagram?: string;
   /** The Facebook page URL. */
   facebook?: string;
-  /** A `https://wa.me/...` chat link. */
+  /** A WhatsApp chat link, such as `/api/whatsapp` or `https://wa.me/...`. */
   whatsApp?: string;
   /** An email address. Rendered as a `mailto:` link. */
   email?: string;

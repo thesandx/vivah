@@ -67,9 +67,6 @@ export const PAYMENT_PROVIDER_NAMES = { cashfree: 'Cashfree', razorpay: 'Razorpa
 /** The ways to pay, in the order Indian buyers look for them. Text only, no brand logos. */
 export const PAYMENT_METHODS = ['UPI', 'Visa', 'Mastercard', 'RuPay', 'Net banking'] as const;
 
-/** The first message the floating WhatsApp button types for the visitor. */
-export const WHATSAPP_HELLO = 'Hi';
-
 /**
  * A WhatsApp chat link to a number, with a message typed in:
  * `https://wa.me/919546342507?text=Hi`. The number goes without the plus.

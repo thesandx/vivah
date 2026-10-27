@@ -33,7 +33,7 @@ describe('HomePage', () => {
     render(<HomePage />);
     expect(screen.getByRole('link', { name: 'Ask us on WhatsApp' })).toHaveAttribute(
       'href',
-      'https://wa.me/919546342507?text=Hi',
+      '/api/whatsapp',
     );
   });
 

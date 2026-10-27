@@ -7,10 +7,12 @@ import {
   removeSongAction,
   resetSampleVenuesAction,
   resetStepImageAction,
+  resetWhatsAppHelloAction,
   saveDemoVideoAction,
   saveSampleVenuesAction,
   saveSongAction,
   saveStepImageAction,
+  saveWhatsAppHelloAction,
   startDemoVideoUploadAction,
   startSongUploadAction,
   startStepImageUploadAction,
@@ -31,6 +33,7 @@ import { Alert } from '@/components/ui/Alert';
 import { buttonStyles } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
 import {
   countBy,
   DELETED_SORT_CHOICES,
@@ -62,6 +65,11 @@ import { cn } from '@/lib/utils';
 import { formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
 import { FESTIVITY_LABELS, FUNCTION_KINDS } from '@/lib/wedding-functions';
 import { SONG_SLOTS, songUrl } from '@/lib/wedding-songs';
+import {
+  DEFAULT_WHATSAPP_HELLO,
+  WHATSAPP_CHAT_PATH,
+  WHATSAPP_HELLO_MAX_LENGTH,
+} from '@/lib/whatsapp-hello';
 import { listAllLeads, listAllWeddings } from '@/services/admin.service';
 import { recentAdminActions } from '@/services/admin-audit.service';
 import { getAdminSession } from '@/services/admin-session.service';
@@ -70,6 +78,7 @@ import { getSampleVenuesForAdmin } from '@/services/sample-invite.service';
 import { getStepImages } from '@/services/site-content.service';
 import { createSignedReadUrl } from '@/services/storage.service';
 import { getSongSlots } from '@/services/wedding-songs.service';
+import { getWhatsAppHelloForAdmin } from '@/services/whatsapp-hello.service';
 
 /**
  * `GET /admin` — the admin dashboard: every invite, every preview, and the
@@ -515,6 +524,7 @@ async function HomePageView() {
         <SiteVideoAdmin key={slot} slot={slot} />
       ))}
       <SongsAdmin />
+      <WhatsAppHelloAdmin />
       <SampleVenuesAdmin />
       <TestimonialsAdmin />
     </>
@@ -668,6 +678,62 @@ async function SongsAdmin() {
  * each function's venue and map link. The home page's "Try it here" phone
  * shows the same sample, so a save changes both.
  */
+async function WhatsAppHelloAdmin() {
+  let message: string | null = null;
+  try {
+    message = await getWhatsAppHelloForAdmin();
+  } catch (error) {
+    logger.error('Reading the WhatsApp first message failed', error);
+  }
+  return (
+    <section className="flex flex-col gap-4">
+      <h3 className="text-heading">WhatsApp first message</h3>
+      <p className="text-ink-soft max-w-prose">
+        The message WhatsApp types for a visitor who taps a “chat with us” link: the green button,
+        the footer icon, the home and Help pages, and the Contact and policy pages. The visitor can
+        change it before they send it. A change shows within a minute.
+      </p>
+      {message === null ? (
+        <Alert tone="danger" title="The message could not be read.">
+          Reload the page to try again.
+        </Alert>
+      ) : (
+        <div className="border-line rounded-card bg-surface flex flex-col gap-4 border-2 p-4">
+          <AdminActionForm action={saveWhatsAppHelloAction} label="Save message" variant="primary">
+            <Textarea
+              label="First message"
+              name="message"
+              defaultValue={message}
+              maxLength={WHATSAPP_HELLO_MAX_LENGTH}
+              rows={3}
+              required
+            />
+          </AdminActionForm>
+          <a
+            href={WHATSAPP_CHAT_PATH}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-brand font-semibold underline underline-offset-4"
+          >
+            Try the link
+          </a>
+          {message !== DEFAULT_WHATSAPP_HELLO && (
+            <AdminActionForm
+              action={resetWhatsAppHelloAction}
+              label="Use the default message"
+              confirm={{
+                title: 'Put back the default message?',
+                body: `WhatsApp types “${DEFAULT_WHATSAPP_HELLO}” again. Your message is replaced.`,
+                confirmLabel: 'Put it back',
+              }}
+            />
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 async function SampleVenuesAdmin() {
   let venues: Awaited<ReturnType<typeof getSampleVenuesForAdmin>> | null = null;
   try {

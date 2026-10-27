@@ -23,13 +23,14 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
-import { BUSINESS, PRICE_FROM_RUPEES, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
+import { PRICE_FROM_RUPEES } from '@/lib/business';
 import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { SAMPLE_GUEST, SAMPLE_SLUG, sampleWedding } from '@/lib/sample-invite';
 import { organizationSchema, siteOrigin, webApplicationSchema } from '@/lib/seo';
 import { inviteHref } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
+import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
 
 /**
  * Home page — a Server Component. The form is the only client part.
@@ -118,7 +119,7 @@ function Tick() {
 export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
-  const chatUrl = whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO);
+  const chatUrl = WHATSAPP_CHAT_PATH;
   const origin = siteOrigin(env.rootDomain, env.appUrl);
   const sampleUrl = `${inviteHref(SAMPLE_SLUG, env.rootDomain)}/${SAMPLE_GUEST}`;
   const sample = sampleWedding(new Date());
