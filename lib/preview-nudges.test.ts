@@ -103,23 +103,22 @@ describe('nudgeMessage', () => {
       expect(message.startsWith('Namaste Alisha & Sumit 🙏')).toBe(true);
       expect(message.toLowerCase()).not.toContain('reply "open"');
       expect(message).not.toContain('/p/');
+      expect(message.toLowerCase()).toContain('special');
       expect(message).toContain('Create your own free preview at https://vivah.online');
       expect(message).toContain('\nhttps://priya-rahul.vivah.online/Neha\n');
       expect(message.endsWith('\n\nTeam Vivah 💛')).toBe(true);
     }
   });
 
-  it('names the couple’s likely address on day 6', () => {
-    expect(nudgeMessage(6, INPUT)).toContain(
-      'Aapka address alisha-sumit.vivah.online abhi free hai',
-    );
-    expect(nudgeMessage(6, { ...INPUT, bride: 'राधा', groom: 'श्याम' })).toContain(
-      'Aapka apna vivah.online address abhi free hai',
+  it('names the couple’s likely address on day 1', () => {
+    expect(nudgeMessage(1, INPUT)).toContain('aap dono ke naam se: alisha-sumit.vivah.online');
+    expect(nudgeMessage(1, { ...INPUT, bride: 'राधा', groom: 'श्याम' })).toContain(
+      'aap dono ke naam se, vivah.online pe',
     );
   });
 
-  it('prices the product on day 3', () => {
-    expect(nudgeMessage(3, INPUT)).toContain('bas ₹799');
+  it('prices the product on day 7', () => {
+    expect(nudgeMessage(7, INPUT)).toContain('bas ₹799');
   });
 
   it('refuses a day outside the week', () => {

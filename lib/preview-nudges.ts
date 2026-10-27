@@ -92,19 +92,19 @@ export interface NudgeInput {
 
 /** The topic of each day's message, for the admin. */
 export const NUDGE_TOPICS: readonly string[] = [
-  'A surprise for your partner',
+  'An address in both your names',
+  'Your song plays when the invite opens',
   'Every guest gets their own invite',
-  '"It must have cost a fortune?"',
-  'Every function and venue in one place',
+  'It opens with Ganesh ji',
   'Guests scratch to reveal the date',
-  'The address is not held',
+  'Every function and venue in one place',
   'An invite they will remember',
 ];
 
 /**
  * The message for one day (1 to 7). Throws for any other day. Each message
- * speaks to the couple and makes one point: how the invite makes their
- * partner feel special and their guests remember the wedding.
+ * tells the couple their wedding is special, and names one feature of the
+ * invite that matches it.
  */
 export function nudgeMessage(day: number, input: NudgeInput): string {
   const hello = `Namaste ${coupleNames(input)} 🙏`;
@@ -112,16 +112,16 @@ export function nudgeMessage(day: number, input: NudgeInput): string {
   const slug = buildCoupleSlug(input.bride, input.groom);
   const address =
     slug === null
-      ? `Aapka apna ${input.rootDomain} address`
-      : `Aapka address ${slug}.${input.rootDomain}`;
+      ? `aapki website ka address aap dono ke naam se, ${input.rootDomain} pe`
+      : `aapki website ka address aap dono ke naam se: ${slug}.${input.rootDomain}`;
   const bodies: readonly string[] = [
-    'Socho, aapki shaadi ki apni website, aap dono ke naam ke saath ✨ Jab aapke partner ise pehli baar dekhenge, unki smile dekhne layak hogi 😍\nEk chhota sa surprise, jo hamesha yaad rahega 💕',
-    'Aapke har guest ko unka apna link milega, unke naam ke saath: "Dear Mausi ji, you are invited" 💌 Bilkul paper card jaisa.\nAapke friends aur relatives ko lagega ki ye invite sirf unke liye bana hai 🥰',
-    `Aapke friends zaroor poochenge: "Itni sundar wedding website kaise banayi? Bahut mehenga hoga!" 😄\nAap muskura ke kehna: "Na, bas ${formatRupees(PRICE_FROM_RUPEES)}" 😎 Ek baar, aur har guest ka link included 🙌`,
-    'Haldi, Mehendi, Sangeet, Shaadi, har function ka time aur venue ek hi jagah, Google Maps ke saath 📍 Ab koi "venue kahan hai?" nahi poochega 😄\nNani ji bhi seedha WhatsApp se khol lengi. No app, no login 💕',
-    'Aapke guests scratch karke aapki shaadi ki date reveal karenge ✨🎉 Upar Ganesh ji, aur peeche aapka gaana 🎶\nYe pal sabko yaad rahega 💕',
-    `${address} abhi free hai ✨ Aap dono ke naam ka address, sirf aapka.\nHum ise hold nahi karte, jo couple pehle live karega, address usi ka 💍`,
-    'Saalon baad bhi aapke apne kahenge: "Yaad hai unka wedding invite? Kitna special tha!" 💛\nYe hamara last reminder hai, promise 😊 Aapki shaadi bahut sundar aur yaadgaar ho 🎉',
+    `Aapki shaadi special hai, toh uska naam bhi special hona chahiye 💑 Jaise Virat-Anushka bane "Virushka", waise hi ${address} ✨\nYa apna koi pyaara sa naam chun lijiye. Ek pehchaan, jo sirf aapki hai 💕`,
+    'Socho, guest ne aapka special invite khola aur aapka chuna hua gaana bajne laga 🎶 Shaadi ka mahaul invite khulte hi shuru ho jaata hai ✨\nAisa invite koi bhool nahi paayega 💕',
+    'Aapki special shaadi mein har mehmaan khaas hai 💌 Isliye har guest ko milta hai unka apna link, unke naam ke saath: "Dear Mausi ji, you are invited".\nBilkul paper card wali izzat, ab WhatsApp pe 🥰',
+    'Har shubh kaam Ganesh ji se shuru hota hai 🙏 Isliye aapka special invite bhi Ganesh ji ke card se khulta hai.\nEk tap, aur aapki shaadi ki pehli jhalak saamne 🌸',
+    'Aapki shaadi ki date ek special surprise hai 🎁 Guests scratch karke date reveal karte hain, phir confetti aur phoolon ki baarish 🎉🌸\nYe pal sabke chehre pe smile le aata hai 😍',
+    'Haldi, Mehendi, Sangeet, Shaadi 💃 Aapke har special function ka time aur venue ek hi jagah, Google Maps ke saath 📍 Aur shaadi tak ka countdown ⏳\nNani ji bhi seedha WhatsApp se khol lengi 💕',
+    `Saalon baad bhi aapke apne kahenge: "Yaad hai unka wedding invite? Kitna special tha!" 💛 Aur jab poochenge "bahut mehenga hoga?", aap kehna "bas ${formatRupees(PRICE_FROM_RUPEES)}" 😎\nYe hamara last reminder hai, promise 😊 Aapki shaadi bahut yaadgaar ho 🎉`,
   ];
   const body = bodies[day - 1];
   if (body === undefined) throw new Error(`No nudge for day ${day}`);
