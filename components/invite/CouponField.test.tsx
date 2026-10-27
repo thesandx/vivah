@@ -25,14 +25,14 @@ describe('CouponField', () => {
       ok: true,
       code: 'NEW20',
       percentOff: 20,
-      payableRupees: 639,
+      payableRupees: 640,
     });
     fireEvent.click(screen.getByRole('button', { name: 'Have a coupon code?' }));
     fireEvent.change(screen.getByLabelText('Coupon code'), { target: { value: 'new20' } });
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     expect(applyCoupon).toHaveBeenCalledWith('NEW20');
     await vi.waitFor(() =>
-      expect(onApplied).toHaveBeenCalledWith({ code: 'NEW20', percentOff: 20, payableRupees: 639 }),
+      expect(onApplied).toHaveBeenCalledWith({ code: 'NEW20', percentOff: 20, payableRupees: 640 }),
     );
   });
 
@@ -47,7 +47,7 @@ describe('CouponField', () => {
 
   it("applies the ribbon's code in one tap", () => {
     const { applyCoupon } = renderField(
-      { ok: true, code: 'NEW20', percentOff: 20, payableRupees: 639 },
+      { ok: true, code: 'NEW20', percentOff: 20, payableRupees: 640 },
       { code: 'NEW20', percentOff: 20 },
     );
     fireEvent.click(screen.getByRole('button', { name: 'Apply NEW20 · 20% off' }));
@@ -58,7 +58,7 @@ describe('CouponField', () => {
     const onRemove = vi.fn();
     render(
       <CouponField
-        applied={{ code: 'NEW20', percentOff: 20, payableRupees: 639 }}
+        applied={{ code: 'NEW20', percentOff: 20, payableRupees: 640 }}
         applyCoupon={vi.fn()}
         onApplied={vi.fn()}
         onRemove={onRemove}
