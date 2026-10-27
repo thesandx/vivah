@@ -89,18 +89,19 @@ describe('notifyNewLead', () => {
     expect(texts).toEqual(newLeadMessages(NOTICE));
   });
 
-  it('stops, answers false and logs neither token nor number when Telegram refuses', async () => {
+  it('answers false and logs neither token nor number when Telegram refuses', async () => {
     fetchMock.mockResolvedValue(
       Response.json({ ok: false, description: 'Not Found' }, { status: 404 }),
     );
     expect(await notifyNewLead(NOTICE)).toBe(false);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    // A 404 will fail the same way again: no retry, one try per message.
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(logged.error).toHaveBeenCalledWith(
-      'Telegram refused the new preview notice',
+      'Telegram did not take a message',
       undefined,
-      expect.objectContaining({ status: 404, leadId: NOTICE.leadId }),
+      expect.objectContaining({ status: 404, detail: 'Not Found', leadId: NOTICE.leadId }),
     );
-    const everything = JSON.stringify(logged.error.mock.calls);
+    const everything = JSON.stringify([logged.error.mock.calls, logged.info.mock.calls]);
     expect(everything).not.toContain('secret-token');
     expect(everything).not.toContain('9876543210');
   });
@@ -108,6 +109,54 @@ describe('notifyNewLead', () => {
   it('answers false, and does not throw, when the network fails', async () => {
     fetchMock.mockRejectedValue(new DOMException('The operation timed out.', 'TimeoutError'));
     expect(await notifyNewLead(NOTICE)).toBe(false);
+    expect(logged.error).toHaveBeenCalledWith(
+      'Telegram did not take a message',
+      undefined,
+      expect.objectContaining({ status: 'no answer', detail: 'TimeoutError' }),
+    );
+  });
+
+  it('still sends the message for the couple and the number when the alert times out', async () => {
+    fetchMock
+      .mockRejectedValueOnce(new DOMException('The operation timed out.', 'TimeoutError'))
+      .mockRejectedValueOnce(new DOMException('The operation timed out.', 'TimeoutError'))
+      .mockResolvedValue(Response.json({ ok: true }));
+    expect(await notifyNewLead(NOTICE)).toBe(false);
+    const texts = fetchMock.mock.calls.map(([, init]) => {
+      const body: unknown = JSON.parse(String(init?.body));
+      return (body as { text: string }).text;
+    });
+    const [, forCouple, phone] = newLeadMessages(NOTICE);
+    expect(texts.slice(2)).toEqual([forCouple, phone]);
+  });
+
+  it('retries a timed-out message once, then succeeds', async () => {
+    fetchMock.mockRejectedValueOnce(new DOMException('The operation timed out.', 'TimeoutError'));
+    fetchMock.mockResolvedValue(Response.json({ ok: true }));
+    expect(await notifyNewLead(NOTICE)).toBe(true);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it('starts no send after the sign-up budget is spent', async () => {
+    // Each try takes 4 seconds of the 7-second budget, then times out.
+    let clock = 0;
+    const now = vi.spyOn(Date, 'now').mockImplementation(() => clock);
+    fetchMock.mockImplementation(() => {
+      clock += 4_000;
+      return Promise.reject(new DOMException('The operation timed out.', 'TimeoutError'));
+    });
+    try {
+      expect(await notifyNewLead(NOTICE)).toBe(false);
+    } finally {
+      now.mockRestore();
+    }
+    // The alert and its retry; the other two are skipped and logged.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(logged.error).toHaveBeenCalledWith(
+      'Telegram message skipped: no time left',
+      undefined,
+      expect.objectContaining({ message: '3 of 3' }),
+    );
   });
 });
 
