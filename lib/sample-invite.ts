@@ -15,7 +15,9 @@
  * `SAMPLE_RSVP_MESSAGE`: a visitor who taps it is asking us for a site.
  *
  * The sample has every function (tilak to reception) over four days round
- * the wedding, so a visitor sees the "Wedding Festivities" timeline full.
+ * the wedding, so a visitor sees the "Wedding Festivities" timeline full,
+ * and both families' names, so "Our Families" shows too. The families are
+ * invented Delhi names.
  *
  * The admin changes the venue names, addresses and map links from `/admin`
  * (Home page tab), without a deploy. They live in `siteContent/sample-invite`
@@ -27,6 +29,7 @@
 import { z } from 'zod';
 
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
+import type { WeddingFamilies } from '@/lib/wedding-families';
 import { FUNCTION_KINDS, type FunctionKind, type WeddingFunction } from '@/lib/wedding-functions';
 
 /** The sample's address: `priya-rahul.vivah.online`. */
@@ -65,7 +68,27 @@ export interface SampleWedding {
   venueMapsUrl: string;
   /** Every function, dated round the wedding day. */
   functions: WeddingFunction[];
+  /** Both families, every name filled in. */
+  families: WeddingFamilies;
 }
+
+/** The sample couple's families: invented Delhi names. */
+export const SAMPLE_FAMILIES: WeddingFamilies = {
+  groom: {
+    surname: 'Kapoor',
+    grandmother: 'Smt. Santosh Kapoor',
+    grandfather: 'Shri Om Prakash Kapoor',
+    mother: 'Smt. Anita Kapoor',
+    father: 'Shri Sunil Kapoor',
+  },
+  bride: {
+    surname: 'Malhotra',
+    grandmother: 'Smt. Kamla Malhotra',
+    grandfather: 'Shri Harish Chandra Malhotra',
+    mother: 'Smt. Neelam Malhotra',
+    father: 'Shri Rajiv Malhotra',
+  },
+};
 
 /**
  * The sample's wedding day: 7 December, as in the demo video. It moves to
@@ -209,6 +232,7 @@ export function sampleWedding(
       venue: venues.functions[kind].venue,
       mapsUrl: venues.functions[kind].mapsUrl,
     })),
+    families: SAMPLE_FAMILIES,
   };
 }
 

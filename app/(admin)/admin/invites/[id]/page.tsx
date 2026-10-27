@@ -11,6 +11,7 @@ import {
   restoreWeddingAction,
   resumeWeddingAction,
   saveWeddingDetailsAsAdmin,
+  saveWeddingFamiliesAsAdmin,
   saveWeddingFunctionsAsAdmin,
 } from '@/app/(admin)/admin/actions';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
@@ -18,6 +19,7 @@ import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
 import { CopyButton } from '@/components/admin/CopyButton';
 import { StateBadge } from '@/components/admin/StateBadge';
+import { FamiliesForm } from '@/components/dashboard/FamiliesForm';
 import { FunctionsForm } from '@/components/dashboard/FunctionsForm';
 import { WeddingDetailsForm } from '@/components/dashboard/WeddingDetailsForm';
 import { AppBar } from '@/components/layout/AppBar';
@@ -36,7 +38,7 @@ import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
- * do to it: edit the details and the functions, change the number or the address, make it unavailable,
+ * do to it: edit the details, the families and the functions, change the number or the address, make it unavailable,
  * delete (which frees the address), restore at any free address, and send
  * the link to the couple.
  *
@@ -165,6 +167,16 @@ export default async function AdminInvitePage({
                 venueCity: wedding.venueCity ?? '',
                 venueMapsUrl: wedding.venueMapsUrl ?? '',
               }}
+            />
+          </Card>
+
+          <Card className="flex flex-col gap-4">
+            <h2 className="text-heading">Families</h2>
+            <FamiliesForm
+              initial={wedding.families}
+              nameOrder={wedding.nameOrder}
+              save={saveWeddingFamiliesAsAdmin.bind(null, wedding.id)}
+              inviteHref={inviteHref(wedding.slug, env.rootDomain)}
             />
           </Card>
 

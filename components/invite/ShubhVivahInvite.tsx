@@ -1,6 +1,7 @@
 import Image from 'next/image';
 
 import { Countdown } from '@/components/invite/Countdown';
+import { OurFamilies } from '@/components/invite/OurFamilies';
 import { PetalShower } from '@/components/invite/PetalShower';
 import { SaveTheDateCards } from '@/components/invite/SaveTheDateCards';
 import { WeddingFestivities } from '@/components/invite/WeddingFestivities';
@@ -14,14 +15,15 @@ import {
   weddingDateParts,
   weddingStartsAt,
 } from '@/lib/wedding-date';
+import { type WeddingFamilies } from '@/lib/wedding-families';
 import { festivityCards, type WeddingFunction } from '@/lib/wedding-functions';
 
 /**
  * The couple's invite page, built to the product owner's jewel design spec:
  * a 430px column of jewel-toned blocks on ivory. Shri Ganesh in a mehrab arch
  * over the names, a scratch-to-reveal date, the day in a peacock block with
- * a countdown, the venue card, the festivities timeline when the couple has
- * more functions, a vermilion RSVP block and a rani-pink close.
+ * a countdown, the venue card, the couple's families when they added them,
+ * the festivities timeline when the couple has more functions, a vermilion RSVP block and a rani-pink close.
  * Marigold garlands hang between the blocks, and marigold and rose petals
  * drift down over it all (`PetalShower`, CSS only).
  *
@@ -89,6 +91,12 @@ export interface ShubhVivahInviteProps {
    * `venuePlaceholder`.
    */
   functions?: readonly WeddingFunction[];
+  /**
+   * The grandparents' and parents' names on each side. With a name on
+   * either side, an "Our Families" section shows after the venue, before
+   * the festivities. The preview's placeholders follow `venuePlaceholder`.
+   */
+  families?: WeddingFamilies | undefined;
   className?: string;
 }
 
@@ -223,6 +231,7 @@ export function ShubhVivahInvite({
   stickyRsvp = true,
   venuePlaceholder = false,
   functions = [],
+  families,
   className,
 }: ShubhVivahInviteProps) {
   const [first, second] = orderedNames({ bride, groom, nameOrder });
@@ -419,6 +428,10 @@ export function ShubhVivahInvite({
           </div>
         </section>
         <Garland />
+
+        {(venuePlaceholder || families !== undefined) && (
+          <OurFamilies families={families} nameOrder={nameOrder} placeholder={venuePlaceholder} />
+        )}
 
         {festivities.length > 0 && (
           <>
