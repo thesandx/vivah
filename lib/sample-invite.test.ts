@@ -12,6 +12,7 @@ import {
   sampleWedding,
   sampleWeddingDate,
 } from '@/lib/sample-invite';
+import { weddingFamiliesSchema } from '@/lib/wedding-families';
 import { FUNCTION_KINDS, weddingFunctionsSchema } from '@/lib/wedding-functions';
 
 describe('sampleWeddingDate', () => {
@@ -46,6 +47,13 @@ describe('sampleWedding', () => {
       ['sangeet', '2026-12-06'],
       ['reception', '2026-12-08'],
     ]);
+  });
+
+  it('has both families, every name valid', () => {
+    const { families } = sampleWedding(new Date('2026-10-18T00:00:00Z'));
+    expect(weddingFamiliesSchema.safeParse(families).success).toBe(true);
+    expect(families.groom.surname).toBe('Kapoor');
+    expect(families.bride.surname).toBe('Malhotra');
   });
 });
 

@@ -22,6 +22,7 @@ export const ADMIN_ACTIONS = [
   'signed-out',
   'wedding-edited',
   'wedding-functions-edited',
+  'wedding-families-edited',
   'wedding-phone-changed',
   'wedding-address-changed',
   'wedding-paused',

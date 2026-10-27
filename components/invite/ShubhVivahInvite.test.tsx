@@ -192,6 +192,44 @@ describe('ShubhVivahInvite', () => {
     expect(section).not.toHaveTextContent('to be shared soon');
   });
 
+  it('shows the families after the venue and before the festivities', () => {
+    render(
+      <ShubhVivahInvite
+        {...full}
+        families={{
+          groom: {
+            surname: null,
+            grandmother: null,
+            grandfather: null,
+            mother: 'Smt. Dezi Gupta',
+            father: 'Shri Rajesh Gupta',
+          },
+          bride: {
+            surname: null,
+            grandmother: null,
+            grandfather: null,
+            mother: null,
+            father: null,
+          },
+        }}
+        functions={[{ kind: 'haldi', date: null, time: null, venue: null, mapsUrl: null }]}
+      />,
+    );
+    const families = screen.getByRole('region', { name: 'Our families' });
+    expect(families).toHaveTextContent('Gupta Parivar');
+    const venue = screen.getByRole('region', { name: 'The venue' });
+    const festivities = screen.getByRole('region', { name: 'Wedding festivities' });
+    expect(venue.compareDocumentPosition(families) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      families.compareDocumentPosition(festivities) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it('leaves the families out of a live invite without names', () => {
+    render(<ShubhVivahInvite {...full} />);
+    expect(screen.queryByRole('region', { name: 'Our families' })).not.toBeInTheDocument();
+  });
+
   it('sends the given RSVP message, as the sample invite does', () => {
     render(<ShubhVivahInvite {...full} rsvpMessage="Hi Team Vivah" />);
     const rsvp = screen.getByRole('link', { name: /rsvp now/i }).getAttribute('href') ?? '';

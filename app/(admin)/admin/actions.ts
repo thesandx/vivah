@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 
 import type { ActionState } from '@/components/admin/AdminActionForm';
 import type { StepUploadStart } from '@/components/admin/StepImageUpload';
+import type { FamiliesSaveState } from '@/components/dashboard/FamiliesForm';
 import type { FunctionsSaveState } from '@/components/dashboard/FunctionsForm';
 import type { SongSaveResult } from '@/components/dashboard/SongPicker';
 import type { SaveState } from '@/components/dashboard/WeddingDetailsForm';
@@ -27,6 +28,7 @@ import {
   deleteLead,
   deleteWedding,
   editWeddingDetails,
+  editWeddingFamilies,
   editWeddingFunctions,
   eraseTestData,
   makePreviewLive,
@@ -152,6 +154,39 @@ export async function saveWeddingFunctionsAsAdmin(
     };
   } catch (error) {
     logger.error('Admin functions save failed', error, { id, uid: adminUid });
+    return { status: 'error', message: 'Your changes were not saved. Try again.' };
+  }
+}
+
+export async function saveWeddingFamiliesAsAdmin(
+  id: string,
+  _state: FamiliesSaveState,
+  form: FormData,
+): Promise<FamiliesSaveState> {
+  let adminUid: string;
+  try {
+    adminUid = (await requireAdmin()).uid;
+  } catch {
+    return { status: 'error', message: SIGN_IN_AGAIN_MESSAGE };
+  }
+  try {
+    const fields = Object.fromEntries(
+      [...form.entries()].filter(
+        (entry): entry is [string, string] => typeof entry[1] === 'string',
+      ),
+    );
+    const result = await editWeddingFamilies(id, fields, adminUid);
+    if (result.ok) {
+      revalidatePath('/admin', 'layout');
+      return { status: 'saved' };
+    }
+    return {
+      status: 'error',
+      message: result.message,
+      ...(result.fieldErrors !== undefined && { errors: result.fieldErrors }),
+    };
+  } catch (error) {
+    logger.error('Admin families save failed', error, { id, uid: adminUid });
     return { status: 'error', message: 'Your changes were not saved. Try again.' };
   }
 }

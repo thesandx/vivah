@@ -12,6 +12,7 @@ import {
   slugClaimId,
   slugClaims,
   updateWeddingDetails,
+  updateWeddingFamilies,
   updateWeddingFunctions,
   updateWeddingSong,
   weddings,
@@ -255,6 +256,28 @@ describeEmulator('the dashboards (emulator)', () => {
     expect((await getWeddingBySlug(slug))?.functions).toBeUndefined();
     expect(await updateWeddingFunctions(slug, phone, [haldi])).toEqual({ ok: true });
     expect((await getWeddingBySlug(slug))?.functions).toEqual([haldi]);
+  });
+
+  it('lets the couple save their family names, and nobody else', async () => {
+    const { slug, phone } = await ownedWedding();
+    const empty = {
+      surname: null,
+      grandmother: null,
+      grandfather: null,
+      mother: null,
+      father: null,
+    };
+    const families = {
+      groom: { ...empty, surname: 'Gupta', mother: 'Smt. Dezi Gupta', father: 'Shri Rajesh Gupta' },
+      bride: empty,
+    };
+    expect(await updateWeddingFamilies(slug, '+919000000000', families)).toEqual({
+      ok: false,
+      reason: 'not-found',
+    });
+    expect((await getWeddingBySlug(slug))?.families).toBeUndefined();
+    expect(await updateWeddingFamilies(slug, phone, families)).toEqual({ ok: true });
+    expect((await getWeddingBySlug(slug))?.families).toEqual(families);
   });
 
   it('names the fields that are wrong and saves nothing', async () => {

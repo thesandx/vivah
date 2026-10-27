@@ -93,6 +93,7 @@
   --color-jewel-gold: #8a6a12; /* small capitals on ivory */
   --color-jewel-cocoa: #5a2a00; /* words on a gold button */
   --color-jewel-light: #fff6de; /* words on a dark block */
+  --color-jewel-gold-line: #d4af37; /* gold rules and the arches' outline */
   /* The jewel invite's faces: Playfair Display for the couple's names only,
      DM Serif Display for everything else, Martel for Devanagari. */
   --font-jewel-name: var(--font-playfair), Georgia, serif;
@@ -1581,6 +1582,167 @@
   font-style: italic;
   text-align: center;
   color: var(--color-jewel-haldi);
+}
+
+/* The "Our Families" section: an arched card for each side, from the
+   product owner's design (`components/invite/OurFamilies.tsx`). Each card
+   takes its tone from `jewel-family-groom` or `jewel-family-bride`, which
+   set `--family` (the medallion and the corner lotus) and `--family-hi`
+   (the medallion's light end). */
+@utility jewel-bg-families {
+  padding: 56px 26px 60px;
+  background: linear-gradient(180deg, #fff8ec 0%, #fdf1e6 45%, #fbe6ea 100%);
+
+  & .jewel-jaali {
+    opacity: 0.2;
+    filter: hue-rotate(-35deg);
+  }
+}
+
+@utility jewel-family-groom {
+  --family: #f58a07;
+  --family-hi: #ffc24d;
+  --family-lotus: #c9a24a;
+}
+
+@utility jewel-family-bride {
+  --family: #c2185b;
+  --family-hi: #ff6fa3;
+  --family-lotus: #e88aa6;
+}
+
+@utility jewel-family-heading {
+  font-family: var(--font-jewel);
+  font-size: clamp(36px, 10.5vw, 44px);
+  line-height: 1.1;
+  color: var(--color-jewel-maroon);
+}
+
+@utility jewel-family-lede {
+  max-width: 310px;
+  margin: 16px auto 0;
+  font-family: var(--font-jewel);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--color-jewel-ink-soft);
+}
+
+@utility jewel-family-list {
+  display: grid;
+  gap: 34px;
+  justify-items: center;
+  margin-top: 32px;
+}
+
+/* The mehrab arch: a half circle on top, soft corners below, and a gold
+   double ring like the arch round Shri Ganesh. */
+@utility jewel-family-card {
+  position: relative;
+  overflow: hidden;
+  width: min(330px, 100%);
+  padding: 28px 20px 30px;
+  border: 1.5px solid var(--color-jewel-gold-line);
+  border-radius: 165px 165px 28px 28px;
+  background: linear-gradient(180deg, #fffdf8 0%, #fdf4e4 100%);
+  box-shadow:
+    0 18px 40px rgb(74 14 30 / 0.12),
+    inset 0 0 0 7px #fffdf8,
+    inset 0 0 0 8.5px rgb(212 175 55 / 0.5);
+}
+
+@utility jewel-family-medal {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  color: #fff;
+  background: radial-gradient(circle at 36% 28%, var(--family-hi) 0%, var(--family) 70%);
+  box-shadow:
+    0 0 0 4px #fffdf8,
+    0 0 0 5.5px var(--color-jewel-gold-line),
+    0 10px 20px rgb(74 14 30 / 0.2);
+}
+
+@utility jewel-family-tag {
+  font-family: var(--font-jewel);
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+  line-height: 1.5;
+  text-transform: uppercase;
+  color: var(--color-jewel-gold);
+}
+
+/* The first group label under the family name has more room above it. */
+@utility jewel-family-group {
+  margin-top: 20px;
+}
+
+@utility jewel-family-title {
+  margin-top: 4px;
+  padding: 0 2px 4px;
+  font-family: var(--font-jewel-name);
+  font-size: clamp(28px, 8.4vw, 32px);
+  font-weight: 600;
+  line-height: 1.12;
+  color: transparent;
+  background: linear-gradient(90deg, #e2372a 0%, #d42550 50%, #b8135f 100%);
+  background-clip: text;
+}
+
+@utility jewel-family-names {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 9px;
+  font-family: var(--font-jewel);
+  font-size: clamp(18px, 5.2vw, 20px);
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  color: var(--color-jewel-ink);
+}
+
+@utility jewel-family-amp {
+  margin: 3px 0 1px;
+  font-family: var(--font-jewel-name);
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--color-jewel-marigold);
+}
+
+@utility jewel-family-rule {
+  display: block;
+  margin: 23px 0 20px;
+}
+
+@utility jewel-family-lotus {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  width: 64px;
+  height: 64px;
+  color: var(--family-lotus);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+/* The unpaid preview's placeholders. */
+@utility jewel-family-faint {
+  opacity: 0.42;
+}
+
+@utility jewel-family-note {
+  max-width: 300px;
+  margin: 28px auto 0;
+  font-family: var(--font-jewel);
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-jewel-rani);
 }
 
 @keyframes jewel-bob {
