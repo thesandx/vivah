@@ -121,7 +121,6 @@ export default async function AdminPreviewPage({
     bride: lead.bride,
     groom: lead.groom,
     nameOrder,
-    link,
     rootDomain: env.rootDomain,
   };
   const nudgeText = nudge.kind === 'due' ? nudgeMessage(nudge.day, nudgeInput) : null;
