@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useActionState, useEffect, useRef, useState, useTransition } from 'react';
 
 import { Alert } from '@/components/ui/Alert';
@@ -8,6 +9,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { whatsAppShareUrl } from '@/lib/business';
+import { LINK_PREVIEW_FAQ_ID } from '@/lib/seo';
 import { cn } from '@/lib/utils';
 
 /**
@@ -188,6 +190,20 @@ export function GuestLinks({ links, coupleNames, create, remove, className }: Gu
             </li>
           ))}
         </ul>
+      )}
+
+      {links.length > 0 && (
+        <p className="text-small text-ink-soft">
+          <span className="text-ink font-semibold">Tip:</span> in WhatsApp, wait about 2 seconds
+          before you tap send. This gives the invite preview time to load, so your guest sees your
+          card, not only a link.{' '}
+          <Link
+            href={`/help#${LINK_PREVIEW_FAQ_ID}`}
+            className="text-brand underline underline-offset-4"
+          >
+            Preview not showing?
+          </Link>
+        </p>
       )}
 
       <Dialog

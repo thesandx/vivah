@@ -50,6 +50,9 @@ export const PRODUCT_FEATURES: readonly string[] = [
   'No app to install for the couple or the guests; no charge per guest',
 ];
 
+/** The anchor of the link preview question on `/help`. */
+export const LINK_PREVIEW_FAQ_ID = 'link-preview';
+
 /**
  * The questions `/help` answers, with `FAQPage` schema. They name the
  * dashboard and the RSVP plainly, so an answer engine does not guess.
@@ -85,6 +88,7 @@ export const PRODUCT_FAQS: readonly Faq[] = [
     answer: `From ₹${PRICE_FROM_RUPEES}, paid once. There is no charge per guest, and you see a free preview before you pay.`,
   },
   {
+    id: LINK_PREVIEW_FAQ_ID,
     question: 'Why doesn’t my invite link show a picture on WhatsApp?',
     answer:
       'WhatsApp has a setting called “Disable link previews”, on Android and on iPhone. When it is on, every link shows as plain text with no picture. The link still works, and your guest sees the full invite when they tap it. On Android, tap ⋮ > Settings > Privacy > Advanced. On iPhone, tap Settings or your profile picture, then Privacy > Advanced. Turn off “Disable link previews”, then send the link again.',
@@ -219,6 +223,8 @@ export interface Faq {
   answer: string;
   /** A page that says more, shown under the answer. */
   link?: { href: string; label: string };
+  /** An anchor, so another page can link to this question: `/help#link-preview`. */
+  id?: string;
 }
 
 /** schema.org `FAQPage`. The questions and answers must also show on the page. */
