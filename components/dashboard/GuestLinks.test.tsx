@@ -115,6 +115,37 @@ describe('GuestLinks', () => {
     expect(remove).toHaveBeenCalledWith(LINK.id);
   });
 
+  it('shows no Edit button without a rename action', () => {
+    renderLinks();
+    expect(screen.queryByRole('button', { name: "Edit Rahul Sharma's link" })).toBeNull();
+  });
+
+  it('renames a link with the typed name, and says to send the new link', async () => {
+    const rename = vi.fn(async (_id: string, name: string) => ({ ok: true as const, name }));
+    renderLinks({ rename });
+    fireEvent.click(screen.getByRole('button', { name: "Edit Rahul Sharma's link" }));
+    const field = screen.getAllByLabelText("Guest's name")[1];
+    if (field === undefined) throw new Error('The rename field is missing.');
+    expect(field).toHaveValue('Rahul Sharma');
+    fireEvent.change(field, { target: { value: 'Rahul Verma' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save name' }));
+    });
+    expect(rename).toHaveBeenCalledWith(LINK.id, 'Rahul Verma');
+    expect(await screen.findByText('Saved. The new link greets Rahul Verma.')).toBeVisible();
+  });
+
+  it('keeps the rename dialog open with the server error', async () => {
+    renderLinks({
+      rename: async () => ({ ok: false as const, message: 'Use letters and spaces only.' }),
+    });
+    fireEvent.click(screen.getByRole('button', { name: "Edit Rahul Sharma's link" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Save name' }));
+    });
+    expect(await screen.findByText('Use letters and spaces only.')).toBeVisible();
+  });
+
   it('says so when there are no links yet', () => {
     renderLinks({ links: [] });
     expect(screen.getByText(/No guest links yet/)).toBeVisible();
