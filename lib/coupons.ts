@@ -62,11 +62,15 @@ export const appliedCouponSchema = z.object({
 export type AppliedCoupon = z.infer<typeof appliedCouponSchema>;
 
 /**
- * The price after `percentOff`, in whole rupees, rounded to the nearest rupee.
- * Never below ₹1: a provider refuses an order for nothing.
+ * The price after `percentOff`, in whole rupees. The percentage comes off the
+ * list price rounded up to the next ₹10, so ₹799 counts as ₹800: 20% off is
+ * ₹640 and 30% off is ₹560, not ₹639 and ₹559. The product owner asked for
+ * round prices (2026-10-27). Never below ₹1: a provider refuses an order for
+ * nothing. With no coupon the couple still pays the list price itself.
  */
 export function discountedPrice(listRupees: number, percentOff: number): number {
-  return Math.max(1, Math.round((listRupees * (100 - percentOff)) / 100));
+  const base = Math.ceil(listRupees / 10) * 10;
+  return Math.max(1, Math.round((base * (100 - percentOff)) / 100));
 }
 
 /** `₹799`, as every price on the site is printed. */

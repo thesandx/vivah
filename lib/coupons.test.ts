@@ -41,10 +41,16 @@ describe('couponFieldsSchema', () => {
 });
 
 describe('discountedPrice', () => {
-  it('takes the percentage off and rounds to the rupee', () => {
-    expect(discountedPrice(799, 20)).toBe(639);
-    expect(discountedPrice(799, 40)).toBe(479);
-    expect(discountedPrice(799, 10)).toBe(719);
+  it('takes the percentage off the list price rounded up to ₹10', () => {
+    expect(discountedPrice(799, 20)).toBe(640);
+    expect(discountedPrice(799, 30)).toBe(560);
+    expect(discountedPrice(799, 40)).toBe(480);
+    expect(discountedPrice(799, 10)).toBe(720);
+  });
+
+  it('leaves a list price on a ₹10 step as it is', () => {
+    expect(discountedPrice(500, 15)).toBe(425);
+    expect(discountedPrice(95, 15)).toBe(85);
   });
 
   it('never goes below one rupee', () => {

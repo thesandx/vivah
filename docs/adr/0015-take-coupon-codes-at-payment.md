@@ -62,6 +62,7 @@ Both providers have offers, but they apply inside their checkout, after the coup
 
 - Leads before this change have no `coupon` field. They count as "no code".
 - A test publish in development ignores the code, as it ignores the price.
+- The percentage comes off the list price rounded up to ₹10, so 20% off ₹799 is ₹640, not ₹639 (2026-10-27). The checkout shows the saving from ₹799, so it reads −₹159. `discountedPrice` in `lib/coupons.ts` holds the rule.
 
 ## Revisit when
 
