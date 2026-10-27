@@ -33,9 +33,31 @@ const INPUT = {
 describe('nudgeStatus', () => {
   it('counts calendar days in India from the day the couple asked', () => {
     expect(nudgeStatus(lead({}), NOW)).toEqual({ kind: 'due', day: 1 });
-    // 21 Oct 19:00 UTC is already 22 Oct in India: the same day, so no nudge yet.
-    expect(nudgeStatus(lead({ createdAt: new Date('2026-10-21T19:00:00Z') }), NOW)).toEqual({
+    // 22 Oct, 08:00 in India: the same day, so no nudge yet.
+    expect(nudgeStatus(lead({ createdAt: new Date('2026-10-22T02:30:00Z') }), NOW)).toEqual({
       kind: 'starts',
+    });
+  });
+
+  it('starts the same day for a preview made before 6 AM in India', () => {
+    // 22 Oct, 05:59 in India: day 1 is today, sent at about 11 AM.
+    expect(nudgeStatus(lead({ createdAt: new Date('2026-10-22T00:29:00Z') }), NOW)).toEqual({
+      kind: 'due',
+      day: 1,
+    });
+    // 22 Oct, 06:00 in India: day 1 is tomorrow.
+    expect(nudgeStatus(lead({ createdAt: new Date('2026-10-22T00:30:00Z') }), NOW)).toEqual({
+      kind: 'starts',
+    });
+    // 16 Oct, 02:00 in India: day 1 was 16 Oct, so 22 Oct is day 7.
+    expect(nudgeStatus(lead({ createdAt: new Date('2026-10-15T20:30:00Z') }), NOW)).toEqual({
+      kind: 'due',
+      day: 7,
+    });
+    // 15 Oct, 02:00 in India: the week ended yesterday.
+    expect(nudgeStatus(lead({ createdAt: new Date('2026-10-14T20:30:00Z') }), NOW)).toEqual({
+      kind: 'none',
+      reason: 'finished',
     });
   });
 
@@ -74,22 +96,30 @@ describe('nudgeLabel', () => {
 });
 
 describe('nudgeMessage', () => {
-  it('has a topic and a message for every day, each ending with the link', () => {
+  it('has a topic and a message for every day, each with the sample link and the sign-off last', () => {
     expect(NUDGE_TOPICS).toHaveLength(NUDGE_DAYS);
     for (let day = 1; day <= NUDGE_DAYS; day += 1) {
       const message = nudgeMessage(day, INPUT);
       expect(message.startsWith('Namaste Alisha & Sumit 🙏')).toBe(true);
-      expect(message.toLowerCase()).toContain('reply "open"');
-      expect(message).toContain('Team Vivah 💛');
-      expect(message.endsWith('\n\nhttps://vivah.online/p/abc')).toBe(true);
+      expect(message.toLowerCase()).not.toContain('reply "open"');
+      expect(message).not.toContain('/p/');
+      expect(message).toContain('Create your own free preview at https://vivah.online');
+      expect(message).toContain('\nhttps://priya-rahul.vivah.online/Neha\n');
+      expect(message.endsWith('\n\nTeam Vivah 💛')).toBe(true);
     }
   });
 
   it('names the couple’s likely address on day 6', () => {
-    expect(nudgeMessage(6, INPUT)).toContain('alisha-sumit.vivah.online is still free');
-    expect(nudgeMessage(6, { ...INPUT, bride: 'राधा', groom: 'श्याम' })).toContain(
-      'Your own vivah.online address is still free',
+    expect(nudgeMessage(6, INPUT)).toContain(
+      'Aapka address alisha-sumit.vivah.online abhi free hai',
     );
+    expect(nudgeMessage(6, { ...INPUT, bride: 'राधा', groom: 'श्याम' })).toContain(
+      'Aapka apna vivah.online address abhi free hai',
+    );
+  });
+
+  it('prices the product on day 3', () => {
+    expect(nudgeMessage(3, INPUT)).toContain('bas ₹799');
   });
 
   it('refuses a day outside the week', () => {
