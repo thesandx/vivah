@@ -76,6 +76,10 @@ describe('GuestLinks', () => {
   it('tells the couple to wait for the WhatsApp preview, once there is a link', () => {
     renderLinks();
     expect(screen.getByText(/wait about 2 seconds/)).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Preview not showing?' })).toHaveAttribute(
+      'href',
+      '/help#link-preview',
+    );
   });
 
   it('hides the WhatsApp tip while there are no links', () => {
