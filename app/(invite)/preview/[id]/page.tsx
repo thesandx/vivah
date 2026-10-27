@@ -28,11 +28,11 @@ import { previewClosesAt } from '@/lib/preview-timer';
 import { siteOrigin } from '@/lib/seo';
 import { inviteDomainLabel, inviteHostLabel, inviteHref, madeByUrl } from '@/lib/site-host';
 import { emptyFunction } from '@/lib/wedding-functions';
-import { songUrl } from '@/lib/wedding-songs';
 import { getHomeRibbon } from '@/services/coupon.service';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
 import { paymentMode, paymentProviderName, payments } from '@/services/payment.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
+import { inviteSong } from '@/services/wedding-songs.service';
 
 import { applyCouponAction, checkSlugAction, publishAction } from './actions';
 
@@ -145,8 +145,8 @@ export default async function PreviewPage({
   const { lead, canPublish } = access;
   const closesAt = previewClosesAt(lead);
   const renderedAt = new Date().getTime();
-  const song =
-    lead.song === undefined ? null : { name: lead.song.name, src: songUrl(lead.song.file) };
+  // A preview with no song saved plays the first one on the list.
+  const song = await inviteSong(lead.song);
   const domainLabel = inviteDomainLabel(env.rootDomain);
   const published = lead.status === 'paid' && lead.weddingSlug !== undefined;
   // Paid, but another couple published the address first. ADR-0011.

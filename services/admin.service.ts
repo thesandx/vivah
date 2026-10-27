@@ -207,6 +207,64 @@ export async function editWeddingFunctions(
 }
 
 /**
+ * Sets a live invite's song to one on the admin's list, as the couple's
+ * dashboard does. The preview it was paid from gets the same song, so the
+ * two never disagree. It stores `{ name, file }` copied from the list, never
+ * a file the caller names.
+ */
+export async function changeWeddingSong(
+  id: string,
+  slot: SongSlot,
+  adminUid: string,
+): Promise<AdminResult> {
+  const wedding = await getWeddingForAdmin(id);
+  if (wedding === null || wedding.deletedAt !== null) return NOT_FOUND;
+  const song = await songInSlot(slot);
+  if (song === null) {
+    return { ok: false, message: 'That song is no longer on the list. Choose another.' };
+  }
+  await weddings.update(id, { song });
+  const lead = await getLeadForAdmin(wedding.leadId);
+  if (lead !== null && lead.weddingSlug === wedding.slug) await leads.update(lead.id, { song });
+  await audit(
+    'wedding-song-changed',
+    'wedding',
+    id,
+    `Changed the song on ${wedding.slug} to ${song.name}.`,
+    adminUid,
+  );
+  return { ok: true, message: `${song.name} is now the song on the live invite.` };
+}
+
+/**
+ * Sets whose name a live invite shows first. The preview it was paid from
+ * gets the same order, so the two never disagree. The address never changes
+ * with it: links already shared must keep working.
+ */
+export async function changeWeddingNameOrder(
+  id: string,
+  nameOrder: NameOrder,
+  adminUid: string,
+): Promise<AdminResult> {
+  const wedding = await getWeddingForAdmin(id);
+  if (wedding === null || wedding.deletedAt !== null) return NOT_FOUND;
+  await weddings.update(id, { nameOrder });
+  const lead = await getLeadForAdmin(wedding.leadId);
+  if (lead !== null && lead.weddingSlug === wedding.slug) {
+    await leads.update(lead.id, { nameOrder });
+  }
+  const names = coupleNames({ ...wedding, nameOrder });
+  await audit(
+    'wedding-name-order-changed',
+    'wedding',
+    id,
+    `Set the name order on ${wedding.slug} to ${names}.`,
+    adminUid,
+  );
+  return { ok: true, message: `The live invite now says ${names}.` };
+}
+
+/**
  * Changes the couple's WhatsApp number: the RSVP button's number and the
  * couple's dashboard login. The audit entry does not name either number.
  */

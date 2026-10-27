@@ -7,6 +7,8 @@ import {
   changePreviewNameOrder,
   changePreviewSong,
   changeWeddingAddress,
+  changeWeddingNameOrder,
+  changeWeddingSong,
   deleteLead,
   deleteWedding,
   eraseTestData,
@@ -261,6 +263,42 @@ describeEmulator('admin operations (emulator)', () => {
     expect((await leads.getOrThrow(leadId)).song).toEqual(song);
     expect((await getWeddingBySlug(slug))?.song).toEqual(song);
     expect(await auditFor(leadId)).toContain('preview-song-changed');
+  });
+
+  it('changes the name order on a live invite and its preview, never the address', async () => {
+    const { weddingId, leadId, slug } = await published();
+    expect(await changeWeddingNameOrder(weddingId, 'groom-first', ADMIN)).toEqual({
+      ok: true,
+      message: 'The live invite now says Shyam & Radha.',
+    });
+    const wedding = await getWeddingBySlug(slug);
+    expect(wedding?.nameOrder).toBe('groom-first');
+    expect(wedding?.slug).toBe(slug);
+    expect((await leads.getOrThrow(leadId)).nameOrder).toBe('groom-first');
+    expect(await auditFor(weddingId)).toContain('wedding-name-order-changed');
+  });
+
+  it('changes a live invite song, and the preview it was paid from', async () => {
+    const song = { name: 'Tum Hi Ho', file: 'song-2-admin.mp3' };
+    const slots = { slot1: null, slot2: song, slot3: null, slot4: null };
+    if ((await weddingSongs.get(SONGS_DOC_ID)) === null) {
+      await weddingSongs.createWithId(SONGS_DOC_ID, slots, { minLength: SONGS_DOC_ID.length });
+    } else {
+      await weddingSongs.update(SONGS_DOC_ID, slots);
+    }
+    resetSongsCache();
+
+    const { leadId, slug } = await published();
+    const wedding = await getWeddingBySlug(slug);
+    if (wedding === null) throw new Error('The wedding was not published.');
+    expect((await changeWeddingSong(wedding.id, 1, ADMIN)).ok).toBe(false);
+    expect(await changeWeddingSong(wedding.id, 2, ADMIN)).toEqual({
+      ok: true,
+      message: 'Tum Hi Ho is now the song on the live invite.',
+    });
+    expect((await getWeddingBySlug(slug))?.song).toEqual(song);
+    expect((await leads.getOrThrow(leadId)).song).toEqual(song);
+    expect(await auditFor(wedding.id)).toContain('wedding-song-changed');
   });
 
   it('changes the name order on a preview and its live invite, never the address', async () => {

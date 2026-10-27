@@ -13,16 +13,14 @@ import { env } from '@/lib/env';
 import { parseGuestName } from '@/lib/guest-name';
 import { inviteCard, inviteMetadata, type InviteMetaInput } from '@/lib/invite-meta';
 import type { LinkPreviewCard } from '@/lib/link-preview-page';
-import { logger } from '@/lib/logger';
 import { isSampleSlug, SAMPLE_RSVP_MESSAGE, sampleWedding } from '@/lib/sample-invite';
 import { editDetailsUrl, inviteDomainLabel, madeByUrl } from '@/lib/site-host';
 import type { WeddingFamilies } from '@/lib/wedding-families';
 import type { WeddingFunction } from '@/lib/wedding-functions';
-import { songUrl } from '@/lib/wedding-songs';
 import { isGuestLinkDeleted } from '@/services/guest-link.service';
 import { getSampleVenues } from '@/services/sample-invite.service';
 import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
-import { listSongOptions } from '@/services/wedding-songs.service';
+import { inviteSong } from '@/services/wedding-songs.service';
 
 /**
  * The couple's invite, shared by the plain link (`sara.vivah.online`) and a
@@ -52,7 +50,7 @@ interface Invite {
   sample: boolean;
 }
 
-function fromWedding(wedding: WeddingDocument): Invite {
+function fromWedding(wedding: WeddingDocument, song: Invite['song']): Invite {
   return {
     id: wedding.id,
     slug: wedding.slug,
@@ -67,10 +65,7 @@ function fromWedding(wedding: WeddingDocument): Invite {
     rsvpPhoneE164: wedding.ownerPhoneE164,
     functions: wedding.functions ?? [],
     families: wedding.families,
-    song:
-      wedding.song === undefined
-        ? null
-        : { name: wedding.song.name, src: songUrl(wedding.song.file) },
+    song,
     unavailable: wedding.status === 'unavailable',
     sample: false,
   };
@@ -84,13 +79,7 @@ function fromWedding(wedding: WeddingDocument): Invite {
 async function sampleInvite(slug: string): Promise<Invite> {
   // Read in parallel with the songs; `getSampleVenues` never throws.
   const venues = getSampleVenues();
-  let song: Invite['song'] = null;
-  try {
-    const [first] = await listSongOptions();
-    if (first !== undefined) song = { name: first.name, src: first.src };
-  } catch (error) {
-    logger.error('Reading the songs for the sample invite failed', error);
-  }
+  const song = await inviteSong(undefined);
   return {
     ...sampleWedding(new Date(), await venues),
     id: null,
@@ -109,7 +98,8 @@ async function sampleInvite(slug: string): Promise<Invite> {
  */
 const loadWedding = cache(async (slug: string): Promise<Invite | null> => {
   const wedding = await getWeddingBySlug(slug);
-  if (wedding !== null) return fromWedding(wedding);
+  // A couple with no song saved hears the first one on the list.
+  if (wedding !== null) return fromWedding(wedding, await inviteSong(wedding.song));
   return isSampleSlug(slug) ? sampleInvite(slug) : null;
 });
 
