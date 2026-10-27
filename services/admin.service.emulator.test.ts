@@ -19,6 +19,7 @@ import {
   releaseWeddingAddress,
   restoreLead,
   restoreWedding,
+  setWeddingCredit,
   setWeddingStatus,
 } from '@/services/admin.service';
 import { adminAudit } from '@/services/admin-audit.service';
@@ -84,6 +85,18 @@ describeEmulator('admin operations (emulator)', () => {
     expect((await getWeddingBySlug(slug))?.status).toBe('live');
     expect(await auditFor(weddingId)).toEqual(
       expect.arrayContaining(['wedding-paused', 'wedding-resumed']),
+    );
+  });
+
+  it('hides and shows the vivah.online credit, and logs both', async () => {
+    const { weddingId, slug } = await published();
+    expect((await getWeddingBySlug(slug))?.hideCredit).toBeUndefined();
+    expect((await setWeddingCredit(weddingId, true, ADMIN)).ok).toBe(true);
+    expect((await getWeddingBySlug(slug))?.hideCredit).toBe(true);
+    await setWeddingCredit(weddingId, false, ADMIN);
+    expect((await getWeddingBySlug(slug))?.hideCredit).toBe(false);
+    expect(await auditFor(weddingId)).toEqual(
+      expect.arrayContaining(['wedding-credit-hidden', 'wedding-credit-shown']),
     );
   });
 

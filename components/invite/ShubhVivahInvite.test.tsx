@@ -124,6 +124,18 @@ describe('ShubhVivahInvite', () => {
     );
   });
 
+  it('hides the credit when asked, and keeps the Edit details link', () => {
+    render(
+      <ShubhVivahInvite
+        {...full}
+        hideCredit
+        editDetailsUrl="https://vivah.online/dashboard?site=anu"
+      />,
+    );
+    expect(screen.queryByRole('link', { name: /vivah\.online/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /edit details/i })).toBeInTheDocument();
+  });
+
   it('gives the couple an Edit details link only when the live site passes one', () => {
     const { rerender } = render(<ShubhVivahInvite {...full} />);
     expect(screen.queryByRole('link', { name: /edit details/i })).not.toBeInTheDocument();

@@ -25,6 +25,8 @@ export const ADMIN_ACTIONS = [
   'wedding-song-changed',
   'wedding-name-order-changed',
   'wedding-families-edited',
+  'wedding-credit-hidden',
+  'wedding-credit-shown',
   'guest-link-created',
   'guest-link-renamed',
   'guest-link-deleted',
