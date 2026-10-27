@@ -1,3 +1,4 @@
+import { OpenFaqFromHash } from '@/components/guides/OpenFaqFromHash';
 import type { Faq } from '@/lib/seo';
 
 export interface FaqListProps {
@@ -23,7 +24,7 @@ export function FaqList({ faqs, heading = 'Questions people ask' }: FaqListProps
       </h2>
       <ul className="flex max-w-prose flex-col gap-3">
         {faqs.map((faq) => (
-          <li key={faq.question}>
+          <li key={faq.question} id={faq.id} className="scroll-mt-24">
             <details className="group bg-surface shadow-hard rounded-card">
               <summary className="text-heading flex min-h-11 cursor-pointer items-center justify-between gap-4 px-5 py-4">
                 {faq.question}
@@ -59,6 +60,7 @@ export function FaqList({ faqs, heading = 'Questions people ask' }: FaqListProps
           </li>
         ))}
       </ul>
+      {faqs.some((faq) => faq.id !== undefined) && <OpenFaqFromHash />}
     </section>
   );
 }

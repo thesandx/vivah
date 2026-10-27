@@ -46,4 +46,14 @@ describe('FaqList', () => {
     expect(link).toHaveAttribute('href', 'https://faq.whatsapp.com/445453537819972/');
     expect(link).toHaveAttribute('target', '_blank');
   });
+
+  it('opens the question a link points at, such as /help#link-preview', () => {
+    window.location.hash = '#link-preview';
+    render(
+      <FaqList faqs={[...FAQS, { id: 'link-preview', question: 'No picture?', answer: 'On.' }]} />,
+    );
+    expect(screen.getByText('No picture?').closest('details')).toHaveAttribute('open');
+    expect(screen.getByText('Is it free?').closest('details')).not.toHaveAttribute('open');
+    window.location.hash = '';
+  });
 });

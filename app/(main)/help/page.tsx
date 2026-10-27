@@ -88,7 +88,7 @@ const INVITE_STEPS = [
   'In “Guest’s name”, type the name the way you call them, for example “Vinita Didi” or “Sharma Uncle”. The invite opens with “Hi” and this name.',
   'Tap “Make link”. The link appears in the list below the form.',
   'Tap “Send on WhatsApp”. WhatsApp opens with a message ready: an invitation from the two of you, with the link at the end.',
-  'Choose the guest’s chat and tap send. They see a preview with your names, and their own name when they open it.',
+  'Choose the guest’s chat. Wait about 2 seconds until the invite preview shows above the message, then tap send. They see a card with your names, and their own name when they open it.',
   'Do the same for each guest. The form is empty again after each link.',
 ];
 
