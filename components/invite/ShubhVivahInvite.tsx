@@ -430,7 +430,13 @@ export function ShubhVivahInvite({
         <Garland />
 
         {(venuePlaceholder || families !== undefined) && (
-          <OurFamilies families={families} nameOrder={nameOrder} placeholder={venuePlaceholder} />
+          <OurFamilies
+            families={families}
+            bride={bride}
+            groom={groom}
+            nameOrder={nameOrder}
+            placeholder={venuePlaceholder}
+          />
         )}
 
         {festivities.length > 0 && (

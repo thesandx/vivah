@@ -47,6 +47,8 @@ export const familySchema = z.object({
    * `Gupta Parivar`. Still read, never written.
    */
   surname: familyName.optional(),
+  /** The couple chose "No title": the card shows no heading at all. */
+  noTitle: z.boolean().optional(),
   grandmother: familyName,
   grandfather: familyName,
   mother: familyName,
@@ -96,12 +98,11 @@ export function familyHasNames(family: Family | undefined): family is Family {
 }
 
 /**
- * The card's heading. The couple's own words come first, as written:
- * `Gupta Parivar` or `The Gupta Family`. Without them, the last word of the
- * father's name (then the grandfather's) gives `Gupta Parivar`. A single
- * word gives nothing.
+ * The family's surname, from the names: the first release's saved family
+ * name, else the last word of the father's name (then the grandfather's).
+ * `Shri Rajesh Gupta` gives `Gupta`. A single word gives nothing.
  */
-export function familyTitle(family: Family): string | null {
+export function familySurname(family: Family): string | null {
   const fromName = (name: string | null): string | null => {
     const words = name?.split(/\s+/).filter((word) => word !== '') ?? [];
     // One word is a first name or a title, not a family name.
@@ -109,10 +110,51 @@ export function familyTitle(family: Family): string | null {
     const last = words.at(-1) ?? '';
     return /^[\p{L}][\p{L}'’-]*$/u.test(last) ? last : null;
   };
-  if (family.title !== undefined && family.title !== null) return family.title;
   const surname = family.surname ?? fromName(family.father) ?? fromName(family.grandfather);
-  if (surname === null) return null;
-  return /\bparivar$/i.test(surname) ? surname : `${surname} Parivar`;
+  return surname?.replace(/\s+parivar$/i, '') ?? null;
+}
+
+/** The first word of a name: `Priya Sharma` gives `Priya`. */
+function firstWord(name: string | undefined): string {
+  return name?.trim().split(/\s+/)[0] ?? '';
+}
+
+/**
+ * The card's heading. "No title" shows none. The couple's own words come
+ * next, as written: `Gupta Parivar` or `The Gupta Family`. Without them, the
+ * surname gives `Gupta Parivar`, and without a surname the bride's or the
+ * groom's first name gives `Priya's Family` (only the first word of a full
+ * name).
+ */
+export function familyTitle(family: Family, firstName?: string): string | null {
+  if (family.noTitle === true) return null;
+  if (family.title !== undefined && family.title !== null) return family.title;
+  const surname = familySurname(family);
+  if (surname !== null) return `${surname} Parivar`;
+  const first = firstWord(firstName);
+  return first === '' ? null : `${first}’s Family`;
+}
+
+/**
+ * Headings the form offers to fill with one tap, for a couple who does not
+ * want to write one: `Malhotra Parivar`, `The Malhotra Family`,
+ * `Priya's Family`, `Vadhu Paksh` (the bride's side, as printed cards say)
+ * and `The Bride's Family`. Each appears once.
+ */
+export function familyTitleSuggestions(
+  side: FamilySide,
+  family: Family,
+  firstName: string,
+): string[] {
+  const surname = familySurname(family);
+  const first = firstWord(firstName);
+  const suggestions = [
+    ...(surname === null ? [] : [`${surname} Parivar`, `The ${surname} Family`]),
+    ...(first === '' ? [] : [`${first}’s Family`]),
+    side === 'bride' ? 'Vadhu Paksh' : 'Var Paksh',
+    side === 'bride' ? 'The Bride’s Family' : 'The Groom’s Family',
+  ];
+  return [...new Set(suggestions)];
 }
 
 /** The sides in the couple's name order: the bride's family first by default. */
@@ -121,7 +163,7 @@ export function orderedSides(nameOrder: NameOrder | undefined): [FamilySide, Fam
 }
 
 /** The form field for one name on one side: `groom.mother`. */
-export function familyFieldName(side: FamilySide, field: FamilyField): string {
+export function familyFieldName(side: FamilySide, field: FamilyField | 'noTitle'): string {
   return `${side}.${field}`;
 }
 
@@ -143,6 +185,7 @@ export function parseWeddingFamilies(form: Record<string, unknown>): FamiliesRes
   const errors: Record<string, string> = {};
   const read = (side: FamilySide): Family => {
     const family: Family = { ...EMPTY_FAMILY };
+    if (form[familyFieldName(side, 'noTitle')] === '1') family.noTitle = true;
     for (const field of FAMILY_FIELDS) {
       const key = familyFieldName(side, field);
       const raw = form[key];
@@ -150,6 +193,7 @@ export function parseWeddingFamilies(form: Record<string, unknown>): FamiliesRes
       if (parsed.success) family[field] = parsed.data;
       else errors[key] = parsed.error.issues[0]?.message ?? 'Check this name.';
     }
+    if (family.noTitle === true) family.title = null;
     return family;
   };
   const families = { groom: read('groom'), bride: read('bride') };

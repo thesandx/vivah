@@ -4,6 +4,7 @@ import {
   EMPTY_FAMILY,
   familyHasNames,
   familyTitle,
+  familyTitleSuggestions,
   orderedSides,
   parseWeddingFamilies,
   weddingFamiliesSchema,
@@ -15,6 +16,17 @@ describe('familyTitle', () => {
     expect(
       familyTitle({ ...EMPTY_FAMILY, title: 'Gupta Parivar', father: 'Shri Rajesh Sharma' }),
     ).toBe('Gupta Parivar');
+  });
+
+  it('falls back to the first name of the bride or groom', () => {
+    expect(familyTitle(EMPTY_FAMILY, 'Priya Sharma')).toBe('Priya’s Family');
+    expect(familyTitle({ ...EMPTY_FAMILY, father: 'Rajesh' }, 'Rahul')).toBe('Rahul’s Family');
+  });
+
+  it('shows no title when the couple chose No title', () => {
+    expect(
+      familyTitle({ ...EMPTY_FAMILY, noTitle: true, father: 'Shri Rajesh Gupta' }, 'Priya'),
+    ).toBeNull();
   });
 
   it('reads a family name saved by the first release, adding Parivar', () => {
@@ -31,6 +43,29 @@ describe('familyTitle', () => {
   it('gives nothing for a single word or no names', () => {
     expect(familyTitle({ ...EMPTY_FAMILY, father: 'Rajesh' })).toBeNull();
     expect(familyTitle(EMPTY_FAMILY)).toBeNull();
+  });
+});
+
+describe('familyTitleSuggestions', () => {
+  it('offers the surname, the first name and the traditional words, once each', () => {
+    expect(
+      familyTitleSuggestions(
+        'bride',
+        { ...EMPTY_FAMILY, father: 'Shri Rajiv Malhotra' },
+        'Priya Malhotra',
+      ),
+    ).toEqual([
+      'Malhotra Parivar',
+      'The Malhotra Family',
+      'Priya’s Family',
+      'Vadhu Paksh',
+      'The Bride’s Family',
+    ]);
+    expect(familyTitleSuggestions('groom', EMPTY_FAMILY, 'Rahul')).toEqual([
+      'Rahul’s Family',
+      'Var Paksh',
+      'The Groom’s Family',
+    ]);
   });
 });
 
@@ -70,6 +105,14 @@ describe('parseWeddingFamilies', () => {
       },
     });
     if (result.ok) expect(weddingFamiliesSchema.parse(result.families)).toEqual(result.families);
+  });
+
+  it('keeps No title and drops the typed title with it', () => {
+    const result = parseWeddingFamilies({
+      'bride.noTitle': '1',
+      'bride.title': 'Malhotra Parivar',
+    });
+    expect(result.ok && result.families.bride).toEqual({ ...EMPTY_FAMILY, noTitle: true });
   });
 
   it('marks a name that is too long, by its field', () => {

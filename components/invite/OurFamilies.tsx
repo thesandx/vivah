@@ -30,6 +30,9 @@ import {
 export interface OurFamiliesProps {
   /** The saved names, or `undefined` when none were added. */
   families: WeddingFamilies | undefined;
+  /** The couple's first names: a side with no surname reads `Priya's Family`. */
+  bride: string;
+  groom: string;
   nameOrder?: NameOrder | undefined;
   /** The unpaid preview: faint placeholders instead of names. */
   placeholder?: boolean;
@@ -127,14 +130,16 @@ function Pair({ first, second }: { first: string | null; second: string | null }
 function FamilyCard({
   side,
   family,
+  firstName,
   placeholder,
 }: {
   side: FamilySide;
   family: Family;
+  firstName: string;
   placeholder: boolean;
 }) {
   const labels = FAMILY_SIDE_LABELS[side];
-  const title = placeholder ? 'Your Parivar' : familyTitle(family);
+  const title = placeholder ? 'Your Parivar' : familyTitle(family, firstName);
   const grandparents = placeholder
     ? { first: 'Grandmother’s name', second: 'Grandfather’s name' }
     : { first: family.grandmother, second: family.grandfather };
@@ -179,6 +184,8 @@ function FamilyCard({
 
 export function OurFamilies({
   families,
+  bride,
+  groom,
   nameOrder,
   placeholder = false,
   className,
@@ -204,6 +211,7 @@ export function OurFamilies({
               key={side}
               side={side}
               family={families?.[side] ?? EMPTY_FAMILY}
+              firstName={side === 'bride' ? bride : groom}
               placeholder={placeholder}
             />
           ))}

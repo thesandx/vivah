@@ -92,6 +92,7 @@ describe('demo video', () => {
   it('reads only the known slots', () => {
     expect(parseSiteVideoSlot('help-edit-details')).toBe('help-edit-details');
     expect(parseSiteVideoSlot('help-functions')).toBe('help-functions');
+    expect(parseSiteVideoSlot('help-families')).toBe('help-families');
     expect(parseSiteVideoSlot('users')).toBeNull();
     expect(parseSiteVideoSlot(3)).toBeNull();
   });

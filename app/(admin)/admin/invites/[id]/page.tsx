@@ -174,6 +174,8 @@ export default async function AdminInvitePage({
             <h2 className="text-heading">Families</h2>
             <FamiliesForm
               initial={wedding.families}
+              bride={wedding.bride}
+              groom={wedding.groom}
               nameOrder={wedding.nameOrder}
               save={saveWeddingFamiliesAsAdmin.bind(null, wedding.id)}
               inviteHref={inviteHref(wedding.slug, env.rootDomain)}

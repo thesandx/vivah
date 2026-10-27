@@ -206,6 +206,7 @@ const PLACE: Record<SiteVideoSlot, string> = {
   'help-edit-details': 'the help page (edit details)',
   'help-guest-invite': 'the help page (guest invites)',
   'help-functions': 'the help page (functions)',
+  'help-families': 'the help page (families)',
 };
 
 /** Writes `demo`, with its audit entry, in one transaction. */
