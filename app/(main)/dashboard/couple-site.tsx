@@ -114,6 +114,8 @@ export async function CoupleSite({
           </div>
           <FamiliesForm
             initial={wedding.families}
+            bride={wedding.bride}
+            groom={wedding.groom}
             nameOrder={wedding.nameOrder}
             save={saveFamiliesAction.bind(null, wedding.slug)}
             inviteHref={inviteHref(wedding.slug, env.rootDomain)}

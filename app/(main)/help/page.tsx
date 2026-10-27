@@ -15,13 +15,13 @@ import { cn } from '@/lib/utils';
 import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
 
 /**
- * `GET /help` — the "Help" tab. Three how-tos for a couple whose site is live,
+ * `GET /help` — the "Help" tab. Four how-tos for a couple whose site is live,
  * each with its walkthrough video, then the questions couples ask, then the
  * way to `/contact`.
  *
  * The steps name the buttons exactly as the dashboard shows them
- * (`components/dashboard/WeddingDetailsForm.tsx`, `FunctionsForm.tsx`,
- * `GuestLinks.tsx`) and the
+ * (`components/dashboard/WeddingDetailsForm.tsx`, `FamiliesForm.tsx`,
+ * `FunctionsForm.tsx`, `GuestLinks.tsx`) and the
  * sign-in screens (`components/auth/SignInPanel.tsx`). Change them together.
  *
  * The admin uploads each video from the Home page tab of `/admin`, like the
@@ -30,9 +30,10 @@ import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
  * upload shows without a deploy.
  */
 
-const TITLE = 'Help: edit your wedding details, add functions and send guest invites';
+const TITLE =
+  'Help: edit your wedding details, add your families and functions, and send guest invites';
 const DESCRIPTION =
-  'How to change your wedding time, venue and map in your vivah.online dashboard, add your haldi, mehndi, sangeet and other functions, make a personal invite link for each guest and send it on WhatsApp, and answers to common questions.';
+  'How to change your wedding time, venue and map in your vivah.online dashboard, add your parents’ and grandparents’ names, add your haldi, mehndi, sangeet and other functions, make a personal invite link for each guest and send it on WhatsApp, and answers to common questions.';
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -56,6 +57,18 @@ const EDIT_STEPS = [
   'Change what you need: the wedding date, the ceremony time, the venue name (for example, The Grand Pavilion, Chhatarpur) and the town and state (for example, New Delhi, Delhi). The ceremony time is India time, and the countdown runs to it.',
   'To add the map, open Google Maps and search for your venue. Tap Share, then “Copy link”. Come back and paste the link in “Google Maps link”.',
   'Tap “Save details”. When you see “Saved”, your guests see the new details. Tap “Open your invite” to check.',
+];
+
+/** Both sides have the same five fields. */
+const FAMILY_STEPS = [
+  ...SIGN_IN_STEPS,
+  'Find “Your families” and tap “Add family names”. If you added names before, the button says “Edit family names”.',
+  'Each family has its own box: the bride’s family and the groom’s family. Whose name comes first on your invite, that family comes first.',
+  'Type the grandmother’s and the grandfather’s names, if you want them on the invite. Grandparents are optional.',
+  'Type the mother’s and the father’s names. Write each name as guests should read it, for example “Smt. Neelam Malhotra” and “Shri Rajiv Malhotra”.',
+  'Under the names, in “Family title”, tap a suggestion, for example “Malhotra Parivar”, “The Malhotra Family”, “Priya’s Family” or “Vadhu Paksh”. Or type your own. Tap “No title” to show no heading.',
+  'Do the same in the other family’s box.',
+  'Tap “Save family names”. When you see “Saved”, your invite shows “Our Families” just before your functions. Tap “Open your invite” to check.',
 ];
 
 /** Haldi is the example. Each function has the same four fields. */
@@ -92,6 +105,21 @@ const HOW_TOS: readonly (HowTo & { slot: SiteVideoSlot })[] = [
     tips: [
       'On your live invite, the “Your wedding? Edit details” link at the bottom also takes you to your dashboard.',
       'Tap Cancel to leave without a change.',
+    ],
+  },
+  {
+    id: 'families',
+    eyebrow: 'Your families',
+    title: 'Add your parents’ and grandparents’ names',
+    intro:
+      'Your invite can show both families in an “Our Families” section: the family title, the grandparents, and the parents (“Daughter of” and “Son of”). Every name is optional, and a family with no names stays hidden.',
+    steps: FAMILY_STEPS,
+    slot: 'help-families',
+    videoLabel: 'Video: add your families’ names in the dashboard',
+    tips: [
+      'Leave a field empty to leave that name out. With only one parent’s name, the card shows that name alone.',
+      'With an empty “Family title”, the card uses the father’s surname, for example “Malhotra Parivar”. With no surname, it uses your first name, for example “Priya’s Family”.',
+      'Each name shows exactly as you type it, with “Late Shri”, “Dr.” and the like.',
     ],
   },
   {
@@ -139,9 +167,9 @@ export default function HelpPage() {
       <header className="flex max-w-prose flex-col gap-5">
         <h1 className="text-hero">How can we help?</h1>
         <p className="text-ink-soft">
-          Your dashboard is where you change your wedding details, add your functions and make an
-          invite for each guest. Sign in at vivah.online/dashboard with the phone number that your
-          personal link came to. Each step below names the button you tap.
+          Your dashboard is where you change your wedding details, add your families and functions,
+          and make an invite for each guest. Sign in at vivah.online/dashboard with the phone number
+          that your personal link came to. Each step below names the button you tap.
         </p>
         <nav aria-label="On this page">
           <ul className="flex flex-col gap-x-6 sm:flex-row sm:flex-wrap">

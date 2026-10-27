@@ -564,6 +564,13 @@ const SITE_VIDEO_ADMIN: Record<
     removeTitle: 'Remove the functions video?',
     removeBody: 'The help page shows only the steps. The file stays in storage.',
   },
+  'help-families': {
+    title: 'Help video: families',
+    intro:
+      'The help page plays this next to “Add your parents’ and grandparents’ names”. With no video, only the steps show. A new upload replaces the video at once.',
+    removeTitle: 'Remove the families video?',
+    removeBody: 'The help page shows only the steps. The file stays in storage.',
+  },
 };
 
 /** One uploaded video: the home page's demo, or one on `/help`. */
