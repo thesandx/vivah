@@ -67,6 +67,11 @@ export interface ShubhVivahInviteProps {
    */
   madeByUrl: string;
   /**
+   * Leave out the credit above, for a couple who asked an admin to hide it.
+   * The "Edit details" link stays. Default: the credit shows.
+   */
+  hideCredit?: boolean;
+  /**
    * The couple's way to their dashboard, under the credit: "Edit details".
    * Only the live site passes it; the preview has its own banner.
    */
@@ -227,6 +232,7 @@ export function ShubhVivahInvite({
   rsvpPhoneE164,
   rsvpMessage,
   madeByUrl,
+  hideCredit = false,
   editDetailsUrl,
   stickyRsvp = true,
   venuePlaceholder = false,
@@ -530,28 +536,30 @@ export function ShubhVivahInvite({
             {/* The one place the invite speaks for us: each guest who taps it
                 is a possible couple. A quiet pill, not a banner, so the
                 couple's names stay the hero. */}
-            <a href={madeByUrl} target="_blank" rel="noopener" className="jewel-credit">
-              <span className="jewel-credit-small">
-                Made with{' '}
-                <span role="img" aria-label="love" className="jewel-credit-heart">
-                  ♥
+            {!hideCredit && (
+              <a href={madeByUrl} target="_blank" rel="noopener" className="jewel-credit">
+                <span className="jewel-credit-small">
+                  Made with{' '}
+                  <span role="img" aria-label="love" className="jewel-credit-heart">
+                    ♥
+                  </span>{' '}
+                  by
                 </span>{' '}
-                by
-              </span>{' '}
-              <span className="jewel-credit-brand">vivah.online</span>
-              <svg
-                viewBox="0 0 8 14"
-                aria-hidden="true"
-                className="jewel-credit-arrow"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M1.5 1.5L6.5 7l-5 5.5" />
-              </svg>
-            </a>
+                <span className="jewel-credit-brand">vivah.online</span>
+                <svg
+                  viewBox="0 0 8 14"
+                  aria-hidden="true"
+                  className="jewel-credit-arrow"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M1.5 1.5L6.5 7l-5 5.5" />
+                </svg>
+              </a>
+            )}
             {editDetailsUrl !== undefined && (
               <a
                 href={editDetailsUrl}

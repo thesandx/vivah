@@ -383,6 +383,34 @@ export async function changeWeddingPhone(
   return { ok: true, message: 'Number changed. The couple signs in with the new one.' };
 }
 
+/**
+ * Hides or shows the "Made with ♥ by vivah.online" credit at the foot of a
+ * live invite. The couple's "Edit details" link stays either way. The invite
+ * page renders on every request, so guests see the change on the next load.
+ */
+export async function setWeddingCredit(
+  id: string,
+  hidden: boolean,
+  adminUid: string,
+): Promise<AdminResult> {
+  const wedding = await getWeddingForAdmin(id);
+  if (wedding === null || wedding.deletedAt !== null) return NOT_FOUND;
+  await weddings.update(id, { hideCredit: hidden });
+  await audit(
+    hidden ? 'wedding-credit-hidden' : 'wedding-credit-shown',
+    'wedding',
+    id,
+    `${hidden ? 'Hid' : 'Showed'} the vivah.online credit on ${wedding.slug}.`,
+    adminUid,
+  );
+  return {
+    ok: true,
+    message: hidden
+      ? 'The vivah.online credit is hidden on the invite.'
+      : 'The vivah.online credit shows on the invite again.',
+  };
+}
+
 /** Pauses an invite (guests see "not available") or makes it live again. */
 export async function setWeddingStatus(
   id: string,

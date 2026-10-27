@@ -105,6 +105,12 @@ export const weddingSchema = z.object({
    * payment. Optional: absent means the section is left out.
    */
   families: weddingFamiliesSchema.optional(),
+  /**
+   * `true` hides the "Made with ♥ by vivah.online" credit at the foot of the
+   * invite, for a couple who asks. Only an admin sets it. Optional: absent
+   * means the credit shows, so no backfill.
+   */
+  hideCredit: z.boolean().optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;

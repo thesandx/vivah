@@ -47,6 +47,7 @@ import {
   renameGuestLinkAsAdmin,
   restoreLead,
   restoreWedding,
+  setWeddingCredit,
   setWeddingStatus,
 } from '@/services/admin.service';
 import { requireAdmin } from '@/services/admin-session.service';
@@ -263,6 +264,14 @@ export async function pauseWeddingAction(id: string): Promise<ActionState> {
 
 export async function resumeWeddingAction(id: string): Promise<ActionState> {
   return run('resume', id, (uid) => setWeddingStatus(id, 'live', uid));
+}
+
+export async function hideWeddingCreditAction(id: string): Promise<ActionState> {
+  return run('hide-credit', id, (uid) => setWeddingCredit(id, true, uid));
+}
+
+export async function showWeddingCreditAction(id: string): Promise<ActionState> {
+  return run('show-credit', id, (uid) => setWeddingCredit(id, false, uid));
 }
 
 export async function deleteWeddingAction(id: string): Promise<ActionState> {

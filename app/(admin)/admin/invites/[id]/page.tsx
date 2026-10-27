@@ -10,6 +10,7 @@ import {
   createGuestLinkAsAdminAction,
   deleteGuestLinkAsAdminAction,
   deleteWeddingAction,
+  hideWeddingCreditAction,
   pauseWeddingAction,
   releaseAddressAction,
   renameGuestLinkAsAdminAction,
@@ -18,6 +19,7 @@ import {
   saveWeddingDetailsAsAdmin,
   saveWeddingFamiliesAsAdmin,
   saveWeddingFunctionsAsAdmin,
+  showWeddingCreditAction,
 } from '@/app/(admin)/admin/actions';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
@@ -53,7 +55,7 @@ import { listSongOptions } from '@/services/wedding-songs.service';
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
  * do to it: edit the details, the name order, the families, the functions,
- * the song and the guest links,
+ * the song, the guest links and the vivah.online credit,
  * change the number or the address, make it unavailable,
  * delete (which frees the address), restore at any free address, and send
  * the link to the couple.
@@ -89,6 +91,7 @@ export default async function AdminInvitePage({
   // The link goes last, so WhatsApp shows its preview (see the previews page).
   const message = `Hi ${coupleNames(wedding)}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
   const deleted = wedding.deletedAt !== null;
+  const creditHidden = wedding.hideCredit === true;
   const [restore, songs, guestLinks] = await Promise.all([
     deleted ? restoreChoice(wedding) : null,
     deleted ? [] : songOptions(),
@@ -289,6 +292,31 @@ export default async function AdminInvitePage({
                   }))}
                 />
               )}
+            </Card>
+          )}
+
+          {!deleted && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">vivah.online credit</h2>
+              <p className="text-small text-ink-soft">
+                {creditHidden
+                  ? 'Hidden. Guests do not see "Made with ♥ by vivah.online" at the foot of the invite.'
+                  : 'Shown. Guests see "Made with ♥ by vivah.online" at the foot of the invite. Hide it if the couple asks.'}{' '}
+                The couple&apos;s &quot;Edit details&quot; link stays either way.
+              </p>
+              {/* One form, keyed, so its message stays after the page re-renders. */}
+              <AdminActionForm
+                key="credit"
+                {...(creditHidden
+                  ? {
+                      action: showWeddingCreditAction.bind(null, wedding.id),
+                      label: 'Show credit',
+                    }
+                  : {
+                      action: hideWeddingCreditAction.bind(null, wedding.id),
+                      label: 'Hide credit',
+                    })}
+              />
             </Card>
           )}
 
