@@ -533,31 +533,21 @@ export function ShubhVivahInvite({
                 fill="var(--color-jewel-marigold)"
               />
             </svg>
-            {/* The one place the invite speaks for us: each guest who taps it
-                is a possible couple. A quiet pill, not a banner, so the
-                couple's names stay the hero. */}
+            {/* Small and quiet on purpose: the couple's invite is the hero.
+                The underline alone says vivah.online is a link, and each
+                guest who taps it is a possible couple. */}
             {!hideCredit && (
-              <a href={madeByUrl} target="_blank" rel="noopener" className="jewel-credit">
-                <span className="jewel-credit-small">
-                  Made with{' '}
-                  <span role="img" aria-label="love" className="jewel-credit-heart">
-                    ♥
-                  </span>{' '}
-                  by
+              <a
+                href={madeByUrl}
+                target="_blank"
+                rel="noopener"
+                className="jewel-credit inline-flex min-h-11 items-center gap-1"
+              >
+                Made with{' '}
+                <span role="img" aria-label="love" className="text-jewel-haldi">
+                  ♥
                 </span>{' '}
-                <span className="jewel-credit-brand">vivah.online</span>
-                <svg
-                  viewBox="0 0 8 14"
-                  aria-hidden="true"
-                  className="jewel-credit-arrow"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M1.5 1.5L6.5 7l-5 5.5" />
-                </svg>
+                by <span className="jewel-credit-brand">vivah.online</span>
               </a>
             )}
             {editDetailsUrl !== undefined && (
