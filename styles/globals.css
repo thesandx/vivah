@@ -1315,91 +1315,27 @@
   mask-image: linear-gradient(90deg, transparent, #000 30%, #000 70%, transparent);
 }
 
-/* "Made with ♥ by vivah.online ›": the one place the invite speaks for us.
-   A glassy pill with a thin gold edge, not a banner, so the couple stays the
-   hero. It is at least 44px tall, for a finger. */
+/* "Made with ♥ by vivah.online": small and quiet, so the couple stays the
+   hero. Only the brand is underlined, to say it is a link. The credit and
+   the edit link are 44px tall, for a finger, so their margins are less the
+   extra height. */
 @utility jewel-credit {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  max-width: 100%;
-  min-height: 52px;
-  margin-top: 18px;
-  padding: 0 14px 0 18px;
-  border: 1px solid rgb(212 175 55 / 0.55);
-  border-radius: 9999px;
-  background: linear-gradient(180deg, rgb(255 246 222 / 0.12), rgb(255 246 222 / 0.04));
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.12),
-    0 8px 22px rgb(46 7 19 / 0.35);
-  color: var(--color-jewel-haldi);
-  white-space: nowrap;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    transform 160ms ease;
-
-  &:hover {
-    border-color: rgb(255 210 74 / 0.85);
-    background: linear-gradient(180deg, rgb(255 246 222 / 0.18), rgb(255 246 222 / 0.08));
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--color-jewel-haldi);
-    outline-offset: 3px;
-  }
-
-  /* A 320px phone gets the tight spacing above; anything wider breathes. */
-  @media (min-width: 360px) {
-    gap: 10px;
-    padding: 0 18px 0 22px;
-  }
-}
-
-@utility jewel-credit-small {
+  margin-top: 10px;
   font-family: var(--font-jewel);
-  font-size: 9px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgb(255 246 222 / 0.72);
-
-  @media (min-width: 360px) {
-    font-size: 9.5px;
-    letter-spacing: 0.26em;
-  }
-}
-
-@utility jewel-credit-heart {
-  padding: 0 0.35em;
-  letter-spacing: 0;
-  color: #ff7a9c;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgb(255 246 222 / 0.55);
 }
 
 @utility jewel-credit-brand {
-  font-family: var(--font-jewel-name);
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 1;
-  color: #ffe08a;
-
-  @media (min-width: 360px) {
-    font-size: 20px;
-  }
-}
-
-@utility jewel-credit-arrow {
-  width: 8px;
-  height: 14px;
-  margin-left: 2px;
-  flex: none;
+  color: var(--color-jewel-haldi);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 @utility jewel-editlink {
-  margin-top: 6px;
+  margin-top: -14px;
   font-family: var(--font-jewel);
   font-size: 10.5px;
   text-decoration: underline;
