@@ -26,10 +26,11 @@ import { welcomeMessage } from '@/lib/welcome-message';
  */
 
 /**
- * One budget for all three messages, inside the sign-up request. The form
- * gives the whole request 10 seconds, so this must stay well below it.
+ * The deadline for all three messages, retries included, inside the sign-up
+ * request. The form gives the whole request 10 seconds, and the address check
+ * and the lead write come first, so this must stay well below it.
  */
-const TIMEOUT_MS = 4_000;
+const NEW_LEAD_BUDGET_MS = 7_000;
 
 export interface NewLeadNotice {
   leadId: string;
@@ -80,44 +81,17 @@ export function newLeadMessages(notice: NewLeadNotice): [string, string, string]
 }
 
 /**
- * Sends the three messages, one after another so they arrive in order.
- * Resolves `true` when Telegram accepted all three. Never throws.
+ * Sends the three messages, one after another so they arrive in order. Each
+ * message has its own timeout and one retry, and a failed message does not
+ * stop the ones after it, all inside `NEW_LEAD_BUDGET_MS`. Resolves `true`
+ * when Telegram accepted all three. Never throws.
+ *
+ * The three once shared one 4-second timeout and stopped at the first
+ * failure. A slow alert then used up the budget, so the alert arrived and the
+ * couple's message and number never did (27 Oct 2026).
  */
-export async function notifyNewLead(notice: NewLeadNotice): Promise<boolean> {
-  if (!env.telegram.enabled) return false;
-
-  // The token is part of the URL, so the URL is never logged.
-  const url = `https://api.telegram.org/bot${env.telegram.botToken}/sendMessage`;
-  const signal = AbortSignal.timeout(TIMEOUT_MS);
-  try {
-    for (const text of newLeadMessages(notice)) {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          chat_id: env.telegram.chatId,
-          text,
-          link_preview_options: { is_disabled: true },
-        }),
-        signal,
-      });
-      if (!response.ok) {
-        // Telegram's error names the cause (bad token, chat not found) and
-        // never echoes the token. It is cut short in case that ever changes.
-        const detail = (await response.text()).slice(0, 300);
-        logger.error('Telegram refused the new preview notice', undefined, {
-          leadId: notice.leadId,
-          status: response.status,
-          detail,
-        });
-        return false;
-      }
-    }
-    return true;
-  } catch (error) {
-    logger.error('Sending the Telegram notice failed', error, { leadId: notice.leadId });
-    return false;
-  }
+export function notifyNewLead(notice: NewLeadNotice): Promise<boolean> {
+  return sendAll(newLeadMessages(notice), { leadId: notice.leadId }, NEW_LEAD_BUDGET_MS);
 }
 
 export interface PaymentNotice {
@@ -178,16 +152,20 @@ export function paymentMessages(notice: PaymentNotice): string[] {
   return [alert, forCouple, notice.phoneE164];
 }
 
-/** Each payment message gets its own budget, so a slow first send cannot starve the rest. */
-const PAYMENT_MESSAGE_TIMEOUT_MS = 4_000;
+/** Each message gets its own timeout, so a slow first send cannot starve the rest. */
+const MESSAGE_TIMEOUT_MS = 4_000;
 
 /** The longest wait before the one retry, even when Telegram asks for longer. */
 const MAX_RETRY_WAIT_MS = 3_000;
 
-type SendResult =
-  { ok: true } | { ok: false; retry: boolean; waitMs: number; status: number | null };
+/** A retry that cannot get this long before the deadline is not tried. */
+const MIN_ATTEMPT_MS = 1_000;
 
-async function sendOne(url: string, text: string): Promise<SendResult> {
+type SendResult =
+  | { ok: true }
+  | { ok: false; retry: boolean; waitMs: number; status: number | null; detail: string };
+
+async function sendOne(url: string, text: string, timeoutMs: number): Promise<SendResult> {
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -197,7 +175,7 @@ async function sendOne(url: string, text: string): Promise<SendResult> {
         text,
         link_preview_options: { is_disabled: true },
       }),
-      signal: AbortSignal.timeout(PAYMENT_MESSAGE_TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
     if (response.ok) return { ok: true };
     // 429 carries `parameters.retry_after` in seconds. A 4xx other than 429
@@ -207,15 +185,24 @@ async function sendOne(url: string, text: string): Promise<SendResult> {
       typeof body === 'object' && body !== null && 'parameters' in body
         ? Number((body as { parameters?: { retry_after?: unknown } }).parameters?.retry_after)
         : NaN;
+    // Telegram's `description` names the cause (bad token, chat not found)
+    // and never echoes the token. It is cut short in case that ever changes.
+    const description =
+      typeof body === 'object' && body !== null && 'description' in body
+        ? String((body as { description?: unknown }).description)
+        : '';
     return {
       ok: false,
       retry: response.status === 429 || response.status >= 500,
       waitMs: Number.isFinite(retryAfter) ? retryAfter * 1000 : 500,
       status: response.status,
+      detail: description.slice(0, 300),
     };
-  } catch {
-    // A timeout or a dropped connection. Worth one more try.
-    return { ok: false, retry: true, waitMs: 500, status: null };
+  } catch (error) {
+    // A timeout or a dropped connection. Worth one more try. The error's name
+    // (`TimeoutError`, `TypeError`) says which; its message may hold the URL.
+    const name = error instanceof Error ? error.name : 'unknown';
+    return { ok: false, retry: true, waitMs: 500, status: null, detail: name };
   }
 }
 
@@ -223,34 +210,48 @@ async function sendOne(url: string, text: string): Promise<SendResult> {
  * Sends messages one after another, so they arrive in order. Each message
  * has its own timeout and one retry, and a failed message does not stop the
  * ones after it: the welcome text for the couple matters most, so it must
- * not be lost because the alert before it was slow. Resolves `true` when
- * Telegram accepted every message. Never throws.
+ * not be lost because the alert before it was slow. With a `budgetMs`, no
+ * attempt runs past that deadline. Resolves `true` when Telegram accepted
+ * every message. Never throws.
  */
 async function sendAll(
   texts: readonly string[],
   context: Record<string, string>,
+  budgetMs = Number.POSITIVE_INFINITY,
 ): Promise<boolean> {
   if (!env.telegram.enabled) return false;
+  const deadline = Date.now() + budgetMs;
+  const timeLeft = (): number => Math.min(MESSAGE_TIMEOUT_MS, deadline - Date.now());
   // The token is part of the URL, so the URL is never logged.
   const url = `https://api.telegram.org/bot${env.telegram.botToken}/sendMessage`;
-  let allSent = true;
+  let sent = 0;
   for (const [index, text] of texts.entries()) {
-    let result = await sendOne(url, text);
+    const message = `${index + 1} of ${texts.length}`;
+    if (timeLeft() < MIN_ATTEMPT_MS) {
+      logger.error('Telegram message skipped: no time left', undefined, { ...context, message });
+      continue;
+    }
+    let result = await sendOne(url, text, timeLeft());
     if (!result.ok && result.retry) {
       const waitMs = Math.min(result.waitMs, MAX_RETRY_WAIT_MS);
-      await new Promise((resolve) => setTimeout(resolve, waitMs));
-      result = await sendOne(url, text);
+      if (timeLeft() - waitMs >= MIN_ATTEMPT_MS) {
+        await new Promise((resolve) => setTimeout(resolve, waitMs));
+        result = await sendOne(url, text, timeLeft());
+      }
     }
-    if (!result.ok) {
-      allSent = false;
-      logger.error('Telegram did not take a payment message', undefined, {
+    if (result.ok) {
+      sent += 1;
+    } else {
+      logger.error('Telegram did not take a message', undefined, {
         ...context,
-        message: `${index + 1} of ${texts.length}`,
+        message,
         status: result.status ?? 'no answer',
+        detail: result.detail,
       });
     }
   }
-  return allSent;
+  logger.info('Telegram messages sent', { ...context, sent, of: texts.length });
+  return sent === texts.length;
 }
 
 /** Tells the team about a payment, one message after another. Best effort: never throws. */
