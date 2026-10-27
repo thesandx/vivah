@@ -52,8 +52,8 @@ describe('sampleWedding', () => {
   it('has both families, every name valid', () => {
     const { families } = sampleWedding(new Date('2026-10-18T00:00:00Z'));
     expect(weddingFamiliesSchema.safeParse(families).success).toBe(true);
-    expect(families.groom.surname).toBe('Kapoor');
-    expect(families.bride.surname).toBe('Malhotra');
+    expect(families.groom.title).toBe('Kapoor Parivar');
+    expect(families.bride.title).toBe('Malhotra Parivar');
   });
 });
 

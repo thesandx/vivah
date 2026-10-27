@@ -75,14 +75,14 @@ export interface SampleWedding {
 /** The sample couple's families: invented Delhi names. */
 export const SAMPLE_FAMILIES: WeddingFamilies = {
   groom: {
-    surname: 'Kapoor',
+    title: 'Kapoor Parivar',
     grandmother: 'Smt. Santosh Kapoor',
     grandfather: 'Shri Om Prakash Kapoor',
     mother: 'Smt. Anita Kapoor',
     father: 'Shri Sunil Kapoor',
   },
   bride: {
-    surname: 'Malhotra',
+    title: 'Malhotra Parivar',
     grandmother: 'Smt. Kamla Malhotra',
     grandfather: 'Shri Harish Chandra Malhotra',
     mother: 'Smt. Neelam Malhotra',
