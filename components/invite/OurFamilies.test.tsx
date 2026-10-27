@@ -6,7 +6,7 @@ import { EMPTY_FAMILY, type WeddingFamilies } from '@/lib/wedding-families';
 
 const FAMILIES: WeddingFamilies = {
   groom: {
-    surname: 'Kapoor',
+    title: 'Kapoor Parivar',
     grandmother: 'Smt. Santosh Kapoor',
     grandfather: 'Shri Om Prakash Kapoor',
     mother: 'Smt. Anita Kapoor',
@@ -38,7 +38,9 @@ describe('OurFamilies', () => {
 
   it('leaves out a side with no names, and the section with none', () => {
     const { container, rerender } = render(
-      <OurFamilies families={{ ...FAMILIES, bride: { ...EMPTY_FAMILY, surname: 'Malhotra' } }} />,
+      <OurFamilies
+        families={{ ...FAMILIES, bride: { ...EMPTY_FAMILY, title: 'Malhotra Parivar' } }}
+      />,
     );
     expect(screen.queryByText('Bride’s family')).toBeNull();
     rerender(<OurFamilies families={{ groom: EMPTY_FAMILY, bride: EMPTY_FAMILY }} />);

@@ -10,7 +10,14 @@ import {
 } from '@/lib/wedding-families';
 
 describe('familyTitle', () => {
-  it('prints the family name with Parivar', () => {
+  it('prints the couple’s own heading exactly as written', () => {
+    expect(familyTitle({ ...EMPTY_FAMILY, title: 'The Gupta Family' })).toBe('The Gupta Family');
+    expect(
+      familyTitle({ ...EMPTY_FAMILY, title: 'Gupta Parivar', father: 'Shri Rajesh Sharma' }),
+    ).toBe('Gupta Parivar');
+  });
+
+  it('reads a family name saved by the first release, adding Parivar', () => {
     expect(familyTitle({ ...EMPTY_FAMILY, surname: 'Gupta' })).toBe('Gupta Parivar');
   });
 
@@ -30,7 +37,7 @@ describe('familyTitle', () => {
 describe('familyHasNames', () => {
   it('needs a grandparent or a parent, not only a family name', () => {
     expect(familyHasNames(undefined)).toBe(false);
-    expect(familyHasNames({ ...EMPTY_FAMILY, surname: 'Gupta' })).toBe(false);
+    expect(familyHasNames({ ...EMPTY_FAMILY, title: 'Gupta Parivar' })).toBe(false);
     expect(familyHasNames({ ...EMPTY_FAMILY, mother: 'Smt. Dezi Gupta' })).toBe(true);
   });
 });
@@ -45,7 +52,7 @@ describe('orderedSides', () => {
 describe('parseWeddingFamilies', () => {
   it('reads both sides, trims, and turns an empty field into null', () => {
     const result = parseWeddingFamilies({
-      'groom.surname': 'Gupta Parivar',
+      'groom.title': '  The Gupta   Family ',
       'groom.mother': '  Smt.   Dezi Gupta ',
       'groom.father': 'Shri Rajesh Gupta',
       'bride.grandmother': '',
@@ -55,7 +62,7 @@ describe('parseWeddingFamilies', () => {
       families: {
         groom: {
           ...EMPTY_FAMILY,
-          surname: 'Gupta',
+          title: 'The Gupta Family',
           mother: 'Smt. Dezi Gupta',
           father: 'Shri Rajesh Gupta',
         },

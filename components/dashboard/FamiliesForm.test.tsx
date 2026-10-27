@@ -17,6 +17,8 @@ describe('FamiliesForm', () => {
     expect(screen.queryByRole('textbox')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Edit family names' }));
     expect(screen.getAllByLabelText('Mother')[1]).toHaveValue('Smt. Anita Kapoor');
+    // The heading is editable as a whole, starting from what the card shows.
+    expect(screen.getAllByLabelText('Family title')[1]).toHaveValue('Kapoor Parivar');
   });
 
   it('invites a couple with no names to add them', () => {

@@ -27,7 +27,7 @@ export const FAMILY_SIDES = ['groom', 'bride'] as const;
 export type FamilySide = (typeof FAMILY_SIDES)[number];
 
 /** The names on one side, in the order the form asks for them. */
-export const FAMILY_FIELDS = ['surname', 'grandmother', 'grandfather', 'mother', 'father'] as const;
+export const FAMILY_FIELDS = ['title', 'grandmother', 'grandfather', 'mother', 'father'] as const;
 export type FamilyField = (typeof FAMILY_FIELDS)[number];
 
 /** The longest name, in characters: room for a title and three words. */
@@ -37,8 +37,16 @@ const familyName = z.string().trim().min(1).max(FAMILY_NAME_MAX).nullable();
 
 /** One side, as the wedding document stores it. `null` means "not added". */
 export const familySchema = z.object({
-  /** The family name: `Gupta`. The card prints `Gupta Parivar`. */
-  surname: familyName,
+  /**
+   * The card's heading, exactly as the couple wrote it: `Gupta Parivar`,
+   * `The Gupta Family`. Absent or `null`: built from the names (`familyTitle`).
+   */
+  title: familyName.optional(),
+  /**
+   * The first release stored only the family name (`Gupta`) and printed
+   * `Gupta Parivar`. Still read, never written.
+   */
+  surname: familyName.optional(),
   grandmother: familyName,
   grandfather: familyName,
   mother: familyName,
@@ -56,7 +64,7 @@ export const weddingFamiliesSchema = z.object({
 export type WeddingFamilies = z.infer<typeof weddingFamiliesSchema>;
 
 export const EMPTY_FAMILY: Family = {
-  surname: null,
+  title: null,
   grandmother: null,
   grandfather: null,
   mother: null,
@@ -70,7 +78,7 @@ export const FAMILY_SIDE_LABELS: Record<FamilySide, { family: string; childOf: s
 };
 
 export const FAMILY_FIELD_LABELS: Record<FamilyField, string> = {
-  surname: 'Family name',
+  title: 'Family title',
   grandmother: 'Grandmother',
   grandfather: 'Grandfather',
   mother: 'Mother',
@@ -88,9 +96,10 @@ export function familyHasNames(family: Family | undefined): family is Family {
 }
 
 /**
- * The family's name on the card: `Gupta Parivar`. Without a family name,
- * the last word of the father's name (then the grandfather's) stands in:
- * `Shri Rajesh Gupta` gives `Gupta Parivar`. A title alone gives nothing.
+ * The card's heading. The couple's own words come first, as written:
+ * `Gupta Parivar` or `The Gupta Family`. Without them, the last word of the
+ * father's name (then the grandfather's) gives `Gupta Parivar`. A single
+ * word gives nothing.
  */
 export function familyTitle(family: Family): string | null {
   const fromName = (name: string | null): string | null => {
@@ -100,6 +109,7 @@ export function familyTitle(family: Family): string | null {
     const last = words.at(-1) ?? '';
     return /^[\p{L}][\p{L}'’-]*$/u.test(last) ? last : null;
   };
+  if (family.title !== undefined && family.title !== null) return family.title;
   const surname = family.surname ?? fromName(family.father) ?? fromName(family.grandfather);
   if (surname === null) return null;
   return /\bparivar$/i.test(surname) ? surname : `${surname} Parivar`;
@@ -139,10 +149,6 @@ export function parseWeddingFamilies(form: Record<string, unknown>): FamiliesRes
       const parsed = fieldSchema.safeParse(typeof raw === 'string' ? raw : '');
       if (parsed.success) family[field] = parsed.data;
       else errors[key] = parsed.error.issues[0]?.message ?? 'Check this name.';
-    }
-    // "Gupta Parivar" typed in full: keep "Gupta", the card adds "Parivar".
-    if (family.surname !== null) {
-      family.surname = family.surname.replace(/\s+parivar$/i, '').trim() || null;
     }
     return family;
   };

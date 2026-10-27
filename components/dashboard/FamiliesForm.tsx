@@ -52,14 +52,14 @@ export interface FamiliesFormProps {
 /** What each field shows as an example: a Delhi family. */
 const PLACEHOLDERS: Record<FamilySide, Record<(typeof FAMILY_FIELDS)[number], string>> = {
   groom: {
-    surname: 'Kapoor',
+    title: 'Kapoor Parivar',
     grandmother: 'Smt. Santosh Kapoor',
     grandfather: 'Shri Om Prakash Kapoor',
     mother: 'Smt. Anita Kapoor',
     father: 'Shri Sunil Kapoor',
   },
   bride: {
-    surname: 'Malhotra',
+    title: 'Malhotra Parivar',
     grandmother: 'Smt. Kamla Malhotra',
     grandfather: 'Shri Harish Chandra Malhotra',
     mother: 'Smt. Neelam Malhotra',
@@ -182,12 +182,12 @@ export function FamiliesForm({
                     <Input
                       label={FAMILY_FIELD_LABELS[field]}
                       name={name}
-                      defaultValue={family[field] ?? ''}
+                      defaultValue={(field === 'title' ? familyTitle(family) : family[field]) ?? ''}
                       maxLength={FAMILY_NAME_MAX}
                       autoComplete="off"
                       placeholder={PLACEHOLDERS[side][field]}
-                      {...(field === 'surname' && {
-                        hint: `Shows as “${PLACEHOLDERS[side].surname} Parivar”. Empty: the last word of the father’s name.`,
+                      {...(field === 'title' && {
+                        hint: 'The heading on the card, as you write it: “Malhotra Parivar” or “The Malhotra Family”.',
                       })}
                       {...(message !== undefined && { error: message })}
                     />
