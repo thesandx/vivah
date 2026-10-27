@@ -173,12 +173,12 @@ export function FamiliesForm({
             <legend className="text-small px-1 font-medium">
               {FAMILY_SIDE_LABELS[side].family}
             </legend>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4">
               {FAMILY_FIELDS.map((field) => {
                 const name = familyFieldName(side, field);
                 const message = errors[name];
                 return (
-                  <div key={field} className={cn(field === 'surname' && 'sm:col-span-2')}>
+                  <div key={field}>
                     <Input
                       label={FAMILY_FIELD_LABELS[field]}
                       name={name}
