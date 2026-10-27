@@ -73,6 +73,16 @@ describe('GuestLinks', () => {
     );
   });
 
+  it('tells the couple to wait for the WhatsApp preview, once there is a link', () => {
+    renderLinks();
+    expect(screen.getByText(/wait about 2 seconds/)).toBeVisible();
+  });
+
+  it('hides the WhatsApp tip while there are no links', () => {
+    renderLinks({ links: [] });
+    expect(screen.queryByText(/wait about 2 seconds/)).toBeNull();
+  });
+
   it('puts the link last in the message, so WhatsApp loads the preview', () => {
     expect(guestMessage('Rahul', 'Radha & Shyam', LINK.url).endsWith(LINK.url)).toBe(true);
   });

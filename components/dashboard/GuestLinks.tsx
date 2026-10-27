@@ -190,6 +190,14 @@ export function GuestLinks({ links, coupleNames, create, remove, className }: Gu
         </ul>
       )}
 
+      {links.length > 0 && (
+        <p className="text-small text-ink-soft">
+          <span className="text-ink font-semibold">Tip:</span> in WhatsApp, wait about 2 seconds
+          before you tap send. This gives the invite preview time to load, so your guest sees your
+          card, not only a link.
+        </p>
+      )}
+
       <Dialog
         open={confirming !== null}
         onClose={() => {
