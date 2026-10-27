@@ -9,10 +9,10 @@ import { PageShell } from '@/components/layout/PageShell';
 import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
-import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import type { SiteVideoSlot } from '@/lib/demo-video';
 import { faqPageSchema, PRODUCT_FAQS, SHARE_IMAGE } from '@/lib/seo';
 import { cn } from '@/lib/utils';
+import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
 
 /**
  * `GET /help` — the "Help" tab. Three how-tos for a couple whose site is live,
@@ -130,7 +130,7 @@ const HOW_TOS: readonly (HowTo & { slot: SiteVideoSlot })[] = [
 export const dynamic = 'force-dynamic';
 
 export default function HelpPage() {
-  const chatUrl = whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO);
+  const chatUrl = WHATSAPP_CHAT_PATH;
 
   return (
     <PageShell>

@@ -53,6 +53,7 @@ import {
 } from '@/services/site-content.service';
 import { createTestimonialUpload, saveBanner, storeFor } from '@/services/testimonials.service';
 import { createSongUpload, removeSong, saveSong } from '@/services/wedding-songs.service';
+import { resetWhatsAppHello, saveWhatsAppHello } from '@/services/whatsapp-hello.service';
 
 /**
  * The admin dashboard's Server Actions. Each is a public endpoint, whatever
@@ -574,4 +575,17 @@ export async function saveSampleVenuesAction(
 /** Puts the sample invite's default Delhi venues back. */
 export async function resetSampleVenuesAction(): Promise<ActionState> {
   return run('sample-venues-reset', 'sample-invite', (uid) => resetSampleVenues(uid));
+}
+
+export async function saveWhatsAppHelloAction(
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  return run('whatsapp-hello', 'whatsapp-hello', (uid) =>
+    saveWhatsAppHello({ message: text(form, 'message') }, uid),
+  );
+}
+
+export async function resetWhatsAppHelloAction(): Promise<ActionState> {
+  return run('whatsapp-hello-reset', 'whatsapp-hello', (uid) => resetWhatsAppHello(uid));
 }

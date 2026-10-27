@@ -4,8 +4,9 @@ import { Footer } from '@/components/layout/Footer';
 import { SiteHeader } from '@/components/layout/SiteHeader';
 import { SocialLinks } from '@/components/layout/SocialLinks';
 import { WhatsAppButton } from '@/components/layout/WhatsAppButton';
-import { BUSINESS, SOCIAL, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
+import { BUSINESS, SOCIAL } from '@/lib/business';
 import { env } from '@/lib/env';
+import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
 
 /**
  * The footer: the pages the consumer rules and the payment provider ask for,
@@ -62,7 +63,7 @@ export default function MainLayout({ children }: Readonly<{ children: React.Reac
             <SocialLinks
               instagram={SOCIAL.instagram.url}
               facebook={SOCIAL.facebook.url}
-              whatsApp={whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO)}
+              whatsApp={WHATSAPP_CHAT_PATH}
               email={BUSINESS.email}
             />
           }

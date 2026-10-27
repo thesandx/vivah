@@ -57,6 +57,8 @@ export const ADMIN_ACTIONS = [
   'ribbon-changed',
   'sample-venues-changed',
   'sample-venues-reset',
+  'whatsapp-hello-changed',
+  'whatsapp-hello-reset',
 ] as const;
 
 export type AdminAction = (typeof ADMIN_ACTIONS)[number];

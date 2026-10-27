@@ -1,6 +1,7 @@
 import { ContactLink } from '@/components/ui/ContactLink';
-import { BUSINESS, SOCIAL, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
+import { BUSINESS, SOCIAL } from '@/lib/business';
 import { displayPhone } from '@/lib/invite-contact';
+import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
 
 /**
  * Who answers, then how to reach us: WhatsApp, phone, email, Instagram and Facebook, as links a phone can tap. Used
@@ -14,7 +15,7 @@ export function SupportContacts(): React.JSX.Element {
         <li>
           WhatsApp:{' '}
           <a
-            href={whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO)}
+            href={WHATSAPP_CHAT_PATH}
             target="_blank"
             rel="noopener noreferrer"
             className="text-ink decoration-brand underline decoration-2 underline-offset-4"

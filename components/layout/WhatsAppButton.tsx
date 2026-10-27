@@ -1,6 +1,6 @@
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
-import { BUSINESS, WHATSAPP_HELLO, whatsAppChatUrl } from '@/lib/business';
 import { cn } from '@/lib/utils';
+import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
 
 export interface WhatsAppButtonProps {
   className?: string;
@@ -8,7 +8,8 @@ export interface WhatsAppButtonProps {
 
 /**
  * The floating "chat with us" button, bottom right on every product page. It
- * opens WhatsApp with a first message typed in.
+ * opens WhatsApp, through `/api/whatsapp`, with the admin's first message
+ * typed in.
  *
  * It sits in the bottom-right corner, with safe-area padding on a phone.
  * A Server Component: it is a plain link.
@@ -16,7 +17,7 @@ export interface WhatsAppButtonProps {
 export function WhatsAppButton({ className }: WhatsAppButtonProps) {
   return (
     <a
-      href={whatsAppChatUrl(BUSINESS.whatsAppE164, WHATSAPP_HELLO)}
+      href={WHATSAPP_CHAT_PATH}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"
