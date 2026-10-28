@@ -11,6 +11,7 @@ import {
   deleteGuestLinkAsAdminAction,
   deleteWeddingAction,
   hideWeddingCreditAction,
+  hideWeddingEditLinkAction,
   pauseWeddingAction,
   releaseAddressAction,
   renameGuestLinkAsAdminAction,
@@ -20,6 +21,7 @@ import {
   saveWeddingFamiliesAsAdmin,
   saveWeddingFunctionsAsAdmin,
   showWeddingCreditAction,
+  showWeddingEditLinkAction,
 } from '@/app/(admin)/admin/actions';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
@@ -55,7 +57,7 @@ import { listSongOptions } from '@/services/wedding-songs.service';
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
  * do to it: edit the details, the name order, the families, the functions,
- * the song, the guest links and the vivah.online credit,
+ * the song, the guest links, the vivah.online credit and the Edit details link,
  * change the number or the address, make it unavailable,
  * delete (which frees the address), restore at any free address, and send
  * the link to the couple.
@@ -92,6 +94,7 @@ export default async function AdminInvitePage({
   const message = `Hi ${coupleNames(wedding)}, your wedding invite is live. Share it with your guests on WhatsApp.\n\n${link}`;
   const deleted = wedding.deletedAt !== null;
   const creditHidden = wedding.hideCredit === true;
+  const editLinkHidden = wedding.hideEditLink === true;
   const [restore, songs, guestLinks] = await Promise.all([
     deleted ? restoreChoice(wedding) : null,
     deleted ? [] : songOptions(),
@@ -302,7 +305,7 @@ export default async function AdminInvitePage({
                 {creditHidden
                   ? 'Hidden. Guests do not see "Made with ♥ by vivah.online" at the foot of the invite.'
                   : 'Shown. Guests see "Made with ♥ by vivah.online" at the foot of the invite. Hide it if the couple asks.'}{' '}
-                The couple&apos;s &quot;Edit details&quot; link stays either way.
+                The couple&apos;s &quot;Edit details&quot; link has its own switch below.
               </p>
               {/* One form, keyed, so its message stays after the page re-renders. */}
               <AdminActionForm
@@ -315,6 +318,31 @@ export default async function AdminInvitePage({
                   : {
                       action: hideWeddingCreditAction.bind(null, wedding.id),
                       label: 'Hide credit',
+                    })}
+              />
+            </Card>
+          )}
+
+          {!deleted && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Edit details link</h2>
+              <p className="text-small text-ink-soft">
+                {editLinkHidden
+                  ? 'Hidden. Guests do not see "Your wedding? Edit details" at the foot of the invite.'
+                  : 'Shown. Guests see "Your wedding? Edit details" at the foot of the invite. Hide it if the couple asks.'}{' '}
+                The couple still signs in at vivah.online/dashboard to edit.
+              </p>
+              {/* One form, keyed, so its message stays after the page re-renders. */}
+              <AdminActionForm
+                key="edit-link"
+                {...(editLinkHidden
+                  ? {
+                      action: showWeddingEditLinkAction.bind(null, wedding.id),
+                      label: 'Show Edit details link',
+                    }
+                  : {
+                      action: hideWeddingEditLinkAction.bind(null, wedding.id),
+                      label: 'Hide Edit details link',
                     })}
               />
             </Card>

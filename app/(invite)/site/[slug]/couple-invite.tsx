@@ -48,6 +48,8 @@ interface Invite {
   unavailable: boolean;
   /** The couple asked us to hide the "Made with ♥ by vivah.online" credit. */
   hideCredit: boolean;
+  /** The couple asked us to hide the "Your wedding? Edit details" link. */
+  hideEditLink: boolean;
   /** The sample invite: watermarked, no edit link, and its RSVP goes to us. */
   sample: boolean;
 }
@@ -70,6 +72,7 @@ function fromWedding(wedding: WeddingDocument, song: Invite['song']): Invite {
     song,
     unavailable: wedding.status === 'unavailable',
     hideCredit: wedding.hideCredit === true,
+    hideEditLink: wedding.hideEditLink === true,
     sample: false,
   };
 }
@@ -92,6 +95,7 @@ async function sampleInvite(slug: string): Promise<Invite> {
     song,
     unavailable: false,
     hideCredit: false,
+    hideEditLink: false,
     sample: true,
   };
 }
@@ -208,9 +212,10 @@ export async function CoupleInvite({
             families={wedding.families}
             madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
             hideCredit={wedding.hideCredit}
-            {...(!wedding.sample && {
-              editDetailsUrl: editDetailsUrl(wedding.slug, env.rootDomain, env.appUrl),
-            })}
+            {...(!wedding.sample &&
+              !wedding.hideEditLink && {
+                editDetailsUrl: editDetailsUrl(wedding.slug, env.rootDomain, env.appUrl),
+              })}
             className="flex-1"
           />
         </main>
