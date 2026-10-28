@@ -28,7 +28,7 @@ export const BUSINESS = {
   /** What we sell, in one line. The footer prints it for the payment provider. */
   natureOfService: 'Digital invitation service. No physical products are shipped.',
   /** The date the policy pages last changed, `YYYY-MM-DD`. */
-  policiesUpdated: '2026-10-25',
+  policiesUpdated: '2026-10-28',
 } as const;
 
 /**
@@ -48,6 +48,16 @@ export const SOCIAL = {
  * codes, so a couple sees a discount when they ask for one. ADR-0015.
  */
 export const PRICE_FROM_RUPEES = 799;
+
+/**
+ * The plans `/pricing` prints, in rupees, one time. Basic is the product the
+ * pay button sells (`PRICE_FROM_RUPEES`). Premium is Basic without the
+ * "Made with ♥ by vivah.online" line at the end of the invite. Premium has no
+ * checkout yet: a couple asks on WhatsApp, pays, and the admin turns on
+ * "Hide credit" in `/admin` (`hideCredit`). The terms say the line shows by
+ * default.
+ */
+export const PLAN_PRICES_RUPEES = { basic: PRICE_FROM_RUPEES, premium: 1299 } as const;
 
 /**
  * What paper cards cost and how long they take, as the home page's "paper or

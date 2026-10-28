@@ -11,7 +11,7 @@ describe('SiteHeader', () => {
     pathname = '/';
     render(<SiteHeader appName="Playroom" />);
     expect(screen.getByRole('link', { name: 'Playroom' })).toHaveAttribute('href', '/');
-    for (const label of ['Home', 'My site', 'Help']) {
+    for (const label of ['Home', 'Pricing', 'My site', 'Help']) {
       expect(screen.getByRole('link', { name: label })).toBeInTheDocument();
     }
   });
