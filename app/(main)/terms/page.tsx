@@ -10,7 +10,7 @@ import { BUSINESS } from '@/lib/business';
 export const metadata: Metadata = {
   title: 'Terms of service',
   description:
-    'The agreement between you and vivah.online: what we make, who can use it, your content, payment, refunds, and how long your invite stays live.',
+    'The agreement between you and vivah.online: what we make, who can use it, your content, payment, the Basic and Premium plans, refunds, and how long your invite stays live.',
   alternates: { canonical: '/terms' },
 };
 
@@ -78,14 +78,32 @@ export default function TermsPage() {
         </p>
       </section>
       <section>
-        <h2>8. How long your invite stays live</h2>
+        <h2>8. Plans and the {BUSINESS.brand} credit</h2>
+        <p>
+          We offer two plans, both paid once:{' '}
+          <Link href="/pricing" className={LINK}>
+            Basic and Premium
+          </Link>
+          .
+        </p>
+        <p>
+          Every invite shows a small “Made with ♥ by {BUSINESS.brand}” line at the end. The line is
+          visible by default. On the Basic plan it stays on your invite.
+        </p>
+        <p>
+          To hide the line, upgrade to the Premium plan. You can upgrade at any time: you pay only
+          the difference between the two plans. We hide the line after we receive the payment.
+        </p>
+      </section>
+      <section>
+        <h2>9. How long your invite stays live</h2>
         <p>
           Your invite stays online until 12 months after your wedding date. After that we delete it,
           unless you ask us to keep it longer.
         </p>
       </section>
       <section>
-        <h2>9. Refunds</h2>
+        <h2>10. Refunds</h2>
         <p>
           See the{' '}
           <Link href="/refund-policy" className={LINK}>
@@ -95,21 +113,21 @@ export default function TermsPage() {
         </p>
       </section>
       <section>
-        <h2>10. Our content</h2>
+        <h2>11. Our content</h2>
         <p>
           The designs, illustrations, code and the {BUSINESS.brand} name belong to us. You may share
           your invite link freely, but not copy our designs for other uses.
         </p>
       </section>
       <section>
-        <h2>11. Availability</h2>
+        <h2>12. Availability</h2>
         <p>
           We work hard to keep invites online, most of all near wedding dates, but we cannot promise
           uninterrupted service. Keep another way to reach important guests.
         </p>
       </section>
       <section>
-        <h2>12. Liability</h2>
+        <h2>13. Liability</h2>
         <p>
           As far as the law allows, our total liability for any claim is the amount you paid for
           that invite. We are not liable for indirect losses, or for problems caused by your
@@ -117,14 +135,14 @@ export default function TermsPage() {
         </p>
       </section>
       <section>
-        <h2>13. Suspension</h2>
+        <h2>14. Suspension</h2>
         <p>
           We may take down an invite that breaks these terms or the law, and we will tell you why.
           If we remove an invite and you did nothing wrong, we refund you.
         </p>
       </section>
       <section>
-        <h2>14. Complaints</h2>
+        <h2>15. Complaints</h2>
         <p>
           Write to us. We acknowledge within 48 hours and aim to resolve within 30 days. See the{' '}
           <Link href="/contact" className={LINK}>
@@ -134,14 +152,14 @@ export default function TermsPage() {
         </p>
       </section>
       <section>
-        <h2>15. Changes</h2>
+        <h2>16. Changes</h2>
         <p>
           We announce important changes on the site at least 7 days before they apply. A change
           never reduces what you have already paid for.
         </p>
       </section>
       <section>
-        <h2>16. Law</h2>
+        <h2>17. Law</h2>
         <p>
           Indian law applies. This does not affect your right to approach a consumer commission.
         </p>

@@ -14,6 +14,7 @@ import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
  * "Legal and policies".
  */
 const FOOTER_LINKS = [
+  { href: '/pricing', label: 'Pricing' },
   { href: '/about', label: 'About' },
   { href: '/help', label: 'Help' },
   { href: '/contact', label: 'Contact' },
