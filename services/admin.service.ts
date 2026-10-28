@@ -411,6 +411,35 @@ export async function setWeddingCredit(
   };
 }
 
+/**
+ * Hides or shows the couple's "Your wedding? Edit details" link at the foot of
+ * a live invite. The couple still signs in at vivah.online/dashboard. The
+ * invite page renders on every request, so guests see the change on the next
+ * load.
+ */
+export async function setWeddingEditLink(
+  id: string,
+  hidden: boolean,
+  adminUid: string,
+): Promise<AdminResult> {
+  const wedding = await getWeddingForAdmin(id);
+  if (wedding === null || wedding.deletedAt !== null) return NOT_FOUND;
+  await weddings.update(id, { hideEditLink: hidden });
+  await audit(
+    hidden ? 'wedding-edit-link-hidden' : 'wedding-edit-link-shown',
+    'wedding',
+    id,
+    `${hidden ? 'Hid' : 'Showed'} the Edit details link on ${wedding.slug}.`,
+    adminUid,
+  );
+  return {
+    ok: true,
+    message: hidden
+      ? 'The Edit details link is hidden on the invite.'
+      : 'The Edit details link shows on the invite again.',
+  };
+}
+
 /** Pauses an invite (guests see "not available") or makes it live again. */
 export async function setWeddingStatus(
   id: string,

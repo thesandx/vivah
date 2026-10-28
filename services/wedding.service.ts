@@ -111,6 +111,13 @@ export const weddingSchema = z.object({
    * means the credit shows, so no backfill.
    */
   hideCredit: z.boolean().optional(),
+  /**
+   * `true` hides the couple's "Your wedding? Edit details" link at the foot of
+   * the invite, for a couple who asks. Only an admin sets it. Optional: absent
+   * means the link shows, so no backfill. The couple still reaches the
+   * dashboard at vivah.online/dashboard.
+   */
+  hideEditLink: z.boolean().optional(),
 });
 
 export type WeddingPayload = z.infer<typeof weddingSchema>;

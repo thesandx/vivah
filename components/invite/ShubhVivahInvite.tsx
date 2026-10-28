@@ -68,12 +68,13 @@ export interface ShubhVivahInviteProps {
   madeByUrl: string;
   /**
    * Leave out the credit above, for a couple who asked an admin to hide it.
-   * The "Edit details" link stays. Default: the credit shows.
+   * The "Edit details" link has its own switch. Default: the credit shows.
    */
   hideCredit?: boolean;
   /**
    * The couple's way to their dashboard, under the credit: "Edit details".
-   * Only the live site passes it; the preview has its own banner.
+   * Only the live site passes it; the preview has its own banner. The live
+   * site leaves it out too when the couple asked an admin to hide it.
    */
   editDetailsUrl?: string;
   /**
