@@ -55,6 +55,7 @@ import {
 import { coupleNames } from '@/lib/couple-names';
 import { demoVideoRoute, SITE_VIDEO_SLOTS, type SiteVideoSlot } from '@/lib/demo-video';
 import { env } from '@/lib/env';
+import { hotLabel, hotStatus } from '@/lib/hot-follow-up';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
@@ -357,6 +358,11 @@ async function PreviewsView({ params }: { params: SearchParams }) {
                         ? ''
                         : ` · ${previewTimeNote(lead, now)}`}
                     </span>
+                    {hotLabel(hotStatus(lead, now)) !== null && (
+                      <span className="text-small text-danger font-semibold">
+                        {hotLabel(hotStatus(lead, now))}
+                      </span>
+                    )}
                     {nudgeLabel(nudgeStatus(lead, now)) !== null && (
                       <span className="text-small font-semibold">
                         {nudgeLabel(nudgeStatus(lead, now))}

@@ -125,6 +125,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         weddingDate: lead.weddingDate,
         slug: lead.slug,
         phoneE164: lead.phoneE164,
+        createdAt: new Date(),
       }),
     ]);
     return NextResponse.json({ previewPath: `/p/${id}`, whatsappSent }, { status: 201 });

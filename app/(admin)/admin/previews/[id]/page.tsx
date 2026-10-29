@@ -28,6 +28,13 @@ import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
+import {
+  HOT_AFTER_MINUTES,
+  HOT_UNTIL_HOURS,
+  hotFollowUpMessage,
+  hotLabel,
+  hotStatus,
+} from '@/lib/hot-follow-up';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import {
@@ -116,6 +123,8 @@ export default async function AdminPreviewPage({
     nameOrder,
     link,
   });
+  const hot = hotStatus(lead, now);
+  const hotText = hotFollowUpMessage({ ...couple, link });
   const nudge = nudgeStatus(lead, now);
   const nudgeInput = {
     bride: lead.bride,
@@ -198,6 +207,38 @@ export default async function AdminPreviewPage({
         <div className="flex flex-col gap-6 lg:col-span-2">
           {state !== 'paid' && state !== 'deleted' && (
             <>
+              <Card className="flex flex-col gap-4">
+                <h2 className="text-heading">Hot lead follow-up</h2>
+                <p className="text-small text-ink-soft">
+                  One message if the couple has not paid {HOT_AFTER_MINUTES} minutes after the
+                  preview. It offers help, and asks why if they will not buy. The daily nudges start
+                  the next day.
+                </p>
+                <p className="font-semibold">
+                  {hot.kind === 'hot'
+                    ? hotLabel(hot)
+                    : hot.kind === 'soon'
+                      ? `Hot in ${hot.minutesLeft} min if still not paid`
+                      : `More than ${HOT_UNTIL_HOURS} hours since the preview. You can still send it.`}
+                </p>
+                <p className="text-small text-ink-soft whitespace-pre-line break-words">
+                  {hotText}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={whatsAppChatUrl(lead.phoneE164, hotText)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonStyles({
+                      variant: hot.kind === 'hot' ? 'primary' : 'secondary',
+                    })}
+                  >
+                    Send hot follow-up
+                  </a>
+                  <CopyButton value={hotText} label="Copy message" />
+                </div>
+              </Card>
+
               <Card className="flex flex-col gap-4">
                 <h2 className="text-heading">Send the preview again</h2>
                 <p className="text-small text-ink-soft">

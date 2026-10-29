@@ -2,6 +2,7 @@ import 'server-only';
 
 import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { env } from '@/lib/env';
+import { HOT_AFTER_MINUTES, hotFollowUpAt } from '@/lib/hot-follow-up';
 import { logger } from '@/lib/logger';
 import { siteOrigin } from '@/lib/seo';
 import { formatWeddingDate } from '@/lib/wedding-date';
@@ -12,7 +13,9 @@ import { welcomeMessage } from '@/lib/welcome-message';
  * them the link on WhatsApp by hand. Three messages, in this order, so each
  * one can be copied alone:
  *
- *   1. The alert: names, wedding date and the `/admin/previews/<id>` link.
+ *   1. The alert: names, wedding date, the time to follow up if the couple
+ *      has not paid (`lib/hot-follow-up.ts`) and the `/admin/previews/<id>`
+ *      link, where the follow-up message waits ready to send.
  *   2. The message for the couple, with their preview link, ready to paste
  *      into WhatsApp.
  *   3. The couple's WhatsApp number and nothing else.
@@ -44,6 +47,17 @@ export interface NewLeadNotice {
   slug: string | null;
   /** E.164, e.g. `+919876543210`. Never logged. */
   phoneE164: string;
+  /** When the couple asked, for the follow-up time. */
+  createdAt: Date;
+}
+
+/** A time of day as the admin reads it in India: `2:41 pm`. */
+function timeInIndia(date: Date): string {
+  return new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(date);
 }
 
 /**
@@ -59,6 +73,7 @@ export function newLeadMessages(notice: NewLeadNotice): [string, string, string]
   const alert = [
     `New preview: ${coupleNames(notice)}`,
     `Wedding: ${formatWeddingDate(notice.weddingDate)}`,
+    `Not paid by ${timeInIndia(hotFollowUpAt(notice.createdAt))} (${HOT_AFTER_MINUTES} min)? Send the hot follow-up from admin:`,
     `Admin: ${origin}/admin/previews/${notice.leadId}`,
   ].join('\n');
 

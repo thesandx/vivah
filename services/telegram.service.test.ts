@@ -33,6 +33,7 @@ const NOTICE = {
   weddingDate: '2027-02-12',
   slug: 'riya-aman',
   phoneE164: '+919876543210',
+  createdAt: new Date('2026-10-29T09:01:00Z'), // 2:31 pm in India
 };
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -53,6 +54,7 @@ describe('newLeadMessages', () => {
     expect(alert).toContain('New preview: Riya & Aman');
     expect(alert).toContain('2027');
     expect(alert).toContain('https://vivah.online/admin/previews/AbCdEfGhIjKlMnOpQrSt');
+    expect(alert).toContain('Not paid by 2:41 pm (10 min)?');
     expect(forCouple).toContain('Namaste Riya & Aman');
     expect(forCouple).toContain('https://vivah.online/p/AbCdEfGhIjKlMnOpQrSt');
     expect(forCouple).toContain('30 minutes');
