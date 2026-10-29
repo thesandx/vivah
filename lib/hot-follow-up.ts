@@ -80,7 +80,8 @@ export interface HotMessageInput {
 
 /**
  * The message. It asks how the invite looked, offers help with the usual
- * blockers, and asks for one line of feedback if they will not buy. The link
+ * blockers, asks for one line of feedback if they will not buy, and says it is
+ * fine to take more time and write on this chat whenever they like. The link
  * goes before the sign-off, as in the daily nudges.
  */
 export function hotFollowUpMessage(input: HotMessageInput): string {
@@ -89,6 +90,7 @@ export function hotFollowUpMessage(input: HotMessageInput): string {
     'Aapne apna wedding invite dekha? Kaisa laga? 😊',
     'Kuch badalna hai, ya price, payment ya details ke baare mein koi sawaal hai? Bas yahin reply kijiye, hum abhi help karenge 💛',
     'Abhi nahi lena? Koi baat nahi 🙏 Bas ek line mein bata dijiye kyun. Isse hum Vivah ko aur behtar bana payenge.',
+    'Aur sochne ke liye aur time chahiye, toh bilkul theek hai 😊 Jab bhi mann ho, isi chat pe message kijiye. Hum aapki help ke liye hamesha yahin hain 💛',
     `Aapka invite yahan hai. Link band ho gaya ho toh reply kijiye, hum dobara khol denge 👇\n${input.link}`,
     'Team Vivah 💛',
   ].join('\n\n');

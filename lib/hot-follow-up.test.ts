@@ -82,6 +82,7 @@ describe('hotFollowUpMessage', () => {
     expect(text.startsWith('Namaste Alisha & Sumit 🙏')).toBe(true);
     expect(text).toContain('Kaisa laga?');
     expect(text).toContain('bata dijiye kyun');
+    expect(text).toContain('aur time chahiye, toh bilkul theek hai');
     expect(text).toContain('https://vivah.online/p/abc');
   });
 
