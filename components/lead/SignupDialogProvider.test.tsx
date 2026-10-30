@@ -82,7 +82,7 @@ describe('SignupScreen from the #details link', () => {
     window.history.replaceState(null, '', '/?utm_source=instagram#details');
     renderPage();
     const sheet = screen.getByRole('dialog', { name: 'Make your wedding website' });
-    expect(sheet).toHaveTextContent('Five quick steps');
+    expect(sheet).toHaveTextContent('A few quick steps');
     expect(sheet).toHaveTextContent('The two of you');
     expect(within(sheet).getByLabelText("Bride's name")).toBeInTheDocument();
   });
@@ -100,15 +100,33 @@ describe('SignupScreen from the #details link', () => {
     });
     expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    fireEvent(screen.getByRole('dialog'), new Event('cancel'));
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(window.location.hash).toBe('');
+  });
+
+  it('has no close button, and a back arrow at the top from step 2', () => {
+    window.history.replaceState(null, '', '/#details');
+    renderPage();
+    const sheet = screen.getByRole('dialog');
+    expect(within(sheet).queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
+    expect(within(sheet).queryByRole('button', { name: /^Back/ })).not.toBeInTheDocument();
+
+    fireEvent.change(within(sheet).getByLabelText("Bride's name"), { target: { value: 'Priya' } });
+    fireEvent.change(within(sheet).getByLabelText("Groom's name"), { target: { value: 'Rahul' } });
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Begin our story' }));
+    const backs = within(sheet).getAllByRole('button', { name: 'Back to your names' });
+    expect(backs).toHaveLength(1);
+    expect(sheet.querySelector('header')).toContainElement(backs[0] ?? null);
+
+    fireEvent.click(backs[0] as HTMLElement);
+    expect(within(sheet).getByLabelText("Bride's name")).toHaveValue('Priya');
   });
 
   it('keeps the query string when it takes the hash off', () => {
     window.history.replaceState(null, '', '/?utm_campaign=A01#details');
     renderPage();
-    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    fireEvent(screen.getByRole('dialog'), new Event('cancel'));
     expect(window.location.search).toBe('?utm_campaign=A01');
   });
 });

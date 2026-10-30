@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 
 import { BrandMark } from '@/components/layout/BrandMark';
 import { LeadForm } from '@/components/lead/LeadForm';
@@ -16,8 +16,10 @@ import { cn } from '@/lib/utils';
  * each step's button stays pinned at the bottom. From `lg` it is a wide
  * sheet with the band as a column on the left and the form on the right.
  *
- * It is the native `<dialog>`, as `Dialog` is, so focus stays inside and
- * Escape closes it. It is not `Dialog`, because that is a bottom sheet with
+ * There is no close button: the product owner wants nothing that leads away
+ * from the form. From step 2 a back arrow sits top left in the band. It is
+ * the native `<dialog>`, as `Dialog` is, so focus stays inside and Escape
+ * still closes it. It is not `Dialog`, because that is a bottom sheet with
  * its own title row; this one brings its own band.
  *
  * `SignupDialogProvider` owns the state: it opens this when the address ends
@@ -35,7 +37,7 @@ const PROMISES = [
 
 export interface SignupScreenProps {
   open: boolean;
-  /** Called on Escape and on the close button. */
+  /** Called on Escape. */
   onClose: () => void;
 }
 
@@ -43,14 +45,15 @@ export function SignupScreen({ open, onClose }: SignupScreenProps): React.JSX.El
   const ref = useRef<HTMLDialogElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
   const titleId = useId();
+  /** Where the form's back arrow goes. State, not a ref, so the form renders once it exists. */
+  const [backSlot, setBackSlot] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.showModal();
-      // The first focus lands on the title, not the close button, so no ring
-      // shows on arrival and a screen reader hears the title.
+      // The first focus lands on the title, so a screen reader hears it.
       title.current?.focus();
     }
     if (!open && dialog.open) dialog.close();
@@ -74,28 +77,15 @@ export function SignupScreen({ open, onClose }: SignupScreenProps): React.JSX.El
     >
       <div className="flex min-h-full flex-col lg:grid lg:h-full lg:grid-cols-5">
         <header className="bg-ink text-paper border-butter max-lg:rounded-b-sheet flex flex-col gap-4 border-b-2 px-5 pt-[max(1rem,env(safe-area-inset-top))] pb-6 sm:px-8 lg:col-span-2 lg:border-b-0 lg:p-8">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {/* From step 2 the form puts its back arrow here, top left. */}
+            <div ref={setBackSlot} className="empty:hidden" />
             <p className="font-display flex items-center gap-2">
               <span className="bg-paper grid size-10 place-items-center rounded-full">
                 <BrandMark className="size-8" />
               </span>
               <span className="text-heading font-semibold">vivah.online</span>
             </p>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close"
-              className="border-paper/40 hover:bg-paper/10 grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" className="size-5" fill="none">
-                <path
-                  d="M6 6l12 12M18 6L6 18"
-                  stroke="currentColor"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                />
-              </svg>
-            </button>
           </div>
           <div className="flex flex-col gap-2 lg:mt-6">
             <h2
@@ -107,7 +97,7 @@ export function SignupScreen({ open, onClose }: SignupScreenProps): React.JSX.El
               Make your wedding website
             </h2>
             <p className="text-butter text-small">
-              Five quick steps, about two minutes. See it free first.
+              A few quick steps, about two minutes. See it free first.
             </p>
           </div>
           <ul className="text-small hidden flex-col gap-3 lg:mt-auto lg:flex">
@@ -134,6 +124,7 @@ export function SignupScreen({ open, onClose }: SignupScreenProps): React.JSX.El
             headingId={SCREEN_HEADING_ID}
             place="details"
             layout="screen"
+            backSlot={backSlot}
             className="mx-auto max-w-md"
           />
         </div>

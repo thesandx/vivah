@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { reportMetaConversion } from '@/components/ads/MetaPixel';
 import {
@@ -62,6 +63,7 @@ import { parseSongSlot, type SongOption, type SongSlot } from '@/lib/wedding-son
  * `layout="screen"` is the full-screen form that `vivah.online/#details`
  * opens (`SignupScreen`): a bar of the steps sits above each step, and the
  * step's button stays pinned at the bottom of the screen, in thumb reach.
+ * From step 2 the back arrow moves to the top left, into `backSlot`.
  *
  * A Client Component because it holds state and handles submit; the page
  * around it stays a Server Component. The server validates everything again
@@ -129,6 +131,11 @@ export interface LeadFormProps {
    * bottom. Default: `card`.
    */
   layout?: 'card' | 'screen';
+  /**
+   * On the full screen, where the back arrow goes: top left, in the screen's
+   * band. The step's own back button then hides. Default: none.
+   */
+  backSlot?: HTMLElement | null;
   className?: string;
 }
 
@@ -144,10 +151,13 @@ export function LeadForm({
   headingId = 'start',
   place = 'hero',
   layout = 'card',
+  backSlot = null,
   className,
 }: LeadFormProps): React.JSX.Element {
   const tracking = useVisitTracking();
   const screen = layout === 'screen';
+  /** On the full screen, the back arrow moves to the top. */
+  const topBack = screen && backSlot !== null;
   const [bride, setBride] = useState('');
   const [groom, setGroom] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
@@ -428,7 +438,8 @@ export function LeadForm({
     }
   }
 
-  function backButton(label: string, to: Step): React.JSX.Element {
+  function backButton(label: string, to: Step): React.JSX.Element | null {
+    if (topBack) return null;
     return (
       <Button
         variant="secondary"
@@ -475,6 +486,40 @@ export function LeadForm({
     );
   }
 
+  /** The step before each one, for the back arrow at the top of the full screen. */
+  const previous: Partial<Record<Step, { to: Step; label: string }>> = {
+    details: { to: 'names', label: 'Back to your names' },
+    functions: { to: 'details', label: 'Back to your big day' },
+    address: { to: 'functions', label: 'Back to your functions' },
+    song: { to: 'address', label: 'Back to your address' },
+  };
+  const back = previous[view];
+  const topBackButton =
+    topBack && back !== undefined
+      ? createPortal(
+          <button
+            type="button"
+            aria-label={back.label}
+            onClick={() => {
+              setError(null);
+              go(back.to, 'back');
+            }}
+            className="border-paper/40 hover:bg-paper/10 text-paper grid size-11 shrink-0 place-items-center rounded-full border-2 transition-colors"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" className="size-6" fill="none">
+              <path
+                d="M19 12H5m6-6l-6 6 6 6"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>,
+          backSlot,
+        )
+      : null;
+
   const errorAlert = error !== null && (
     <Alert tone="danger" title="Your website was not created.">
       {error}
@@ -487,6 +532,7 @@ export function LeadForm({
       onFocus={() => tracking.trackStep('started', place)}
       className={cn('flex w-full scroll-mt-24 flex-col', screen && 'flex-1', className)}
     >
+      {topBackButton}
       {step === 'names' && (
         <form
           key="names"
