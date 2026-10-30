@@ -9,6 +9,7 @@
  */
 
 import type { NameOrder } from '@/lib/couple-names';
+import { LEAD_TAG_LABELS, LEAD_TAGS, type LeadTag, leadTag } from '@/lib/lead-tags';
 import { previewClosed } from '@/lib/preview-timer';
 
 /** What the admin sees of a wedding's state. */
@@ -50,6 +51,8 @@ export interface LeadRow {
   createdAt: Date;
   deletedAt: Date | null;
   weddingSlug?: string | undefined;
+  /** The admin's tag. Absent: `new`. */
+  tag?: LeadTag | undefined;
 }
 
 /** When a preview closes, for sorting: the 30 minutes once started, else the link's expiry. */
@@ -121,6 +124,11 @@ export const LEAD_STATE_CHOICES = [
   { value: 'deleted', label: 'Deleted' },
 ] as const satisfies readonly Choice<string>[];
 
+export const LEAD_TAG_CHOICES = [
+  { value: 'all', label: 'All' },
+  ...LEAD_TAGS.map((tag) => ({ value: tag, label: LEAD_TAG_LABELS[tag] })),
+] as const satisfies readonly Choice<string>[];
+
 export const LEAD_SORT_CHOICES = [
   { value: 'newest', label: 'Newest first' },
   { value: 'oldest', label: 'Oldest first' },
@@ -140,6 +148,7 @@ export interface WeddingFilters {
 export interface LeadFilters {
   q: string;
   state: Values<typeof LEAD_STATE_CHOICES>;
+  tag: Values<typeof LEAD_TAG_CHOICES>;
   sort: Values<typeof LEAD_SORT_CHOICES>;
 }
 
@@ -180,6 +189,7 @@ export function parseLeadFilters(params: SearchParams): LeadFilters {
   return {
     q: first(params, 'q').slice(0, 80),
     state: pick(LEAD_STATE_CHOICES, first(params, 'state')),
+    tag: pick(LEAD_TAG_CHOICES, first(params, 'tag')),
     sort: pick(LEAD_SORT_CHOICES, first(params, 'sort')),
   };
 }
@@ -249,6 +259,7 @@ export function filterLeads<T extends LeadRow>(
 ): T[] {
   const kept = rows.filter((row) => {
     if (filters.state !== 'all' && leadState(row, now) !== filters.state) return false;
+    if (filters.tag !== 'all' && leadTag(row) !== filters.tag) return false;
     return matches(filters.q, [row.bride, row.groom, row.weddingSlug ?? ''], row.phoneE164);
   });
 

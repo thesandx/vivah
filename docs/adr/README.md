@@ -31,22 +31,23 @@ Do **not** write one for a routine choice with an obvious answer. An ADR per pul
 
 ## Index
 
-| ADR                                                           | Title                                                                 | Status   |
-| ------------------------------------------------------------- | --------------------------------------------------------------------- | -------- |
-| [0001](./0001-use-cloud-run-for-hosting.md)                   | Use Cloud Run for hosting                                             | Accepted |
-| [0002](./0002-use-workload-identity-federation.md)            | Use Workload Identity Federation instead of service account keys      | Accepted |
-| [0003](./0003-scope-workload-identity-to-the-github-owner.md) | Scope the WIF provider to the GitHub owner                            | Accepted |
-| [0004](./0004-use-firestore-and-cloud-storage.md)             | Use Firestore and Cloud Storage for data and files                    | Accepted |
-| [0006](./0006-accept-anonymous-lead-capture.md)               | Accept one anonymous write, for lead capture                          | Accepted |
-| [0007](./0007-publish-from-the-bound-preview-browser.md)      | Publish an invite from the bound preview browser, with a test payment | Amended  |
-| [0008](./0008-two-step-admin-sign-in.md)                      | Sign in to the admin dashboard in two steps, with its own session     | Accepted |
-| [0009](./0009-open-a-preview-in-two-browsers.md)              | Open a preview in two browsers, then lock it                          | Amended  |
-| [0010](./0010-open-a-preview-to-anyone-for-30-minutes.md)     | Open a preview to anyone with the link, for 30 minutes                | Accepted |
-| [0011](./0011-take-payment-with-cashfree-payment-links.md)    | Take payment with Cashfree Payment Links                              | Amended  |
-| [0012](./0012-add-razorpay-as-a-second-payment-provider.md)   | Add Razorpay Standard Checkout as a second payment provider           | Accepted |
-| [0013](./0013-measure-google-ads-conversions.md)              | Measure Google Ads conversions                                        | Accepted |
-| [0014](./0014-measure-home-page-visits-first-party.md)        | Measure home page visits with our own beacon                          | Accepted |
-| [0015](./0015-take-coupon-codes-at-payment.md)                | Take coupon codes at payment, priced on the server                    | Accepted |
-| [0016](./0016-erase-test-data-from-admin.md)                  | Erase test data from the admin dashboard                              | Accepted |
-| [0017](./0017-measure-meta-ads-conversions.md)                | Measure Meta ads conversions with a minimal Meta Pixel                | Accepted |
-| [0018](./0018-keep-the-admin-signed-in-until-sign-out.md)     | Keep the admin signed in until sign-out                               | Accepted |
+| ADR                                                           | Title                                                                    | Status   |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------ | -------- |
+| [0001](./0001-use-cloud-run-for-hosting.md)                   | Use Cloud Run for hosting                                                | Accepted |
+| [0002](./0002-use-workload-identity-federation.md)            | Use Workload Identity Federation instead of service account keys         | Accepted |
+| [0003](./0003-scope-workload-identity-to-the-github-owner.md) | Scope the WIF provider to the GitHub owner                               | Accepted |
+| [0004](./0004-use-firestore-and-cloud-storage.md)             | Use Firestore and Cloud Storage for data and files                       | Accepted |
+| [0006](./0006-accept-anonymous-lead-capture.md)               | Accept one anonymous write, for lead capture                             | Accepted |
+| [0007](./0007-publish-from-the-bound-preview-browser.md)      | Publish an invite from the bound preview browser, with a test payment    | Amended  |
+| [0008](./0008-two-step-admin-sign-in.md)                      | Sign in to the admin dashboard in two steps, with its own session        | Accepted |
+| [0009](./0009-open-a-preview-in-two-browsers.md)              | Open a preview in two browsers, then lock it                             | Amended  |
+| [0010](./0010-open-a-preview-to-anyone-for-30-minutes.md)     | Open a preview to anyone with the link, for 30 minutes                   | Accepted |
+| [0011](./0011-take-payment-with-cashfree-payment-links.md)    | Take payment with Cashfree Payment Links                                 | Amended  |
+| [0012](./0012-add-razorpay-as-a-second-payment-provider.md)   | Add Razorpay Standard Checkout as a second payment provider              | Accepted |
+| [0013](./0013-measure-google-ads-conversions.md)              | Measure Google Ads conversions                                           | Accepted |
+| [0014](./0014-measure-home-page-visits-first-party.md)        | Measure home page visits with our own beacon                             | Accepted |
+| [0015](./0015-take-coupon-codes-at-payment.md)                | Take coupon codes at payment, priced on the server                       | Accepted |
+| [0016](./0016-erase-test-data-from-admin.md)                  | Erase test data from the admin dashboard                                 | Accepted |
+| [0017](./0017-measure-meta-ads-conversions.md)                | Measure Meta ads conversions with a minimal Meta Pixel                   | Accepted |
+| [0018](./0018-keep-the-admin-signed-in-until-sign-out.md)     | Keep the admin signed in until sign-out                                  | Accepted |
+| [0019](./0019-track-the-preview-page.md)                      | Track what couples do on their preview; tag leads New, Hot, Cold or Test | Accepted |

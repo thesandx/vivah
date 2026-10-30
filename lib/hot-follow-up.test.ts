@@ -56,7 +56,7 @@ describe('hotFollowUpAt', () => {
 describe('hotLabel', () => {
   it('names the wait only while hot', () => {
     expect(hotLabel({ kind: 'hot', minutesSince: 25 })).toBe(
-      'Hot · not paid after 25 min · follow up now',
+      'Not paid after 25 min · follow up now',
     );
     expect(hotLabel({ kind: 'soon', minutesLeft: 4 })).toBeNull();
     expect(hotLabel({ kind: 'none', reason: 'paid' })).toBeNull();

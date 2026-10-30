@@ -55,10 +55,13 @@ export function hotStatus(lead: HotLead, now: Date): HotStatus {
   return { kind: 'hot', minutesSince };
 }
 
-/** The admin's short line for the list: "Hot · not paid after 25 min · follow up now". */
+/**
+ * The admin's short line for the list: "Not paid after 25 min · follow up now".
+ * It does not say "Hot": that is the admin's own tag (`lib/lead-tags.ts`).
+ */
 export function hotLabel(status: HotStatus): string | null {
   if (status.kind !== 'hot') return null;
-  return `Hot · not paid after ${formatMinutes(status.minutesSince)} · follow up now`;
+  return `Not paid after ${formatMinutes(status.minutesSince)} · follow up now`;
 }
 
 /** `25 min`, or `2 h 5 min` from an hour up. */

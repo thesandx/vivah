@@ -73,7 +73,7 @@ export function newLeadMessages(notice: NewLeadNotice): [string, string, string]
   const alert = [
     `New preview: ${coupleNames(notice)}`,
     `Wedding: ${formatWeddingDate(notice.weddingDate)}`,
-    `Not paid by ${timeInIndia(hotFollowUpAt(notice.createdAt))} (${HOT_AFTER_MINUTES} min)? Send the hot follow-up from admin:`,
+    `Not paid by ${timeInIndia(hotFollowUpAt(notice.createdAt))} (${HOT_AFTER_MINUTES} min)? Send the 10-minute follow-up from admin:`,
     `Admin: ${origin}/admin/previews/${notice.leadId}`,
   ].join('\n');
 

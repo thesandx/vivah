@@ -269,7 +269,7 @@ export function ShubhVivahInvite({
       <article className="jewel-page flex-1">
         <PetalShower />
         {/* Shri Ganesh in the mehrab arch, over the couple's names. */}
-        <header className="jewel-section jewel-bg-hero">
+        <header data-preview-section="names" className="jewel-section jewel-bg-hero">
           <Jaali />
           <div className="relative">
             <div className="jewel-arch">
@@ -329,7 +329,11 @@ export function ShubhVivahInvite({
 
         {/* Save the date: scratch to reveal. */}
         {parts !== null && (
-          <section aria-label="Save the date" className="jewel-section jewel-bg-save">
+          <section
+            aria-label="Save the date"
+            data-preview-section="save-date"
+            className="jewel-section jewel-bg-save"
+          >
             <Jaali />
             <div className="relative">
               <SectionTitle
@@ -350,7 +354,11 @@ export function ShubhVivahInvite({
         )}
 
         {/* The day, and how long until it. */}
-        <section aria-label="The wedding" className="jewel-section jewel-bg-wedding">
+        <section
+          aria-label="The wedding"
+          data-preview-section="wedding"
+          className="jewel-section jewel-bg-wedding"
+        >
           <Jaali />
           <div className="relative flex flex-col items-center">
             <p className="jewel-lede text-jewel-light/80 max-w-55">{TOGETHERNESS}</p>
@@ -387,7 +395,11 @@ export function ShubhVivahInvite({
         <Garland />
 
         {/* Where. */}
-        <section aria-label="The venue" className="jewel-section jewel-bg-venue">
+        <section
+          aria-label="The venue"
+          data-preview-section="venue"
+          className="jewel-section jewel-bg-venue"
+        >
           <Jaali />
           <div className="relative">
             <SectionTitle
@@ -454,7 +466,11 @@ export function ShubhVivahInvite({
         )}
 
         {rsvpPhoneE164 !== null && (
-          <section aria-label="RSVP" className="jewel-section jewel-bg-rsvp">
+          <section
+            aria-label="RSVP"
+            data-preview-section="rsvp"
+            className="jewel-section jewel-bg-rsvp"
+          >
             <Jaali />
             <div className="relative flex flex-col items-center">
               <SectionTitle
@@ -493,7 +509,7 @@ export function ShubhVivahInvite({
           </section>
         )}
 
-        <footer className="jewel-section jewel-bg-closing">
+        <footer data-preview-section="closing" className="jewel-section jewel-bg-closing">
           <Jaali />
           <div className="relative flex flex-col items-center">
             <svg
