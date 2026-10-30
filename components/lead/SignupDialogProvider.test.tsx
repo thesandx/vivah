@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { HEART_THREAD_MS } from '@/components/lead/HeartThread';
@@ -72,6 +72,44 @@ describe('SignupDialogProvider', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Begin our forever' }));
     expect(screen.getByLabelText("Bride's name")).toHaveValue('Sara');
+  });
+});
+
+describe('SignupScreen from the #details link', () => {
+  afterEach(() => window.history.replaceState(null, '', '/'));
+
+  it('opens the sign-up card full screen when the address ends in #details', () => {
+    window.history.replaceState(null, '', '/?utm_source=instagram#details');
+    renderPage();
+    const sheet = screen.getByRole('dialog', { name: 'Make your wedding website' });
+    expect(sheet).toHaveTextContent('Five quick steps');
+    expect(sheet).toHaveTextContent('The two of you');
+    expect(within(sheet).getByLabelText("Bride's name")).toBeInTheDocument();
+  });
+
+  it('stays shut on the plain home page', () => {
+    renderPage();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens on a later change to #details, and closing takes the hash off', () => {
+    renderPage();
+    act(() => {
+      window.location.hash = 'details';
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    });
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(window.location.hash).toBe('');
+  });
+
+  it('keeps the query string when it takes the hash off', () => {
+    window.history.replaceState(null, '', '/?utm_campaign=A01#details');
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+    expect(window.location.search).toBe('?utm_campaign=A01');
   });
 });
 

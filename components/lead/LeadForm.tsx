@@ -59,6 +59,10 @@ import { parseSongSlot, type SongOption, type SongSlot } from '@/lib/wedding-son
  * its place, and the preview opens in this browser, which also binds the
  * preview to it.
  *
+ * `layout="screen"` is the full-screen form that `vivah.online/#details`
+ * opens (`SignupScreen`): a bar of the steps sits above each step, and the
+ * step's button stays pinned at the bottom of the screen, in thumb reach.
+ *
  * A Client Component because it holds state and handles submit; the page
  * around it stays a Server Component. The server validates everything again
  * with `lib/lead-schema.ts`; the checks here are a courtesy for a fast answer.
@@ -119,6 +123,12 @@ export interface LeadFormProps {
   headingId?: string;
   /** Which card this is, for the home page's visit report (ADR-0014). Default: `hero`. */
   place?: SignupPlace;
+  /**
+   * `card` sits in the page or the dialog. `screen` fills a full-screen
+   * sheet: the steps show as a bar, and each step's button is pinned to the
+   * bottom. Default: `card`.
+   */
+  layout?: 'card' | 'screen';
   className?: string;
 }
 
@@ -133,9 +143,11 @@ const TRACKED_STEPS = {
 export function LeadForm({
   headingId = 'start',
   place = 'hero',
+  layout = 'card',
   className,
 }: LeadFormProps): React.JSX.Element {
   const tracking = useVisitTracking();
+  const screen = layout === 'screen';
   const [bride, setBride] = useState('');
   const [groom, setGroom] = useState('');
   const [weddingDate, setWeddingDate] = useState('');
@@ -441,6 +453,28 @@ export function LeadForm({
     );
   }
 
+  /** On the full screen, the step's buttons stay at the bottom, above the home bar. */
+  const actionsClass = screen
+    ? 'bg-paper sticky bottom-0 z-10 mt-auto pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]'
+    : undefined;
+
+  /** The steps as a bar of segments, for the full screen. The words under the art still count them. */
+  function stepBar(at: number): React.JSX.Element {
+    return (
+      <ol aria-hidden="true" className="mb-2 flex w-full max-w-xs gap-1.5">
+        {Array.from({ length: totalSteps }, (_, index) => (
+          <li
+            key={index}
+            className={cn(
+              'rounded-pill h-2 flex-1 transition-colors duration-300',
+              index < at ? 'bg-brand' : 'bg-sunken',
+            )}
+          />
+        ))}
+      </ol>
+    );
+  }
+
   const errorAlert = error !== null && (
     <Alert tone="danger" title="Your website was not created.">
       {error}
@@ -451,16 +485,17 @@ export function LeadForm({
     <div
       ref={root}
       onFocus={() => tracking.trackStep('started', place)}
-      className={cn('flex w-full scroll-mt-24 flex-col', className)}
+      className={cn('flex w-full scroll-mt-24 flex-col', screen && 'flex-1', className)}
     >
       {step === 'names' && (
         <form
           key="names"
           onSubmit={handleNames}
-          className={cn('flex flex-col gap-4', STEP_MOTION[direction])}
+          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
+            {screen && stepBar(1)}
             <HeartsArt />
             <p className="text-small text-ink-soft">Step 1 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
@@ -505,9 +540,11 @@ export function LeadForm({
             <span>{groomName}</span>
           </p>
           {errorAlert}
-          <Button type="submit" size="lg" block disabled={!namesReady}>
-            Begin our story
-          </Button>
+          <div className={actionsClass}>
+            <Button type="submit" size="lg" block disabled={!namesReady}>
+              Begin our story
+            </Button>
+          </div>
         </form>
       )}
 
@@ -515,10 +552,11 @@ export function LeadForm({
         <form
           key="details"
           onSubmit={handleDetails}
-          className={cn('flex flex-col gap-4', STEP_MOTION[direction])}
+          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
+            {screen && stepBar(2)}
             <CalendarArt isoDate={weddingDate === '' ? null : weddingDate} />
             <p className="text-small text-ink-soft">Step 2 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
@@ -604,7 +642,7 @@ export function LeadForm({
 
           {errorAlert}
 
-          <div className="flex gap-3">
+          <div className={cn('flex gap-3', actionsClass)}>
             {backButton('Back to your names', 'names')}
             <Button type="submit" size="lg" block disabled={!detailsReady}>
               Add our functions
@@ -617,10 +655,11 @@ export function LeadForm({
         <form
           key="functions"
           onSubmit={handleFunctions}
-          className={cn('flex flex-col gap-4', STEP_MOTION[direction])}
+          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
+            {screen && stepBar(3)}
             <FestivitiesArt />
             <p className="text-small text-ink-soft">Step 3 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
@@ -650,7 +689,7 @@ export function LeadForm({
 
           {errorAlert}
 
-          <div className="flex gap-3">
+          <div className={cn('flex gap-3', actionsClass)}>
             {backButton('Back to your big day', 'details')}
             <Button type="submit" size="lg" block>
               {functions.length === 0 ? 'Skip, just the wedding' : 'Choose our address'}
@@ -663,10 +702,11 @@ export function LeadForm({
         <form
           key="address"
           onSubmit={handleAddress}
-          className={cn('flex flex-col gap-4', STEP_MOTION[direction])}
+          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
+            {screen && stepBar(4)}
             <AddressArt />
             <p className="text-small text-ink-soft">Step 4 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
@@ -702,7 +742,7 @@ export function LeadForm({
 
           {errorAlert}
 
-          <div className="flex gap-3">
+          <div className={cn('flex gap-3', actionsClass)}>
             {backButton('Back to your functions', 'functions')}
             <Button type="submit" size="lg" block disabled={!addressReady}>
               {hasSongStep ? 'Choose our song' : 'Make my website'}
@@ -715,10 +755,11 @@ export function LeadForm({
         <form
           key="song"
           onSubmit={handleSong}
-          className={cn('flex flex-col gap-4', STEP_MOTION[direction])}
+          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
+            {screen && stepBar(totalSteps)}
             <SongArt />
             <p className="text-small text-ink-soft">
               Step {totalSteps} of {totalSteps}
@@ -771,7 +812,7 @@ export function LeadForm({
 
           {errorAlert}
 
-          <div className="flex gap-3">
+          <div className={cn('flex gap-3', actionsClass)}>
             {backButton('Back to your address', 'address')}
             <Button type="submit" size="lg" block disabled={!songReady}>
               Make my website
