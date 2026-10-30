@@ -57,6 +57,7 @@ export const HOME_CTAS = [
   { id: 'chats-cta', label: 'After WhatsApp chats', signup: true },
   { id: 'final-cta', label: '“Show us our wedding website” (last section)', signup: true },
   { id: 'sticky-bar', label: 'Sticky bar at the bottom', signup: true },
+  { id: 'details-link', label: 'Full-screen form from the #details link', signup: true },
   { id: 'demo-video', label: 'Watch the demo video', signup: false },
   { id: 'final-sample', label: '“See a real invite”', signup: false },
   { id: 'final-whatsapp', label: '“Ask us on WhatsApp” (last section)', signup: false },

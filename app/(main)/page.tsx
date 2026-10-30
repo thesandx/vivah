@@ -55,6 +55,10 @@ import { WHATSAPP_CHAT_PATH } from '@/lib/whatsapp-hello';
  * every section, so this page is the exception to the anti-slop rule about
  * repeating the primary call to action.
  *
+ * An address that ends in `#details` (the link in ads and in the Instagram
+ * and Facebook bios) opens the sign-up card on a full screen of its own,
+ * through `SignupDialogProvider`, so those visitors land on the form.
+ *
  * `VisitTracker` measures the visit for the `/admin` Visitors tab (ADR-0014).
  * Each section carries `data-track-section` and each call to action
  * `data-track-cta`, with ids from `lib/visit-tracking.ts`.
