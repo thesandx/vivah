@@ -233,17 +233,23 @@ export function VisitTracker({ children }: VisitTrackerProps) {
   }, []);
 
   const state = useMemo<VisitTrackingState>(() => {
+    // The card itself is the way in for the hero and the `#details` screen;
+    // the dialog is credited to the button that opened it.
+    const ownCta = (place: SignupPlace): CtaId | null =>
+      place === 'hero' ? 'hero-card' : place === 'details' ? 'details-link' : null;
     const creditFor = (place: SignupPlace): CtaId =>
-      place === 'hero' ? 'hero-card' : (lastSignupCta.current ?? 'hero-card');
+      ownCta(place) ?? lastSignupCta.current ?? 'hero-card';
     return {
       trackStep: (step, place) => {
         if (stepsSent.current.has(step)) return;
         stepsSent.current.add(step);
         pending.current.steps.push(step);
-        // A start in the hero card is a tap on it: there is no button to count.
-        if (step === 'started' && place === 'hero') {
-          pending.current.clicks.push('hero-card');
-          lastSignupCta.current = 'hero-card';
+        // A start in the hero card, or on the `#details` screen, is a tap on
+        // it: there is no button to count.
+        const own = ownCta(place);
+        if (step === 'started' && own !== null) {
+          pending.current.clicks.push(own);
+          lastSignupCta.current = own;
         }
       },
       trackLead: (leadId, place) => {

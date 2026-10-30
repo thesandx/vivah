@@ -4,8 +4,11 @@ import { createContext, useContext } from 'react';
 
 import type { SignupStepId } from '@/lib/visit-tracking';
 
-/** Which sign-up card: the one in the hero, or the one in the dialog. */
-export type SignupPlace = 'hero' | 'dialog';
+/**
+ * Which sign-up card: the one in the hero, the one in the dialog, or the
+ * full screen that the `#details` link opens (ads and bio links).
+ */
+export type SignupPlace = 'hero' | 'dialog' | 'details';
 
 /**
  * Home page visit measurement, for the sign-up card inside `VisitTracker`
