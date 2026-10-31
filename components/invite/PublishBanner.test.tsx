@@ -1,7 +1,17 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { PublishBanner } from '@/components/invite/PublishBanner';
+
+beforeAll(() => {
+  // jsdom has no pointer capture; the drag handle calls it.
+  Element.prototype.setPointerCapture = vi.fn();
+});
+
+/** Opens the full sheet, as a tap on the handle does. */
+function expand() {
+  fireEvent.click(screen.getByRole('button', { name: 'Show everything about publishing' }));
+}
 
 function renderBanner() {
   const publish = vi.fn(() => new Promise<{ ok: false; message: string }>(() => undefined));
@@ -24,6 +34,7 @@ function renderBanner() {
 describe('PublishBanner', () => {
   it('opens on the price once, against what paper cards cost', () => {
     renderBanner();
+    expand();
     expect(screen.getByRole('heading', { name: 'Your invite is ready' })).toBeInTheDocument();
     expect(screen.getByText('₹499')).toBeInTheDocument();
     expect(screen.getByText('₹5,000+')).toBeInTheDocument();
@@ -32,6 +43,7 @@ describe('PublishBanner', () => {
 
   it('makes no claim it cannot back', () => {
     renderBanner();
+    expand();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     expect(screen.queryByText(/couples/i)).not.toBeInTheDocument();
     expect(screen.queryByText(/★/)).not.toBeInTheDocument();
@@ -51,6 +63,7 @@ describe('PublishBanner', () => {
 
   it('opens the checkout from "See everything you get", with the pay button above the ways to pay', () => {
     const { publish } = renderBanner();
+    expand();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('Total, paid once')).toBeInTheDocument();
@@ -65,6 +78,7 @@ describe('PublishBanner', () => {
 
   it('shows the button working, and refuses a second tap', async () => {
     const { publish } = renderBanner();
+    expand();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     fireEvent.click(screen.getByRole('button', { name: 'Publish our invite' }));
     const working = await screen.findByRole('button', { name: 'Publishing your invite' });
@@ -74,41 +88,37 @@ describe('PublishBanner', () => {
     expect(publish).toHaveBeenCalledTimes(1);
   });
 
-  it('is a short bar while the couple reads, and the full sheet at the foot of the page', async () => {
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      value: 5000,
-      configurable: true,
-    });
+  it('is a short bar that stays short at the foot of the page, and opens on a drag up', () => {
     const { publish } = renderBanner();
-    expect(screen.getByRole('button', { name: 'Continue' })).toBeInTheDocument();
-    expect(screen.queryByText('₹5,000+')).not.toBeInTheDocument();
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      value: 0,
-      configurable: true,
-    });
+    expect(screen.getByText('Create your personal wedding website')).toBeInTheDocument();
+    expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
+    expect(screen.getByText('75% OFF')).toBeInTheDocument();
     act(() => {
       window.dispatchEvent(new Event('scroll'));
     });
-    expect(await screen.findByText('₹5,000+')).toBeInTheDocument();
+    expect(screen.queryByText('₹5,000+')).not.toBeInTheDocument();
+
+    const handle = screen.getByRole('button', { name: 'Show everything about publishing' });
+    const zone = handle.parentElement as HTMLElement;
+    fireEvent.pointerDown(zone, { clientY: 600, pointerId: 1 });
+    fireEvent.pointerUp(zone, { clientY: 500, pointerId: 1 });
+    expect(screen.getByText('₹5,000+')).toBeInTheDocument();
+
+    fireEvent.pointerDown(zone, { clientY: 100, pointerId: 1 });
+    fireEvent.pointerUp(zone, { clientY: 200, pointerId: 1 });
+    expect(screen.queryByText('₹5,000+')).not.toBeInTheDocument();
     expect(publish).not.toHaveBeenCalled();
   });
 
   it('pays at once from the short bar too', () => {
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      value: 5000,
-      configurable: true,
-    });
     const { publish } = renderBanner();
-    fireEvent.click(screen.getByRole('button', { name: 'Continue' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Continue to publish' }));
     expect(publish).toHaveBeenCalledWith('lead-1', 'priya-rahul');
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      value: 0,
-      configurable: true,
-    });
   });
 
   it('closes again, with the button or Escape', () => {
     renderBanner();
+    expand();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
@@ -139,6 +149,7 @@ describe('PublishBanner modes', () => {
   it('asks for payment through the named provider when live, with no test note', () => {
     renderMode('live');
     expect(screen.getByRole('button', { name: 'Make it live · ₹499' })).toBeInTheDocument();
+    expand();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     expect(screen.getByRole('button', { name: 'Make it live · ₹499' })).toBeInTheDocument();
     expect(screen.getByText(/Powered by Razorpay/)).toBeInTheDocument();
@@ -147,6 +158,7 @@ describe('PublishBanner modes', () => {
 
   it('asks for nothing more once the couple has paid', () => {
     renderMode('paid');
+    expand();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     expect(screen.getByRole('button', { name: 'Publish our invite' })).toBeInTheDocument();
     expect(screen.getByText(/nothing more to pay/)).toBeInTheDocument();
@@ -174,6 +186,9 @@ describe('PublishBanner modes', () => {
         couponOffer={{ code: 'NEW20', percentOff: 20 }}
       />,
     );
+    // The coupon line shows only in the full sheet.
+    expect(screen.queryByRole('button', { name: /Apply NEW20/ })).not.toBeInTheDocument();
+    expand();
     fireEvent.click(
       screen.getAllByRole('button', { name: 'Apply NEW20 · 20% off' })[0] as HTMLElement,
     );
@@ -188,21 +203,17 @@ describe('PublishBanner modes', () => {
     expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun', 'NEW20');
   });
 
-  it('names the short bar button "Make it live" when live', () => {
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      value: 5000,
-      configurable: true,
-    });
+  it('names the short bar button "Make it live", with the struck price and the saving', () => {
     renderMode('live');
-    expect(screen.getByRole('button', { name: 'Make it live' })).toBeInTheDocument();
-    Object.defineProperty(document.documentElement, 'scrollHeight', {
-      value: 0,
-      configurable: true,
-    });
+    const button = screen.getByRole('button', { name: 'Make it live · ₹499' });
+    expect(button).toHaveTextContent('Make it live');
+    expect(button).toHaveTextContent('₹1,999');
+    expect(button).toHaveTextContent('75% OFF');
   });
 
   it('says what the couple gets right after paying', () => {
     renderMode('live');
+    expand();
     expect(screen.getByText(/Right after you pay/)).toHaveTextContent(
       'priya-rahul.vivah.online goes live, with a personal link for every guest',
     );
@@ -229,6 +240,7 @@ describe('PublishBanner modes', () => {
         chatUrl="https://wa.me/919546342507?text=Hi"
       />,
     );
+    expand();
     const reviews = screen.getByRole('list', { name: 'What couples say' });
     expect(reviews).toHaveTextContent('Our guests loved it.');
     expect(reviews).toHaveTextContent('Meera & Kabir');
@@ -256,6 +268,7 @@ describe('PublishBanner modes', () => {
         shareUrl="https://wa.me/?text=Hi"
       />,
     );
+    expand();
     const share = screen.getByRole('link', { name: 'Share with family' });
     expect(share).toHaveAttribute('href', 'https://wa.me/?text=Hi');
     expect(share).toHaveAttribute('data-preview-event', 'family-share-tapped');

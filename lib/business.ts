@@ -50,6 +50,19 @@ export const SOCIAL = {
 export const PRICE_FROM_RUPEES = 799;
 
 /**
+ * The struck-through price the publish banner's short bar shows beside
+ * `PRICE_FROM_RUPEES`, with the percentage off ("₹1,999 ₹799 · 60% OFF").
+ * The product owner chose it on 2026-10-31.
+ */
+export const STRUCK_PRICE_RUPEES = 1999;
+
+/** The whole percentage `paid` is below `STRUCK_PRICE_RUPEES`. 0 when it is not below. */
+export function percentOffStruck(paidRupees: number): number {
+  if (paidRupees >= STRUCK_PRICE_RUPEES) return 0;
+  return Math.round(((STRUCK_PRICE_RUPEES - paidRupees) / STRUCK_PRICE_RUPEES) * 100);
+}
+
+/**
  * What paper cards cost and how long they take, as the home page's "paper or
  * digital" table and the publish banner print it. A typical range for a
  * printed set with a box, posted to every guest; not a quote.
