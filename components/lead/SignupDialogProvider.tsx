@@ -7,6 +7,7 @@ import { LeadForm } from '@/components/lead/LeadForm';
 import { SignupScreen } from '@/components/lead/SignupScreen';
 import { Dialog } from '@/components/ui/Dialog';
 import { SignupDialogContext, type SignupDialogState } from '@/hooks/useSignupDialog';
+import { isDetailsHash, tidyDetailsUrl } from '@/lib/details-link';
 
 /**
  * The home page's second way in: every call to action below the hero opens
@@ -32,9 +33,6 @@ const LEAVE_MS = 300;
 
 /** The id of the dialog card's heading. The hero card uses `start`. */
 const DIALOG_HEADING_ID = 'signup-dialog-heading';
-
-/** The hash that opens the full-screen form. Ads and bio links end in it. */
-export const DETAILS_HASH = '#details';
 
 type Phase = 'idle' | 'drawing' | 'leaving';
 
@@ -75,9 +73,16 @@ export function SignupDialogProvider({ children }: SignupDialogProviderProps) {
 
   // The hash is read in the browser only: it never reaches the server. A
   // link on the page to `#details` opens it too, and Back closes it.
+  //
+  // Tags that an ad tool put after `#details` move into the query string
+  // first. This effect runs before `VisitTracker`'s, its parent's, so the
+  // visit report still sees them.
   useEffect(() => {
     const follow = () => {
-      const asked = window.location.hash === DETAILS_HASH;
+      const { pathname, search, hash } = window.location;
+      const tidy = tidyDetailsUrl(pathname, search, hash);
+      if (tidy !== null) window.history.replaceState(window.history.state, '', tidy);
+      const asked = isDetailsHash(hash);
       setScreenOpen(asked);
       if (asked) setScreenSeen(true);
     };
@@ -89,7 +94,7 @@ export function SignupDialogProvider({ children }: SignupDialogProviderProps) {
   const closeScreen = useCallback(() => {
     setScreenOpen(false);
     // Off the address, so a reload shows the home page and the link works again.
-    if (window.location.hash === DETAILS_HASH) {
+    if (isDetailsHash(window.location.hash)) {
       const { pathname, search } = window.location;
       window.history.replaceState(window.history.state, '', `${pathname}${search}`);
     }
