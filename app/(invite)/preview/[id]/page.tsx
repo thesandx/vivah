@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { GoogleAds } from '@/components/ads/GoogleAdsProvider';
 import { MetaPixel } from '@/components/ads/MetaPixel';
 import { PurchaseConversion } from '@/components/ads/PurchaseConversion';
+import { PreviewTracker } from '@/components/analytics/PreviewTracker';
 import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteTheme } from '@/components/invite/InviteTheme';
 import { PaymentSuccess } from '@/components/invite/PaymentSuccess';
@@ -107,13 +108,14 @@ export default async function PreviewPage({
   const { id } = await params;
   const { payment } = await searchParams;
   const store = await cookies();
-  const access = await getPreview(id, store.get(PREVIEW_COOKIE_NAME)?.value);
+  const previewToken = store.get(PREVIEW_COOKIE_NAME)?.value;
+  const access = await getPreview(id, previewToken);
 
   if (access.state === 'unopened') redirect(`/p/${encodeURIComponent(id)}`);
 
   if (access.state !== 'ok') {
     const problem = PROBLEM[access.state];
-    return (
+    const page = (
       <>
         <SiteHeader appName={env.appName} />
         <PageShell className="flex-1 justify-center">
@@ -131,6 +133,7 @@ export default async function PreviewPage({
                 )}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-preview-event="closed-whatsapp"
                 className={buttonStyles({ variant: 'primary' })}
               >
                 Message us on WhatsApp
@@ -139,6 +142,19 @@ export default async function PreviewPage({
           </section>
         </PageShell>
       </>
+    );
+    // A closed preview is counted, so /admin sees who came back too late.
+    // Only a browser that holds the preview cookie can be the couple's.
+    return access.state === 'expired' ? (
+      <PreviewTracker
+        leadId={id}
+        viewer={previewToken === undefined ? 'other' : 'couple'}
+        firstEvent="closed-seen"
+      >
+        {page}
+      </PreviewTracker>
+    ) : (
+      page
     );
   }
 
@@ -242,7 +258,7 @@ export default async function PreviewPage({
     );
   }
 
-  return (
+  const invite = (
     <GoogleAds
       adsId={env.googleAds.id}
       signupLabel={env.googleAds.signupLabel}
@@ -305,6 +321,14 @@ export default async function PreviewPage({
         </InviteGate>
       </InviteTheme>
     </GoogleAds>
+  );
+  // Only an unpaid preview is measured: once live, there is nothing left to learn.
+  return published ? (
+    invite
+  ) : (
+    <PreviewTracker leadId={lead.id} viewer={canPublish ? 'couple' : 'other'} firstEvent="opened">
+      {invite}
+    </PreviewTracker>
   );
 }
 

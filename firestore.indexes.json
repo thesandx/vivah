@@ -91,6 +91,20 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "previewBeacons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "leadId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -196,6 +210,36 @@
     },
     {
       "collectionGroup": "visitBeacons",
+      "fieldPath": "expireAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "previewBeacons",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "previewBeacons",
+      "fieldPath": "viewId",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "previewBeacons",
+      "fieldPath": "seq",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "previewBeacons",
+      "fieldPath": "sectionMs",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "previewBeacons",
+      "fieldPath": "events",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "previewBeacons",
       "fieldPath": "expireAt",
       "indexes": []
     }

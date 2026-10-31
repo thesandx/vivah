@@ -10,12 +10,15 @@ import {
   makePreviewLiveAction,
   reactivatePreviewAction,
   restoreLeadAction,
+  setLeadTagAction,
 } from '@/app/(admin)/admin/actions';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
 import { CopyButton } from '@/components/admin/CopyButton';
+import { PreviewActivityCard } from '@/components/admin/PreviewActivityCard';
 import { StateBadge } from '@/components/admin/StateBadge';
+import { TagBadge } from '@/components/admin/TagBadge';
 import { SongPicker } from '@/components/dashboard/SongPicker';
 import { AppBar } from '@/components/layout/AppBar';
 import { buttonStyles } from '@/components/ui/Button';
@@ -28,6 +31,8 @@ import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
+import { followUpMessage } from '@/lib/follow-up-message';
+import { LEAD_TAG_HINTS, LEAD_TAG_LABELS, LEAD_TAGS, leadTag } from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import {
@@ -38,6 +43,7 @@ import {
   nudgeStatus,
   openAgainMessage,
 } from '@/lib/preview-nudges';
+import { buildPreviewActivity, type PreviewActivity } from '@/lib/preview-report';
 import { siteOrigin } from '@/lib/seo';
 import { inviteHostLabel } from '@/lib/site-host';
 import { formatWeddingDate } from '@/lib/wedding-date';
@@ -47,6 +53,7 @@ import { welcomeMessage } from '@/lib/welcome-message';
 import { getLeadForAdmin } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import type { LeadDocument } from '@/services/lead.service';
+import { previewBeaconsFor } from '@/services/preview-beacon.service';
 import { checkSlug, freeSlugSuggestions, getWeddingBySlug } from '@/services/wedding.service';
 import { listSongOptions } from '@/services/wedding-songs.service';
 
@@ -80,11 +87,13 @@ export default async function AdminPreviewPage({
   const now = new Date();
   const state = leadState(lead, now);
   const canMakeLive = lead.deletedAt === null && lead.weddingSlug === undefined;
-  const [wedding, songs, liveSuggestion] = await Promise.all([
+  const [wedding, songs, liveSuggestion, activity] = await Promise.all([
     lead.weddingSlug === undefined ? null : getWeddingBySlug(lead.weddingSlug),
     songOptions(),
     canMakeLive ? addressSuggestion(lead) : '',
+    previewActivity(lead.id),
   ]);
+  const tag = leadTag(lead);
   const currentSong = lead.song ?? null;
   const currentSlot =
     currentSong === null
@@ -116,6 +125,7 @@ export default async function AdminPreviewPage({
     nameOrder,
     link,
   });
+  const followUp = followUpMessage({ ...couple, link });
   const nudge = nudgeStatus(lead, now);
   const nudgeInput = {
     bride: lead.bride,
@@ -134,8 +144,9 @@ export default async function AdminPreviewPage({
       />
       <main className="mx-auto grid w-full max-w-5xl gap-6 px-5 py-6 sm:px-8 sm:py-10 lg:grid-cols-3 lg:items-start lg:gap-10">
         <aside className="flex flex-col gap-4 lg:sticky lg:top-8">
-          <div>
+          <div className="flex flex-wrap gap-2">
             <StateBadge state={state} />
+            <TagBadge tag={tag} />
           </div>
           <dl className="text-small grid gap-2">
             <div>
@@ -185,6 +196,21 @@ export default async function AdminPreviewPage({
               </div>
             )}
           </dl>
+          <Card as="div" className="flex flex-col gap-3">
+            <h2 className="text-heading">Tag</h2>
+            <p className="text-small text-ink-soft">
+              {LEAD_TAG_LABELS[tag]}: {LEAD_TAG_HINTS[tag]}
+            </p>
+            <div className="flex flex-wrap gap-3">
+              {LEAD_TAGS.filter((other) => other !== tag).map((other) => (
+                <AdminActionForm
+                  key={other}
+                  action={setLeadTagAction.bind(null, lead.id, other)}
+                  label={`Mark ${LEAD_TAG_LABELS[other]}`}
+                />
+              ))}
+            </div>
+          </Card>
           {wedding !== null && (
             <Link
               href={`/admin/invites/${wedding.id}`}
@@ -196,8 +222,32 @@ export default async function AdminPreviewPage({
         </aside>
 
         <div className="flex flex-col gap-6 lg:col-span-2">
+          <PreviewActivityCard activity={activity} />
+
           {state !== 'paid' && state !== 'deleted' && (
             <>
+              <Card className="flex flex-col gap-4">
+                <h2 className="text-heading">Follow-up message</h2>
+                <p className="text-small text-ink-soft">
+                  Send it when you choose. It offers help, asks why if they will not buy, and says
+                  they can take their time.
+                </p>
+                <p className="text-small text-ink-soft whitespace-pre-line break-words">
+                  {followUp}
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={whatsAppChatUrl(lead.phoneE164, followUp)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={buttonStyles({ variant: 'secondary' })}
+                  >
+                    Send follow-up
+                  </a>
+                  <CopyButton value={followUp} label="Copy message" />
+                </div>
+              </Card>
+
               <Card className="flex flex-col gap-4">
                 <h2 className="text-heading">Send the preview again</h2>
                 <p className="text-small text-ink-soft">
@@ -499,6 +549,17 @@ export default async function AdminPreviewPage({
  * sign-up card when it is still free, otherwise the first free suggestion
  * from their names. Empty when none is free: the admin types one.
  */
+/** The preview's measured activity, or `null` when it did not load. */
+async function previewActivity(leadId: string): Promise<PreviewActivity | null> {
+  try {
+    const { items } = await previewBeaconsFor(leadId);
+    return buildPreviewActivity(items);
+  } catch (error) {
+    logger.error('Loading a preview activity failed', error, { leadId });
+    return null;
+  }
+}
+
 async function addressSuggestion(lead: LeadDocument): Promise<string> {
   if (lead.desiredSlug !== undefined && (await checkSlug(lead.desiredSlug)).available) {
     return lead.desiredSlug;

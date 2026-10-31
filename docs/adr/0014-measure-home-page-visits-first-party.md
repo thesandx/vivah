@@ -1,6 +1,6 @@
 # ADR-0014: Measure home page visits with our own beacon
 
-- **Status:** Accepted
+- **Status:** Accepted. The preview page is measured too since [ADR-0019](./0019-track-the-preview-page.md).
 - **Date:** 2026-10-23
 - **Deciders:** Sandeep (owner), Claude
 

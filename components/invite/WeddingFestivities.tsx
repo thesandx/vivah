@@ -282,6 +282,7 @@ export function WeddingFestivities({
   return (
     <section
       aria-label="Wedding festivities"
+      data-preview-section="functions"
       className={cn('jewel-section jewel-bg-festivities', className)}
     >
       <span aria-hidden="true" className="jewel-jaali" />

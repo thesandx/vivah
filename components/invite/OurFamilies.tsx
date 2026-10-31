@@ -196,7 +196,11 @@ export function OurFamilies({
   if (sides.length === 0) return null;
 
   return (
-    <section aria-label="Our families" className={cn('jewel-section jewel-bg-families', className)}>
+    <section
+      aria-label="Our families"
+      data-preview-section="families"
+      className={cn('jewel-section jewel-bg-families', className)}
+    >
       <span aria-hidden="true" className="jewel-jaali" />
       <div className="relative">
         <Ornament wide />

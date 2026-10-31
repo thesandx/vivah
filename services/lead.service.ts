@@ -9,6 +9,7 @@ import { nameOrderFromSlug } from '@/lib/couple-slug';
 import { appliedCouponSchema } from '@/lib/coupons';
 import { capitalizeName } from '@/lib/guest-name';
 import type { LeadRequest } from '@/lib/lead-schema';
+import { LEAD_TAGS } from '@/lib/lead-tags';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { previewClosed, timerStarted, viewEndsAtFrom } from '@/lib/preview-timer';
 import { FUNCTION_KINDS } from '@/lib/wedding-functions';
@@ -127,6 +128,12 @@ export const leadSchema = z.object({
    * absent means the bride's name first (`lib/couple-names.ts`).
    */
   nameOrder: z.enum(NAME_ORDERS).optional(),
+  /**
+   * The admin's tag on the lead: new, hot, cold or test, set on
+   * `/admin/previews/<id>`. Optional: absent means `new` (`lib/lead-tags.ts`).
+   * Filtered in memory, never queried, so it needs no index.
+   */
+  tag: z.enum(LEAD_TAGS).optional(),
 });
 
 export type LeadPayload = z.infer<typeof leadSchema>;

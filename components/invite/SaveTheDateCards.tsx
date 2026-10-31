@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 
 import { ConfettiBurst } from '@/components/invite/ConfettiBurst';
 import { ScratchCard } from '@/components/invite/ScratchCard';
+import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 
 /**
  * The three scratch cards under "Save the Date": the day, the month and the
@@ -28,10 +29,12 @@ export function SaveTheDateCards({ day, month, year }: SaveTheDateCardsProps): R
   const row = useRef<HTMLDivElement>(null);
   const revealed = useRef(0);
   const [burst, setBurst] = useState<{ x: number; y: number } | null>(null);
+  const { track } = usePreviewTracking();
 
   function onReveal(): void {
     revealed.current += 1;
     if (revealed.current !== CARDS || row.current === null) return;
+    track('scratched');
     const box = row.current.getBoundingClientRect();
     setBurst({ x: box.left + box.width / 2, y: box.top + box.height / 2 });
   }

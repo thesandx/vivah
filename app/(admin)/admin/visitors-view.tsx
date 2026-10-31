@@ -52,7 +52,7 @@ function seconds(value: number): string {
   return `${Math.floor(value / 60)}m ${value % 60}s`;
 }
 
-function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
+export function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <Card as="div" className="flex flex-col gap-1">
       <span className="text-small text-ink-soft">{label}</span>
@@ -63,7 +63,7 @@ function Stat({ label, value, note }: { label: string; value: string; note?: str
 }
 
 /** A table that scrolls sideways inside its frame on a phone, never the page. */
-function Table({
+export function Table({
   caption,
   head,
   rows,

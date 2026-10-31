@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
 import { GaneshCover } from '@/components/invite/GaneshCover';
 import { SoundButton } from '@/components/invite/SoundButton';
+import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { cn } from '@/lib/utils';
 
 /**
@@ -92,6 +93,7 @@ export function InviteGate({
   const audio = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const started = useRef(false);
+  const { track } = usePreviewTracking();
   const framed = useInFrame();
   const locked = phase !== 'open';
 
@@ -157,6 +159,7 @@ export function InviteGate({
   function open(): void {
     if (started.current) return;
     started.current = true;
+    track('gate-opened');
     // Start the song inside the tap: it is the gesture that allows sound.
     audio.current?.play().catch(() => setPlaying(false));
     window.scrollTo(0, 0);

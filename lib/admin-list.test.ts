@@ -186,6 +186,21 @@ describe('lead filters', () => {
     expect(ids(filterLeads(LEADS, { ...base, sort: 'names' }, NOW))[0]).toBe('opened');
     expect(filterLeads(LEADS, base, NOW)).toHaveLength(5);
   });
+
+  it('filters by tag, an untagged lead being New', () => {
+    const base = parseLeadFilters({ tag: 'hot' });
+    expect(base.tag).toBe('hot');
+    expect(parseLeadFilters({ tag: 'warm' }).tag).toBe('all');
+    const tagged = LEADS.map((row, index) =>
+      index === 1
+        ? { ...row, tag: 'hot' as const }
+        : index === 2
+          ? { ...row, tag: 'test' as const }
+          : row,
+    );
+    expect(ids(filterLeads(tagged, base, NOW))).toEqual(['opened']);
+    expect(filterLeads(tagged, { ...base, tag: 'new' }, NOW)).toHaveLength(3);
+  });
 });
 
 describe('formatAdminTime', () => {

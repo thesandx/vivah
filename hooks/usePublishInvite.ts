@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import type { RazorpayCheckout, RazorpayCheckoutResponse } from '@/types/razorpay-checkout';
 
 /** What the publish Server Action answers. */
@@ -103,6 +104,7 @@ export function usePublishInvite(
   const [error, setError] = useState<string | null>(null);
   // A ref, not the state, so two taps in one frame still publish once.
   const busy = useRef(false);
+  const { track } = usePreviewTracking();
 
   const release = useCallback(() => {
     busy.current = false;
@@ -130,6 +132,7 @@ export function usePublishInvite(
         prefill: { contact: checkout.contact },
         theme: { color: CHECKOUT_COLOUR },
         handler: (response: RazorpayCheckoutResponse) => {
+          track('paid');
           confirmCheckout(checkout.paymentId, response)
             .then((url) => {
               setStatus('done');
@@ -144,6 +147,7 @@ export function usePublishInvite(
         },
         modal: {
           ondismiss: () => {
+            track(failure === null ? 'checkout-closed' : 'payment-failed');
             setError(failure);
             release();
           },
@@ -155,8 +159,9 @@ export function usePublishInvite(
         }. Try again.`;
       });
       instance.open();
+      track('checkout-opened');
     },
-    [leadId, release],
+    [leadId, release, track],
   );
 
   // Back from Cashfree's page, the browser may restore this page from its
@@ -175,6 +180,7 @@ export function usePublishInvite(
     async (slug: string): Promise<void> => {
       if (busy.current) return;
       busy.current = true;
+      track('pay-tapped');
       setStatus('working');
       setError(null);
       try {
@@ -204,7 +210,7 @@ export function usePublishInvite(
       busy.current = false;
       setStatus('idle');
     },
-    [leadId, publish, onTaken, openCheckout],
+    [leadId, publish, onTaken, openCheckout, track],
   );
 
   return { status, error, setError, run };

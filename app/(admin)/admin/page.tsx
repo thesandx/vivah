@@ -18,6 +18,7 @@ import {
   startStepImageUploadAction,
 } from '@/app/(admin)/admin/actions';
 import { CouponsView } from '@/app/(admin)/admin/coupons-view';
+import { PreviewTrackerView } from '@/app/(admin)/admin/preview-tracker-view';
 import { TestimonialsAdmin } from '@/app/(admin)/admin/testimonials-view';
 import { VisitorsView } from '@/app/(admin)/admin/visitors-view';
 import { AdminActionForm } from '@/components/admin/AdminActionForm';
@@ -28,6 +29,7 @@ import { DemoVideoForm } from '@/components/admin/DemoVideoForm';
 import { SongSlotForm } from '@/components/admin/SongSlotForm';
 import { StateBadge } from '@/components/admin/StateBadge';
 import { StepImageUpload } from '@/components/admin/StepImageUpload';
+import { TagBadge } from '@/components/admin/TagBadge';
 import { AppBar } from '@/components/layout/AppBar';
 import { Alert } from '@/components/ui/Alert';
 import { buttonStyles } from '@/components/ui/Button';
@@ -42,6 +44,7 @@ import {
   formatAdminTime,
   LEAD_SORT_CHOICES,
   LEAD_STATE_CHOICES,
+  LEAD_TAG_CHOICES,
   leadState,
   parseLeadFilters,
   parseWeddingFilters,
@@ -56,9 +59,11 @@ import { coupleNames } from '@/lib/couple-names';
 import { demoVideoRoute, SITE_VIDEO_SLOTS, type SiteVideoSlot } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
+import { leadTag } from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { nudgeLabel, nudgeStatus } from '@/lib/preview-nudges';
+import { buildPreviewActivity, furthestStep } from '@/lib/preview-report';
 import { functionVenueField, SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
 import { inviteHostLabel, inviteHref } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
@@ -74,6 +79,7 @@ import { listAllLeads, listAllWeddings } from '@/services/admin.service';
 import { recentAdminActions } from '@/services/admin-audit.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { getDemoVideo } from '@/services/demo-video.service';
+import { previewBeaconsSince } from '@/services/preview-beacon.service';
 import { getSampleVenuesForAdmin } from '@/services/sample-invite.service';
 import { getStepImages } from '@/services/site-content.service';
 import { createSignedReadUrl } from '@/services/storage.service';
@@ -104,6 +110,7 @@ const VIEWS = [
   { value: 'deleted', label: 'Deleted' },
   { value: 'previews', label: 'Previews' },
   { value: 'visitors', label: 'Visitors' },
+  { value: 'tracker', label: 'Preview tracker' },
   { value: 'coupons', label: 'Coupons' },
   { value: 'activity', label: 'Activity' },
   { value: 'home', label: 'Home page' },
@@ -151,6 +158,7 @@ export default async function AdminPage({
         {view === 'deleted' && <InvitesView params={params} tab="deleted" />}
         {view === 'previews' && <PreviewsView params={params} />}
         {view === 'visitors' && <VisitorsView params={params} />}
+        {view === 'tracker' && <PreviewTrackerView params={params} />}
         {view === 'coupons' && <CouponsView />}
         {view === 'activity' && <ActivityView />}
         {view === 'home' && <HomePageView />}
@@ -302,7 +310,7 @@ async function InvitesView({ params, tab }: { params: SearchParams; tab: 'invite
 async function PreviewsView({ params }: { params: SearchParams }) {
   const filters = parseLeadFilters(params);
   const now = new Date();
-  const { items, capped } = await listAllLeads();
+  const [{ items, capped }, steps] = await Promise.all([listAllLeads(), furthestSteps(now)]);
   const rows = filterLeads(items, filters, now);
   const counts = countBy(items, (lead) => leadState(lead, now));
 
@@ -322,6 +330,7 @@ async function PreviewsView({ params }: { params: SearchParams }) {
         clearHref="/admin?view=previews"
         menus={[
           { name: 'state', label: 'State', value: filters.state, options: LEAD_STATE_CHOICES },
+          { name: 'tag', label: 'Tag', value: filters.tag, options: LEAD_TAG_CHOICES },
           { name: 'sort', label: 'Sort', value: filters.sort, options: LEAD_SORT_CHOICES },
         ]}
       />
@@ -357,13 +366,19 @@ async function PreviewsView({ params }: { params: SearchParams }) {
                         ? ''
                         : ` · ${previewTimeNote(lead, now)}`}
                     </span>
+                    {steps.get(lead.id) !== undefined && (
+                      <span className="text-small">Got to: {steps.get(lead.id)}</span>
+                    )}
                     {nudgeLabel(nudgeStatus(lead, now)) !== null && (
                       <span className="text-small font-semibold">
                         {nudgeLabel(nudgeStatus(lead, now))}
                       </span>
                     )}
                   </span>
-                  <StateBadge state={state} />
+                  <span className="flex flex-wrap gap-2">
+                    <TagBadge tag={leadTag(lead)} />
+                    <StateBadge state={state} />
+                  </span>
                 </Link>
               </li>
             );
@@ -372,6 +387,25 @@ async function PreviewsView({ params }: { params: SearchParams }) {
       )}
     </>
   );
+}
+
+/** How far each preview of the last 30 days got, from the preview tracker. Empty when it fails. */
+async function furthestSteps(now: Date): Promise<Map<string, string>> {
+  try {
+    const { items } = await previewBeaconsSince(new Date(now.getTime() - 30 * 24 * 60 * 60_000));
+    const byLead = new Map<string, typeof items>();
+    for (const beacon of items)
+      byLead.set(beacon.leadId, [...(byLead.get(beacon.leadId) ?? []), beacon]);
+    const steps = new Map<string, string>();
+    for (const [leadId, beacons] of byLead) {
+      const step = furthestStep(buildPreviewActivity(beacons));
+      if (step !== null) steps.set(leadId, step);
+    }
+    return steps;
+  } catch (error) {
+    logger.error('Loading preview steps for the list failed', error);
+    return new Map();
+  }
 }
 
 async function ActivityView() {

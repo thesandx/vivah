@@ -46,6 +46,7 @@ export const ADMIN_ACTIONS = [
   'preview-song-changed',
   'preview-functions-changed',
   'preview-name-order-changed',
+  'lead-tag-changed',
   'test-data-erased',
   'home-image-changed',
   'home-image-reset',

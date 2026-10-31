@@ -5,6 +5,7 @@ import { FieldValue } from '@google-cloud/firestore';
 import { coupleNames, DEFAULT_NAME_ORDER, type NameOrder } from '@/lib/couple-names';
 import { slugProblem } from '@/lib/couple-slug';
 import { type AppliedCoupon, normalizeCouponCode } from '@/lib/coupons';
+import { LEAD_TAG_LABELS, type LeadTag, leadTag } from '@/lib/lead-tags';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { ERASE_LIMIT, liveLeadIds } from '@/lib/test-data-cleanup';
 import { parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
@@ -888,6 +889,23 @@ export async function changePreviewNameOrder(
       ? `The preview and the live invite now say ${names}.`
       : `The preview now says ${names}.`,
   };
+}
+
+/** Tags a preview new, hot, cold or test (`lib/lead-tags.ts`). A deleted one too. */
+export async function setLeadTag(id: string, tag: LeadTag, adminUid: string): Promise<AdminResult> {
+  const lead = await getLeadForAdmin(id);
+  if (lead === null) return NOT_FOUND;
+  const before = leadTag(lead);
+  if (before === tag) return { ok: true, message: `Already ${LEAD_TAG_LABELS[tag]}.` };
+  await leads.update(id, { tag });
+  await audit(
+    'lead-tag-changed',
+    'lead',
+    id,
+    `Tagged ${LEAD_TAG_LABELS[before]} → ${LEAD_TAG_LABELS[tag]}.`,
+    adminUid,
+  );
+  return { ok: true, message: `Tagged ${LEAD_TAG_LABELS[tag]}.` };
 }
 
 /** What `eraseTestData` did, for the admin's message. */

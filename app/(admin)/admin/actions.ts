@@ -17,6 +17,7 @@ import type { UploadStart } from '@/hooks/useImageUpload';
 import { parseNameOrder } from '@/lib/couple-names';
 import { parseDemoUploadKind, parseSiteVideoSlot } from '@/lib/demo-video';
 import { parseStep } from '@/lib/how-it-works';
+import { parseLeadTag } from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
 import { parseSampleVenuesForm } from '@/lib/sample-invite';
@@ -47,6 +48,7 @@ import {
   renameGuestLinkAsAdmin,
   restoreLead,
   restoreWedding,
+  setLeadTag,
   setWeddingCredit,
   setWeddingEditLink,
   setWeddingStatus,
@@ -313,6 +315,14 @@ export async function makePreviewLiveAction(
   const slug = text(form, 'slug').toLowerCase();
   const coupon = text(form, 'coupon');
   return run('make-live', id, (uid) => makePreviewLive(id, slug, uid, coupon));
+}
+
+/** Tags a preview new, hot, cold or test. */
+export async function setLeadTagAction(id: string, rawTag: string): Promise<ActionState> {
+  // A bound argument comes back from the browser, so it is checked like a field.
+  const tag = parseLeadTag(rawTag);
+  if (tag === null) return { status: 'error', message: 'Choose New, Hot, Cold or Test.' };
+  return run('lead-tag', id, (uid) => setLeadTag(id, tag, uid));
 }
 
 export async function deleteLeadAction(id: string): Promise<ActionState> {

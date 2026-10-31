@@ -10,6 +10,7 @@ import {
 import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/invite/SlugPicker';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Alert } from '@/components/ui/Alert';
+import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
 import { PAPER_CARDS, PAYMENT_METHODS } from '@/lib/business';
 import { coupleNames, type NameOrder } from '@/lib/couple-names';
@@ -216,6 +217,11 @@ export function PublishBanner({
       coupon === null ? publish(id, slug) : publish(id, slug, coupon.code),
     [publish, coupon],
   );
+
+  const { track } = usePreviewTracking();
+  useEffect(() => {
+    if (open) track('sheet-opened');
+  }, [open, track]);
 
   useEffect(() => {
     if (!open) return;

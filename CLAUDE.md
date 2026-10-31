@@ -339,7 +339,7 @@ Violations here are defects, not style disagreements.
 - **Never point a Cloud Run probe at `/api/health?deep=1`.** Deep mode answers 503 when a dependency blips, so the platform would kill healthy containers and amplify the outage. Dashboards only.
 - **Never set `FIRESTORE_EMULATOR_HOST` in a deployed environment.** Every read and write silently routes to a host that does not exist.
 - **Never grant `roles/datastore.user` without an IAM condition.** It grants access to every database in the project, including other apps'. See [trap 13](./docs/traps.md).
-- **Never write a route that changes data without `requireUser()`.** An ungated write is an open endpoint. Hiding the form in the UI stops nobody. See [Authentication in brief](#authentication-in-brief). The exceptions are `POST /api/leads` ([ADR-0006](./docs/adr/0006-accept-anonymous-lead-capture.md)), publishing from the preview page ([ADR-0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)), the Cashfree webhook and return, and the Razorpay webhook and checkout confirm, which act only on what the provider's API reports ([ADR-0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md), [ADR-0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)). `POST /api/visits` is one more: it stores only fixed ids and numbers ([ADR-0014](./docs/adr/0014-measure-home-page-visits-first-party.md)). Admin writes use `requireAdmin()` instead, which is stronger ([ADR-0008](./docs/adr/0008-two-step-admin-sign-in.md)). A new exception needs its own ADR.
+- **Never write a route that changes data without `requireUser()`.** An ungated write is an open endpoint. Hiding the form in the UI stops nobody. See [Authentication in brief](#authentication-in-brief). The exceptions are `POST /api/leads` ([ADR-0006](./docs/adr/0006-accept-anonymous-lead-capture.md)), publishing from the preview page ([ADR-0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)), the Cashfree webhook and return, and the Razorpay webhook and checkout confirm, which act only on what the provider's API reports ([ADR-0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md), [ADR-0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)). `POST /api/visits` and `POST /api/preview-visits` are two more: they store only fixed ids and numbers ([ADR-0014](./docs/adr/0014-measure-home-page-visits-first-party.md), [ADR-0019](./docs/adr/0019-track-the-preview-page.md)). Admin writes use `requireAdmin()` instead, which is stronger ([ADR-0008](./docs/adr/0008-two-step-admin-sign-in.md)). A new exception needs its own ADR.
 - **Never take `ownerId`, `ownerName` or any identity field from a request body.** The caller chooses the body. Read identity from the session, always.
 - **Never treat a session as permission.** A session says who is asking, not what they may touch. Check ownership separately.
 - **Never rename the `__session` cookie.** Firebase Hosting strips every other cookie, so auth breaks only behind a custom domain. See [trap 20](./docs/traps.md).
@@ -452,26 +452,27 @@ Full model in [`SECURITY.md`](./SECURITY.md).
 
 Recorded in [`docs/adr/`](./docs/adr/). Read before proposing a change to any of them.
 
-| ADR                                                                    | Decision                                                                                                  |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [0001](./docs/adr/0001-use-cloud-run-for-hosting.md)                   | Cloud Run for hosting — over Vercel, GKE, App Engine, a VM                                                |
-| [0002](./docs/adr/0002-use-workload-identity-federation.md)            | Workload Identity Federation — no service account keys, ever                                              |
-| [0003](./docs/adr/0003-scope-workload-identity-to-the-github-owner.md) | WIF provider scoped to the GitHub owner; the repository pin lives in the IAM binding                      |
-| [0004](./docs/adr/0004-use-firestore-and-cloud-storage.md)             | Firestore + Cloud Storage — over Cloud SQL, over a per-app project                                        |
-| [0005](./docs/adr/0005-use-firebase-auth-for-sign-in.md)               | Firebase Auth with server-side session cookies — over Auth.js, over client-only auth                      |
-| [0006](./docs/adr/0006-accept-anonymous-lead-capture.md)               | `POST /api/leads` is the one write with no session, and how it stays narrow                               |
-| [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment in development              |
-| [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                             |
-| [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks                            |
-| [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                              |
-| [0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)    | Cashfree Payment Links; the webhook and return publish from Cashfree's own record                         |
-| [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                             |
-| [0013](./docs/adr/0013-measure-google-ads-conversions.md)              | The Google tag counts previews and purchases as conversions; no remarketing, no analytics                 |
-| [0014](./docs/adr/0014-measure-home-page-visits-first-party.md)        | Our own beacon measures home page visits for `/admin`; no cookie, no third party                          |
-| [0015](./docs/adr/0015-take-coupon-codes-at-payment.md)                | Coupon codes take a percentage off ₹799; the server prices every order; a home page ribbon                |
-| [0016](./docs/adr/0016-erase-test-data-from-admin.md)                  | `/admin/clean-up` erases ticked test previews and deleted invites; never live ones, never payments        |
-| [0017](./docs/adr/0017-measure-meta-ads-conversions.md)                | A minimal Meta Pixel sends only `Lead` and `Purchase`; no PageView, no customer data, no remarketing      |
-| [0018](./docs/adr/0018-keep-the-admin-signed-in-until-sign-out.md)     | The admin session slides for 90 days and the cookie is `Lax`, so the admin stays signed in until sign-out |
+| ADR                                                                    | Decision                                                                                                     |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| [0001](./docs/adr/0001-use-cloud-run-for-hosting.md)                   | Cloud Run for hosting — over Vercel, GKE, App Engine, a VM                                                   |
+| [0002](./docs/adr/0002-use-workload-identity-federation.md)            | Workload Identity Federation — no service account keys, ever                                                 |
+| [0003](./docs/adr/0003-scope-workload-identity-to-the-github-owner.md) | WIF provider scoped to the GitHub owner; the repository pin lives in the IAM binding                         |
+| [0004](./docs/adr/0004-use-firestore-and-cloud-storage.md)             | Firestore + Cloud Storage — over Cloud SQL, over a per-app project                                           |
+| [0005](./docs/adr/0005-use-firebase-auth-for-sign-in.md)               | Firebase Auth with server-side session cookies — over Auth.js, over client-only auth                         |
+| [0006](./docs/adr/0006-accept-anonymous-lead-capture.md)               | `POST /api/leads` is the one write with no session, and how it stays narrow                                  |
+| [0007](./docs/adr/0007-publish-from-the-bound-preview-browser.md)      | Publishing from the preview page is gated by the preview cookie; test payment in development                 |
+| [0008](./docs/adr/0008-two-step-admin-sign-in.md)                      | `/admin` needs Google then an OTP, has its own session, and logs every change                                |
+| [0009](./docs/adr/0009-open-a-preview-in-two-browsers.md)              | A preview opens in two browsers (sign-up screen and WhatsApp link), then locks                               |
+| [0010](./docs/adr/0010-open-a-preview-to-anyone-for-30-minutes.md)     | Anyone with the preview link sees it for 30 minutes; an admin reactivates it                                 |
+| [0011](./docs/adr/0011-take-payment-with-cashfree-payment-links.md)    | Cashfree Payment Links; the webhook and return publish from Cashfree's own record                            |
+| [0012](./docs/adr/0012-add-razorpay-as-a-second-payment-provider.md)   | Razorpay Standard Checkout as a second provider; `PAYMENT_PROVIDER` picks one                                |
+| [0013](./docs/adr/0013-measure-google-ads-conversions.md)              | The Google tag counts previews and purchases as conversions; no remarketing, no analytics                    |
+| [0014](./docs/adr/0014-measure-home-page-visits-first-party.md)        | Our own beacon measures home page visits for `/admin`; no cookie, no third party                             |
+| [0015](./docs/adr/0015-take-coupon-codes-at-payment.md)                | Coupon codes take a percentage off ₹799; the server prices every order; a home page ribbon                   |
+| [0016](./docs/adr/0016-erase-test-data-from-admin.md)                  | `/admin/clean-up` erases ticked test previews and deleted invites; never live ones, never payments           |
+| [0017](./docs/adr/0017-measure-meta-ads-conversions.md)                | A minimal Meta Pixel sends only `Lead` and `Purchase`; no PageView, no customer data, no remarketing         |
+| [0018](./docs/adr/0018-keep-the-admin-signed-in-until-sign-out.md)     | The admin session slides for 90 days and the cookie is `Lax`, so the admin stays signed in until sign-out    |
+| [0019](./docs/adr/0019-track-the-preview-page.md)                      | Our own beacon tracks each unpaid preview's steps to payment for `/admin`; leads get a New/Hot/Cold/Test tag |
 
 Add an ADR when a decision is expensive to reverse, affects how everyone works, or rejects an obvious alternative. Never edit an accepted ADR to change its decision — write a new one that supersedes it, and link both ways.
 

@@ -2,6 +2,7 @@
 
 import { useId, useState } from 'react';
 
+import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { cn } from '@/lib/utils';
 
 /**
@@ -52,6 +53,7 @@ export function CouponField({
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputId = useId();
+  const { track } = usePreviewTracking();
   const errorId = `${inputId}-error`;
 
   async function apply(raw: string): Promise<void> {
@@ -61,6 +63,7 @@ export function CouponField({
     try {
       const result = await applyCoupon(raw);
       if (result.ok) {
+        track('coupon-applied');
         onApplied({
           code: result.code,
           percentOff: result.percentOff,
@@ -69,6 +72,7 @@ export function CouponField({
         setOpen(false);
         setCode('');
       } else {
+        track('coupon-refused');
         setOpen(true);
         setError(result.message);
       }
