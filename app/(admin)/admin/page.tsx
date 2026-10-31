@@ -59,7 +59,7 @@ import { coupleNames } from '@/lib/couple-names';
 import { demoVideoRoute, SITE_VIDEO_SLOTS, type SiteVideoSlot } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
-import { leadTag } from '@/lib/lead-tags';
+import { shownLeadTag } from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { nudgeLabel, nudgeStatus } from '@/lib/preview-nudges';
@@ -376,7 +376,7 @@ async function PreviewsView({ params }: { params: SearchParams }) {
                     )}
                   </span>
                   <span className="flex flex-wrap gap-2">
-                    <TagBadge tag={leadTag(lead)} />
+                    <TagBadge tag={shownLeadTag(lead, now)} />
                     <StateBadge state={state} />
                   </span>
                 </Link>

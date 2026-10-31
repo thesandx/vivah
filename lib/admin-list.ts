@@ -9,7 +9,12 @@
  */
 
 import type { NameOrder } from '@/lib/couple-names';
-import { LEAD_TAG_LABELS, LEAD_TAGS, type LeadTag, leadTag } from '@/lib/lead-tags';
+import {
+  type LeadTag,
+  SHOWN_LEAD_TAG_LABELS,
+  SHOWN_LEAD_TAGS,
+  shownLeadTag,
+} from '@/lib/lead-tags';
 import { previewClosed } from '@/lib/preview-timer';
 
 /** What the admin sees of a wedding's state. */
@@ -126,7 +131,7 @@ export const LEAD_STATE_CHOICES = [
 
 export const LEAD_TAG_CHOICES = [
   { value: 'all', label: 'All' },
-  ...LEAD_TAGS.map((tag) => ({ value: tag, label: LEAD_TAG_LABELS[tag] })),
+  ...SHOWN_LEAD_TAGS.map((tag) => ({ value: tag, label: SHOWN_LEAD_TAG_LABELS[tag] })),
 ] as const satisfies readonly Choice<string>[];
 
 export const LEAD_SORT_CHOICES = [
@@ -259,7 +264,7 @@ export function filterLeads<T extends LeadRow>(
 ): T[] {
   const kept = rows.filter((row) => {
     if (filters.state !== 'all' && leadState(row, now) !== filters.state) return false;
-    if (filters.tag !== 'all' && leadTag(row) !== filters.tag) return false;
+    if (filters.tag !== 'all' && shownLeadTag(row, now) !== filters.tag) return false;
     return matches(filters.q, [row.bride, row.groom, row.weddingSlug ?? ''], row.phoneE164);
   });
 

@@ -24,7 +24,7 @@ We will measure the unpaid preview page with our own beacon, the same way as the
   - A crawler, a headless browser, or a browser with the admin cookie is answered and not stored.
 - `/admin/previews/<id>` shows one preview's activity. It reads the beacons by `leadId` with a composite index. The Previews list shows how far each preview of the last 30 days got. `/admin` > Preview tracker shows the funnel over a range. It leaves out deleted previews, previews tagged Test, and ids that are not a preview. Payments come from `leads`, so a payment in another browser still counts.
 - A paid preview is not measured.
-- The lead gets an optional `tag`: `new`, `hot`, `cold` or `test`. Absent means `new`. The admin sets it on `/admin/previews/<id>`, and the audit log records each change. The Previews list filters on it in memory.
+- The lead gets an optional `tag`: `new`, `hot`, `cold` or `test`. Absent means `new`. A `new` lead made more than 24 hours ago shows as Old in `/admin`, and the Previews list can filter on Old. Old is never stored, so a manual tag always wins. The admin sets it on `/admin/previews/<id>`, and the audit log records each change. The Previews list filters on it in memory.
 - Each beacon carries `expireAt`, 12 months after it was written. The privacy page says so.
 
 ## Alternatives considered

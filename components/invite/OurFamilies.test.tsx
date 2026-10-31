@@ -80,6 +80,6 @@ describe('OurFamilies', () => {
     render(<OurFamilies bride="Priya" groom="Rahul" families={undefined} placeholder />);
     expect(screen.getAllByText('Grandmother’s name')).toHaveLength(2);
     expect(screen.getAllByText('Father’s name')).toHaveLength(2);
-    expect(screen.getByText(/You add both families’ names after payment/)).toBeInTheDocument();
+    expect(screen.getByText(/Add both families’ names after payment/)).toBeInTheDocument();
   });
 });

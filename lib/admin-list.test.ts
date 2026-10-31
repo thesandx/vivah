@@ -201,6 +201,16 @@ describe('lead filters', () => {
     expect(ids(filterLeads(tagged, base, NOW))).toEqual(['opened']);
     expect(filterLeads(tagged, { ...base, tag: 'new' }, NOW)).toHaveLength(3);
   });
+
+  it('filters Old: still New, and made more than 24 hours ago', () => {
+    const old = { ...parseLeadFilters({ tag: 'old' }) };
+    expect(old.tag).toBe('old');
+    expect(ids(filterLeads(LEADS, old, NOW))).toEqual(['expired']);
+    const tagged = LEADS.map((row) =>
+      row.id === 'expired' ? { ...row, tag: 'cold' as const } : row,
+    );
+    expect(filterLeads(tagged, old, NOW)).toHaveLength(0);
+  });
 });
 
 describe('formatAdminTime', () => {
