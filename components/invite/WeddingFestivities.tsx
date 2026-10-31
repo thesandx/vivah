@@ -1,3 +1,4 @@
+import { AddAfterPaymentNote } from '@/components/invite/AddAfterPaymentNote';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { cn } from '@/lib/utils';
 import { formatWeddingTime } from '@/lib/wedding-date';
@@ -299,7 +300,7 @@ export function WeddingFestivities({
           ))}
         </ol>
         {placeholder && anyMissing && (
-          <p className="jewel-fn-note">You can add the dates and venues after payment.</p>
+          <AddAfterPaymentNote what="the dates and venues" className="text-jewel-haldi" />
         )}
       </div>
     </section>

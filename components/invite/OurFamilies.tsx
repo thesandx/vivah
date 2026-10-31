@@ -1,3 +1,4 @@
+import { AddAfterPaymentNote } from '@/components/invite/AddAfterPaymentNote';
 import type { NameOrder } from '@/lib/couple-names';
 import { cn } from '@/lib/utils';
 import {
@@ -221,9 +222,7 @@ export function OurFamilies({
           ))}
         </div>
         {placeholder && (
-          <p className="jewel-family-note">
-            You can add both families’ names after payment. Grandparents are optional.
-          </p>
+          <AddAfterPaymentNote what="both families’ names" className="text-jewel-rani" />
         )}
       </div>
     </section>
