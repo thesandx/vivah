@@ -13,17 +13,25 @@ import { Alert } from '@/components/ui/Alert';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
-import { PAPER_CARDS, PAYMENT_METHODS } from '@/lib/business';
+import {
+  PAPER_CARDS,
+  PAYMENT_METHODS,
+  percentOffStruck,
+  STRUCK_PRICE_RUPEES,
+} from '@/lib/business';
 import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { cn } from '@/lib/utils';
 
 /**
  * The two payment dialogs at the foot of the couple's preview.
  *
- * Closed, it is a one-line bar (the price and "Continue") while the couple
- * reads their invite. At the foot of the page it grows to the full sheet: the
- * price against what paper cards cost, one green button and the trust lines.
- * Scrolling up shrinks it back. The green button on either goes straight to
+ * Closed, it is a short bar: "Create your personal wedding website", the
+ * couple's address, and one green button with the price struck from
+ * `STRUCK_PRICE_RUPEES` and the percentage off (the product owner,
+ * 2026-10-31). Dragging its handle up, as on an iPhone sheet, or tapping it,
+ * opens the full sheet: the price against what paper cards cost, one green
+ * button and the trust lines. Dragging down closes it. Scrolling does not
+ * open it. The green button on either goes straight to
  * payment (the product owner, 2026-10-16): the couple chose their address on
  * the sign-up card, so there is nothing left to ask. Only "See everything you
  * get" opens the checkout: what publishing gives them, their address, an
@@ -40,7 +48,7 @@ import { cn } from '@/lib/utils';
  * promise (the product owner removed it, 2026-10-16). Next to the pay button
  * (the product owner, 2026-10-31): up to two real couple reviews from the
  * admin's Home page list (quote and names only), "Free date change once"
- * (the refund policy), the ways to pay, and a WhatsApp link to ask before
+ * (the refund policy), "Share with family" and a WhatsApp link to ask before
  * paying.
  *
  * `mode` says what the button does. `live`: it opens Cashfree's page
@@ -104,8 +112,8 @@ export interface PayReview {
   names: string;
 }
 
-/** How close to the foot of the page counts as the foot, for the full sheet. */
-const FOOT_SLACK_PX = 120;
+/** How far a drag on the handle must travel to open or close the sheet. */
+const DRAG_PX = 30;
 
 /** What publishing gives the couple, in their words. */
 const PROMISES = [
@@ -290,12 +298,14 @@ export function PublishBanner({
   const live = mode === 'live';
   const [coupon, setCoupon] = useState<AppliedCouponView | null>(null);
   const [open, setOpen] = useState(notice !== undefined);
-  // Closed, the banner is a short bar while the couple reads their invite,
-  // and grows to the full sheet once they reach the foot of the page.
-  // Scrolling up again shrinks it back.
-  const [atFoot, setAtFoot] = useState(false);
+  // Closed, the banner is a short bar. The couple drags its handle up (or
+  // taps it) for the full sheet, the way an iPhone sheet opens, and drags it
+  // down again to shrink it. Nothing opens it on its own.
+  const [expanded, setExpanded] = useState(false);
+  const [dragFrom, setDragFrom] = useState<number | null>(null);
   const listPrice = `₹${priceRupees.toLocaleString('en-IN')}`;
-  const price = `₹${(coupon?.payableRupees ?? priceRupees).toLocaleString('en-IN')}`;
+  const payable = coupon?.payableRupees ?? priceRupees;
+  const price = `₹${payable.toLocaleString('en-IN')}`;
   const saving =
     coupon === null ? null : `−₹${(priceRupees - coupon.payableRupees).toLocaleString('en-IN')}`;
 
@@ -320,26 +330,6 @@ export function PublishBanner({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
-
-  useEffect(() => {
-    let frame = 0;
-    function measure() {
-      frame = 0;
-      const root = document.documentElement;
-      setAtFoot(window.innerHeight + window.scrollY >= root.scrollHeight - FOOT_SLACK_PX);
-    }
-    function onScroll() {
-      if (frame === 0) frame = window.requestAnimationFrame(measure);
-    }
-    measure();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll);
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (frame !== 0) window.cancelAnimationFrame(frame);
-    };
-  }, []);
 
   // The closed sheet's green button pays at once, for the address the couple
   // chose. Without one, it opens the checkout, where they pick an address.
@@ -414,39 +404,93 @@ export function PublishBanner({
         aria-label="Publish your invite"
         className={cn(
           'bg-surface rounded-t-sheet font-pay text-pay-body relative mx-auto flex w-full max-w-xl flex-col px-5 antialiased',
-          open ? 'gap-5 py-5' : atFoot ? 'gap-3 pt-5 pb-3' : 'py-3',
+          open
+            ? 'gap-5 py-5'
+            : expanded
+              ? 'max-h-[85dvh] gap-3 overflow-y-auto pt-1 pb-3'
+              : 'gap-3 pt-1 pb-3',
           open && 'max-h-[90dvh] overflow-y-auto',
           className,
         )}
       >
-        {!open && !atFoot ? (
-          <div className="animate-fade-in flex flex-col gap-3">
+        {!open && (
+          // The drag zone: the handle and, while short, the title. A drag up
+          // opens the full sheet, a drag down closes it, and a tap toggles it.
+          <div
+            className="bg-surface sticky top-0 z-10 touch-none"
+            onPointerDown={(event) => {
+              // Keep the pointer, so the release counts even when it ends
+              // above the sheet.
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setDragFrom(event.clientY);
+            }}
+            onPointerUp={(event) => {
+              if (dragFrom === null) return;
+              const moved = event.clientY - dragFrom;
+              setDragFrom(null);
+              if (moved < -DRAG_PX) setExpanded(true);
+              else if (moved > DRAG_PX) setExpanded(false);
+            }}
+            onPointerCancel={() => setDragFrom(null)}
+          >
+            <button
+              type="button"
+              onClick={() => setExpanded((now) => !now)}
+              aria-expanded={expanded}
+              aria-label={expanded ? 'Show less' : 'Show everything about publishing'}
+              className="flex min-h-11 w-full flex-col items-center gap-1 pt-1"
+            >
+              <span aria-hidden="true" className="bg-pay-line rounded-pill h-1.5 w-10" />
+              {!expanded && (
+                <span className="flex flex-col items-center leading-tight">
+                  <span className="text-small text-pay-ink font-semibold">
+                    Create your personal wedding website
+                  </span>
+                  <span className="text-small text-pay-body break-all">
+                    {address ?? `your own address on ${domainLabel}`}
+                  </span>
+                </span>
+              )}
+            </button>
+          </div>
+        )}
+        {!open && !expanded ? (
+          <div className="animate-fade-in flex flex-col gap-2">
             {directError}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 flex-col">
-                <p className="text-body text-pay-ink font-semibold">Your invite is ready</p>
-                <p className="text-small text-pay-body tabular-nums">
-                  {wasPrice} {price} once · No charge per guest
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={payNow}
-                disabled={directWorking}
-                aria-busy={directWorking}
-                aria-label={directWorking ? directLabel : undefined}
-                className={cn(
-                  'text-on-brand rounded-input text-body inline-flex min-h-12 shrink-0 items-center justify-center gap-2 px-5 font-semibold transition-colors select-none',
-                  directWorking
-                    ? 'bg-pay-action-deep cursor-wait'
-                    : 'bg-pay-action hover:bg-pay-action-deep active:translate-y-px',
-                )}
-              >
-                {directWorking && spinner}
-                {live ? 'Make it live' : 'Continue'}
-              </button>
-            </div>
-            {couponLine()}
+            <button
+              type="button"
+              onClick={payNow}
+              disabled={directWorking}
+              aria-busy={directWorking}
+              aria-label={directWorking ? directLabel : continueLabel}
+              className={cn(
+                'text-on-brand rounded-input inline-flex min-h-12 w-full items-center justify-center gap-2 px-4 font-semibold tabular-nums transition-colors select-none',
+                directWorking
+                  ? 'bg-pay-action-deep cursor-wait'
+                  : 'bg-pay-action hover:bg-pay-action-deep active:translate-y-px',
+              )}
+            >
+              {directWorking ? (
+                <>
+                  {spinner}
+                  {directLabel}
+                </>
+              ) : (
+                <>
+                  <span className="text-body">{live ? 'Make it live' : 'Continue'}</span>
+                  <s className="text-small font-normal opacity-75">
+                    <span className="sr-only">was </span>₹
+                    {STRUCK_PRICE_RUPEES.toLocaleString('en-IN')}
+                  </s>
+                  <span className="text-heading font-bold">{price}</span>
+                  {payable < STRUCK_PRICE_RUPEES && (
+                    <span className="bg-surface text-pay-action rounded-pill text-small px-2 font-bold">
+                      {percentOffStruck(payable)}% OFF
+                    </span>
+                  )}
+                </>
+              )}
+            </button>
           </div>
         ) : !open ? (
           <div className="animate-rise-in flex flex-col gap-3">

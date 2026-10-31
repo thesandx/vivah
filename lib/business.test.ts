@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { BUSINESS, whatsAppChatUrl, whatsAppShareUrl } from './business';
+import { BUSINESS, percentOffStruck, whatsAppChatUrl, whatsAppShareUrl } from './business';
 
 describe('whatsAppChatUrl', () => {
   it('opens a chat with the number and the message typed in', () => {
@@ -23,5 +23,17 @@ describe('whatsAppShareUrl', () => {
     expect(whatsAppShareUrl('Hi Rahul https://sara.vivah.online/Rahul')).toBe(
       'https://wa.me/?text=Hi%20Rahul%20https%3A%2F%2Fsara.vivah.online%2FRahul',
     );
+  });
+});
+
+describe('percentOffStruck', () => {
+  it('rounds the saving against the struck price', () => {
+    expect(percentOffStruck(799)).toBe(60);
+    expect(percentOffStruck(639)).toBe(68);
+  });
+
+  it('is 0 at or above the struck price', () => {
+    expect(percentOffStruck(1999)).toBe(0);
+    expect(percentOffStruck(2500)).toBe(0);
   });
 });

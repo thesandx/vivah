@@ -315,7 +315,7 @@ export default async function PreviewPage({
           dock={dock}
         >
           {/* Room at the foot, so the banner never covers the last lines. */}
-          <main className="bg-jewel-maroon-deep flex flex-1 flex-col pb-132">
+          <main className="bg-jewel-maroon-deep flex flex-1 flex-col pb-44">
             <ShubhVivahInvite
               bride={lead.bride}
               groom={lead.groom}
