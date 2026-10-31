@@ -35,8 +35,12 @@ import { cn } from '@/lib/utils';
  * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
  * tokens). Only the couple's names keep the invite's serif. Every claim on it
  * is true today: the price is `PRICE_FROM_RUPEES` (passed in), and the
- * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No ratings, no couple counts and no refund
- * promise (the product owner removed it, 2026-10-16).
+ * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No star ratings, no couple counts and no refund
+ * promise (the product owner removed it, 2026-10-16). Next to the pay button
+ * (the product owner, 2026-10-31): up to two real couple reviews from the
+ * admin's Home page list (quote and names only), "Free date change once"
+ * (the refund policy), the ways to pay, and a WhatsApp link to ask before
+ * paying.
  *
  * `mode` says what the button does. `live`: it opens Cashfree's page
  * (ADR-0011) or Razorpay's checkout over this page (ADR-0012). `test` (development without payment keys): it publishes free,
@@ -83,7 +87,18 @@ export interface PublishBannerProps {
   mode?: PaymentBannerMode;
   /** Who takes the money when `live`: `Cashfree` or `Razorpay`. */
   providerName?: string;
+  /** Real couple reviews to show beside the pay button. At most two are shown. */
+  reviews?: readonly PayReview[];
+  /** A WhatsApp chat with us, with a question about this preview typed in. */
+  chatUrl?: string;
   className?: string;
+}
+
+/** A couple review, as the pay sheet shows it. */
+export interface PayReview {
+  quote: string;
+  /** `Riya & Aman`. */
+  names: string;
 }
 
 /** How close to the foot of the page counts as the foot, for the full sheet. */
@@ -148,9 +163,57 @@ function TrustLines({ live }: { live: boolean }) {
   return (
     <div className="text-small text-pay-muted flex flex-col items-center gap-1 text-center">
       <p>{live && '🔒 Secure payment · '}⚡ Instant link · 💛 No ads</p>
-      <p>📅 Your link stays live until 12 months after your wedding</p>
+      <p>🔁 Free date change once · 📅 Live until 12 months after your wedding</p>
       <p>Made with love in India 🇮🇳</p>
     </div>
+  );
+}
+
+/** Up to two real couple reviews, short, beside the pay button. */
+function Reviews({ reviews }: { reviews: readonly PayReview[] }) {
+  if (reviews.length === 0) return null;
+  return (
+    <ul aria-label="What couples say" className="flex flex-col gap-2">
+      {reviews.slice(0, 2).map((review) => (
+        <li
+          key={`${review.names}-${review.quote.slice(0, 20)}`}
+          className="bg-pay-well rounded-input text-small text-pay-body px-3 py-2"
+        >
+          <blockquote className="line-clamp-2">“{review.quote}”</blockquote>
+          <p className="text-pay-ink font-semibold">{review.names}</p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** "Questions? Chat with us": a WhatsApp chat before paying. */
+function ChatLink({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-preview-event="chat-tapped"
+      className="text-small text-pay-ink decoration-pay-line inline-flex min-h-11 items-center justify-center font-semibold underline decoration-2 underline-offset-4"
+    >
+      Questions before you pay? Chat with us on WhatsApp
+    </a>
+  );
+}
+
+/** One line under the pay button: what the couple has the moment they pay. */
+function AfterPaying({ address }: { address: string | null }) {
+  return (
+    <p className="text-small text-pay-body text-center">
+      Right after you pay:{' '}
+      {address === null ? (
+        'your own link'
+      ) : (
+        <strong className="text-pay-ink break-all">{address}</strong>
+      )}{' '}
+      goes live, with a personal link for every guest.
+    </p>
   );
 }
 
@@ -196,6 +259,8 @@ export function PublishBanner({
   couponOffer,
   mode = 'test',
   providerName,
+  reviews = [],
+  chatUrl,
   className,
 }: PublishBannerProps): React.JSX.Element {
   const live = mode === 'live';
@@ -291,7 +356,8 @@ export function PublishBanner({
     void direct.run(chosen);
   }
 
-  const continueLabel = live ? `Continue to payment · ${price}` : 'Continue to publish';
+  const continueLabel = live ? `Make it live · ${price}` : 'Continue to publish';
+  const address = chosen === undefined ? null : `${chosen}.${domainLabel}`;
   const directLabel =
     direct.status === 'done'
       ? 'Opening your invite'
@@ -353,7 +419,7 @@ export function PublishBanner({
                 )}
               >
                 {directWorking && spinner}
-                Continue
+                {live ? 'Make it live' : 'Continue'}
               </button>
             </div>
             {couponLine()}
@@ -416,6 +482,7 @@ export function PublishBanner({
                 continueLabel
               )}
             </button>
+            <AfterPaying address={address} />
 
             <div className="text-small text-pay-body flex flex-wrap items-center justify-between gap-x-3">
               <span className="flex items-center gap-1.5">
@@ -430,6 +497,9 @@ export function PublishBanner({
                 See everything you get
               </button>
             </div>
+            <Reviews reviews={reviews} />
+            {live && <PaymentMethods />}
+            {chatUrl !== undefined && <ChatLink href={chatUrl} />}
             <TrustLines live={live} />
           </div>
         ) : (
@@ -484,7 +554,7 @@ export function PublishBanner({
               domainLabel={domainLabel}
               checkSlug={checkSlug}
               publish={publishWithCoupon}
-              actionLabel={live ? `Pay ${price} and publish` : 'Publish our invite'}
+              actionLabel={live ? `Make it live · ${price}` : 'Publish our invite'}
               workingLabel={live ? 'Opening payment' : 'Publishing your invite'}
               footer={
                 <div className="flex flex-col gap-4">
@@ -493,6 +563,8 @@ export function PublishBanner({
                     <PaymentMethods />
                   </div>
                   <PaymentNote mode={mode} {...(providerName !== undefined && { providerName })} />
+                  <Reviews reviews={reviews} />
+                  {chatUrl !== undefined && <ChatLink href={chatUrl} />}
                   <TrustLines live={live} />
                 </div>
               }

@@ -138,9 +138,9 @@ describe('PublishBanner modes', () => {
 
   it('asks for payment through the named provider when live, with no test note', () => {
     renderMode('live');
-    expect(screen.getByRole('button', { name: 'Continue to payment · ₹499' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make it live · ₹499' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
-    expect(screen.getByRole('button', { name: 'Pay ₹499 and publish' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make it live · ₹499' })).toBeInTheDocument();
     expect(screen.getByText(/Powered by Razorpay/)).toBeInTheDocument();
     expect(screen.queryByText(/nothing is charged/)).not.toBeInTheDocument();
   });
@@ -178,16 +178,65 @@ describe('PublishBanner modes', () => {
       screen.getAllByRole('button', { name: 'Apply NEW20 · 20% off' })[0] as HTMLElement,
     );
     expect(applyCoupon).toHaveBeenCalledWith('NEW20');
-    expect(
-      await screen.findByRole('button', { name: 'Continue to payment · ₹399' }),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: 'Make it live · ₹399' })).toBeInTheDocument();
     expect(screen.getByText('was')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'See everything you get' }));
     expect(screen.getByText('Coupon NEW20 (20% off)')).toBeInTheDocument();
     expect(screen.getByText('−₹100')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Pay ₹399 and publish' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Make it live · ₹399' }));
     expect(publish).toHaveBeenCalledWith('lead-1', 'riya-arjun', 'NEW20');
+  });
+
+  it('names the short bar button "Make it live" when live', () => {
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      value: 5000,
+      configurable: true,
+    });
+    renderMode('live');
+    expect(screen.getByRole('button', { name: 'Make it live' })).toBeInTheDocument();
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      value: 0,
+      configurable: true,
+    });
+  });
+
+  it('says what the couple gets right after paying', () => {
+    renderMode('live');
+    expect(screen.getByText(/Right after you pay/)).toHaveTextContent(
+      'priya-rahul.vivah.online goes live, with a personal link for every guest',
+    );
+  });
+
+  it('shows reviews and a WhatsApp chat link beside the pay button', () => {
+    render(
+      <PublishBanner
+        bride="Riya"
+        groom="Arjun"
+        leadId="lead-1"
+        chosen="priya-rahul"
+        suggestions={[]}
+        domainLabel="vivah.online"
+        priceRupees={799}
+        mode="live"
+        checkSlug={() => Promise.resolve({ available: true })}
+        publish={() => new Promise(() => undefined)}
+        reviews={[
+          { quote: 'Our guests loved it.', names: 'Asha & Dev' },
+          { quote: 'So easy to share.', names: 'Meera & Kabir' },
+          { quote: 'Not shown.', names: 'Third Couple' },
+        ]}
+        chatUrl="https://wa.me/919546342507?text=Hi"
+      />,
+    );
+    const reviews = screen.getByRole('list', { name: 'What couples say' });
+    expect(reviews).toHaveTextContent('Our guests loved it.');
+    expect(reviews).toHaveTextContent('Meera & Kabir');
+    expect(reviews).not.toHaveTextContent('Not shown.');
+    const chat = screen.getByRole('link', { name: /Chat with us on WhatsApp/ });
+    expect(chat).toHaveAttribute('href', 'https://wa.me/919546342507?text=Hi');
+    expect(chat).toHaveAttribute('data-preview-event', 'chat-tapped');
+    expect(screen.getByText(/Free date change once/)).toBeInTheDocument();
   });
 
   it('offers no coupon line in test mode', () => {

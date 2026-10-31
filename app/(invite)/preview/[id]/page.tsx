@@ -13,7 +13,7 @@ import { PreviewNotch } from '@/components/invite/PreviewNotch';
 import { PreviewShield } from '@/components/invite/PreviewShield';
 import { PreviewTimer } from '@/components/invite/PreviewTimer';
 import { PreviewWatermark } from '@/components/invite/PreviewWatermark';
-import { PublishBanner } from '@/components/invite/PublishBanner';
+import { type PayReview, PublishBanner } from '@/components/invite/PublishBanner';
 import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { PageShell } from '@/components/layout/PageShell';
 import { SiteHeader } from '@/components/layout/SiteHeader';
@@ -32,6 +32,7 @@ import { emptyFunction } from '@/lib/wedding-functions';
 import { getHomeRibbon } from '@/services/coupon.service';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
 import { paymentMode, paymentProviderName, payments } from '@/services/payment.service';
+import { getHomeTestimonials } from '@/services/testimonials.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 import { inviteSong } from '@/services/wedding-songs.service';
 
@@ -192,6 +193,13 @@ export default async function PreviewPage({
   // The home page ribbon's code, offered on the sheet in one tap. ADR-0015.
   const couponOffer =
     !published && !paidWithoutAddress && mode === 'live' ? await getHomeRibbon() : null;
+  // Two real reviews and a WhatsApp link beside the pay button. Reviews are
+  // optional: the sheet shows without them when they do not load.
+  const payReviews = published ? [] : await payReviewsOrNone();
+  const chatUrl = whatsAppChatUrl(
+    BUSINESS.whatsAppE164,
+    `Hi, I have a question about my invite preview: ${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`,
+  );
   // What the couple actually paid, after any coupon, for the purchase
   // conversion. The list price when the payment cannot be read.
   const paidRupees =
@@ -254,6 +262,8 @@ export default async function PreviewPage({
         publish={publishAction}
         applyCoupon={applyCouponAction}
         {...(couponOffer !== null && { couponOffer })}
+        reviews={payReviews}
+        chatUrl={chatUrl}
       />
     );
   }
@@ -343,5 +353,18 @@ async function paidAmount(paymentId: string): Promise<number> {
       reason: error instanceof Error ? error.message : String(error),
     });
     return PRICE_FROM_RUPEES;
+  }
+}
+
+/** Up to two couple reviews from the home page, for the pay sheet. None when they cannot be read. */
+async function payReviewsOrNone(): Promise<PayReview[]> {
+  try {
+    const { reviews } = await getHomeTestimonials();
+    return reviews.slice(0, 2).map((review) => ({ quote: review.quote, names: review.names }));
+  } catch (error) {
+    logger.warn('Reading the reviews for the pay sheet failed', {
+      reason: error instanceof Error ? error.message : String(error),
+    });
+    return [];
   }
 }
