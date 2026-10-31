@@ -14,7 +14,7 @@ Sandeep asked for a tracker for each preview and over all previews. He also aske
 
 We will measure the unpaid preview page with our own beacon, the same way as the home page. There is no third party and no cookie.
 
-- `components/analytics/PreviewTracker.tsx` wraps the preview page. It counts the time each `data-preview-section` of the invite holds the middle of the screen. Components record events with `usePreviewTracking().track`: invite opened, date scratched, pay sheet opened, coupon applied or refused, WhatsApp chat tapped on the pay sheet, pay tapped, payment window opened, closed or failed, and paid. The "preview has closed" page records that it was seen, and its WhatsApp button records a tap.
+- `components/analytics/PreviewTracker.tsx` wraps the preview page. It counts the time each `data-preview-section` of the invite holds the middle of the screen. Components record events with `usePreviewTracking().track`: invite opened, date scratched, pay sheet opened, coupon applied or refused, WhatsApp chat or "Share with family" tapped on the pay sheet, pay tapped, payment window opened, closed or failed, and paid. The "preview has closed" page records that it was seen, and its WhatsApp button records a tap.
 - A beacon goes when the tab is hidden or left. A payment step sends one at once, because Razorpay's window or a redirect may follow.
 - A beacon holds the preview's id, a random tab id that lives only in memory, fixed ids from `lib/preview-tracking.ts`, numbers, and whether the browser is one the preview is bound to (`couple`) or another one (`other`). It holds no name, phone number, IP address or free text.
 - `POST /api/preview-visits` stores each beacon in `previewBeacons`. It is a write with no session. Its limits match `POST /api/visits`:

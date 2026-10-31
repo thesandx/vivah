@@ -56,6 +56,7 @@ export const PREVIEW_EVENTS = [
   { id: 'coupon-applied', label: 'Applied a coupon' },
   { id: 'coupon-refused', label: 'Tried a coupon that did not work' },
   { id: 'chat-tapped', label: 'Tapped WhatsApp chat on the pay sheet' },
+  { id: 'family-share-tapped', label: 'Tapped Share with family' },
   { id: 'pay-tapped', label: 'Tapped pay' },
   { id: 'checkout-opened', label: 'Payment window opened' },
   { id: 'checkout-closed', label: 'Closed the payment window' },
@@ -132,5 +133,6 @@ export const URGENT_PREVIEW_EVENTS: ReadonlySet<PreviewEventId> = new Set<Previe
   'payment-failed',
   'paid',
   'chat-tapped',
+  'family-share-tapped',
   'closed-whatsapp',
 ]);

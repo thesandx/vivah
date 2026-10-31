@@ -1,10 +1,18 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+
 import { cn } from '@/lib/utils';
 
 /**
  * The small gold tab that hangs from the top of the screen on the couple's
  * private preview: "Preview · only you can see this", and under it the
  * preview's countdown when one is passed. It is the one sign that this is not
- * yet the published invite. A Server Component.
+ * yet the published invite.
+ *
+ * Once the page scrolls, the notch shrinks to one short line: "Preview" and
+ * the countdown. The note and the timer's sentence come back at the top of
+ * the page. A Client Component, because it listens to the scroll.
  */
 
 export interface PreviewNotchProps {
@@ -30,15 +38,28 @@ function EyeIcon() {
   );
 }
 
+/** How far the page scrolls before the notch shrinks. */
+const COMPACT_AFTER_PX = 80;
+
 export function PreviewNotch({
   note = 'only you can see this',
   children,
   className,
 }: PreviewNotchProps): React.JSX.Element {
+  const [compact, setCompact] = useState(false);
+
+  useEffect(() => {
+    const update = () => setCompact(window.scrollY > COMPACT_AFTER_PX);
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    return () => window.removeEventListener('scroll', update);
+  }, []);
+
   return (
     <div
+      data-compact={compact || undefined}
       className={cn(
-        'bg-butter text-ink shadow-hard-sm rounded-b-card flex max-w-sm flex-col items-center gap-1 px-5 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2',
+        'group bg-butter text-ink shadow-hard-sm rounded-b-card data-compact:rounded-b-pill flex max-w-sm flex-col items-center gap-1 px-5 pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 transition-all data-compact:flex-row data-compact:gap-3 data-compact:pb-1.5',
         className,
       )}
     >
@@ -47,8 +68,10 @@ export function PreviewNotch({
         <span className="font-display text-small font-semibold tracking-widest uppercase">
           Preview
         </span>
-        <span aria-hidden="true">·</span>
-        <span className="font-display text-small italic">{note}</span>
+        <span aria-hidden="true" className="group-data-compact:hidden">
+          ·
+        </span>
+        <span className="font-display text-small italic group-data-compact:hidden">{note}</span>
       </p>
       {children}
     </div>
