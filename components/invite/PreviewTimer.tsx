@@ -7,7 +7,8 @@ import { formatTimeLeft } from '@/lib/preview-timer';
 
 /**
  * The preview's countdown, under "Preview" in the notch: "29:41", and the
- * note to pay before it ends. A Client Component, because it ticks.
+ * note to pay before it ends. In the shrunk notch (`PreviewNotch`, once the
+ * page scrolls) only the time shows. A Client Component, because it ticks.
  *
  * The end time comes from the server, so a reload or another phone shows the
  * same clock. At zero it refreshes the page, and the server shows the
@@ -48,11 +49,11 @@ export function PreviewTimer({ endsAt, renderedAt }: PreviewTimerProps): React.J
       <span
         role="timer"
         aria-label={`Time left: ${formatTimeLeft(left)}`}
-        className="font-display text-heading font-semibold tabular-nums"
+        className="font-display text-heading group-data-compact:text-body font-semibold tabular-nums"
       >
         {formatTimeLeft(left)}
       </span>
-      <span className="text-small leading-snug">
+      <span className="text-small leading-snug group-data-compact:hidden">
         Complete payment within 30 minutes. This link is disabled after that.
       </span>
     </span>

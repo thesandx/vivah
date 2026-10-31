@@ -10,6 +10,7 @@ import {
 import { type PublishOutcome, type SlugCheck, SlugPicker } from '@/components/invite/SlugPicker';
 import { BrandMark } from '@/components/layout/BrandMark';
 import { Alert } from '@/components/ui/Alert';
+import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
 import { PAPER_CARDS, PAYMENT_METHODS } from '@/lib/business';
@@ -91,6 +92,8 @@ export interface PublishBannerProps {
   reviews?: readonly PayReview[];
   /** A WhatsApp chat with us, with a question about this preview typed in. */
   chatUrl?: string;
+  /** A WhatsApp share of this preview's link, for the couple to send to family. */
+  shareUrl?: string;
   className?: string;
 }
 
@@ -187,6 +190,26 @@ function Reviews({ reviews }: { reviews: readonly PayReview[] }) {
   );
 }
 
+/**
+ * "Share with family": WhatsApp, in WhatsApp's own green, with the preview
+ * link typed in. Family open it without the pay sheet (ADR-0010), and the
+ * preview tracker counts them as "other" viewers.
+ */
+function ShareWithFamily({ href }: { href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-preview-event="family-share-tapped"
+      className="bg-whatsapp-deep text-on-brand rounded-input text-body hover:bg-whatsapp inline-flex min-h-12 w-full items-center justify-center gap-2 px-5 font-semibold transition-colors active:translate-y-px"
+    >
+      <WhatsAppIcon className="size-5" />
+      Share with family
+    </a>
+  );
+}
+
 /** "Questions? Chat with us": a WhatsApp chat before paying. */
 function ChatLink({ href }: { href: string }) {
   return (
@@ -261,6 +284,7 @@ export function PublishBanner({
   providerName,
   reviews = [],
   chatUrl,
+  shareUrl,
   className,
 }: PublishBannerProps): React.JSX.Element {
   const live = mode === 'live';
@@ -497,8 +521,8 @@ export function PublishBanner({
                 See everything you get
               </button>
             </div>
+            {shareUrl !== undefined && <ShareWithFamily href={shareUrl} />}
             <Reviews reviews={reviews} />
-            {live && <PaymentMethods />}
             {chatUrl !== undefined && <ChatLink href={chatUrl} />}
             <TrustLines live={live} />
           </div>

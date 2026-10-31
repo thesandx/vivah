@@ -169,6 +169,7 @@ export const FUNNEL_STEPS = [
   { id: 'reached-foot', label: 'Scrolled to the end' },
   { id: 'sheet-opened', label: 'Opened the pay sheet' },
   { id: 'coupon-applied', label: 'Applied a coupon' },
+  { id: 'family-share-tapped', label: 'Tapped Share with family' },
   { id: 'chat-tapped', label: 'Tapped WhatsApp chat' },
   { id: 'pay-tapped', label: 'Tapped pay' },
   { id: 'checkout-opened', label: 'Payment window opened' },

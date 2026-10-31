@@ -239,6 +239,31 @@ describe('PublishBanner modes', () => {
     expect(screen.getByText(/Free date change once/)).toBeInTheDocument();
   });
 
+  it('offers a WhatsApp "Share with family" button above the reviews, and no payment chips', () => {
+    render(
+      <PublishBanner
+        bride="Riya"
+        groom="Arjun"
+        leadId="lead-1"
+        chosen="priya-rahul"
+        suggestions={[]}
+        domainLabel="vivah.online"
+        priceRupees={799}
+        mode="live"
+        checkSlug={() => Promise.resolve({ available: true })}
+        publish={() => new Promise(() => undefined)}
+        reviews={[{ quote: 'Our guests loved it.', names: 'Asha & Dev' }]}
+        shareUrl="https://wa.me/?text=Hi"
+      />,
+    );
+    const share = screen.getByRole('link', { name: 'Share with family' });
+    expect(share).toHaveAttribute('href', 'https://wa.me/?text=Hi');
+    expect(share).toHaveAttribute('data-preview-event', 'family-share-tapped');
+    const reviews = screen.getByRole('list', { name: 'What couples say' });
+    expect(share.compareDocumentPosition(reviews) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.queryByRole('list', { name: 'Ways to pay' })).not.toBeInTheDocument();
+  });
+
   it('offers no coupon line in test mode', () => {
     renderBanner();
     expect(screen.queryByRole('button', { name: 'Have a coupon code?' })).not.toBeInTheDocument();

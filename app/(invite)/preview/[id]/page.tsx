@@ -200,6 +200,11 @@ export default async function PreviewPage({
     BUSINESS.whatsAppE164,
     `Hi, I have a question about my invite preview: ${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`,
   );
+  // The couple sends the same preview link to family on WhatsApp (no number:
+  // they pick the chat). Family see the invite without the pay sheet.
+  const shareUrl = `https://wa.me/?text=${encodeURIComponent(
+    `Our wedding invite is almost ready 💛 Have a look and tell us what you think: ${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`,
+  )}`;
   // What the couple actually paid, after any coupon, for the purchase
   // conversion. The list price when the payment cannot be read.
   const paidRupees =
@@ -264,6 +269,7 @@ export default async function PreviewPage({
         {...(couponOffer !== null && { couponOffer })}
         reviews={payReviews}
         chatUrl={chatUrl}
+        shareUrl={shareUrl}
       />
     );
   }
