@@ -1,10 +1,12 @@
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
+import { BUSINESS } from '@/lib/business';
 import { cn } from '@/lib/utils';
 
 /**
  * The note under an empty part of the unpaid preview (the venue, the
- * families, the functions). It tells the couple how they fill it in: the
- * dashboard link comes to their WhatsApp number right after they pay.
+ * families, the functions). It tells the couple how they fill it in: they
+ * sign in at vivah.online/dashboard after they pay, and we send the link
+ * on WhatsApp too.
  *
  * The card takes its colours from the section's own colour (`className`
  * sets `color`), so one note suits the ivory and the dark sections. A
@@ -23,10 +25,10 @@ export function AddAfterPaymentNote({ what, className }: AddAfterPaymentNoteProp
       <span className="jewel-later-icon">
         <WhatsAppIcon className="size-5" />
       </span>
-      <p className="jewel-later-title">You add {what} after payment</p>
+      <p className="jewel-later-title">Add {what} after payment</p>
       <p className="jewel-later-body">
-        Right after you pay, your dashboard link comes to your WhatsApp number. Open it, add the
-        details, and your guests see them at once.
+        Sign in at <strong className="not-italic">{BUSINESS.brand}/dashboard</strong>. We also send
+        the link on WhatsApp.
       </p>
     </aside>
   );
