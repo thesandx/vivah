@@ -104,7 +104,6 @@ describe('POST /api/leads', () => {
       weddingDate: DATE,
       slug: null,
       phoneE164: '+919876543210',
-      createdAt: expect.any(Date),
     });
   });
 

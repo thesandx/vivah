@@ -31,13 +31,7 @@ import { formatAdminTime, leadState, previewTimeNote } from '@/lib/admin-list';
 import { whatsAppChatUrl } from '@/lib/business';
 import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
-import {
-  HOT_AFTER_MINUTES,
-  HOT_UNTIL_HOURS,
-  hotFollowUpMessage,
-  hotLabel,
-  hotStatus,
-} from '@/lib/hot-follow-up';
+import { followUpMessage } from '@/lib/follow-up-message';
 import { LEAD_TAG_HINTS, LEAD_TAG_LABELS, LEAD_TAGS, leadTag } from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
@@ -131,8 +125,7 @@ export default async function AdminPreviewPage({
     nameOrder,
     link,
   });
-  const hot = hotStatus(lead, now);
-  const hotText = hotFollowUpMessage({ ...couple, link });
+  const followUp = followUpMessage({ ...couple, link });
   const nudge = nudgeStatus(lead, now);
   const nudgeInput = {
     bride: lead.bride,
@@ -234,34 +227,24 @@ export default async function AdminPreviewPage({
           {state !== 'paid' && state !== 'deleted' && (
             <>
               <Card className="flex flex-col gap-4">
-                <h2 className="text-heading">10-minute follow-up</h2>
+                <h2 className="text-heading">Follow-up message</h2>
                 <p className="text-small text-ink-soft">
-                  One message if the couple has not paid {HOT_AFTER_MINUTES} minutes after the
-                  preview. It offers help, and asks why if they will not buy. The daily nudges start
-                  the next day.
-                </p>
-                <p className="font-semibold">
-                  {hot.kind === 'hot'
-                    ? hotLabel(hot)
-                    : hot.kind === 'soon'
-                      ? `Due in ${hot.minutesLeft} min if still not paid`
-                      : `More than ${HOT_UNTIL_HOURS} hours since the preview. You can still send it.`}
+                  Send it when you choose. It offers help, asks why if they will not buy, and says
+                  they can take their time.
                 </p>
                 <p className="text-small text-ink-soft whitespace-pre-line break-words">
-                  {hotText}
+                  {followUp}
                 </p>
                 <div className="flex flex-wrap gap-3">
                   <a
-                    href={whatsAppChatUrl(lead.phoneE164, hotText)}
+                    href={whatsAppChatUrl(lead.phoneE164, followUp)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={buttonStyles({
-                      variant: hot.kind === 'hot' ? 'primary' : 'secondary',
-                    })}
+                    className={buttonStyles({ variant: 'secondary' })}
                   >
                     Send follow-up
                   </a>
-                  <CopyButton value={hotText} label="Copy message" />
+                  <CopyButton value={followUp} label="Copy message" />
                 </div>
               </Card>
 

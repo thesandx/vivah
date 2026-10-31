@@ -58,7 +58,6 @@ import {
 import { coupleNames } from '@/lib/couple-names';
 import { demoVideoRoute, SITE_VIDEO_SLOTS, type SiteVideoSlot } from '@/lib/demo-video';
 import { env } from '@/lib/env';
-import { hotLabel, hotStatus } from '@/lib/hot-follow-up';
 import { HOW_IT_WORKS_STEPS, placeholderImageUrl } from '@/lib/how-it-works';
 import { leadTag } from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
@@ -369,11 +368,6 @@ async function PreviewsView({ params }: { params: SearchParams }) {
                     </span>
                     {steps.get(lead.id) !== undefined && (
                       <span className="text-small">Got to: {steps.get(lead.id)}</span>
-                    )}
-                    {hotLabel(hotStatus(lead, now)) !== null && (
-                      <span className="text-small text-danger font-semibold">
-                        {hotLabel(hotStatus(lead, now))}
-                      </span>
                     )}
                     {nudgeLabel(nudgeStatus(lead, now)) !== null && (
                       <span className="text-small font-semibold">
