@@ -87,6 +87,14 @@ describe('SignupScreen from the #details link', () => {
     expect(within(sheet).getByLabelText("Bride's name")).toBeInTheDocument();
   });
 
+  it('opens when an ad tool put its tags after #details, and moves them to the query', () => {
+    window.history.replaceState(null, '', '/#details?utm_source=facebook&fbclid=abc');
+    renderPage();
+    expect(screen.getByRole('dialog', { name: 'Make your wedding website' })).toBeInTheDocument();
+    expect(window.location.search).toBe('?utm_source=facebook&fbclid=abc');
+    expect(window.location.hash).toBe('#details');
+  });
+
   it('stays shut on the plain home page', () => {
     renderPage();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
