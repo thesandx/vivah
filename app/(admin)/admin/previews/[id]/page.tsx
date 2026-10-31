@@ -32,7 +32,14 @@ import { whatsAppChatUrl } from '@/lib/business';
 import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { followUpMessage } from '@/lib/follow-up-message';
-import { LEAD_TAG_HINTS, LEAD_TAG_LABELS, LEAD_TAGS, leadTag } from '@/lib/lead-tags';
+import {
+  LEAD_TAG_LABELS,
+  LEAD_TAGS,
+  leadTag,
+  SHOWN_LEAD_TAG_HINTS,
+  SHOWN_LEAD_TAG_LABELS,
+  shownLeadTag,
+} from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import {
@@ -94,6 +101,7 @@ export default async function AdminPreviewPage({
     previewActivity(lead.id),
   ]);
   const tag = leadTag(lead);
+  const shownTag = shownLeadTag(lead, now);
   const currentSong = lead.song ?? null;
   const currentSlot =
     currentSong === null
@@ -146,7 +154,7 @@ export default async function AdminPreviewPage({
         <aside className="flex flex-col gap-4 lg:sticky lg:top-8">
           <div className="flex flex-wrap gap-2">
             <StateBadge state={state} />
-            <TagBadge tag={tag} />
+            <TagBadge tag={shownTag} />
           </div>
           <dl className="text-small grid gap-2">
             <div>
@@ -199,7 +207,7 @@ export default async function AdminPreviewPage({
           <Card as="div" className="flex flex-col gap-3">
             <h2 className="text-heading">Tag</h2>
             <p className="text-small text-ink-soft">
-              {LEAD_TAG_LABELS[tag]}: {LEAD_TAG_HINTS[tag]}
+              {SHOWN_LEAD_TAG_LABELS[shownTag]}: {SHOWN_LEAD_TAG_HINTS[shownTag]}
             </p>
             <div className="flex flex-wrap gap-3">
               {LEAD_TAGS.filter((other) => other !== tag).map((other) => (
