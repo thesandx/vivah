@@ -1,5 +1,6 @@
 import Image from 'next/image';
 
+import { AddAfterPaymentNote } from '@/components/invite/AddAfterPaymentNote';
 import { Countdown } from '@/components/invite/Countdown';
 import { OurFamilies } from '@/components/invite/OurFamilies';
 import { PetalShower } from '@/components/invite/PetalShower';
@@ -417,9 +418,10 @@ export function ShubhVivahInvite({
                   <p className="jewel-venue-name opacity-40">Your venue name</p>
                   <p className="jewel-venue-loc opacity-60">Venue address</p>
                   <p className="jewel-venue-loc opacity-60">City</p>
-                  <p className="jewel-lede text-jewel-emerald mt-4">
-                    You can add these after payment.
-                  </p>
+                  <AddAfterPaymentNote
+                    what="the venue and the map"
+                    className="text-jewel-emerald"
+                  />
                 </>
               ) : venueName === null ? (
                 <>

@@ -105,7 +105,7 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getByText('Your venue name')).toBeInTheDocument();
     expect(screen.getByText('Venue address')).toBeInTheDocument();
     expect(screen.getByText('City')).toBeInTheDocument();
-    expect(screen.getByText('You can add these after payment.')).toBeInTheDocument();
+    expect(screen.getByText('You add the venue and the map after payment')).toBeInTheDocument();
     expect(screen.queryByText('Venue to be shared soon')).not.toBeInTheDocument();
   });
 
@@ -200,7 +200,7 @@ describe('ShubhVivahInvite', () => {
       />,
     );
     const section = screen.getByRole('region', { name: 'Wedding festivities' });
-    expect(section).toHaveTextContent('You can add the dates and venues after payment.');
+    expect(section).toHaveTextContent('You add the dates and venues after payment');
     expect(section).not.toHaveTextContent('to be shared soon');
   });
 
