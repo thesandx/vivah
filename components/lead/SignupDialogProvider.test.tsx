@@ -1,9 +1,9 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { HEART_THREAD_MS } from '@/components/lead/HeartThread';
 import { SectionCta } from '@/components/lead/SectionCta';
-import { SignupDialogProvider } from '@/components/lead/SignupDialogProvider';
+import { detailsNavigation, SignupDialogProvider } from '@/components/lead/SignupDialogProvider';
 import { StickySignupBar } from '@/components/lead/StickySignupBar';
 
 /* jsdom has <dialog> but no modal behaviour; see components/ui/Dialog.test.tsx. */
@@ -75,67 +75,41 @@ describe('SignupDialogProvider', () => {
   });
 });
 
-describe('SignupScreen from the #details link', () => {
+describe('the #details link on the home page', () => {
   afterEach(() => window.history.replaceState(null, '', '/'));
 
-  it('opens the sign-up card full screen when the address ends in #details', () => {
+  function watchMove() {
+    return vi.spyOn(detailsNavigation, 'replace').mockImplementation(() => undefined);
+  }
+
+  it('moves to the form page and keeps the query string', () => {
+    const move = watchMove();
     window.history.replaceState(null, '', '/?utm_source=instagram#details');
     renderPage();
-    const sheet = screen.getByRole('dialog', { name: 'Make your wedding website' });
-    expect(sheet).toHaveTextContent('A few quick steps');
-    expect(sheet).toHaveTextContent('The two of you');
-    expect(within(sheet).getByLabelText("Bride's name")).toBeInTheDocument();
+    expect(move).toHaveBeenCalledWith('/details?utm_source=instagram');
   });
 
-  it('opens when an ad tool put its tags after #details, and moves them to the query', () => {
+  it('carries tags that an ad tool put after #details', () => {
+    const move = watchMove();
     window.history.replaceState(null, '', '/#details?utm_source=facebook&fbclid=abc');
     renderPage();
-    expect(screen.getByRole('dialog', { name: 'Make your wedding website' })).toBeInTheDocument();
-    expect(window.location.search).toBe('?utm_source=facebook&fbclid=abc');
-    expect(window.location.hash).toBe('#details');
+    expect(move).toHaveBeenCalledWith('/details?utm_source=facebook&fbclid=abc');
   });
 
-  it('stays shut on the plain home page', () => {
+  it('stays on the plain home page', () => {
+    const move = watchMove();
     renderPage();
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(move).not.toHaveBeenCalled();
   });
 
-  it('opens on a later change to #details, and closing takes the hash off', () => {
+  it('moves on a later change to #details', () => {
+    const move = watchMove();
     renderPage();
     act(() => {
       window.location.hash = 'details';
       window.dispatchEvent(new HashChangeEvent('hashchange'));
     });
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-
-    fireEvent(screen.getByRole('dialog'), new Event('cancel'));
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    expect(window.location.hash).toBe('');
-  });
-
-  it('has no close button, and a back arrow at the top from step 2', () => {
-    window.history.replaceState(null, '', '/#details');
-    renderPage();
-    const sheet = screen.getByRole('dialog');
-    expect(within(sheet).queryByRole('button', { name: 'Close' })).not.toBeInTheDocument();
-    expect(within(sheet).queryByRole('button', { name: /^Back/ })).not.toBeInTheDocument();
-
-    fireEvent.change(within(sheet).getByLabelText("Bride's name"), { target: { value: 'Priya' } });
-    fireEvent.change(within(sheet).getByLabelText("Groom's name"), { target: { value: 'Rahul' } });
-    fireEvent.click(within(sheet).getByRole('button', { name: 'Begin our story' }));
-    const backs = within(sheet).getAllByRole('button', { name: 'Back to your names' });
-    expect(backs).toHaveLength(1);
-    expect(sheet.querySelector('header')).toContainElement(backs[0] ?? null);
-
-    fireEvent.click(backs[0] as HTMLElement);
-    expect(within(sheet).getByLabelText("Bride's name")).toHaveValue('Priya');
-  });
-
-  it('keeps the query string when it takes the hash off', () => {
-    window.history.replaceState(null, '', '/?utm_campaign=A01#details');
-    renderPage();
-    fireEvent(screen.getByRole('dialog'), new Event('cancel'));
-    expect(window.location.search).toBe('?utm_campaign=A01');
+    expect(move).toHaveBeenCalledWith('/details');
   });
 });
 

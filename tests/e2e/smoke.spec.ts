@@ -58,3 +58,20 @@ test('a write without a session is refused with 401', async ({ request }) => {
   expect(response.status()).toBe(401);
   expect(await response.json()).toMatchObject({ error: 'unauthenticated' });
 });
+
+test('a #details link lands on the form page, with its tags in the query', async ({ page }) => {
+  await page.goto('/?utm_source=instagram#details?utm_campaign=A01');
+
+  await expect(page).toHaveURL(/\/details\?utm_source=instagram&utm_campaign=A01$/);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Make your wedding website');
+  await expect(page.getByLabel("Bride's name")).toBeVisible();
+});
+
+test('the form page fits the screen: the page itself never scrolls', async ({ page }) => {
+  await page.goto('/details');
+  await expect(page.getByRole('button', { name: 'Begin our story' })).toBeInViewport();
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollHeight - document.documentElement.clientHeight,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+});

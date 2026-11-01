@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { reportMetaConversion } from '@/components/ads/MetaPixel';
@@ -193,6 +193,29 @@ export function LeadForm({
   // through `scroll-mt-24`). In the dialog this scrolls the dialog instead.
   const moved = useRef(false);
   const root = useRef<HTMLDivElement>(null);
+
+  // The form's own page (`/details`) is static HTML, so the fields show
+  // before the JavaScript runs, and a quick visitor can type into them. React
+  // keeps that text while it hydrates, but the next render would set the
+  // fields back to the empty state. So the names typed so far become the
+  // state here, before that render. A layout effect, so nothing flickers.
+  useLayoutEffect(() => {
+    const card = root.current;
+    if (card === null) return;
+    const typed = (name: string): string =>
+      card.querySelector<HTMLInputElement>(`input[name="${name}"]`)?.value ?? '';
+    const earlyBride = typed('bride');
+    const earlyGroom = typed('groom');
+    if (earlyBride !== '') setBride(earlyBride);
+    if (earlyGroom !== '') setGroom(earlyGroom);
+    // A focus before hydration fired no `onFocus`; count the start here.
+    if (card.contains(document.activeElement) || earlyBride !== '' || earlyGroom !== '') {
+      tracking.trackStep('started', place);
+    }
+    // Once, on the first render only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- reads the server-drawn fields once
+  }, []);
+
   useEffect(() => {
     if (!moved.current) return;
     document.getElementById(headingId)?.focus({ preventScroll: true });
@@ -464,6 +487,15 @@ export function LeadForm({
     );
   }
 
+  /*
+   * On the full screen of a short phone (the `short` variant), each step
+   * drops its art and shows the count only in the bar, so the step fits
+   * without a scroll. Screen readers still hear "Step 2 of 5".
+   */
+  const stepClass = cn('flex flex-col gap-4', screen && 'short:gap-3 flex-1');
+  const artClass = screen ? 'short:hidden' : '';
+  const countClass = cn('text-small text-ink-soft', screen && 'short:sr-only');
+
   /** On the full screen, the step's buttons stay at the bottom, above the home bar. */
   const actionsClass = screen
     ? 'bg-paper sticky bottom-0 z-10 mt-auto pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]'
@@ -537,13 +569,13 @@ export function LeadForm({
         <form
           key="names"
           onSubmit={handleNames}
-          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
+          className={cn(stepClass, STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
             {screen && stepBar(1)}
-            <HeartsArt />
-            <p className="text-small text-ink-soft">Step 1 of {totalSteps}</p>
+            <HeartsArt className={artClass} />
+            <p className={countClass}>Step 1 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               The two of you
             </h2>
@@ -598,13 +630,13 @@ export function LeadForm({
         <form
           key="details"
           onSubmit={handleDetails}
-          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
+          className={cn(stepClass, STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
             {screen && stepBar(2)}
-            <CalendarArt isoDate={weddingDate === '' ? null : weddingDate} />
-            <p className="text-small text-ink-soft">Step 2 of {totalSteps}</p>
+            <CalendarArt isoDate={weddingDate === '' ? null : weddingDate} className={artClass} />
+            <p className={countClass}>Step 2 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               Your big day
             </h2>
@@ -701,13 +733,13 @@ export function LeadForm({
         <form
           key="functions"
           onSubmit={handleFunctions}
-          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
+          className={cn(stepClass, STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
             {screen && stepBar(3)}
-            <FestivitiesArt />
-            <p className="text-small text-ink-soft">Step 3 of {totalSteps}</p>
+            <FestivitiesArt className={artClass} />
+            <p className={countClass}>Step 3 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               Your functions
             </h2>
@@ -748,13 +780,13 @@ export function LeadForm({
         <form
           key="address"
           onSubmit={handleAddress}
-          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
+          className={cn(stepClass, STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
             {screen && stepBar(4)}
-            <AddressArt />
-            <p className="text-small text-ink-soft">Step 4 of {totalSteps}</p>
+            <AddressArt className={artClass} />
+            <p className={countClass}>Step 4 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
               Your own address
             </h2>
@@ -801,13 +833,13 @@ export function LeadForm({
         <form
           key="song"
           onSubmit={handleSong}
-          className={cn('flex flex-col gap-4', screen && 'flex-1', STEP_MOTION[direction])}
+          className={cn(stepClass, STEP_MOTION[direction])}
           noValidate
         >
           <header className="flex flex-col items-center gap-2 text-center">
             {screen && stepBar(totalSteps)}
-            <SongArt />
-            <p className="text-small text-ink-soft">
+            <SongArt className={artClass} />
+            <p className={countClass}>
               Step {totalSteps} of {totalSteps}
             </p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">

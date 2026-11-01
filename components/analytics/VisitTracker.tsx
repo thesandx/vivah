@@ -7,6 +7,7 @@ import {
   VisitTrackingContext,
   type VisitTrackingState,
 } from '@/hooks/useVisitTracking';
+import { LANDING_REFERRER_KEY } from '@/lib/details-link';
 import {
   campaignFrom,
   classifySource,
@@ -90,6 +91,24 @@ function supported(): boolean {
   );
 }
 
+/**
+ * Where the visitor came from. A `#details` link moves to `/details` by
+ * script, which makes the home page the referrer, so the script keeps the
+ * real one in storage (`lib/details-link.ts`). It is read once.
+ */
+function landingReferrer(): string {
+  try {
+    const kept = window.sessionStorage.getItem(LANDING_REFERRER_KEY);
+    if (kept !== null) {
+      window.sessionStorage.removeItem(LANDING_REFERRER_KEY);
+      return kept;
+    }
+  } catch {
+    // Storage is off: use the document's own referrer.
+  }
+  return document.referrer;
+}
+
 function saveVisit(visit: { id: string; seq: number }): void {
   try {
     window.sessionStorage.setItem(VISIT_ID_STORAGE_KEY, JSON.stringify(visit));
@@ -122,7 +141,7 @@ export function VisitTracker({ children }: VisitTrackerProps) {
   useEffect(() => {
     if (!supported()) return undefined;
     const visit = loadVisit();
-    const landing = { search: window.location.search, referrer: document.referrer };
+    const landing = { search: window.location.search, referrer: landingReferrer() };
     let current: SectionId | null = null;
     let since = performance.now();
     // Kept here, not read from the document: when `visibilitychange` fires the
