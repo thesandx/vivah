@@ -68,7 +68,7 @@ describe('SlugPicker', () => {
   it('starts on a typed address when there is nothing to suggest', () => {
     renderPicker([]);
     expect(screen.getByLabelText('Choose my own address')).toBeChecked();
-    expect(screen.getByLabelText('Your address')).toBeInTheDocument();
+    expect(screen.getByLabelText('Your link')).toBeInTheDocument();
   });
 
   it('publishes the chosen address and opens the live invite', async () => {
@@ -85,7 +85,7 @@ describe('SlugPicker', () => {
     fireEvent.click(screen.getByLabelText('Choose my own address'));
     expect(screen.getByRole('button', { name: 'Pay and publish' })).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText('Your address'), { target: { value: 'Radha Weds' } });
+    fireEvent.change(screen.getByLabelText('Your link'), { target: { value: 'Radha Weds' } });
     await waitFor(() => expect(checkSlug).toHaveBeenCalledWith('radha-weds'));
     expect(await screen.findByText('radha-weds.vivah.online is available.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Pay and publish' })).toBeEnabled();
@@ -95,7 +95,7 @@ describe('SlugPicker', () => {
     checkSlug.mockResolvedValue({ available: false, reason: 'taken' });
     renderPicker();
     fireEvent.click(screen.getByLabelText('Choose my own address'));
-    fireEvent.change(screen.getByLabelText('Your address'), { target: { value: 'ram-sita' } });
+    fireEvent.change(screen.getByLabelText('Your link'), { target: { value: 'ram-sita' } });
     expect(await screen.findByText('This address is taken. Try another.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Pay and publish' })).toBeDisabled();
   });
@@ -116,10 +116,10 @@ describe('SlugPicker', () => {
     checkSlug.mockResolvedValue({ available: true });
     renderPicker();
     fireEvent.click(screen.getByLabelText('Choose my own address'));
-    fireEvent.change(screen.getByLabelText('Your address'), {
+    fireEvent.change(screen.getByLabelText('Your link'), {
       target: { value: 'Radha.Shyam_@2' },
     });
-    expect(screen.getByLabelText('Your address')).toHaveValue('radhashyam2');
+    expect(screen.getByLabelText('Your link')).toHaveValue('radhashyam2');
     await waitFor(() => expect(checkSlug).toHaveBeenCalledWith('radhashyam2'));
   });
 });

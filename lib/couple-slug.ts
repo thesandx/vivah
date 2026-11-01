@@ -179,3 +179,60 @@ export function slugProblem(slug: string): string | null {
   if (isKeptForVivah(slug)) return 'This address is kept for Vivah. Choose another.';
   return null;
 }
+
+/**
+ * Words that belong to a postal address, not to a couple's names. Matched as
+ * whole words. A surname such as "Nagar" can match too, so one word alone is
+ * not enough (`looksLikeHomeAddress`).
+ */
+const HOME_ADDRESS_WORDS = new Set([
+  'house',
+  'h',
+  'hno',
+  'flat',
+  'floor',
+  'road',
+  'rd',
+  'street',
+  'lane',
+  'gali',
+  'marg',
+  'sector',
+  'colony',
+  'nagar',
+  'block',
+  'near',
+  'opp',
+  'opposite',
+  'apartment',
+  'apartments',
+  'apt',
+  'society',
+  'tower',
+  'village',
+  'vill',
+  'post',
+  'district',
+  'dist',
+  'pin',
+  'pincode',
+  'phase',
+  'plot',
+]);
+
+/**
+ * True when text typed into the website address field looks like a home
+ * address ("Flat 12, Sector 5, Noida 201301"). Some couples read "address"
+ * as where they live. It reads the raw text, before `normaliseTyped` drops
+ * the commas. A comma, a `#` or a run of 5 or more digits (a PIN code) is
+ * enough. Otherwise it needs two clues: two postal words, or a postal word
+ * and a number. So "priya-nagar" and "priya-rahul-2026" pass.
+ */
+export function looksLikeHomeAddress(raw: string): boolean {
+  const text = raw.toLowerCase();
+  if (/[,#]/.test(text) || /\d{5,}/.test(text)) return true;
+  const postalWords = text
+    .split(/[^a-z]+/)
+    .filter((word) => word !== '' && HOME_ADDRESS_WORDS.has(word)).length;
+  return postalWords + (/\d/.test(text) ? 1 : 0) >= 2;
+}

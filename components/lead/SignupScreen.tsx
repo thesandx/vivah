@@ -30,7 +30,7 @@ const SCREEN_HEADING_ID = 'signup-screen-heading';
 
 const PROMISES = [
   'Each guest sees their own name',
-  'Your own address, like priya-rahul.vivah.online',
+  'Your own website link, like priya-rahul.vivah.online',
   'Free preview, pay only when you love it',
 ];
 

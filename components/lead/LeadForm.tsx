@@ -788,10 +788,10 @@ export function LeadForm({
             <AddressArt className={artClass} />
             <p className={countClass}>Step 4 of {totalSteps}</p>
             <h2 id={headingId} tabIndex={-1} className="text-heading scroll-mt-24 outline-none">
-              Your own address
+              Your website link
             </h2>
             <p className="text-small text-ink-soft">
-              Where your guests will find you. Pick one, or make it yours.
+              The link guests open on WhatsApp. Not your home address.
             </p>
           </header>
           {suggestions === null ? (
@@ -800,12 +800,14 @@ export function LeadForm({
               role="status"
             >
               <span className="border-sunken border-t-brand size-5 animate-spin rounded-full border-2" />
-              Finding a free address for {brideName} & {groomName}
+              Finding a free link for {brideName} & {groomName}
             </p>
           ) : (
             <AddressChoice
               key={suggestions.join(' ')}
-              label="Your website address"
+              label="Pick your website link"
+              customLabel="Type my own link"
+              preview="Goes live when you pay. Until then, only you see it."
               suggestions={suggestions}
               domainLabel={domainLabel}
               checkSlug={checkAddress}
@@ -813,10 +815,6 @@ export function LeadForm({
               onChange={setAddress}
             />
           )}
-          <p className="bg-brand-soft rounded-input text-small p-3 text-center">
-            Your site goes live at this address as soon as you pay. Until then, only you can see
-            your preview.
-          </p>
 
           {errorAlert}
 

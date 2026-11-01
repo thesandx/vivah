@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildCoupleSlug,
   isValidCoupleSlug,
+  looksLikeHomeAddress,
   MAX_SLUG_LENGTH,
   nameOrderFromSlug,
   slugCandidates,
@@ -176,5 +177,23 @@ describe('nameOrderFromSlug', () => {
     expect(nameOrderFromSlug('virushka', 'Anushka', 'Virat')).toBeNull();
     expect(nameOrderFromSlug('rahulpriya', 'Priya', 'Rahul')).toBeNull();
     expect(nameOrderFromSlug('aman-aman', 'Aman', 'Aman')).toBeNull();
+  });
+});
+
+describe('looksLikeHomeAddress', () => {
+  it('spots a home address', () => {
+    expect(looksLikeHomeAddress('Flat 12, Sector 5, Noida')).toBe(true);
+    expect(looksLikeHomeAddress('H.No 45 Rohini')).toBe(true);
+    expect(looksLikeHomeAddress('new delhi 110024')).toBe(true);
+    expect(looksLikeHomeAddress('near sector 9 market')).toBe(true);
+    expect(looksLikeHomeAddress('B block lajpat nagar')).toBe(true);
+  });
+
+  it('lets a website name pass', () => {
+    expect(looksLikeHomeAddress('virushka')).toBe(false);
+    expect(looksLikeHomeAddress('priya-rahul')).toBe(false);
+    expect(looksLikeHomeAddress('priya rahul 2026')).toBe(false);
+    expect(looksLikeHomeAddress('shanaya-hotra')).toBe(false);
+    expect(looksLikeHomeAddress('priya-nagar')).toBe(false);
   });
 });
