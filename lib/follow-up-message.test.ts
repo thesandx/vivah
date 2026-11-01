@@ -17,15 +17,17 @@ describe('followUpMessage', () => {
 
   it('lets them stop the messages, asks one question and offers help', () => {
     expect(text).toContain('"done" likh dijiye');
-    expect(text).toContain('invites kab tak bhejne ka plan hai?');
-    expect(text).toContain('Hum bechne nahi, help karne ke liye hain.');
+    expect(text).toContain('Invites kab tak bhejne ka plan hai?');
+    expect(text).toContain('Main Anushka, Team Vivah se.');
   });
 
   it('links the site and the sample invite, never the preview, and offers no call', () => {
-    expect(text).toContain('Website: https://vivah.online');
+    expect(text).toContain('https://priya-rahul.vivah.online/Neha');
     expect(text).not.toContain('/p/');
     expect(text.toLowerCase()).not.toContain('call');
-    expect(text.endsWith('https://priya-rahul.vivah.online/Neha\n\nTeam Vivah 💛')).toBe(true);
+    expect(text.endsWith('Apna banaiye: https://vivah.online\n\nAnushka, Team Vivah 💛')).toBe(
+      true,
+    );
   });
 
   it('leaves out the address when the couple chose none', () => {

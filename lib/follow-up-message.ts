@@ -11,7 +11,8 @@
  * their names with "ji", give them control to say no, ask one question that
  * shows how serious they are, and sound like a helper, not a seller. It holds
  * no preview link and offers no call (Sandeep): it points to the site and the
- * sample invite instead, as the daily nudges do.
+ * sample invite instead. It is short and signed by Anushka from Team Vivah
+ * (Sandeep, 2026-11-01).
  */
 
 import { type NameOrder, orderedNames } from '@/lib/couple-names';
@@ -29,23 +30,18 @@ export interface FollowUpInput {
 }
 
 /**
- * The message. It names their chosen address when there is one, lets them
- * stop the messages with one word, asks when the invites go out, offers help
- * with the usual blockers, then gives the site and the sample invite. The
- * sample link goes just before the sign-off, as in the daily nudges.
+ * The message. Anushka greets them and names their chosen address when there
+ * is one, asks when the invites go out, offers help, lets them stop the
+ * messages with one word, then gives the sample invite and the site.
  */
 export function followUpMessage(input: FollowUpInput): string {
   const [first, second] = orderedNames(input);
   const address = input.slug === undefined ? '' : `: ${input.slug}.${input.rootDomain}`;
   const sample = `https://${SAMPLE_SLUG}.${input.rootDomain}/${SAMPLE_GUEST}`;
   return [
-    `Namaste ${first} ji & ${second} ji 🙏`,
-    `Vivah team se likh rahe hain. Aapne apni shaadi ka invite banaya tha${address} 💛`,
-    'Agar invitation ka sab final ho chuka hai, toh bas "done" likh dijiye, hum aur message nahi karenge 🙏 Ek line mein kyun bata dein toh bahut help hogi.',
-    'Aur agar abhi soch rahe hain: shaadi ke invites kab tak bhejne ka plan hai? 😊',
-    'Hum bechne nahi, help karne ke liye hain. Address, gaana, functions ya payment, kuch bhi atka ho toh yahin reply kijiye, 2 minute mein theek kar denge.',
-    `Website: https://${input.rootDomain}`,
-    `Ek baar ye sample invite dekhiye, aapka bhi bilkul aisa hi banega 👇\n${sample}`,
-    'Team Vivah 💛',
+    `Namaste ${first} ji & ${second} ji 🙏\nMain Anushka, Team Vivah se. Aapne apni shaadi ka invite banaya tha${address} 💛`,
+    'Invites kab tak bhejne ka plan hai? Kuch bhi atka ho toh bataiye, main help kar dungi 😊 Sab final ho gaya hai toh bas "done" likh dijiye 🙏',
+    `Sample invite 👇\n${sample}\n\nApna banaiye: https://${input.rootDomain}`,
+    'Anushka, Team Vivah 💛',
   ].join('\n\n');
 }
