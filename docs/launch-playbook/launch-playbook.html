@@ -1,0 +1,2228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Launch Playbook</title>
+    <meta
+      name="description"
+      content="From a cloned template repo to a live, paid product: the Vivah launch, turned into a reusable visual playbook."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #fffcf8;
+        --card: #ffffff;
+        --ink: #3d1f2e;
+        --muted: #7a5f6c;
+        --line: #e8d9df;
+        --rose: #d62e55;
+        --rose-soft: #fde6ec;
+        --plum: #5b2a86;
+        --plum-soft: #efe6f7;
+        --haldi: #e9a21f;
+        --haldi-soft: #fff3d6;
+        --peacock: #0f7c7a;
+        --peacock-soft: #ddf3f1;
+        --sky: #2c6fd1;
+        --sky-soft: #e3edfc;
+        --shadow: #3d1f2e;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --paper: #1c1218;
+          --card: #261a21;
+          --ink: #f6edf1;
+          --muted: #c2a9b6;
+          --line: #46323d;
+          --rose: #ff7a9c;
+          --rose-soft: #3a1f29;
+          --plum: #d2b0e6;
+          --plum-soft: #2f2340;
+          --haldi: #f5c25b;
+          --haldi-soft: #3a2e17;
+          --peacock: #5ed1cb;
+          --peacock-soft: #163331;
+          --sky: #8db6f5;
+          --sky-soft: #1b2840;
+          --shadow: #000000;
+        }
+      }
+      :root[data-theme='dark'] {
+        --paper: #1c1218;
+        --card: #261a21;
+        --ink: #f6edf1;
+        --muted: #c2a9b6;
+        --line: #46323d;
+        --rose: #ff7a9c;
+        --rose-soft: #3a1f29;
+        --plum: #d2b0e6;
+        --plum-soft: #2f2340;
+        --haldi: #f5c25b;
+        --haldi-soft: #3a2e17;
+        --peacock: #5ed1cb;
+        --peacock-soft: #163331;
+        --sky: #8db6f5;
+        --sky-soft: #1b2840;
+        --shadow: #000000;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--paper);
+        color: var(--ink);
+        font:
+          16px/1.55 Inter,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      h1,
+      h2,
+      h3 {
+        font-family: 'Baloo 2', Inter, system-ui, sans-serif;
+        line-height: 1.1;
+        margin: 0;
+      }
+      a {
+        color: inherit;
+      }
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 16px;
+      }
+      svg.i {
+        width: 22px;
+        height: 22px;
+        flex: none;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      /* nav */
+      nav.top {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: color-mix(in srgb, var(--paper) 88%, transparent);
+        backdrop-filter: blur(8px);
+        border-bottom: 2px solid var(--line);
+      }
+      nav.top .wrap {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        overflow-x: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        scrollbar-width: none;
+      }
+      nav.top .wrap::-webkit-scrollbar {
+        display: none;
+      }
+      nav.top a {
+        white-space: nowrap;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 2px solid transparent;
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+      }
+      nav.top a:hover {
+        border-color: var(--line);
+      }
+      nav.top .brand {
+        font-family: 'Baloo 2';
+        font-weight: 800;
+        font-size: 18px;
+        color: var(--rose);
+        margin-right: 6px;
+      }
+      .themebtn {
+        margin-left: auto;
+        background: var(--card);
+        color: var(--ink);
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        min-height: 40px;
+        min-width: 40px;
+        cursor: pointer;
+        display: grid;
+        place-items: center;
+      }
+
+      /* hero */
+      .hero {
+        padding: 48px 0 28px;
+      }
+      .eyebrow {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        font-weight: 600;
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--plum);
+        background: var(--plum-soft);
+        padding: 6px 12px;
+        border-radius: 999px;
+      }
+      .hero h1 {
+        font-size: clamp(36px, 7vw, 68px);
+        font-weight: 800;
+        margin: 16px 0 12px;
+      }
+      .hero h1 em {
+        font-style: normal;
+        color: var(--rose);
+      }
+      .hero p.lead {
+        font-size: clamp(17px, 2.2vw, 20px);
+        color: var(--muted);
+        max-width: 640px;
+        margin: 0;
+      }
+      .flow {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        margin-top: 26px;
+      }
+      .flow span {
+        background: var(--card);
+        border: 2px solid var(--ink);
+        box-shadow: 3px 3px 0 var(--shadow);
+        border-radius: 14px;
+        padding: 8px 12px;
+        font-weight: 600;
+        font-size: 14px;
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+      .flow b {
+        color: var(--rose);
+        font-size: 18px;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 30px;
+      }
+      @media (min-width: 768px) {
+        .stats {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      .stat {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: 18px;
+        padding: 16px;
+      }
+      .stat strong {
+        display: block;
+        font-family: 'Baloo 2';
+        font-size: 34px;
+        font-weight: 800;
+        line-height: 1;
+      }
+      .stat small {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      section {
+        padding: 44px 0 8px;
+      }
+      .sh {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+      }
+      .sh .num {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: var(--rose);
+        color: #fff;
+        font-family: 'Baloo 2';
+        font-weight: 800;
+        font-size: 20px;
+        border: 2px solid var(--ink);
+        box-shadow: 3px 3px 0 var(--shadow);
+      }
+      .sh h2 {
+        font-size: clamp(26px, 4vw, 36px);
+        font-weight: 800;
+      }
+      .sub {
+        color: var(--muted);
+        margin: 0 0 20px;
+        max-width: 680px;
+      }
+
+      /* day 0 */
+      .d0 {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 768px) {
+        .d0 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (min-width: 1024px) {
+        .d0 {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .box {
+        background: var(--card);
+        border: 2px solid var(--ink);
+        border-radius: 20px;
+        box-shadow: 5px 5px 0 var(--shadow);
+        padding: 18px;
+      }
+      .box h3 {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        font-size: 21px;
+        margin-bottom: 10px;
+      }
+      .ico {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: grid;
+        place-items: center;
+        flex: none;
+      }
+      .c-rose {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+      .c-plum {
+        background: var(--plum-soft);
+        color: var(--plum);
+      }
+      .c-haldi {
+        background: var(--haldi-soft);
+        color: var(--haldi);
+      }
+      .c-pea {
+        background: var(--peacock-soft);
+        color: var(--peacock);
+      }
+      .c-sky {
+        background: var(--sky-soft);
+        color: var(--sky);
+      }
+      .checks {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .checks li {
+        border-top: 1px dashed var(--line);
+      }
+      .checks label {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        padding: 9px 0;
+        cursor: pointer;
+        min-height: 44px;
+        font-size: 15px;
+      }
+      .checks input {
+        appearance: none;
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--ink);
+        border-radius: 7px;
+        flex: none;
+        margin: 1px 0 0;
+        display: grid;
+        place-items: center;
+        background: var(--card);
+        cursor: pointer;
+      }
+      .checks input:checked {
+        background: var(--peacock);
+        border-color: var(--peacock);
+      }
+      .checks input:checked::after {
+        content: '';
+        width: 6px;
+        height: 11px;
+        border: solid #fff;
+        border-width: 0 3px 3px 0;
+        transform: rotate(45deg) translate(-1px, -1px);
+      }
+      .checks input:checked + span {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+      .tag {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 2px 7px;
+        border-radius: 999px;
+        margin-left: 4px;
+        vertical-align: 1px;
+      }
+      .t-long {
+        background: var(--haldi-soft);
+        color: var(--haldi);
+      }
+      .t-money {
+        background: var(--rose-soft);
+        color: var(--rose);
+      }
+      .progress {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0 0 18px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .bar {
+        flex: 1;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--line);
+        overflow: hidden;
+        max-width: 420px;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--peacock);
+        transition: width 0.3s;
+      }
+
+      /* timeline */
+      .tl {
+        position: relative;
+        margin-left: 22px;
+        border-left: 3px dashed var(--line);
+        padding-left: 0;
+      }
+      .ph {
+        position: relative;
+        padding: 0 0 22px 34px;
+      }
+      .ph .dot {
+        position: absolute;
+        left: -23px;
+        top: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        border: 2px solid var(--ink);
+        box-shadow: 3px 3px 0 var(--shadow);
+      }
+      .ph details {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: 18px;
+        overflow: hidden;
+      }
+      .ph details[open] {
+        border-color: var(--ink);
+      }
+      .ph summary {
+        list-style: none;
+        cursor: pointer;
+        padding: 12px 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        align-items: center;
+        min-height: 56px;
+      }
+      .ph summary::-webkit-details-marker {
+        display: none;
+      }
+      .ph summary h3 {
+        font-size: 21px;
+        flex: 1 1 220px;
+      }
+      .ph summary .when {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--muted);
+        background: var(--paper);
+        border: 1px solid var(--line);
+        padding: 3px 9px;
+        border-radius: 999px;
+      }
+      .ph summary .chev {
+        transition: transform 0.2s;
+        color: var(--muted);
+      }
+      .ph details[open] .chev {
+        transform: rotate(180deg);
+      }
+      .pb {
+        padding: 0 16px 16px;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 768px) {
+        .pb {
+          grid-template-columns: 1.3fr 1fr;
+        }
+      }
+      .steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        counter-reset: s;
+      }
+      .steps li {
+        counter-increment: s;
+        display: flex;
+        gap: 10px;
+        padding: 6px 0;
+        font-size: 15px;
+      }
+      .steps li::before {
+        content: counter(s);
+        flex: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        background: var(--plum-soft);
+        color: var(--plum);
+        font-weight: 700;
+        font-size: 13px;
+        display: grid;
+        place-items: center;
+        margin-top: 1px;
+      }
+      .why,
+      .trap {
+        border-radius: 14px;
+        padding: 12px 14px;
+        font-size: 14.5px;
+      }
+      .why {
+        background: var(--peacock-soft);
+      }
+      .trap {
+        background: var(--rose-soft);
+        margin-top: 10px;
+      }
+      .why b,
+      .trap b {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+        font-size: 13px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+      .why b {
+        color: var(--peacock);
+      }
+      .trap b {
+        color: var(--rose);
+      }
+      .why p,
+      .trap p {
+        margin: 4px 0;
+      }
+
+      /* traps grid */
+      .grid3 {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 640px) {
+        .grid3 {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (min-width: 1024px) {
+        .grid3 {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .tc {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-left: 6px solid var(--rose);
+        border-radius: 16px;
+        padding: 14px 16px;
+      }
+      .tc h4 {
+        margin: 0 0 6px;
+        font-size: 16px;
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+      }
+      .tc p {
+        margin: 0;
+        font-size: 14.5px;
+        color: var(--muted);
+      }
+      .tc .fix {
+        display: block;
+        margin-top: 8px;
+        color: var(--ink);
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .tc .fix::before {
+        content: 'Fix → ';
+        color: var(--peacock);
+      }
+
+      /* stack diagram */
+      .stack {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+      @media (min-width: 900px) {
+        .stack {
+          grid-template-columns: repeat(5, 1fr);
+        }
+      }
+      .node {
+        background: var(--card);
+        border: 2px solid var(--ink);
+        border-radius: 16px;
+        box-shadow: 4px 4px 0 var(--shadow);
+        padding: 14px;
+        text-align: center;
+        position: relative;
+      }
+      .node .ico {
+        margin: 0 auto 8px;
+      }
+      .node strong {
+        display: block;
+        font-family: 'Baloo 2';
+        font-size: 18px;
+      }
+      .node small {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      @media (min-width: 900px) {
+        .node:not(:last-child)::after {
+          content: '→';
+          position: absolute;
+          right: -12px;
+          top: 50%;
+          transform: translate(50%, -50%);
+          font-weight: 800;
+          color: var(--rose);
+          font-size: 20px;
+        }
+      }
+      @media (max-width: 899px) {
+        .node:not(:last-child)::after {
+          content: '↓';
+          position: absolute;
+          bottom: -10px;
+          left: 50%;
+          transform: translate(-50%, 50%);
+          font-weight: 800;
+          color: var(--rose);
+          font-size: 20px;
+          z-index: 1;
+        }
+      }
+      .side {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .pill {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 14px;
+        font-weight: 600;
+        display: inline-flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      /* rules */
+      .rules {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 640px) {
+        .rules {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (min-width: 1024px) {
+        .rules {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+      .rule {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: 16px;
+        padding: 14px;
+      }
+      .rule .ico {
+        margin-bottom: 8px;
+      }
+      .rule strong {
+        display: block;
+        font-size: 16px;
+        margin-bottom: 2px;
+      }
+      .rule span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      /* money */
+      .money {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 768px) {
+        .money {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+      .mcard {
+        border-radius: 18px;
+        padding: 16px;
+        border: 2px solid var(--ink);
+        box-shadow: 4px 4px 0 var(--shadow);
+      }
+      .mcard h4 {
+        margin: 0 0 8px;
+        font-family: 'Baloo 2';
+        font-size: 20px;
+      }
+      .mcard ul {
+        margin: 0;
+        padding-left: 18px;
+        font-size: 14.5px;
+      }
+      .mcard li {
+        margin: 4px 0;
+      }
+
+      /* config */
+      .cfg {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: 1fr;
+      }
+      @media (min-width: 768px) {
+        .cfg {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      .cfg .box {
+        box-shadow: none;
+        border-color: var(--line);
+      }
+      .cfg h3 {
+        font-size: 18px;
+      }
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 12.5px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 2px 6px;
+        display: inline-block;
+        margin: 2px 2px;
+        word-break: break-all;
+      }
+      .note {
+        font-size: 14px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+
+      /* journey */
+      .journey {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+      }
+      .jd {
+        background: var(--card);
+        border: 2px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+      }
+      .jd b {
+        display: block;
+        font-family: 'Baloo 2';
+        color: var(--rose);
+        font-size: 17px;
+      }
+      .jd span {
+        font-size: 14px;
+      }
+
+      footer {
+        padding: 48px 0 60px;
+        color: var(--muted);
+        font-size: 14px;
+        text-align: center;
+      }
+      @media print {
+        nav.top,
+        .themebtn {
+          display: none;
+        }
+        .ph details {
+          border-color: var(--line);
+        }
+        details > * {
+          display: block;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <defs>
+        <symbol id="i-rocket" viewBox="0 0 24 24">
+          <path d="M5 15c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2-.1-2.8a2 2 0 0 0-2.9-.2z" />
+          <path
+            d="M12 15l-3-3a22 22 0 0 1 2-4A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2z"
+          />
+          <path d="M9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5" />
+        </symbol>
+        <symbol id="i-box" viewBox="0 0 24 24">
+          <path d="M21 8l-9-5-9 5 9 5 9-5z" />
+          <path d="M3 8v8l9 5 9-5V8M12 13v8" />
+        </symbol>
+        <symbol id="i-cloud" viewBox="0 0 24 24">
+          <path d="M17.5 19H8a5 5 0 1 1 1.3-9.8A6 6 0 0 1 21 11.5 3.8 3.8 0 0 1 17.5 19z" />
+        </symbol>
+        <symbol id="i-globe" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+        </symbol>
+        <symbol id="i-palette" viewBox="0 0 24 24">
+          <path
+            d="M12 3a9 9 0 0 0 0 18c1 0 1.7-.8 1.7-1.7 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-.9.8-1.7 1.7-1.7H16a5 5 0 0 0 5-5c0-4-4-7.2-9-7.2z"
+          />
+          <circle cx="7.5" cy="11.5" r="1" />
+          <circle cx="10.5" cy="7.5" r="1" />
+          <circle cx="15.5" cy="8.5" r="1" />
+        </symbol>
+        <symbol id="i-mail" viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 7l9 6 9-6" />
+        </symbol>
+        <symbol id="i-chat" viewBox="0 0 24 24">
+          <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />
+        </symbol>
+        <symbol id="i-file" viewBox="0 0 24 24">
+          <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+          <path d="M14 3v6h6M8 13h8M8 17h5" />
+        </symbol>
+        <symbol id="i-rupee" viewBox="0 0 24 24">
+          <path d="M6 4h12M6 9h12M14 20L7 13h3a4 4 0 0 0 0-9" />
+        </symbol>
+        <symbol id="i-bell" viewBox="0 0 24 24">
+          <path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8" />
+          <path d="M10.3 20a2 2 0 0 0 3.4 0" />
+        </symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24">
+          <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+        </symbol>
+        <symbol id="i-mega" viewBox="0 0 24 24">
+          <path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z" />
+          <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />
+        </symbol>
+        <symbol id="i-loop" viewBox="0 0 24 24">
+          <path d="M21 12a9 9 0 0 1-15.5 6.2M3 12a9 9 0 0 1 15.5-6.2" />
+          <path d="M21 3v6h-6M3 21v-6h6" />
+        </symbol>
+        <symbol id="i-alert" viewBox="0 0 24 24">
+          <path d="M10.3 3.9L2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+          <path d="M12 9v4M12 17h.01" />
+        </symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5" /></symbol>
+        <symbol id="i-key" viewBox="0 0 24 24">
+          <circle cx="7.5" cy="15.5" r="4.5" />
+          <path d="M10.7 12.3L21 2M16 7l3 3M18 5l2 2" />
+        </symbol>
+        <symbol id="i-user" viewBox="0 0 24 24">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21a8 8 0 0 1 16 0" />
+        </symbol>
+        <symbol id="i-shield" viewBox="0 0 24 24">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </symbol>
+        <symbol id="i-bulb" viewBox="0 0 24 24">
+          <path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" />
+        </symbol>
+        <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></symbol>
+        <symbol id="i-moon" viewBox="0 0 24 24">
+          <path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" />
+        </symbol>
+        <symbol id="i-git" viewBox="0 0 24 24">
+          <circle cx="6" cy="6" r="2.5" />
+          <circle cx="6" cy="18" r="2.5" />
+          <circle cx="18" cy="12" r="2.5" />
+          <path d="M6 8.5v7M8.3 7.2l7.4 3.6" />
+        </symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24">
+          <rect x="4" y="11" width="16" height="10" rx="2" />
+          <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+        </symbol>
+      </defs>
+    </svg>
+
+    <nav class="top" aria-label="Sections">
+      <div class="wrap">
+        <a class="brand" href="#top">Launch playbook</a>
+        <a href="#day0">Day 0</a>
+        <a href="#map">The stack</a>
+        <a href="#phases">11 phases</a>
+        <a href="#traps">Traps</a>
+        <a href="#money">Money</a>
+        <a href="#rules">Rules</a>
+        <a href="#config">Config</a>
+        <a href="#launch">Launch day</a>
+        <button class="themebtn" id="theme" type="button" aria-label="Switch light or dark">
+          <svg class="i"><use href="#i-moon" /></svg>
+        </button>
+      </div>
+    </nav>
+
+    <main class="wrap" id="top">
+      <header class="hero">
+        <span class="eyebrow"
+          ><svg class="i" style="width: 16px; height: 16px"><use href="#i-rocket" /></svg> Learned
+          on vivah.online · Oct 2026</span
+        >
+        <h1>From template repo<br />to <em>live &amp; paid</em> in 10 days.</h1>
+        <p class="lead">
+          Everything we did to take Vivah live — domain, Cloudflare, Cloud Run, logo, payments, ads
+          — as one reusable map. Give the agent your Day-0 items, then follow the phases.
+        </p>
+        <div class="flow" aria-label="The journey">
+          <span
+            ><svg class="i"><use href="#i-git" /></svg>Template</span
+          ><b>→</b>
+          <span
+            ><svg class="i"><use href="#i-cloud" /></svg>Cloud Run</span
+          ><b>→</b>
+          <span
+            ><svg class="i"><use href="#i-globe" /></svg>Domain</span
+          ><b>→</b>
+          <span
+            ><svg class="i"><use href="#i-rupee" /></svg>Payments</span
+          ><b>→</b>
+          <span
+            ><svg class="i"><use href="#i-mega" /></svg>Ads</span
+          ><b>→</b>
+          <span
+            ><svg class="i"><use href="#i-check" /></svg>First sale</span
+          >
+        </div>
+        <div class="stats">
+          <div class="stat"><strong>~10</strong><small>days, domain to paid launch</small></div>
+          <div class="stat">
+            <strong>₹0</strong><small>fixed fees at launch (pay-per-use)</small>
+          </div>
+          <div class="stat"><strong>11</strong><small>phases, in order</small></div>
+          <div class="stat"><strong>20+</strong><small>traps we already hit for you</small></div>
+        </div>
+      </header>
+
+      <!-- DAY 0 -->
+      <section id="day0">
+        <div class="sh">
+          <div class="num">0</div>
+          <h2>Day 0 — hand these over first</h2>
+        </div>
+        <p class="sub">
+          Give the agent all of this on the first day. Items marked
+          <span class="tag t-long">long wait</span> depend on other people, so start them now. Your
+          ticks are saved in this browser.
+        </p>
+        <div class="progress">
+          <span id="pcount">0 of 0 ready</span>
+          <div class="bar"><i id="pbar"></i></div>
+        </div>
+
+        <div class="d0">
+          <div class="box">
+            <h3>
+              <span class="ico c-rose"
+                ><svg class="i"><use href="#i-bulb" /></svg></span
+              >Decisions
+            </h3>
+            <ul class="checks">
+              <li>
+                <label
+                  ><input type="checkbox" data-k="d1" /><span
+                    >Product name + one-line pitch</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="d2" /><span
+                    >Who it is for, language, sample city</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="d3" /><span
+                    >Price, plans and refund rule</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="d4" /><span>3 domain names to try</span></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="d5" /><span
+                    >Cloud region <span class="tag t-money">permanent</span></span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="d6" /><span
+                    >Monthly ads cap + stop-loss</span
+                  ></label
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>
+              <span class="ico c-plum"
+                ><svg class="i"><use href="#i-palette" /></svg></span
+              >Brand
+            </h3>
+            <ul class="checks">
+              <li>
+                <label
+                  ><input type="checkbox" data-k="b1" /><span
+                    >Logo, or a reference + the idea</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="b2" /><span
+                    >Colours + fonts, or a design-system export</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="b3" /><span
+                    >Tone of voice + words to avoid</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="b4" /><span
+                    >Photos, demo video, screenshots</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="b5" /><span
+                    >Real reviews (with permission) — or none</span
+                  ></label
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>
+              <span class="ico c-sky"
+                ><svg class="i"><use href="#i-cloud" /></svg></span
+              >Tech accounts
+            </h3>
+            <ul class="checks">
+              <li>
+                <label
+                  ><input type="checkbox" data-k="t1" /><span
+                    >GitHub repo from the template + Claude app</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="t2" /><span
+                    >GCP project with billing + budget alert</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="t3" /><span
+                    >Firebase in the same project</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="t4" /><span
+                    >Domain bought <b>in the KYC holder's name</b></span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="t5" /><span
+                    >Cloudflare account (free)</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="t6" /><span>Telegram bot for alerts</span></label
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>
+              <span class="ico c-pea"
+                ><svg class="i"><use href="#i-chat" /></svg></span
+              >Social &amp; contact
+            </h3>
+            <ul class="checks">
+              <li>
+                <label
+                  ><input type="checkbox" data-k="s1" /><span
+                    >Business-only SIM + WhatsApp Business app</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="s2" /><span
+                    >Gmail to receive hello@ / support@</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="s3" /><span
+                    >Facebook Page + Business portfolio</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="s4" /><span
+                    >Instagram professional account</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="s5" /><span
+                    >Google Ads + Search Console</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="s6" /><span
+                    >Meta business verification <span class="tag t-long">long wait</span></span
+                  ></label
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>
+              <span class="ico c-haldi"
+                ><svg class="i"><use href="#i-shield" /></svg></span
+              >KYC papers
+            </h3>
+            <p style="margin: -4px 0 6px; font-size: 13px; color: var(--muted)">
+              Keep these yourself. Never send them to the agent.
+            </p>
+            <ul class="checks">
+              <li>
+                <label
+                  ><input type="checkbox" data-k="k1" /><span
+                    >PAN + bank account, same name</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="k2" /><span
+                    >Aadhaar linked to a working mobile</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="k3" /><span
+                    >Address proof where you live (Udyam, free)</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="k4" /><span
+                    >Apply to 2 gateways <span class="tag t-long">long wait</span></span
+                  ></label
+                >
+              </li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>
+              <span class="ico c-rose"
+                ><svg class="i"><use href="#i-file" /></svg></span
+              >Page details
+            </h3>
+            <ul class="checks">
+              <li>
+                <label
+                  ><input type="checkbox" data-k="p1" /><span
+                    >Business display name + address</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="p2" /><span
+                    >Support email + phone for Contact</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="p3" /><span
+                    >Admin Google email + admin phone (OTP)</span
+                  ></label
+                >
+              </li>
+              <li>
+                <label
+                  ><input type="checkbox" data-k="p4" /><span
+                    >Social bios + WhatsApp greeting</span
+                  ></label
+                >
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- STACK -->
+      <section id="map">
+        <div class="sh">
+          <div class="num" style="background: var(--plum)">◎</div>
+          <h2>How a visit becomes a sale</h2>
+        </div>
+        <p class="sub">The parts every product needs. All of them cost ₹0 at zero traffic.</p>
+        <div class="stack">
+          <div class="node">
+            <span class="ico c-pea"
+              ><svg class="i"><use href="#i-mega" /></svg></span
+            ><strong>Ad / Reel / Search</strong><small>UTM link to a page with the form</small>
+          </div>
+          <div class="node">
+            <span class="ico c-haldi"
+              ><svg class="i"><use href="#i-globe" /></svg></span
+            ><strong>Cloudflare</strong><small>DNS, SSL, WAF, Worker router</small>
+          </div>
+          <div class="node">
+            <span class="ico c-sky"
+              ><svg class="i"><use href="#i-cloud" /></svg></span
+            ><strong>Cloud Run</strong><small>Next.js app, Firestore, Storage</small>
+          </div>
+          <div class="node">
+            <span class="ico c-rose"
+              ><svg class="i"><use href="#i-rupee" /></svg></span
+            ><strong>Gateway</strong><small>Razorpay checkout + webhook</small>
+          </div>
+          <div class="node">
+            <span class="ico c-plum"
+              ><svg class="i"><use href="#i-bell" /></svg></span
+            ><strong>You</strong><small>Telegram alert → WhatsApp follow-up</small>
+          </div>
+        </div>
+        <div class="side">
+          <span class="pill"
+            ><svg class="i"><use href="#i-git" /></svg>GitHub Actions deploys on merge</span
+          >
+          <span class="pill"
+            ><svg class="i"><use href="#i-key" /></svg>No keys anywhere (OIDC)</span
+          >
+          <span class="pill"
+            ><svg class="i"><use href="#i-mail" /></svg>Email Routing → Gmail</span
+          >
+          <span class="pill"
+            ><svg class="i"><use href="#i-chart" /></svg>Own beacon + Google tag + tiny Pixel</span
+          >
+          <span class="pill"
+            ><svg class="i"><use href="#i-lock" /></svg>/admin: Google + OTP</span
+          >
+        </div>
+      </section>
+
+      <!-- PHASES -->
+      <section id="phases">
+        <div class="sh">
+          <div class="num">→</div>
+          <h2>The 11 phases</h2>
+        </div>
+        <p class="sub">
+          Tap a phase to open it. Each one has the steps, why we chose it, and the trap to avoid.
+        </p>
+
+        <div class="tl">
+          <div class="ph">
+            <div class="dot c-rose">
+              <svg class="i"><use href="#i-bulb" /></svg>
+            </div>
+            <details open>
+              <summary>
+                <h3>1 · Decide &amp; hand over</h3>
+                <span class="when">Day 0</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Fill the Day-0 list above</li>
+                  <li>Write a short PRD: who, price, flow, what is <i>not</i> in v1</li>
+                  <li>Look at 1–2 competitors and copy the flow, not the look</li>
+                  <li>Start KYC and Meta verification today</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>KYC and reviews take days. Code takes hours. Start the slow things first.</p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      The region is permanent for the database and bucket. Pick the one nearest your
+                      users.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-sky">
+              <svg class="i"><use href="#i-cloud" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>2 · Repo, cloud, first deploy</h3>
+                <span class="when">Day 1</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Repo from the template, then <code>rename-project.sh</code></li>
+                  <li>Run <code>gcp-bootstrap.sh</code> <b>before</b> the first merge</li>
+                  <li>Set the GitHub secrets + variables it prints</li>
+                  <li>Firebase: phone sign-in, SMS region = India only</li>
+                  <li>Merge → <code>/api/health</code> says 200</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      Cloud Run scales to zero and bills per use. Deploys use OIDC, so no key can
+                      leak.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      Public <code>NEXT_PUBLIC_*</code> values are baked in at build. Change →
+                      redeploy. Skip <code>RUNTIME_SERVICE_ACCOUNT</code> and the app runs as
+                      project Editor.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-haldi">
+              <svg class="i"><use href="#i-globe" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>3 · Domain &amp; Cloudflare</h3>
+                <span class="when">Day 1–2</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Buy domain; DNSSEC off; nameservers → Cloudflare</li>
+                  <li>SSL <b>Full (strict)</b>, Always HTTPS</li>
+                  <li>
+                    Need <code>name.domain</code> per customer? <code>AAAA * 100::</code> + a Worker
+                    to Cloud Run
+                  </li>
+                  <li>Worker: <code>www</code> → apex, fail closed</li>
+                  <li>WAF rule “Block scanners”: <code>.php /wp- /.env /.git //</code></li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      Cloud Run and Firebase can't do wildcard domains. A Google load balancer costs
+                      ~$18/month flat. The Worker is free.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      A bot scan used up the 100k/day Worker limit with zero users. Never challenge
+                      all Google Cloud IPs: it blocked Claude, AI search and webhooks.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-plum">
+              <svg class="i"><use href="#i-palette" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>4 · Brand &amp; design system</h3>
+                <span class="when">Day 1–3</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Logo from a script (SVG source), never hand-edited</li>
+                  <li>Export: favicon <code>.ico</code>, icons 192/512, OG 1200×630, avatars</li>
+                  <li>Put colours + fonts in design tokens</li>
+                  <li>Customer output can keep its own look</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      One token set keeps every screen consistent; a script remakes the whole kit in
+                      seconds.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      Google showed a globe until we added <code>favicon.ico</code> + a PNG in a
+                      multiple of 48px. One ₹ sign loaded 125 KB of extra fonts.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-pea">
+              <svg class="i"><use href="#i-mail" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>5 · Email, WhatsApp, socials</h3>
+                <span class="when">Day 2–3</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Cloudflare Email Routing: hello@ + support@ → Gmail</li>
+                  <li>Gmail “Send mail as”; one SPF; DMARC <code>p=none</code></li>
+                  <li>FB Page → Business portfolio → Instagram → WhatsApp Business app</li>
+                  <li>Verify the domain in Meta (TXT record)</li>
+                  <li>Bio link via a short redirect with UTM (<code>/ig</code>)</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      Every gateway and ad account asks for a domain email. Manual WhatsApp from the
+                      app is free and fast to start.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      Gmail send-as fails DMARC (can hit spam) — fix later with Brevo SMTP. Never
+                      “Add” the app number in Meta's WhatsApp screen: it leaves the app.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-rose">
+              <svg class="i"><use href="#i-box" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>6 · Product, legal pages, admin</h3>
+                <span class="when">Day 2–8</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Short form → instant preview of <i>their</i> product</li>
+                  <li>Pay → publish in one server step</li>
+                  <li>Legal: About, Contact, Terms, Privacy, Refund, Delivery + visible price</li>
+                  <li><code>/admin</code>: Google + OTP, audit log, never linked</li>
+                  <li>Admin tools: lead tags, “make live”, coupons, content editing</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      Seeing their own names sold far better than a sample. Gateways reject a site
+                      with no policy pages.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      Uploads need bucket CORS. A Strict admin cookie signed you out from Telegram
+                      links — use Lax. iPhone date inputs need a custom look.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-haldi">
+              <svg class="i"><use href="#i-rupee" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>7 · Payments &amp; KYC</h3>
+                <span class="when">Day 1–9</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Apply to Razorpay <b>and</b> Cashfree the same day</li>
+                  <li>Keys go in Secret Manager — never in chat</li>
+                  <li>Server sets the price; server re-checks the payment with the gateway</li>
+                  <li>Webhook too, so a closed tab still goes live</li>
+                  <li>Test with your own UPI on live keys, then refund</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      Cashfree's link API needed an extra approval that never came. Razorpay passed
+                      in a day. One switch (<code>PAYMENT_PROVIDER</code>) picks the gateway.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      KYC name must match PAN, bank <b>and</b> domain invoice. Aadhaar in another
+                      state? Udyam gives a free address proof.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-plum">
+              <svg class="i"><use href="#i-bell" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>8 · Alerts &amp; operations</h3>
+                <span class="when">Day 4–8</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Telegram: new lead + payment, with a ready WhatsApp message</li>
+                  <li>Copy-ready follow-ups + a sales call script</li>
+                  <li>Tag leads by hand: New / Hot / Cold / Test</li>
+                  <li>Min instances 0 → 1 only when cold starts hurt</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>A reply within an hour wins the sale. Telegram is free and instant.</p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      Three messages shared one timeout, so the important ones got lost. Give each
+                      its own timeout + one retry.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-sky">
+              <svg class="i"><use href="#i-chart" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>9 · Tracking, SEO, AI search</h3>
+                <span class="when">Day 5–9</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Own visit beacon (no cookie) → funnel in <code>/admin</code></li>
+                  <li>Google tag: “Preview made” + “Purchase” only</li>
+                  <li>Meta Pixel: only Lead + Purchase, no PageView</li>
+                  <li>Sitemap, schema, <code>llms.txt</code>, Search Console</li>
+                  <li>Ads land on a page that <i>is</i> the form</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      Privacy-first means no cookie banner and an honest privacy page. AI assistants
+                      repeat only what your pages say.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      ChatGPT said we had no dashboard because no page named it. Add each new
+                      feature to the feature list + <code>llms.txt</code>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph">
+            <div class="dot c-pea">
+              <svg class="i"><use href="#i-mega" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>10 · First sale, organic, ads</h3>
+                <span class="when">Day 9+</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>No ad money before one real payment works</li>
+                  <li>Message 30–50 people one by one; founding offer for a review</li>
+                  <li>Instagram: 7 tips : 2 soft : 1 pitch; boost only winners</li>
+                  <li>Meta: Leads objective, 3–5 creatives, check every lead</li>
+                  <li>Write the stop-loss before you spend</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      Warm contacts and Reels are free tests. Ads should only scale what already
+                      works.
+                    </p>
+                  </div>
+                  <div class="trap">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-alert" /></svg
+                      >Trap</b
+                    >
+                    <p>
+                      Google Search at ₹6–15 CPC got <b>0 impressions</b>. A price-comparison ad
+                      pulled in other businesses, not customers.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+
+          <div class="ph" style="padding-bottom: 0">
+            <div class="dot c-rose">
+              <svg class="i"><use href="#i-loop" /></svg>
+            </div>
+            <details>
+              <summary>
+                <h3>11 · Measure &amp; improve</h3>
+                <span class="when">Ongoing</span><svg class="i chev"><use href="#i-down" /></svg>
+              </summary>
+              <div class="pb">
+                <ol class="steps">
+                  <li>Weekly: visits → leads → previews → paid, by source</li>
+                  <li>Fix the biggest drop first</li>
+                  <li>
+                    Pay step wins: price on the button, reviews, “share with family”, trust line
+                  </li>
+                  <li>Every decision → an ADR; every fact → project memory</li>
+                </ol>
+                <div>
+                  <div class="why">
+                    <b
+                      ><svg class="i" style="width: 16px; height: 16px"><use href="#i-check" /></svg
+                      >Why</b
+                    >
+                    <p>
+                      130 visits → 39 previews → 1 paid showed the leak was the pay step, not
+                      traffic.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRAPS -->
+      <section id="traps">
+        <div class="sh">
+          <div class="num" style="background: var(--haldi); color: var(--ink)">!</div>
+          <h2>Traps we already fell into</h2>
+        </div>
+        <p class="sub">Read these once. Each one cost us hours or money.</p>
+        <div class="grid3">
+          <div class="tc">
+            <h4>Worker sent traffic to another site</h4>
+            <p>
+              A path starting with <code>//</code> made <code>new URL(path, ORIGIN)</code> fetch a
+              different host.
+            </p>
+            <span class="fix">Build the URL as ORIGIN + path</span>
+          </div>
+          <div class="tc">
+            <h4>Free Worker limit gone on day 5</h4>
+            <p>
+              ~150k bot requests for <code>.env</code>, <code>.git</code>, <code>.php</code>. No
+              limit left = site down.
+            </p>
+            <span class="fix">Scanner WAF rule; watch the graph</span>
+          </div>
+          <div class="tc">
+            <h4>We blocked Claude and AI search</h4>
+            <p>
+              A “challenge Google Cloud” rule caught agents, AI crawlers and could catch webhooks.
+            </p>
+            <span class="fix">Block paths, not whole clouds</span>
+          </div>
+          <div class="tc">
+            <h4>Payment link API never switched on</h4>
+            <p>Cashfree needed a second approval after KYC. Days lost.</p>
+            <span class="fix">Apply to two gateways at once</span>
+          </div>
+          <div class="tc">
+            <h4>KYC address mismatch</h4>
+            <p>ID showed one state, business ran in another.</p>
+            <span class="fix">Udyam registration (free, same day)</span>
+          </div>
+          <div class="tc">
+            <h4>Domain in the wrong name</h4>
+            <p>Gateway asked for the domain invoice in the account holder's name.</p>
+            <span class="fix">Buy the domain as the KYC holder</span>
+          </div>
+          <div class="tc">
+            <h4>Secret pasted in chat</h4>
+            <p>A key was sent in a message.</p>
+            <span class="fix">Rotate at once; Secret Manager only</span>
+          </div>
+          <div class="tc">
+            <h4>Uploads failed in admin</h4>
+            <p>The bucket had no CORS for our domain.</p>
+            <span class="fix">Keep CORS in a file; a human applies it</span>
+          </div>
+          <div class="tc">
+            <h4>Admin signed out on iPhone</h4>
+            <p>Strict cookie + tapping a Telegram link = fresh sign-in.</p>
+            <span class="fix">SameSite=Lax, 90-day sliding session</span>
+          </div>
+          <div class="tc">
+            <h4>Lost sale alerts</h4>
+            <p>One shared 4-second timeout for three messages.</p>
+            <span class="fix">Own timeout + retry per message</span>
+          </div>
+          <div class="tc">
+            <h4>Mail in spam</h4>
+            <p>Gmail “send as” has no DKIM for our domain, so DMARC fails.</p>
+            <span class="fix">SMTP that signs (Brevo); keep p=none</span>
+          </div>
+          <div class="tc">
+            <h4>Search showed a globe icon</h4>
+            <p>Only an SVG icon existed.</p>
+            <span class="fix">favicon.ico + PNG in 48px steps</span>
+          </div>
+          <div class="tc">
+            <h4>Zero ad impressions</h4>
+            <p>Google Search with a ₹6, then ₹15 max CPC never showed.</p>
+            <span class="fix">Realistic bids, or skip niche Search</span>
+          </div>
+          <div class="tc">
+            <h4>Ads attracted vendors</h4>
+            <p>A price-comparison creative brought other businesses.</p>
+            <span class="fix">Check leads by hand; pause that ad</span>
+          </div>
+          <div class="tc">
+            <h4>“Server Action unavailable”</h4>
+            <p>An admin tab opened before a deploy.</p>
+            <span class="fix">Reload; make the error say so</span>
+          </div>
+          <div class="tc">
+            <h4>Wrong redirect host</h4>
+            <p>Inside Cloud Run the URL is <code>0.0.0.0:8080</code>.</p>
+            <span class="fix">Relative redirects behind a proxy</span>
+          </div>
+          <div class="tc">
+            <h4>Deploy timed out</h4>
+            <p>9 Firestore index exemptions at ~6 min each.</p>
+            <span class="fix">Skip existing ones; send async</span>
+          </div>
+          <div class="tc">
+            <h4>An ad promised an old policy</h4>
+            <p>“7-day refund” stayed in copy after the policy changed.</p>
+            <span class="fix">Re-check claims when policy changes</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- MONEY -->
+      <section id="money">
+        <div class="sh">
+          <div class="num" style="background: var(--peacock)">₹</div>
+          <h2>What it costs</h2>
+        </div>
+        <p class="sub">Pay-per-use first. Add a fixed fee only when it clearly pays for itself.</p>
+        <div class="money">
+          <div class="mcard" style="background: var(--peacock-soft)">
+            <h4>₹0 at launch</h4>
+            <ul>
+              <li>Cloud Run, Firestore, Storage (scale to zero)</li>
+              <li>Cloudflare Free: DNS, SSL, Email Routing</li>
+              <li>Firebase phone OTP (pay per SMS — lock to India)</li>
+              <li>Telegram alerts, WhatsApp app</li>
+            </ul>
+          </div>
+          <div class="mcard" style="background: var(--haldi-soft)">
+            <h4>Small, when needed</h4>
+            <ul>
+              <li>Domain ~₹1,000/year</li>
+              <li>Workers Paid $5/month (after the bot scan)</li>
+              <li>1 warm instance ~₹850/month</li>
+              <li>Gateway fee ~2% + GST per sale</li>
+            </ul>
+          </div>
+          <div class="mcard" style="background: var(--rose-soft)">
+            <h4>Ads, with a stop-loss</h4>
+            <ul>
+              <li>Start ₹200–300/day, one channel at a time</li>
+              <li>First sale expected after a few hundred ₹</li>
+              <li>Stop if ₹1,500 spent and no payment</li>
+              <li>Keep CPA under your margin incl. GST</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- RULES -->
+      <section id="rules">
+        <div class="sh">
+          <div class="num" style="background: var(--plum)">✓</div>
+          <h2>House rules</h2>
+        </div>
+        <p class="sub">For you and the agent, on every project.</p>
+        <div class="rules">
+          <div class="rule">
+            <span class="ico c-rose"
+              ><svg class="i"><use href="#i-key" /></svg></span
+            ><strong>No secrets in chat</strong><span>Dashboards and Secret Manager only.</span>
+          </div>
+          <div class="rule">
+            <span class="ico c-plum"
+              ><svg class="i"><use href="#i-shield" /></svg></span
+            ><strong>No personal IDs</strong><span>Not in the repo, memory or pages.</span>
+          </div>
+          <div class="rule">
+            <span class="ico c-sky"
+              ><svg class="i"><use href="#i-git" /></svg></span
+            ><strong>PRs only</strong><span>Merging to main deploys to production.</span>
+          </div>
+          <div class="rule">
+            <span class="ico c-pea"
+              ><svg class="i"><use href="#i-check" /></svg></span
+            ><strong>Only real claims</strong><span>No invented reviews or features.</span>
+          </div>
+          <div class="rule">
+            <span class="ico c-haldi"
+              ><svg class="i"><use href="#i-rupee" /></svg></span
+            ><strong>Pay-per-use</strong><span>No flat fee until revenue covers it.</span>
+          </div>
+          <div class="rule">
+            <span class="ico c-rose"
+              ><svg class="i"><use href="#i-lock" /></svg></span
+            ><strong>Admin stays hidden</strong><span>Never linked from the site or robots.</span>
+          </div>
+          <div class="rule">
+            <span class="ico c-plum"
+              ><svg class="i"><use href="#i-user" /></svg></span
+            ><strong>“A small team”</strong><span>No personal names on the site.</span>
+          </div>
+          <div class="rule">
+            <span class="ico c-sky"
+              ><svg class="i"><use href="#i-file" /></svg></span
+            ><strong>Write it down</strong><span>ADR for decisions, memory for facts.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONFIG -->
+      <section id="config">
+        <div class="sh">
+          <div class="num" style="background: var(--sky)">⚙</div>
+          <h2>Settings to fill (names only)</h2>
+        </div>
+        <p class="sub">
+          GitHub variables unless marked. A name ending in <code>_SECRET</code> holds the
+          <i>name</i> of a Secret Manager secret, never the value.
+        </p>
+        <div class="cfg">
+          <div class="box">
+            <h3>
+              <span class="ico c-sky"
+                ><svg class="i"><use href="#i-cloud" /></svg></span
+              >Cloud &amp; app
+            </h3>
+            <code>WIF_PROVIDER</code><code>WIF_SERVICE_ACCOUNT</code> <small>(secrets)</small
+            ><br /><code>GCP_PROJECT_ID</code><code>GCP_REGION</code><code>APP_SLUG</code
+            ><code>APP_NAME</code><code>APP_URL</code><code>ROOT_DOMAIN</code
+            ><code>CLOUD_RUN_SERVICE</code><code>RUNTIME_SERVICE_ACCOUNT</code
+            ><code>MIN_INSTANCES</code><code>MAX_INSTANCES</code>
+          </div>
+          <div class="box">
+            <h3>
+              <span class="ico c-plum"
+                ><svg class="i"><use href="#i-lock" /></svg></span
+              >Sign-in &amp; admin
+            </h3>
+            <code>FIREBASE_API_KEY</code><code>FIREBASE_AUTH_DOMAIN</code
+            ><code>FIREBASE_PROJECT_ID</code><code>FIREBASE_APP_ID</code><code>ADMIN_EMAIL</code
+            ><code>ADMIN_PHONE</code>
+          </div>
+          <div class="box">
+            <h3>
+              <span class="ico c-haldi"
+                ><svg class="i"><use href="#i-rupee" /></svg></span
+              >Payments
+            </h3>
+            <code>PAYMENT_PROVIDER</code><code>RAZORPAY_KEY_ID</code
+            ><code>RAZORPAY_KEY_SECRET_SECRET</code><code>RAZORPAY_WEBHOOK_SECRET_SECRET</code
+            ><code>CASHFREE_APP_ID</code><code>CASHFREE_SECRET_KEY_SECRET</code
+            ><code>CASHFREE_ENV</code>
+          </div>
+          <div class="box">
+            <h3>
+              <span class="ico c-pea"
+                ><svg class="i"><use href="#i-bell" /></svg></span
+              >Alerts, ads, edge
+            </h3>
+            <code>TELEGRAM_TOKEN_SECRET</code><code>TELEGRAM_CHAT_ID</code><code>GOOGLE_ADS_ID</code
+            ><code>GOOGLE_ADS_SIGNUP_LABEL</code><code>GOOGLE_ADS_PURCHASE_LABEL</code
+            ><code>META_PIXEL_ID</code><code>ROUTER_SECRET</code> <small>(Cloudflare Worker)</small>
+          </div>
+        </div>
+        <p class="note">
+          Full list, DNS records and the step order for an agent:
+          <a href="launch-playbook.md">launch-playbook.md</a>.
+        </p>
+      </section>
+
+      <!-- LAUNCH DAY -->
+      <section id="launch">
+        <div class="sh">
+          <div class="num">★</div>
+          <h2>Launch-day check</h2>
+        </div>
+        <p class="sub">Do all of it on your own phone before you tell anyone.</p>
+        <div class="box" style="max-width: 720px">
+          <ul class="checks">
+            <li>
+              <label
+                ><input type="checkbox" data-k="l1" /><span
+                  >Site loads on the domain; <code>www</code> redirects</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l2" /><span
+                  >Sign up → preview → pay real money → live → refund</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l3" /><span
+                  >Telegram alert for a lead and a payment</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l4" /><span
+                  >Legal pages, price and contact in the footer</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l5" /><span
+                  >Shared link shows the image on WhatsApp</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l6" /><span
+                  >Google + Meta test conversions show up</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l7" /><span
+                  >Search Console verified, sitemap sent</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l8" /><span
+                  >Budget alert on; Worker graph checked</span
+                ></label
+              >
+            </li>
+            <li>
+              <label
+                ><input type="checkbox" data-k="l9" /><span
+                  >Mail to hello@ arrives; reply comes from the brand</span
+                ></label
+              >
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- JOURNEY -->
+      <section>
+        <div class="sh">
+          <div class="num" style="background: var(--haldi); color: var(--ink)">⌛</div>
+          <h2>How Vivah went</h2>
+        </div>
+        <p class="sub">For scale. Your next project should be faster.</p>
+        <div class="journey">
+          <div class="jd"><b>Sep 21 – Oct 13</b><span>Idea, PRD, price, domain</span></div>
+          <div class="jd">
+            <b>Oct 14</b><span>Cloudflare + Worker live, form, preview, legal pages</span>
+          </div>
+          <div class="jd"><b>Oct 15</b><span>Logo kit, email, socials, admin</span></div>
+          <div class="jd">
+            <b>Oct 16–18</b><span>Real invite preview, alerts, Cashfree code</span>
+          </div>
+          <div class="jd"><b>Oct 19</b><span>Bot scan, WAF rules, Udyam</span></div>
+          <div class="jd"><b>Oct 21</b><span>Razorpay passes — payments live</span></div>
+          <div class="jd"><b>Oct 22</b><span>Google tag + first campaign</span></div>
+          <div class="jd"><b>Oct 24–25</b><span>Coupons, ₹799, Meta Pixel + ads</span></div>
+          <div class="jd">
+            <b>Oct 26 – Nov 1</b><span>Pay-step fixes, lead tracker, ad landing page</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      Made from the Vivah project history · 1 Nov 2026 · Agent version:
+      <a href="launch-playbook.md">launch-playbook.md</a>
+    </footer>
+
+    <script>
+      (function () {
+        var KEY = 'launch-playbook-checks';
+        var saved = {};
+        try {
+          saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+        } catch (e) {
+          saved = {};
+        }
+        var day0 = document.querySelectorAll('#day0 input[type=checkbox]');
+        var all = document.querySelectorAll('input[type=checkbox][data-k]');
+        function update() {
+          var done = 0;
+          day0.forEach(function (c) {
+            if (c.checked) done++;
+          });
+          document.getElementById('pcount').textContent = done + ' of ' + day0.length + ' ready';
+          document.getElementById('pbar').style.width =
+            (day0.length ? (done / day0.length) * 100 : 0) + '%';
+        }
+        all.forEach(function (c) {
+          if (saved[c.dataset.k]) c.checked = true;
+          c.addEventListener('change', function () {
+            saved[c.dataset.k] = c.checked;
+            try {
+              localStorage.setItem(KEY, JSON.stringify(saved));
+            } catch (e) {}
+            update();
+          });
+        });
+        update();
+        var root = document.documentElement;
+        try {
+          var t = localStorage.getItem('launch-playbook-theme');
+          if (t) root.dataset.theme = t;
+        } catch (e) {}
+        document.getElementById('theme').addEventListener('click', function () {
+          var dark = root.dataset.theme
+            ? root.dataset.theme === 'dark'
+            : matchMedia('(prefers-color-scheme: dark)').matches;
+          root.dataset.theme = dark ? 'light' : 'dark';
+          try {
+            localStorage.setItem('launch-playbook-theme', root.dataset.theme);
+          } catch (e) {}
+        });
+      })();
+    </script>
+  </body>
+</html>
