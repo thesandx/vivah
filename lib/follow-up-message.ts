@@ -6,33 +6,42 @@
  * a person either helps them pay or tells us why they did not (Sandeep,
  * 2026-10-29). The admin decides when to send it, by hand from the WhatsApp
  * Business app. The daily nudges in `lib/preview-nudges.ts` are separate.
+ *
+ * The wording follows a sales call method Sandeep chose (2026-11-01): use
+ * their names with "ji" and sound like a helper, not a seller. It holds
+ * no preview link and offers no call (Sandeep): it points to the site and the
+ * sample invite instead. It is short and signed by Anushka from Team Vivah
+ * (Sandeep, 2026-11-01).
  */
 
-import { coupleNames, type NameOrder } from '@/lib/couple-names';
+import { type NameOrder, orderedNames } from '@/lib/couple-names';
+import { SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
 
 export interface FollowUpInput {
   bride: string;
   groom: string;
   /** Whose name comes first in the greeting. Absent: the bride's. */
   nameOrder?: NameOrder | undefined;
-  /** The preview link, `https://vivah.online/p/<id>`. */
-  link: string;
+  /** The address the couple chose at sign-up, `priya-rahul`. Absent: none. */
+  slug?: string | undefined;
+  /** The root domain, `vivah.online`. */
+  rootDomain: string;
 }
 
 /**
- * The message. It asks how the invite looked, offers help with the usual
- * blockers, asks for one line of feedback if they will not buy, and says it is
- * fine to take more time and write on this chat whenever they like. The link
- * goes before the sign-off, as in the daily nudges.
+ * The message. Anushka says they made a preview but did not make it live,
+ * names their chosen address when there is one, offers help to make it live,
+ * then gives the sample invite and the site (Sandeep's wording, 2026-11-01).
  */
 export function followUpMessage(input: FollowUpInput): string {
+  const [first, second] = orderedNames(input);
+  const address = input.slug === undefined ? '' : `: ${input.slug}.${input.rootDomain}`;
+  const sample = `https://${SAMPLE_SLUG}.${input.rootDomain}/${SAMPLE_GUEST}`;
   return [
-    `Namaste ${coupleNames(input)} 🙏`,
-    'Aapne apna wedding invite dekha? Kaisa laga? 😊',
-    'Kuch badalna hai, ya price, payment ya details ke baare mein koi sawaal hai? Bas yahin reply kijiye, hum abhi help karenge 💛',
-    'Abhi nahi lena? Koi baat nahi 🙏 Bas ek line mein bata dijiye kyun. Isse hum Vivah ko aur behtar bana payenge.',
-    'Aur sochne ke liye aur time chahiye, toh bilkul theek hai 😊 Jab bhi mann ho, isi chat pe message kijiye. Hum aapki help ke liye hamesha yahin hain 💛',
-    `Aapka invite yahan hai. Link band ho gaya ho toh reply kijiye, hum dobara khol denge 👇\n${input.link}`,
-    'Team Vivah 💛',
+    `Namaste ${first} ji & ${second} ji 🙏\nMain Anushka, Team Vivah se. Aapne apna wedding invite preview banaya, par abhi tak live nahi kiya${address} 💛`,
+    'Koi bhi sawaal ho toh mujhe bataiye, main aapka invite live karne mein help kar dungi 😊',
+    `Sample invite 👇\n${sample}`,
+    `Apna yahan banaiye 👇\nhttps://${input.rootDomain}`,
+    'Anushka, Team Vivah 💛',
   ].join('\n\n');
 }

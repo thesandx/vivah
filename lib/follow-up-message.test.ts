@@ -6,24 +6,44 @@ describe('followUpMessage', () => {
   const text = followUpMessage({
     bride: 'Alisha',
     groom: 'Sumit',
-    link: 'https://vivah.online/p/abc',
+    slug: 'alisha-sumit',
+    rootDomain: 'vivah.online',
   });
 
-  it('greets the couple, asks for help or feedback, and links their own preview', () => {
-    expect(text.startsWith('Namaste Alisha & Sumit 🙏')).toBe(true);
-    expect(text).toContain('Kaisa laga?');
-    expect(text).toContain('bata dijiye kyun');
-    expect(text).toContain('aur time chahiye, toh bilkul theek hai');
-    expect(text).toContain('https://vivah.online/p/abc');
+  it('greets the couple as Anushka and names their chosen address', () => {
+    expect(text.startsWith('Namaste Alisha ji & Sumit ji 🙏\nMain Anushka, Team Vivah se.')).toBe(
+      true,
+    );
+    expect(text).toContain('abhi tak live nahi kiya: alisha-sumit.vivah.online 💛');
   });
 
-  it('ends with the sign-off, after the link', () => {
-    expect(text.endsWith('https://vivah.online/p/abc\n\nTeam Vivah 💛')).toBe(true);
+  it('offers help to make it live', () => {
+    expect(text).toContain('main aapka invite live karne mein help kar dungi');
+  });
+
+  it('links the sample invite and the site, never the preview, and offers no call', () => {
+    expect(text).toContain('Sample invite 👇\nhttps://priya-rahul.vivah.online/Neha');
+    expect(text).not.toContain('/p/');
+    expect(text.toLowerCase()).not.toContain('call');
+    expect(
+      text.endsWith('Apna yahan banaiye 👇\nhttps://vivah.online\n\nAnushka, Team Vivah 💛'),
+    ).toBe(true);
+  });
+
+  it('leaves out the address when the couple chose none', () => {
+    expect(
+      followUpMessage({ bride: 'Alisha', groom: 'Sumit', rootDomain: 'vivah.online' }),
+    ).toContain('abhi tak live nahi kiya 💛');
   });
 
   it('follows the name order', () => {
     expect(
-      followUpMessage({ bride: 'Alisha', groom: 'Sumit', nameOrder: 'groom-first', link: 'x' }),
-    ).toContain('Namaste Sumit & Alisha');
+      followUpMessage({
+        bride: 'Alisha',
+        groom: 'Sumit',
+        nameOrder: 'groom-first',
+        rootDomain: 'vivah.online',
+      }),
+    ).toContain('Namaste Sumit ji & Alisha ji');
   });
 });
