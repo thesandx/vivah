@@ -8,8 +8,7 @@
  * Business app. The daily nudges in `lib/preview-nudges.ts` are separate.
  *
  * The wording follows a sales call method Sandeep chose (2026-11-01): use
- * their names with "ji", give them control to say no, ask one question that
- * shows how serious they are, and sound like a helper, not a seller. It holds
+ * their names with "ji" and sound like a helper, not a seller. It holds
  * no preview link and offers no call (Sandeep): it points to the site and the
  * sample invite instead. It is short and signed by Anushka from Team Vivah
  * (Sandeep, 2026-11-01).
@@ -30,20 +29,19 @@ export interface FollowUpInput {
 }
 
 /**
- * The message. Anushka greets them and names their chosen address when there
- * is one, offers to make the invite more personal for them (song, functions,
- * named guest links), asks when the invites go out, lets them stop the
- * messages with one word, then gives the sample invite and the site.
+ * The message. Anushka says they made a preview but did not make it live,
+ * names their chosen address when there is one, offers help to make it live,
+ * then gives the sample invite and the site (Sandeep's wording, 2026-11-01).
  */
 export function followUpMessage(input: FollowUpInput): string {
   const [first, second] = orderedNames(input);
   const address = input.slug === undefined ? '' : `: ${input.slug}.${input.rootDomain}`;
   const sample = `https://${SAMPLE_SLUG}.${input.rootDomain}/${SAMPLE_GUEST}`;
   return [
-    `Namaste ${first} ji & ${second} ji 🙏\nMain Anushka, Team Vivah se. Aapka invite dekha, bahut pyaara ban raha hai${address} 💛`,
-    'Main ise aapke liye aur personal bana sakti hoon: aapka pasand ka gaana, Haldi, Mehendi, Sangeet ke venue aur time, aur har guest ke naam ka apna link ("Hi Mausi ji") 🥰 Bas yahin bata dijiye kya add karna hai, main kar dungi.',
-    'Invites kab tak bhejne ka plan hai? Sab final ho gaya hai toh bas "done" likh dijiye 🙏',
-    `Sample invite 👇\n${sample}\n\nApna banaiye: https://${input.rootDomain}`,
+    `Namaste ${first} ji & ${second} ji 🙏\nMain Anushka, Team Vivah se. Aapne apna wedding invite preview banaya, par abhi tak live nahi kiya${address} 💛`,
+    'Koi bhi sawaal ho toh mujhe bataiye, main aapka invite live karne mein help kar dungi 😊',
+    `Sample invite 👇\n${sample}`,
+    `Apna yahan banaiye 👇\nhttps://${input.rootDomain}`,
     'Anushka, Team Vivah 💛',
   ].join('\n\n');
 }
