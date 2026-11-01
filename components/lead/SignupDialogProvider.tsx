@@ -4,10 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { HEART_THREAD_MS, HeartThread } from '@/components/lead/HeartThread';
 import { LeadForm } from '@/components/lead/LeadForm';
-import { SignupScreen } from '@/components/lead/SignupScreen';
 import { Dialog } from '@/components/ui/Dialog';
 import { SignupDialogContext, type SignupDialogState } from '@/hooks/useSignupDialog';
-import { isDetailsHash, tidyDetailsUrl } from '@/lib/details-link';
+import { detailsPageUrl, LANDING_REFERRER_KEY } from '@/lib/details-link';
 
 /**
  * The home page's second way in: every call to action below the hero opens
@@ -18,15 +17,22 @@ import { isDetailsHash, tidyDetailsUrl } from '@/lib/details-link';
  * The dialog stays mounted while it is closed, so a couple who closes it
  * halfway finds their names still there when they open it again.
  *
- * It also holds the home page's third way in: an address that ends in
- * `#details`, the link in ads and in the Instagram and Facebook bios. That
- * opens the same card on a screen of its own (`SignupScreen`) at once, with
- * no heart thread, so the visitor lands on the form. Closing it takes the
- * hash off the address, and the home page is behind it.
+ * An address that ends in `#details` (ads, bio links) belongs to the form's
+ * own page, `/details`. An inline script in the root layout moves there
+ * before the home page draws. This provider does the same after hydration,
+ * for a host the script does not know and for a later change of the hash.
  *
  * A Client Component for the state. The page passes its sections as
  * `children`, so they stay Server Components.
  */
+
+/**
+ * The move to the form page, on an object so a test can watch it: jsdom
+ * cannot leave the page, and `location.replace` cannot be replaced.
+ */
+export const detailsNavigation = {
+  replace: (url: string): void => window.location.replace(url),
+};
 
 /** How long the heart thread takes to fade once the dialog is up. */
 const LEAVE_MS = 300;
@@ -43,9 +49,6 @@ export interface SignupDialogProviderProps {
 export function SignupDialogProvider({ children }: SignupDialogProviderProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [open, setOpen] = useState(false);
-  const [screenOpen, setScreenOpen] = useState(false);
-  /** The screen mounts on its first open, and then stays, so typed names survive a close. */
-  const [screenSeen, setScreenSeen] = useState(false);
   const timers = useRef<number[]>([]);
 
   useEffect(() => {
@@ -71,38 +74,28 @@ export function SignupDialogProvider({ children }: SignupDialogProviderProps) {
     });
   }, [phase, open, later]);
 
-  // The hash is read in the browser only: it never reaches the server. A
-  // link on the page to `#details` opens it too, and Back closes it.
-  //
-  // Tags that an ad tool put after `#details` move into the query string
-  // first. This effect runs before `VisitTracker`'s, its parent's, so the
-  // visit report still sees them.
+  // The hash is read in the browser only: it never reaches the server.
   useEffect(() => {
     const follow = () => {
-      const { pathname, search, hash } = window.location;
-      const tidy = tidyDetailsUrl(pathname, search, hash);
-      if (tidy !== null) window.history.replaceState(window.history.state, '', tidy);
-      const asked = isDetailsHash(hash);
-      setScreenOpen(asked);
-      if (asked) setScreenSeen(true);
+      const target = detailsPageUrl(window.location.search, window.location.hash);
+      if (target === null) return;
+      try {
+        if (document.referrer !== '') {
+          window.sessionStorage.setItem(LANDING_REFERRER_KEY, document.referrer);
+        }
+      } catch {
+        // Storage is off: the visit report then sees the home page as the referrer.
+      }
+      detailsNavigation.replace(target);
     };
     follow();
     window.addEventListener('hashchange', follow);
     return () => window.removeEventListener('hashchange', follow);
   }, []);
 
-  const closeScreen = useCallback(() => {
-    setScreenOpen(false);
-    // Off the address, so a reload shows the home page and the link works again.
-    if (isDetailsHash(window.location.hash)) {
-      const { pathname, search } = window.location;
-      window.history.replaceState(window.history.state, '', `${pathname}${search}`);
-    }
-  }, []);
-
   const state = useMemo<SignupDialogState>(
-    () => ({ openSignup, isActive: open || screenOpen || phase !== 'idle' }),
-    [openSignup, open, screenOpen, phase],
+    () => ({ openSignup, isActive: open || phase !== 'idle' }),
+    [openSignup, open, phase],
   );
 
   return (
@@ -117,7 +110,6 @@ export function SignupDialogProvider({ children }: SignupDialogProviderProps) {
       >
         <LeadForm headingId={DIALOG_HEADING_ID} place="dialog" />
       </Dialog>
-      {screenSeen && <SignupScreen open={screenOpen} onClose={closeScreen} />}
     </SignupDialogContext>
   );
 }

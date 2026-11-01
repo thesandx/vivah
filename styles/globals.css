@@ -19,6 +19,12 @@
  * picks a theme with `data-theme` on <html>. Components never know which
  * theme is active.
  */
+/*
+ * A short phone screen (an iPhone SE, a small Android). The full-screen
+ * sign-up form drops its pictures here, so a step fits without a scroll.
+ */
+@custom-variant short (@media (max-height: 46rem));
+
 @theme {
   /* Surfaces — warm paper, never a cold white page */
   --color-paper: #fffcf8; /* page background, cream-50 */

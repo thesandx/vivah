@@ -3,6 +3,7 @@ import '@/styles/globals.css';
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 
+import { detailsRedirectScript } from '@/lib/details-link';
 import { env } from '@/lib/env';
 import { THEME_COLOR } from '@/lib/pwa';
 import { BRAND_DESCRIPTION, SHARE_IMAGE, siteOrigin } from '@/lib/seo';
@@ -229,6 +230,12 @@ export default function RootLayout({
       className={`${huninn.variable} ${baloo.variable} ${balooDevanagari.variable} ${arvo.variable} ${dancingScript.variable} ${tiroDevanagari.variable} ${playfair.variable} ${dmSerif.variable} ${martel.variable} ${inter.variable}`}
       suppressHydrationWarning
     >
+      <head>
+        {/* A `#details` link (ads, bio links) goes to the form's own page before
+          the home page draws. The hash never reaches the server, so this is a
+          script. See lib/details-link.ts. */}
+        <script dangerouslySetInnerHTML={{ __html: detailsRedirectScript(env.rootDomain) }} />
+      </head>
       {/* The flex column lets a short page push its footer to the bottom of the screen. */}
       <body className="flex min-h-dvh flex-col antialiased">{children}</body>
     </html>

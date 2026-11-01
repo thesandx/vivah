@@ -346,6 +346,7 @@ The source order is the phone order. Screen readers and the keyboard follow it a
 - **Safe areas.** The page draws under the notch (`viewportFit: 'cover'`). Fixed chrome pads itself with `env(safe-area-inset-*)`, as `WhatsAppButton` does.
 - **Press feedback, not a tap flash.** The base styles remove the grey tap highlight. `squish` and `press` answer the tap.
 - **Installable.** `app/manifest.ts` sets `display: 'standalone'`. The icons are in `public/icons/` (192px, 512px and a maskable 512px) and `app/apple-icon.png`. `THEME_COLOR` in `lib/pwa.ts` matches `--color-paper`. When you change the mark, export these icons again from the brand kit. See [`docs/brand.md`](../../docs/brand.md).
+- **A short phone screen.** The `short:` variant matches a screen at most 46rem (736px) high, such as an iPhone SE. Use it only to make a full-height screen fit, as the sign-up form on `/details` does: it hides the step art there. It does not change the posture.
 - **No service worker.** The template has none, on purpose. A browser cache keeps the old build after a deploy: the same failure as trap 26 in a CDN. Add one only with a versioned cache and an update prompt. Record that decision in an ADR.
 
 ### Never
