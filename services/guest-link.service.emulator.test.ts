@@ -79,7 +79,11 @@ describeEmulator('guest links (emulator)', () => {
     );
     const segments = results.map((result) => (result.ok ? result.link.segment : null));
     expect(new Set(segments).size).toBe(3);
-  });
+    // Three transactions race for one counter. The emulator holds each loser
+    // until its lock times out, then the client retries it: on a busy CI
+    // runner that alone can pass the default 5 s (it did on PR #147), so this
+    // test gets more time, as the publish race in wedding.service does.
+  }, 30_000);
 
   it('shows a deleted link as the general invite, and never reuses it', async () => {
     await createGuestLink(wedding.slug, OWNER, 'Neha');

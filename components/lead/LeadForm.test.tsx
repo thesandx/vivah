@@ -233,25 +233,50 @@ describe('LeadForm', () => {
     fillNames();
     fillDetails();
     await toAddress();
-    expect(screen.getByRole('heading', { name: 'Your own address' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your website link' })).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/addresses?bride=Raadha&groom=Shyam',
       expect.anything(),
     );
 
-    fireEvent.click(screen.getByLabelText('Choose my own address'));
+    fireEvent.click(screen.getByLabelText('Type my own link'));
     const make = screen.getByRole('button', { name: 'Make my website' });
     expect(make).toBeDisabled();
-    fireEvent.change(screen.getByLabelText('Your address'), { target: { value: 'Virushka' } });
-    expect(await screen.findByText('virushka.vivah.online is available.')).toBeInTheDocument();
-    expect(screen.getByText(/goes live at this address as soon as you pay/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Your link'), { target: { value: 'Virushka' } });
+    expect(await screen.findByText('Available.')).toBeInTheDocument();
+    expect(screen.getByText(/Goes live when you pay/)).toBeInTheDocument();
     expect(make).toBeEnabled();
 
     // Back and forward again keeps the choice and does not ask twice.
     fireEvent.click(screen.getByRole('button', { name: 'Back to your functions' }));
     fireEvent.click(screen.getByRole('button', { name: 'Skip, just the wedding' }));
-    expect(screen.getByLabelText('Your address')).toHaveValue('virushka');
+    expect(screen.getByLabelText('Your link')).toHaveValue('virushka');
     expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('bride='))).toHaveLength(1);
+  });
+
+  it('shows the link as a browser bar, and warns when a home address is typed', async () => {
+    serve(() => json({}, 500));
+    render(<LeadForm />);
+    fillNames();
+    fillDetails();
+    await toAddress();
+    fireEvent.click(screen.getByLabelText('Type my own link'));
+    expect(screen.getByText(/Your website link:/).parentElement).toHaveTextContent(
+      'https://your-names.vivah.online',
+    );
+
+    fireEvent.change(screen.getByLabelText('Your link'), {
+      target: { value: 'Flat 12, Sector 5, Noida' },
+    });
+    expect(screen.getByText(/This looks like a home address/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Make my website' })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText('Your link'), { target: { value: 'virushka' } });
+    expect(screen.queryByText(/This looks like a home address/)).not.toBeInTheDocument();
+    expect(await screen.findByText('Available.')).toBeInTheDocument();
+    expect(screen.getByText(/Your website link:/).parentElement).toHaveTextContent(
+      'https://virushka.vivah.online',
+    );
   });
 
   it('posts the form, shows the website being made, then opens the preview', async () => {
@@ -342,7 +367,7 @@ describe('LeadForm', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Make my website' }));
 
     expect(await screen.findByText('Your website was not created.')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Your own address' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Your website link' })).toBeInTheDocument();
     await waitFor(() =>
       expect(fetchMock.mock.calls.filter(([url]) => String(url).includes('bride='))).toHaveLength(
         2,
