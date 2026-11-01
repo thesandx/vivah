@@ -47,7 +47,9 @@ export default {
       url.hostname = APEX;
       return Response.redirect(url.toString(), 301);
     }
-    const target = new URL(url.pathname + url.search, ORIGIN);
+    // Join the strings first. A path that starts with "//" names a host, so
+    // new URL(path, ORIGIN) would fetch that other host instead of Cloud Run.
+    const target = new URL(ORIGIN + url.pathname + url.search);
     const headers = new Headers(request.headers);
     headers.set('X-Forwarded-Host', host);
     headers.set('X-Forwarded-Proto', 'https');
@@ -69,6 +71,8 @@ export default {
   },
 };
 ```
+
+Build `target` from one joined string, as shown. Do not pass `ORIGIN` as the base argument to `new URL`. A request path such as `//example.com/x` is a host-relative URL, so the Worker would fetch `example.com`. The deployed Worker had this fault until 19 October 2026.
 
 The app does not check `X-Router-Secret` yet. Until it does, the `*.run.app` URL also serves the app directly.
 
