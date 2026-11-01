@@ -31,7 +31,8 @@ export interface FollowUpInput {
 
 /**
  * The message. Anushka greets them and names their chosen address when there
- * is one, asks when the invites go out, offers help, lets them stop the
+ * is one, offers to make the invite more personal for them (song, functions,
+ * named guest links), asks when the invites go out, lets them stop the
  * messages with one word, then gives the sample invite and the site.
  */
 export function followUpMessage(input: FollowUpInput): string {
@@ -39,8 +40,9 @@ export function followUpMessage(input: FollowUpInput): string {
   const address = input.slug === undefined ? '' : `: ${input.slug}.${input.rootDomain}`;
   const sample = `https://${SAMPLE_SLUG}.${input.rootDomain}/${SAMPLE_GUEST}`;
   return [
-    `Namaste ${first} ji & ${second} ji 🙏\nMain Anushka, Team Vivah se. Aapne apni shaadi ka invite banaya tha${address} 💛`,
-    'Invites kab tak bhejne ka plan hai? Kuch bhi atka ho toh bataiye, main help kar dungi 😊 Sab final ho gaya hai toh bas "done" likh dijiye 🙏',
+    `Namaste ${first} ji & ${second} ji 🙏\nMain Anushka, Team Vivah se. Aapka invite dekha, bahut pyaara ban raha hai${address} 💛`,
+    'Main ise aapke liye aur personal bana sakti hoon: aapka pasand ka gaana, Haldi, Mehendi, Sangeet ke venue aur time, aur har guest ke naam ka apna link ("Hi Mausi ji") 🥰 Bas yahin bata dijiye kya add karna hai, main kar dungi.',
+    'Invites kab tak bhejne ka plan hai? Sab final ho gaya hai toh bas "done" likh dijiye 🙏',
     `Sample invite 👇\n${sample}\n\nApna banaiye: https://${input.rootDomain}`,
     'Anushka, Team Vivah 💛',
   ].join('\n\n');

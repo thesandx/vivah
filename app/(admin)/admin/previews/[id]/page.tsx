@@ -242,7 +242,8 @@ export default async function AdminPreviewPage({
                 <h2 className="text-heading">Follow-up message</h2>
                 <p className="text-small text-ink-soft">
                   Send it when you choose. It offers help, lets them say no with one word, asks when
-                  the invites go out, and links the sample invite and the site. Signed by Anushka.
+                  the invites go out, lets them say no with one word, and links the sample invite
+                  and the site.
                 </p>
                 <p className="text-small text-ink-soft whitespace-pre-line break-words">
                   {followUp}

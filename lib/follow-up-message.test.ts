@@ -12,13 +12,14 @@ describe('followUpMessage', () => {
 
   it('greets the couple by name and names their chosen address', () => {
     expect(text.startsWith('Namaste Alisha ji & Sumit ji 🙏')).toBe(true);
-    expect(text).toContain('invite banaya tha: alisha-sumit.vivah.online 💛');
+    expect(text).toContain('bahut pyaara ban raha hai: alisha-sumit.vivah.online 💛');
   });
 
   it('lets them stop the messages, asks one question and offers help', () => {
     expect(text).toContain('"done" likh dijiye');
     expect(text).toContain('Invites kab tak bhejne ka plan hai?');
     expect(text).toContain('Main Anushka, Team Vivah se.');
+    expect(text).toContain('aur personal bana sakti hoon');
   });
 
   it('links the site and the sample invite, never the preview, and offers no call', () => {
@@ -33,7 +34,7 @@ describe('followUpMessage', () => {
   it('leaves out the address when the couple chose none', () => {
     expect(
       followUpMessage({ bride: 'Alisha', groom: 'Sumit', rootDomain: 'vivah.online' }),
-    ).toContain('invite banaya tha 💛');
+    ).toContain('bahut pyaara ban raha hai 💛');
   });
 
   it('follows the name order', () => {
