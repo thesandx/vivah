@@ -90,7 +90,9 @@ describe('PublishBanner', () => {
 
   it('is a short bar that stays short at the foot of the page, and opens on a drag up', () => {
     const { publish } = renderBanner();
-    expect(screen.getByText('Create your personal wedding website')).toBeInTheDocument();
+    expect(
+      screen.getByText('Your personal wedding website is just one step away'),
+    ).toBeInTheDocument();
     expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('75% OFF')).toBeInTheDocument();
     act(() => {
@@ -209,6 +211,11 @@ describe('PublishBanner modes', () => {
     expect(button).toHaveTextContent('Make it live');
     expect(button).toHaveTextContent('₹1,999');
     expect(button).toHaveTextContent('75% OFF');
+  });
+
+  it('promises the 7-day refund under the short bar button', () => {
+    renderMode('live');
+    expect(screen.getByText('7-day full refund — no questions asked')).toBeInTheDocument();
   });
 
   it('says what the couple gets right after paying', () => {

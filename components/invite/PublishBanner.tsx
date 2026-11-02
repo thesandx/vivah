@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 /**
  * The two payment dialogs at the foot of the couple's preview.
  *
- * Closed, it is a short bar: "Create your personal wedding website", the
+ * Closed, it is a short bar: "Your personal wedding website is just one step away", the
  * couple's address, and one green button with the price struck from
  * `STRUCK_PRICE_RUPEES` and the percentage off (the product owner,
  * 2026-10-31). Dragging its handle up, as on an iPhone sheet, or tapping it,
@@ -138,6 +138,36 @@ function Tick() {
         />
       </svg>
     </span>
+  );
+}
+
+/**
+ * The money-back promise under the short bar's pay button, as the product
+ * owner drew it (2026-11-02): a soft green box with a shield. The refund
+ * policy gives it, for `MONEY_BACK_DAYS` days after paying.
+ */
+function MoneyBack() {
+  return (
+    <p className="bg-pay-action-soft text-pay-action rounded-input text-small flex items-center gap-3 px-3 py-2 font-semibold">
+      <span className="bg-surface inline-grid size-8 shrink-0 place-items-center rounded-full">
+        <svg viewBox="0 0 20 20" aria-hidden="true" className="size-4" fill="none">
+          <path
+            d="M10 2.5 4 5v4.5c0 3.6 2.5 6.6 6 8 3.5-1.4 6-4.4 6-8V5l-6-2.5Z"
+            className="stroke-current"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <path
+            d="m7.5 10 1.8 1.8 3.4-3.6"
+            className="stroke-current"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      {MONEY_BACK_DAYS}-day full refund — no questions asked
+    </p>
   );
 }
 
@@ -450,7 +480,7 @@ export function PublishBanner({
               {!expanded && (
                 <span className="flex flex-col items-center leading-tight">
                   <span className="text-small text-pay-ink font-semibold">
-                    Create your personal wedding website
+                    Your personal wedding website is just one step away
                   </span>
                   <span className="text-small text-pay-body break-all">
                     {address ?? `your own address on ${domainLabel}`}
@@ -497,6 +527,7 @@ export function PublishBanner({
                 </>
               )}
             </button>
+            <MoneyBack />
           </div>
         ) : !open ? (
           <div className="animate-rise-in flex flex-col gap-3">
