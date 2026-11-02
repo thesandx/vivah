@@ -14,6 +14,7 @@ import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
 import {
+  MONEY_BACK_DAYS,
   PAPER_CARDS,
   PAYMENT_METHODS,
   percentOffStruck,
@@ -25,7 +26,7 @@ import { cn } from '@/lib/utils';
 /**
  * The two payment dialogs at the foot of the couple's preview.
  *
- * Closed, it is a short bar: "Create your personal wedding website", the
+ * Closed, it is a short bar: "Your personal wedding website is just one step away", the
  * couple's address, and one green button with the price struck from
  * `STRUCK_PRICE_RUPEES` and the percentage off (the product owner,
  * 2026-10-31). Dragging its handle up, as on an iPhone sheet, or tapping it,
@@ -44,8 +45,9 @@ import { cn } from '@/lib/utils';
  * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
  * tokens). Only the couple's names keep the invite's serif. Every claim on it
  * is true today: the price is `PRICE_FROM_RUPEES` (passed in), and the
- * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No star ratings, no couple counts and no refund
- * promise (the product owner removed it, 2026-10-16). Next to the pay button
+ * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No star ratings and no couple counts. The
+ * money-back line is the refund policy's own promise, `MONEY_BACK_DAYS`
+ * (the product owner, 2026-11-02). Next to the pay button
  * (the product owner, 2026-10-31): up to two real couple reviews from the
  * admin's Home page list (quote and names only), "Free date change once"
  * (the refund policy), "Share with family" and a WhatsApp link to ask before
@@ -139,6 +141,36 @@ function Tick() {
   );
 }
 
+/**
+ * The money-back promise under the short bar's pay button, as the product
+ * owner drew it (2026-11-02): a soft green box with a shield. The refund
+ * policy gives it, for `MONEY_BACK_DAYS` days after paying.
+ */
+function MoneyBack() {
+  return (
+    <p className="bg-pay-action-soft text-pay-action rounded-input text-small flex items-center gap-3 px-3 py-2 font-semibold">
+      <span className="bg-surface inline-grid size-8 shrink-0 place-items-center rounded-full">
+        <svg viewBox="0 0 20 20" aria-hidden="true" className="size-4" fill="none">
+          <path
+            d="M10 2.5 4 5v4.5c0 3.6 2.5 6.6 6 8 3.5-1.4 6-4.4 6-8V5l-6-2.5Z"
+            className="stroke-current"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <path
+            d="m7.5 10 1.8 1.8 3.4-3.6"
+            className="stroke-current"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+      {MONEY_BACK_DAYS}-day full refund — no questions asked
+    </p>
+  );
+}
+
 function Lock() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true" className="size-4 shrink-0" fill="none">
@@ -167,13 +199,17 @@ function PaymentMethods() {
  * The small promises at the foot of the sheet and the checkout, in the
  * product owner's words and emoji (their choice over the "no emoji" rule,
  * 2026-10-16). Each line is true today: links open at once, the invite shows
- * no ads, and the terms keep it live until 12 months after the wedding.
+ * no ads, the refund policy gives a full refund for `MONEY_BACK_DAYS` days
+ * after paying, and the terms keep it live until 12 months after the wedding.
  * "Secure payment" shows only once payment is live.
  */
 function TrustLines({ live }: { live: boolean }) {
   return (
     <div className="text-small text-pay-muted flex flex-col items-center gap-1 text-center">
       <p>{live && '🔒 Secure payment · '}⚡ Instant link · 💛 No ads</p>
+      <p className="text-pay-ink font-semibold">
+        💸 Don&rsquo;t like it? Full refund within {MONEY_BACK_DAYS} days
+      </p>
       <p>🔁 Free date change once · 📅 Live until 12 months after your wedding</p>
       <p>Made with love in India 🇮🇳</p>
     </div>
@@ -444,7 +480,7 @@ export function PublishBanner({
               {!expanded && (
                 <span className="flex flex-col items-center leading-tight">
                   <span className="text-small text-pay-ink font-semibold">
-                    Create your personal wedding website
+                    Your personal wedding website is just one step away
                   </span>
                   <span className="text-small text-pay-body break-all">
                     {address ?? `your own address on ${domainLabel}`}
@@ -491,6 +527,7 @@ export function PublishBanner({
                 </>
               )}
             </button>
+            <MoneyBack />
           </div>
         ) : !open ? (
           <div className="animate-rise-in flex flex-col gap-3">

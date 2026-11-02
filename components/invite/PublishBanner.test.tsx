@@ -68,7 +68,7 @@ describe('PublishBanner', () => {
     expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('Total, paid once')).toBeInTheDocument();
     expect(screen.getByText(/nothing is charged/)).toBeInTheDocument();
-    expect(screen.queryByText(/refund/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/Full refund within 7 days/).length).toBeGreaterThan(0);
     const button = screen.getByRole('button', { name: 'Publish our invite' });
     const methods = screen.getByRole('list', { name: 'Ways to pay' });
     expect(button.compareDocumentPosition(methods) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -90,7 +90,9 @@ describe('PublishBanner', () => {
 
   it('is a short bar that stays short at the foot of the page, and opens on a drag up', () => {
     const { publish } = renderBanner();
-    expect(screen.getByText('Create your personal wedding website')).toBeInTheDocument();
+    expect(
+      screen.getByText('Your personal wedding website is just one step away'),
+    ).toBeInTheDocument();
     expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('75% OFF')).toBeInTheDocument();
     act(() => {
@@ -209,6 +211,11 @@ describe('PublishBanner modes', () => {
     expect(button).toHaveTextContent('Make it live');
     expect(button).toHaveTextContent('₹1,999');
     expect(button).toHaveTextContent('75% OFF');
+  });
+
+  it('promises the 7-day refund under the short bar button', () => {
+    renderMode('live');
+    expect(screen.getByText('7-day full refund — no questions asked')).toBeInTheDocument();
   });
 
   it('says what the couple gets right after paying', () => {
