@@ -14,6 +14,7 @@ import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
 import {
+  MONEY_BACK_DAYS,
   PAPER_CARDS,
   PAYMENT_METHODS,
   percentOffStruck,
@@ -44,8 +45,9 @@ import { cn } from '@/lib/utils';
  * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
  * tokens). Only the couple's names keep the invite's serif. Every claim on it
  * is true today: the price is `PRICE_FROM_RUPEES` (passed in), and the
- * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No star ratings, no couple counts and no refund
- * promise (the product owner removed it, 2026-10-16). Next to the pay button
+ * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No star ratings and no couple counts. The
+ * money-back line is the refund policy's own promise, `MONEY_BACK_DAYS`
+ * (the product owner, 2026-11-02). Next to the pay button
  * (the product owner, 2026-10-31): up to two real couple reviews from the
  * admin's Home page list (quote and names only), "Free date change once"
  * (the refund policy), "Share with family" and a WhatsApp link to ask before
@@ -167,13 +169,17 @@ function PaymentMethods() {
  * The small promises at the foot of the sheet and the checkout, in the
  * product owner's words and emoji (their choice over the "no emoji" rule,
  * 2026-10-16). Each line is true today: links open at once, the invite shows
- * no ads, and the terms keep it live until 12 months after the wedding.
+ * no ads, the refund policy gives a full refund for `MONEY_BACK_DAYS` days
+ * after paying, and the terms keep it live until 12 months after the wedding.
  * "Secure payment" shows only once payment is live.
  */
 function TrustLines({ live }: { live: boolean }) {
   return (
     <div className="text-small text-pay-muted flex flex-col items-center gap-1 text-center">
       <p>{live && '🔒 Secure payment · '}⚡ Instant link · 💛 No ads</p>
+      <p className="text-pay-ink font-semibold">
+        💸 Don&rsquo;t like it? Full refund within {MONEY_BACK_DAYS} days
+      </p>
       <p>🔁 Free date change once · 📅 Live until 12 months after your wedding</p>
       <p>Made with love in India 🇮🇳</p>
     </div>

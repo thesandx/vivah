@@ -68,7 +68,7 @@ describe('PublishBanner', () => {
     expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
     expect(screen.getByText('Total, paid once')).toBeInTheDocument();
     expect(screen.getByText(/nothing is charged/)).toBeInTheDocument();
-    expect(screen.queryByText(/refund/i)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/Full refund within 7 days/).length).toBeGreaterThan(0);
     const button = screen.getByRole('button', { name: 'Publish our invite' });
     const methods = screen.getByRole('list', { name: 'Ways to pay' });
     expect(button.compareDocumentPosition(methods) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();

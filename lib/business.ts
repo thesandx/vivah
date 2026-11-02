@@ -28,8 +28,15 @@ export const BUSINESS = {
   /** What we sell, in one line. The footer prints it for the payment provider. */
   natureOfService: 'Digital invitation service. No physical products are shipped.',
   /** The date the policy pages last changed, `YYYY-MM-DD`. */
-  policiesUpdated: '2026-10-30',
+  policiesUpdated: '2026-11-02',
 } as const;
+
+/**
+ * How many days after paying a couple may ask for a full refund, for any
+ * reason (the product owner, 2026-11-02). The refund policy and the pay
+ * sheet both read it, so the two never disagree.
+ */
+export const MONEY_BACK_DAYS = 7;
 
 /**
  * Our public social profiles. The footer links them, and the home page's

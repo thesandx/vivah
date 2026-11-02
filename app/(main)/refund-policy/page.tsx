@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 
 import { PolicyPage } from '@/components/legal/PolicyPage';
 import { SupportContacts } from '@/components/legal/SupportContacts';
+import { MONEY_BACK_DAYS } from '@/lib/business';
 
 /** `GET /refund-policy` — refunds and cancellation, from the PRD's draft. */
 
@@ -18,7 +19,14 @@ const CASES: ReadonlyArray<{ situation: string; refund: string }> = [
     situation: 'Our site was down or broken and you could not use the invite in time',
     refund: 'Full refund',
   },
-  { situation: 'You paid, then changed your mind', refund: 'No refund' },
+  {
+    situation: `You do not like your invite, and you ask within ${MONEY_BACK_DAYS} days of paying`,
+    refund: 'Full refund, for any reason',
+  },
+  {
+    situation: `You change your mind more than ${MONEY_BACK_DAYS} days after paying`,
+    refund: 'No refund',
+  },
   {
     situation: 'Wedding postponed or cancelled',
     refund: 'No refund; we change the date for you, free, once',
@@ -32,8 +40,9 @@ export default function RefundPolicyPage() {
       title="Refund and cancellation policy"
       summary={
         <p>
-          You see your invite before you pay, so we do not refund a change of mind. If something
-          goes wrong on our side, you get your money back.
+          Do not like your invite? Ask within {MONEY_BACK_DAYS} days of paying and we refund you in
+          full, for any reason. If something goes wrong on our side, you get your money back at any
+          time.
         </p>
       }
     >
@@ -50,9 +59,9 @@ export default function RefundPolicyPage() {
       <section>
         <h2>How to ask</h2>
         <p>
-          Send us your UPI reference or your invite link. We reply within 48 hours. An approved
-          refund goes back to the original payment method within 5 to 7 working days, depending on
-          your bank.
+          Send us your UPI reference or your invite link. We reply within 48 hours. When we refund a
+          change of mind, we take your invite offline on the same day. An approved refund goes back
+          to the original payment method within 5 to 7 working days, depending on your bank.
         </p>
         <SupportContacts />
       </section>
