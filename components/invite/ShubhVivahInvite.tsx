@@ -106,7 +106,7 @@ export interface ShubhVivahInviteProps {
    */
   families?: WeddingFamilies | undefined;
   /**
-   * Shri Ganesh and the Ganesh shloka, or Bhagwan Mahaveer and the Jain
+   * Shri Ganesh and the Ganesh shloka, or the Jain Prateek and the Jain
    * Mangal shloka for a Jain family (`lib/invite-openings.ts`). Default: Ganesh.
    */
   opening?: InviteOpening | undefined;
@@ -114,16 +114,29 @@ export interface ShubhVivahInviteProps {
 }
 
 /**
- * The picture in the mehrab arch. Shri Ganesh is square; Bhagwan Mahaveer,
- * seated under his chhatra, is taller, so he is drawn narrower to stand about
- * as high on the page.
+ * The picture in the mehrab arch: Shri Ganesh, or the Jain Prateek for a Jain
+ * family. The Prateek is tall and narrow, so it is drawn narrower to stand
+ * about as high on the page. It is an SVG, which the image optimiser leaves
+ * as it is (`unoptimized`).
  */
 const OPENING_PICTURE: Record<
   InviteOpening,
-  { src: string; width: number; height: number; className: string }
+  { src: string; width: number; height: number; className: string; vector: boolean }
 > = {
-  ganesh: { src: '/invite/ganesha.png', width: 480, height: 480, className: 'w-33' },
-  jain: { src: '/invite/mahaveer.webp', width: 457, height: 671, className: 'w-24' },
+  ganesh: {
+    src: '/invite/ganesha.png',
+    width: 480,
+    height: 480,
+    className: 'w-33',
+    vector: false,
+  },
+  jain: {
+    src: '/invite/jain-prateek.svg',
+    width: 387,
+    height: 651,
+    className: 'w-20',
+    vector: true,
+  },
 };
 
 const TOGETHERNESS = 'A lifetime of togetherness begins with one sacred step';
@@ -280,7 +293,7 @@ export function ShubhVivahInvite({
     <div className={cn('bg-jewel-maroon-deep flex flex-col', className)}>
       <article className="jewel-page flex-1">
         <PetalShower />
-        {/* Shri Ganesh (or Bhagwan Mahaveer) in the mehrab arch, over the names. */}
+        {/* Shri Ganesh (or the Jain Prateek) in the mehrab arch, over the names. */}
         <header data-preview-section="names" className="jewel-section jewel-bg-hero">
           <Jaali />
           <div className="relative">
@@ -291,6 +304,7 @@ export function ShubhVivahInvite({
                 width={picture.width}
                 height={picture.height}
                 priority
+                unoptimized={picture.vector}
                 className={cn('mx-auto mb-3.5 block h-auto', picture.className)}
               />
               {opener.om && (

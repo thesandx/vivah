@@ -101,7 +101,7 @@ export const weddingSchema = z.object({
    */
   nameOrder: z.enum(NAME_ORDERS).optional(),
   /**
-   * Shri Ganesh and the Ganesh shloka, or Bhagwan Mahaveer and the Jain
+   * Shri Ganesh and the Ganesh shloka, or the Jain Prateek and the Jain
    * Mangal shloka for a Jain family, at the top of the invite and on its gate card
    * (`lib/invite-openings.ts`). Only an admin sets it. Optional: absent
    * means Shri Ganesh, so no backfill.

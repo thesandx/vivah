@@ -22,7 +22,7 @@ import { getWeddingBySlug } from '@/services/wedding.service';
  * The artwork is one fixed picture, `public/invite/og-card.png`: the arch,
  * blossoms, lanterns, the couple (a licensed Vecteezy vector), the Ganesha
  * and "शुभ विवाह". A Jain family's invite (`opening: 'jain'`) uses
- * `og-card-jain.png` instead: the same card with Bhagwan Mahaveer in a cream
+ * `og-card-jain.png` instead: the same card with the Jain Prateek in a cream
  * medallion where the Ganesha stands. The renderer (satori) does not shape Devanagari, so the
  * Devanagari title is part of the picture, not text. Only the guest, the
  * names and the date are drawn here. The picture is a 256-colour PNG, which

@@ -1,4 +1,5 @@
 import { GANESHA_PATH, GANESHA_VIEWBOX } from '@/components/invite/ganesha-path';
+import { JAIN_PRATEEK_PATH, JAIN_PRATEEK_VIEWBOX } from '@/components/invite/jain-prateek-path';
 import { INVITE_OPENING_TEXT, type InviteOpening } from '@/lib/invite-openings';
 import { cn } from '@/lib/utils';
 
@@ -19,19 +20,19 @@ import { cn } from '@/lib/utils';
  * above the greeting that `InviteGate` lays over the foot. Decoration (`aria-hidden`): `InviteGate` names
  * the card for a screen reader.
  *
- * For a Jain family (`opening="jain"`) the same card shows Bhagwan Mahaveer,
- * seated in meditation, and "श्री महावीराय नमः". He is the cut-out picture
- * the invite uses, not a tracing: a one-colour silhouette loses his face.
+ * For a Jain family (`opening="jain"`) the same card shows the Jain Prateek,
+ * the symbol of the faith, and "श्री महावीराय नमः". It is a vector path
+ * too, traced from the product owner's picture, in the same colour.
  */
 
 export interface GaneshCoverProps {
-  /** Shri Ganesh, or Bhagwan Mahaveer for a Jain family. Default: Ganesh. */
+  /** Shri Ganesh, or the Jain Prateek for a Jain family. Default: Ganesh. */
   opening?: InviteOpening | undefined;
   className?: string;
 }
 
-/** Bhagwan Mahaveer's picture, as tall as Shri Ganesh's path, in the same place. */
-const MAHAVEER = { src: '/invite/mahaveer.webp', width: 201, height: 295 } as const;
+/** The Jain Prateek, as tall as Shri Ganesh's path, in the same place. */
+const PRATEEK_SCALE = GANESHA_VIEWBOX.height / JAIN_PRATEEK_VIEWBOX.height;
 
 const W = 400;
 const H = 720;
@@ -187,13 +188,12 @@ export function GaneshCover({
       </g>
 
       {opening === 'jain' ? (
-        /* Bhagwan Mahaveer. */
-        <image
-          href={MAHAVEER.src}
-          x={(W - MAHAVEER.width) / 2}
-          y="178"
-          width={MAHAVEER.width}
-          height={MAHAVEER.height}
+        /* The Jain Prateek. */
+        <path
+          d={JAIN_PRATEEK_PATH}
+          fill="var(--color-ganesh)"
+          fillRule="evenodd"
+          transform={`translate(${round((W - JAIN_PRATEEK_VIEWBOX.width * PRATEEK_SCALE) / 2)} 178) scale(${round(PRATEEK_SCALE * 1000) / 1000})`}
         />
       ) : (
         /* Shri Ganesh. */

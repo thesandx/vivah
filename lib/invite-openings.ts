@@ -1,6 +1,6 @@
 /**
  * How a couple's invite opens: with Shri Ganesh and the Ganesh shloka, as
- * every Hindu card does, or with Bhagwan Mahaveer and the Jain Mangal shloka
+ * every Hindu card does, or with the Jain Prateek and the Jain Mangal shloka
  * for a Jain family. The choice changes the gate card, the top of the invite and
  * the WhatsApp share card, and nothing else: the maroon-and-gold look stays.
  *
@@ -18,7 +18,7 @@ export const DEFAULT_INVITE_OPENING: InviteOpening = 'ganesh';
 /** What the choice is called on `/admin`. */
 export const INVITE_OPENING_LABELS: Record<InviteOpening, string> = {
   ganesh: 'Shri Ganesh, with the Ganesh shloka',
-  jain: 'Bhagwan Mahaveer, with the Jain Mangal shloka',
+  jain: 'Jain Prateek, with the Jain Mangal shloka',
 };
 
 export interface InviteOpeningText {

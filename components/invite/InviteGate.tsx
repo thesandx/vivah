@@ -57,7 +57,7 @@ export interface InviteGateProps {
   couple: string;
   /** The couple's song. The tap that opens the invite starts it. */
   song?: { name: string; src: string } | null;
-  /** Shri Ganesh on the card, or Bhagwan Mahaveer for a Jain family. Default: Ganesh. */
+  /** Shri Ganesh on the card, or the Jain Prateek for a Jain family. Default: Ganesh. */
   opening?: InviteOpening | undefined;
   /** Pinned to the top of the screen at every phase, over the card too. */
   top?: React.ReactNode;
