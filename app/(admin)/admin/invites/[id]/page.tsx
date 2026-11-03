@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import {
   changeWeddingAddressAction,
   changeWeddingNameOrderAction,
+  changeWeddingOpeningAction,
   changeWeddingPhoneAction,
   changeWeddingSongAction,
   createGuestLinkAsAdminAction,
@@ -44,6 +45,7 @@ import { whatsAppChatUrl } from '@/lib/business';
 import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { inviteOrigin } from '@/lib/invite-meta';
+import { INVITE_OPENING_LABELS, INVITE_OPENINGS } from '@/lib/invite-openings';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref, inviteUrl } from '@/lib/site-host';
@@ -56,7 +58,7 @@ import { listSongOptions } from '@/services/wedding-songs.service';
 
 /**
  * `GET /admin/invites/<wedding id>` — one invite, and everything the admin can
- * do to it: edit the details, the name order, the families, the functions,
+ * do to it: edit the details, the name order, the opening, the families, the functions,
  * the song, the guest links, the vivah.online credit and the Edit details link,
  * change the number or the address, make it unavailable,
  * delete (which frees the address), restore at any free address, and send
@@ -222,6 +224,31 @@ export default async function AdminInvitePage({
                     label: `${NAME_ORDER_LABELS[order]}: ${coupleNames({ ...wedding, nameOrder: order })}`,
                   }))}
                   defaultValue={wedding.nameOrder ?? 'bride-first'}
+                />
+              </AdminActionForm>
+            </Card>
+          )}
+
+          {!deleted && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Opening</h2>
+              <p className="text-small text-ink-soft">
+                The picture and the prayer at the top of the invite and on its opening card. Choose
+                Jain for a Jain family: Bhagwan Mahaveer and the Navkar Mantra. The preview it was
+                paid from changes too.
+              </p>
+              <AdminActionForm
+                action={changeWeddingOpeningAction.bind(null, wedding.id)}
+                label="Save opening"
+              >
+                <RadioGroup
+                  label="Opens with"
+                  name="opening"
+                  options={INVITE_OPENINGS.map((opening) => ({
+                    value: opening,
+                    label: INVITE_OPENING_LABELS[opening],
+                  }))}
+                  defaultValue={wedding.opening ?? 'ganesh'}
                 />
               </AdminActionForm>
             </Card>

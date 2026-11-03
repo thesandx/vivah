@@ -12,6 +12,7 @@ import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { parseGuestName } from '@/lib/guest-name';
 import { inviteCard, inviteMetadata, type InviteMetaInput } from '@/lib/invite-meta';
+import { DEFAULT_INVITE_OPENING, type InviteOpening } from '@/lib/invite-openings';
 import type { LinkPreviewCard } from '@/lib/link-preview-page';
 import { isSampleSlug, SAMPLE_RSVP_MESSAGE, sampleWedding } from '@/lib/sample-invite';
 import { editDetailsUrl, inviteDomainLabel, madeByUrl } from '@/lib/site-host';
@@ -46,6 +47,8 @@ interface Invite {
   families: WeddingFamilies | undefined;
   song: { name: string; src: string } | null;
   unavailable: boolean;
+  /** Shri Ganesh, or Bhagwan Mahaveer for a Jain family. */
+  opening: InviteOpening;
   /** The couple asked us to hide the "Made with ♥ by vivah.online" credit. */
   hideCredit: boolean;
   /** The couple asked us to hide the "Your wedding? Edit details" link. */
@@ -71,6 +74,7 @@ function fromWedding(wedding: WeddingDocument, song: Invite['song']): Invite {
     families: wedding.families,
     song,
     unavailable: wedding.status === 'unavailable',
+    opening: wedding.opening ?? DEFAULT_INVITE_OPENING,
     hideCredit: wedding.hideCredit === true,
     hideEditLink: wedding.hideEditLink === true,
     sample: false,
@@ -94,6 +98,7 @@ async function sampleInvite(slug: string): Promise<Invite> {
     rsvpPhoneE164: BUSINESS.whatsAppE164,
     song,
     unavailable: false,
+    opening: DEFAULT_INVITE_OPENING,
     hideCredit: false,
     hideEditLink: false,
     sample: true,
@@ -192,7 +197,12 @@ export async function CoupleInvite({
 
   return (
     <>
-      <InviteGate guestName={guestName} couple={coupleNames(wedding)} song={wedding.song}>
+      <InviteGate
+        guestName={guestName}
+        couple={coupleNames(wedding)}
+        song={wedding.song}
+        opening={wedding.opening}
+      >
         {/* Full width, not PageShell: the petals run edge to edge, and the
           invite narrows its own text column. */}
         <main className="flex flex-1 flex-col">
@@ -210,6 +220,7 @@ export async function CoupleInvite({
             {...(wedding.sample && { rsvpMessage: SAMPLE_RSVP_MESSAGE })}
             functions={wedding.functions}
             families={wedding.families}
+            opening={wedding.opening}
             madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
             hideCredit={wedding.hideCredit}
             {...(!wedding.sample &&

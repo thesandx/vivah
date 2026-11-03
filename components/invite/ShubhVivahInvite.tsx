@@ -8,6 +8,7 @@ import { SaveTheDateCards } from '@/components/invite/SaveTheDateCards';
 import { WeddingFestivities } from '@/components/invite/WeddingFestivities';
 import { type NameOrder, orderedNames } from '@/lib/couple-names';
 import { displayPhone, isGoogleMapsUrl, rsvpWhatsAppUrl } from '@/lib/invite-contact';
+import { INVITE_OPENING_TEXT, type InviteOpening } from '@/lib/invite-openings';
 import { cn } from '@/lib/utils';
 import {
   addToCalendarUrl,
@@ -104,19 +105,26 @@ export interface ShubhVivahInviteProps {
    * the festivities. The preview's placeholders follow `venuePlaceholder`.
    */
   families?: WeddingFamilies | undefined;
+  /**
+   * Shri Ganesh and the Ganesh shloka, or Bhagwan Mahaveer and the Navkar
+   * Mantra for a Jain family (`lib/invite-openings.ts`). Default: Ganesh.
+   */
+  opening?: InviteOpening | undefined;
   className?: string;
 }
 
 /**
- * The Ganesh shloka every offline card opens with: "O Lord Ganesha, of the
- * curved trunk and mighty body, as bright as a million suns, remove every
- * obstacle from all my work, always."
+ * The picture in the mehrab arch. Shri Ganesh is square; Bhagwan Mahaveer,
+ * seated under his chhatra, is taller, so he is drawn narrower to stand about
+ * as high on the page.
  */
-const SHLOKA = [
-  '॥ श्री गणेशाय नमः ॥',
-  'वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ ।',
-  'निर्विघ्नं कुरु मे देव सर्वकार्येषु सर्वदा ॥',
-] as const;
+const OPENING_PICTURE: Record<
+  InviteOpening,
+  { src: string; width: number; height: number; className: string }
+> = {
+  ganesh: { src: '/invite/ganesha.png', width: 480, height: 480, className: 'w-33' },
+  jain: { src: '/invite/mahaveer.webp', width: 457, height: 671, className: 'w-24' },
+};
 
 const TOGETHERNESS = 'A lifetime of togetherness begins with one sacred step';
 
@@ -240,8 +248,11 @@ export function ShubhVivahInvite({
   venuePlaceholder = false,
   functions = [],
   families,
+  opening = 'ganesh',
   className,
 }: ShubhVivahInviteProps) {
+  const picture = OPENING_PICTURE[opening];
+  const opener = INVITE_OPENING_TEXT[opening];
   const [first, second] = orderedNames({ bride, groom, nameOrder });
   const mapsUrl = venueMapsUrl !== null && isGoogleMapsUrl(venueMapsUrl) ? venueMapsUrl : null;
   const parts = weddingDate === null ? null : weddingDateParts(weddingDate);
@@ -269,24 +280,24 @@ export function ShubhVivahInvite({
     <div className={cn('bg-jewel-maroon-deep flex flex-col', className)}>
       <article className="jewel-page flex-1">
         <PetalShower />
-        {/* Shri Ganesh in the mehrab arch, over the couple's names. */}
+        {/* Shri Ganesh (or Bhagwan Mahaveer) in the mehrab arch, over the names. */}
         <header data-preview-section="names" className="jewel-section jewel-bg-hero">
           <Jaali />
           <div className="relative">
             <div className="jewel-arch">
               <Image
-                src="/invite/ganesha.png"
+                src={picture.src}
                 alt=""
-                width={480}
-                height={480}
+                width={picture.width}
+                height={picture.height}
                 priority
-                className="mx-auto mb-3.5 block h-auto w-33"
+                className={cn('mx-auto mb-3.5 block h-auto', picture.className)}
               />
               <p lang="sa" className="jewel-om" aria-hidden="true">
                 ॥ ॐ ॥
               </p>
-              <p lang="sa" className="jewel-shloka flex flex-col">
-                {SHLOKA.map((line) => (
+              <p lang={opener.lang} className="jewel-shloka flex flex-col">
+                {opener.lines.map((line) => (
                   <span key={line}>{line}</span>
                 ))}
               </p>

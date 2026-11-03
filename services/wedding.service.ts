@@ -9,6 +9,7 @@ import { NAME_ORDERS } from '@/lib/couple-names';
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
 import { capitalizeName } from '@/lib/guest-name';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
+import { INVITE_OPENINGS } from '@/lib/invite-openings';
 import { phoneHintDigits } from '@/lib/phone';
 import { canEditWedding, parseWeddingDetails, type WeddingDetails } from '@/lib/wedding-details';
 import { type WeddingFamilies, weddingFamiliesSchema } from '@/lib/wedding-families';
@@ -99,6 +100,13 @@ export const weddingSchema = z.object({
    * The slug never follows it: links already shared must keep working.
    */
   nameOrder: z.enum(NAME_ORDERS).optional(),
+  /**
+   * Shri Ganesh and the Ganesh shloka, or Bhagwan Mahaveer and the Navkar
+   * Mantra for a Jain family, at the top of the invite and on its gate card
+   * (`lib/invite-openings.ts`). Only an admin sets it. Optional: absent
+   * means Shri Ganesh, so no backfill.
+   */
+  opening: z.enum(INVITE_OPENINGS).optional(),
   /**
    * The grandparents' and parents' names on each side, for the invite's
    * "Our Families" section. Added from the dashboard or `/admin` after
@@ -403,6 +411,7 @@ export function writePublish(
     ...(lead.functions !== undefined &&
       lead.functions.length > 0 && { functions: lead.functions.map(emptyFunction) }),
     ...(lead.nameOrder !== undefined && { nameOrder: lead.nameOrder }),
+    ...(lead.opening !== undefined && { opening: lead.opening }),
   });
   slugClaims
     .inTransaction(tx)

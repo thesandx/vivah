@@ -17,6 +17,7 @@ import type { UploadStart } from '@/hooks/useImageUpload';
 import { parseNameOrder } from '@/lib/couple-names';
 import { parseDemoUploadKind, parseSiteVideoSlot } from '@/lib/demo-video';
 import { parseStep } from '@/lib/how-it-works';
+import { parseInviteOpening } from '@/lib/invite-openings';
 import { parseLeadTag } from '@/lib/lead-tags';
 import { logger } from '@/lib/logger';
 import { toE164 } from '@/lib/phone';
@@ -29,9 +30,11 @@ import {
   type AdminResult,
   changePreviewFunctions,
   changePreviewNameOrder,
+  changePreviewOpening,
   changePreviewSong,
   changeWeddingAddress,
   changeWeddingNameOrder,
+  changeWeddingOpening,
   changeWeddingPhone,
   changeWeddingSong,
   createGuestLinkAsAdmin,
@@ -225,6 +228,28 @@ export async function changePreviewNameOrderAction(
   const nameOrder = parseNameOrder(text(form, 'nameOrder'));
   if (nameOrder === null) return { status: 'error', message: 'Choose whose name comes first.' };
   return run('preview-name-order', id, (uid) => changePreviewNameOrder(id, nameOrder, uid));
+}
+
+/** Sets how a preview opens (Ganesh or Jain), and its live invite when paid. */
+export async function changePreviewOpeningAction(
+  id: string,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const opening = parseInviteOpening(text(form, 'opening'));
+  if (opening === null) return { status: 'error', message: 'Choose how the invite opens.' };
+  return run('preview-opening', id, (uid) => changePreviewOpening(id, opening, uid));
+}
+
+/** Sets how a live invite opens (Ganesh or Jain), and its preview too. */
+export async function changeWeddingOpeningAction(
+  id: string,
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const opening = parseInviteOpening(text(form, 'opening'));
+  if (opening === null) return { status: 'error', message: 'Choose how the invite opens.' };
+  return run('wedding-opening', id, (uid) => changeWeddingOpening(id, opening, uid));
 }
 
 /** Sets whose name a live invite shows first, and its preview's too. */

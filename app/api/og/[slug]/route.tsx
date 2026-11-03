@@ -6,6 +6,7 @@ import { ImageResponse } from 'next/og';
 import { orderedNames } from '@/lib/couple-names';
 import { parseGuestName } from '@/lib/guest-name';
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from '@/lib/invite-meta';
+import { type InviteOpening } from '@/lib/invite-openings';
 import { drawableInLatinFonts, INVITE_PALETTE } from '@/lib/invite-palette';
 import { logger } from '@/lib/logger';
 import { isSampleSlug, sampleWedding } from '@/lib/sample-invite';
@@ -20,7 +21,9 @@ import { getWeddingBySlug } from '@/services/wedding.service';
  *
  * The artwork is one fixed picture, `public/invite/og-card.png`: the arch,
  * blossoms, lanterns, the couple (a licensed Vecteezy vector), the Ganesha
- * and "शुभ विवाह". The renderer (satori) does not shape Devanagari, so the
+ * and "शुभ विवाह". A Jain family's invite (`opening: 'jain'`) uses
+ * `og-card-jain.png` instead: the same card with Bhagwan Mahaveer in a cream
+ * medallion where the Ganesha stands. The renderer (satori) does not shape Devanagari, so the
  * Devanagari title is part of the picture, not text. Only the guest, the
  * names and the date are drawn here. The picture is a 256-colour PNG, which
  * keeps the whole card under WhatsApp's ~300 KB limit for a large preview.
@@ -44,7 +47,7 @@ const CARD = {
 const TEXT_BOX = { left: 230, top: 300, width: 620 } as const;
 
 interface CardAssets {
-  art: string;
+  art: Record<InviteOpening, string>;
   regular: Buffer;
   bold: Buffer;
   heavy: Buffer;
@@ -58,12 +61,16 @@ function loadAssets(): Promise<CardAssets> {
   const font = (file: string): Promise<Buffer> => readFile(join(pub, 'fonts', file));
   assets ??= Promise.all([
     readFile(join(pub, 'invite', 'og-card.png')),
+    readFile(join(pub, 'invite', 'og-card-jain.png')),
     font('martel-400.woff'),
     font('martel-700.woff'),
     font('martel-800.woff'),
   ])
-    .then(([art, regular, bold, heavy]) => ({
-      art: `data:image/png;base64,${art.toString('base64')}`,
+    .then(([ganesh, jain, regular, bold, heavy]) => ({
+      art: {
+        ganesh: `data:image/png;base64,${ganesh.toString('base64')}`,
+        jain: `data:image/png;base64,${jain.toString('base64')}`,
+      },
       regular,
       bold,
       heavy,
@@ -120,7 +127,7 @@ export async function GET(
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- satori draws a plain img, not next/image */}
         <img
-          src={art}
+          src={art['opening' in wedding && wedding.opening === 'jain' ? 'jain' : 'ganesh']}
           alt=""
           width={OG_IMAGE_WIDTH}
           height={OG_IMAGE_HEIGHT}

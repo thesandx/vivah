@@ -44,6 +44,15 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getByText('invite you to our wedding')).toBeInTheDocument();
   });
 
+  it('opens with Bhagwan Mahaveer and the Navkar Mantra for a Jain family', () => {
+    const { container } = render(<ShubhVivahInvite {...full} opening="jain" />);
+    expect(screen.getByText('॥ श्री महावीराय नमः ॥')).toBeInTheDocument();
+    expect(screen.getByText('णमो अरिहंताणं')).toBeInTheDocument();
+    expect(screen.getByText('णमो लोए सव्व साहूणं')).toBeInTheDocument();
+    expect(screen.queryByText('॥ श्री गणेशाय नमः ॥')).toBeNull();
+    expect(container.querySelector('img')?.getAttribute('src')).toContain('mahaveer');
+  });
+
   it('hides the date under three scratch cards', () => {
     render(<ShubhVivahInvite {...full} />);
     const section = screen.getByRole('region', { name: 'Save the date' });

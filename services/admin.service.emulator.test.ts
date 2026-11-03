@@ -5,9 +5,11 @@ import { describe, expect, it } from 'vitest';
 import { SONGS_DOC_ID } from '@/lib/wedding-songs';
 import {
   changePreviewNameOrder,
+  changePreviewOpening,
   changePreviewSong,
   changeWeddingAddress,
   changeWeddingNameOrder,
+  changeWeddingOpening,
   changeWeddingSong,
   deleteLead,
   deleteWedding,
@@ -340,6 +342,19 @@ describeEmulator('admin operations (emulator)', () => {
     expect(wedding?.slug).toBe(slug);
     expect(await auditFor(leadId)).toContain('preview-name-order-changed');
   });
+
+  it('sets the Jain opening on a preview and its live invite, and back on the invite', async () => {
+    const { weddingId, leadId, slug } = await published();
+    expect((await changePreviewOpening(leadId, 'jain', ADMIN)).ok).toBe(true);
+    expect((await leads.getOrThrow(leadId)).opening).toBe('jain');
+    expect((await getWeddingBySlug(slug))?.opening).toBe('jain');
+    expect((await changeWeddingOpening(weddingId, 'ganesh', ADMIN)).ok).toBe(true);
+    expect((await getWeddingBySlug(slug))?.opening).toBe('ganesh');
+    expect((await leads.getOrThrow(leadId)).opening).toBe('ganesh');
+    expect(await auditFor(leadId)).toContain('preview-opening-changed');
+    expect(await auditFor(weddingId)).toContain('wedding-opening-changed');
+  });
+
   it('erases test rows for good, and never a live invite or its preview', async () => {
     const live = await published();
     const gone = await published();

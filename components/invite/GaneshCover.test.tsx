@@ -16,4 +16,11 @@ describe('GaneshCover', () => {
     expect(svg).toHaveAttribute('preserveAspectRatio', 'xMidYMid slice');
     expect(container.querySelector('img, image')).toBeNull();
   });
+
+  it('shows Bhagwan Mahaveer and his salutation for a Jain family', () => {
+    const { container } = render(<GaneshCover opening="jain" />);
+    expect(screen.getByText('श्री महावीराय नमः').tagName.toLowerCase()).toBe('text');
+    expect(screen.queryByText('श्री गणेशाय नमः')).toBeNull();
+    expect(container.querySelector('image')).toHaveAttribute('href', '/invite/mahaveer.webp');
+  });
 });
