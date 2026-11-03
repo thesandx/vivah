@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation';
 import {
   changePreviewFunctionsAction,
   changePreviewNameOrderAction,
+  changePreviewOpeningAction,
   changePreviewSongAction,
   deleteLeadAction,
   makePreviewLiveAction,
@@ -32,6 +33,7 @@ import { whatsAppChatUrl } from '@/lib/business';
 import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { followUpMessage } from '@/lib/follow-up-message';
+import { INVITE_OPENING_LABELS, INVITE_OPENINGS } from '@/lib/invite-openings';
 import {
   LEAD_TAG_LABELS,
   LEAD_TAGS,
@@ -468,6 +470,31 @@ export default async function AdminPreviewPage({
                     label: `${NAME_ORDER_LABELS[order]}: ${coupleNames({ ...couple, nameOrder: order })}`,
                   }))}
                   defaultValue={nameOrder ?? 'bride-first'}
+                />
+              </AdminActionForm>
+            </Card>
+          )}
+
+          {lead.deletedAt === null && (
+            <Card className="flex flex-col gap-4">
+              <h2 className="text-heading">Opening</h2>
+              <p className="text-small text-ink-soft">
+                The picture and the prayer at the top of the invite and on its opening card. Choose
+                Jain for a Jain family: the Jain Prateek and the Jain Mangal shloka.
+                {wedding !== null && ' The couple has paid, so the live invite changes too.'}
+              </p>
+              <AdminActionForm
+                action={changePreviewOpeningAction.bind(null, lead.id)}
+                label="Save opening"
+              >
+                <RadioGroup
+                  label="Opens with"
+                  name="opening"
+                  options={INVITE_OPENINGS.map((opening) => ({
+                    value: opening,
+                    label: INVITE_OPENING_LABELS[opening],
+                  }))}
+                  defaultValue={wedding?.opening ?? lead.opening ?? 'ganesh'}
                 />
               </AdminActionForm>
             </Card>

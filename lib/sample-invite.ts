@@ -30,7 +30,7 @@ import { z } from 'zod';
 
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import type { WeddingFamilies } from '@/lib/wedding-families';
-import { FUNCTION_KINDS, type FunctionKind, type WeddingFunction } from '@/lib/wedding-functions';
+import { type FunctionKind, type WeddingFunction } from '@/lib/wedding-functions';
 
 /** The sample's address: `priya-rahul.vivah.online`. */
 export const SAMPLE_SLUG = 'priya-rahul';
@@ -140,6 +140,20 @@ export const sampleVenuesSchema = z.object({
   }),
 });
 
+/**
+ * The functions the sample couple has: the five every invite offered first.
+ * The ring ceremony and dev darshan stay off the sample, so its timeline and
+ * the admin's venue form keep their size.
+ */
+export const SAMPLE_FUNCTION_KINDS = [
+  'tilak',
+  'haldi',
+  'mehndi',
+  'sangeet',
+  'reception',
+] as const satisfies readonly FunctionKind[];
+export type SampleFunctionKind = (typeof SAMPLE_FUNCTION_KINDS)[number];
+
 export type SampleVenues = z.infer<typeof sampleVenuesSchema>;
 
 /** The venues before the admin changes them: one invented Delhi venue. */
@@ -173,7 +187,7 @@ export function parseSampleVenuesForm(form: FormData): SampleVenuesParse {
     return typeof value === 'string' ? value : '';
   };
   const functions = Object.fromEntries(
-    FUNCTION_KINDS.map((kind) => [
+    SAMPLE_FUNCTION_KINDS.map((kind) => [
       kind,
       {
         venue: text(functionVenueField(kind, 'venue')),
@@ -200,7 +214,7 @@ export function parseSampleVenuesForm(form: FormData): SampleVenuesParse {
 }
 
 /** When each function happens, in days from the wedding day and `HH:MM`. */
-const FUNCTION_TIMES: Record<FunctionKind, { day: number; time: string }> = {
+const FUNCTION_TIMES: Record<SampleFunctionKind, { day: number; time: string }> = {
   tilak: { day: -2, time: '11:00' },
   haldi: { day: -1, time: '10:00' },
   mehndi: { day: -1, time: '15:30' },
@@ -225,7 +239,7 @@ export function sampleWedding(
     venueName: venues.venueName,
     venueCity: venues.venueCity,
     venueMapsUrl: venues.venueMapsUrl,
-    functions: FUNCTION_KINDS.map((kind) => ({
+    functions: SAMPLE_FUNCTION_KINDS.map((kind) => ({
       kind,
       date: addDays(weddingDate, FUNCTION_TIMES[kind].day),
       time: FUNCTION_TIMES[kind].time,

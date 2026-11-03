@@ -1365,6 +1365,16 @@
   }
 }
 
+@utility jewel-fn-ring {
+  --fn: #1f4e9c;
+  --fn-hi: #5a8ef0;
+}
+
+@utility jewel-fn-darshan {
+  --fn: #c25a00;
+  --fn-hi: #ff9e1b;
+}
+
 @utility jewel-fn-tilak {
   --fn: #c8102e;
   --fn-hi: #ff5a3c;

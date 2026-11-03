@@ -1,4 +1,6 @@
 import { GANESHA_PATH, GANESHA_VIEWBOX } from '@/components/invite/ganesha-path';
+import { JAIN_PRATEEK_PATH, JAIN_PRATEEK_VIEWBOX } from '@/components/invite/jain-prateek-path';
+import { INVITE_OPENING_TEXT, type InviteOpening } from '@/lib/invite-openings';
 import { cn } from '@/lib/utils';
 
 /**
@@ -17,11 +19,20 @@ import { cn } from '@/lib/utils';
  * and the foot. Nothing that matters sits near an edge, and the shloka sits
  * above the greeting that `InviteGate` lays over the foot. Decoration (`aria-hidden`): `InviteGate` names
  * the card for a screen reader.
+ *
+ * For a Jain family (`opening="jain"`) the same card shows the Jain Prateek,
+ * the symbol of the faith, and "श्री महावीराय नमः". It is a vector path
+ * too, traced from the product owner's picture, in the same colour.
  */
 
 export interface GaneshCoverProps {
+  /** Shri Ganesh, or the Jain Prateek for a Jain family. Default: Ganesh. */
+  opening?: InviteOpening | undefined;
   className?: string;
 }
+
+/** The Jain Prateek, as tall as Shri Ganesh's path, in the same place. */
+const PRATEEK_SCALE = GANESHA_VIEWBOX.height / JAIN_PRATEEK_VIEWBOX.height;
 
 const W = 400;
 const H = 720;
@@ -89,7 +100,10 @@ function Marigold({ x, y }: { x: number; y: number }): React.JSX.Element {
   );
 }
 
-export function GaneshCover({ className }: GaneshCoverProps): React.JSX.Element {
+export function GaneshCover({
+  opening = 'ganesh',
+  className,
+}: GaneshCoverProps): React.JSX.Element {
   const ganeshScale = 1;
   const ganeshX = (W - GANESHA_VIEWBOX.width * ganeshScale) / 2;
   return (
@@ -173,13 +187,23 @@ export function GaneshCover({ className }: GaneshCoverProps): React.JSX.Element 
         <rect width={W} height={H} fill="url(#ganesh-cover-lattice)" />
       </g>
 
-      {/* Shri Ganesh. */}
-      <path
-        d={GANESHA_PATH}
-        fill="var(--color-ganesh)"
-        fillRule="evenodd"
-        transform={`translate(${round(ganeshX)} 178) scale(${ganeshScale})`}
-      />
+      {opening === 'jain' ? (
+        /* The Jain Prateek. */
+        <path
+          d={JAIN_PRATEEK_PATH}
+          fill="var(--color-ganesh)"
+          fillRule="evenodd"
+          transform={`translate(${round((W - JAIN_PRATEEK_VIEWBOX.width * PRATEEK_SCALE) / 2)} 178) scale(${round(PRATEEK_SCALE * 1000) / 1000})`}
+        />
+      ) : (
+        /* Shri Ganesh. */
+        <path
+          d={GANESHA_PATH}
+          fill="var(--color-ganesh)"
+          fillRule="evenodd"
+          transform={`translate(${round(ganeshX)} 178) scale(${ganeshScale})`}
+        />
+      )}
       <text
         x={CX}
         y="532"
@@ -189,7 +213,7 @@ export function GaneshCover({ className }: GaneshCoverProps): React.JSX.Element 
         fontWeight="700"
         className="font-weighted"
       >
-        श्री गणेशाय नमः
+        {INVITE_OPENING_TEXT[opening].coverTitle}
       </text>
 
       {/* The lotus at the foot, rising from the bottom edge. */}

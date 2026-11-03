@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { GaneshCover } from '@/components/invite/GaneshCover';
 import { SoundButton } from '@/components/invite/SoundButton';
 import { usePreviewTracking } from '@/hooks/usePreviewTracking';
+import { type InviteOpening } from '@/lib/invite-openings';
 import { cn } from '@/lib/utils';
 
 /**
@@ -56,6 +57,8 @@ export interface InviteGateProps {
   couple: string;
   /** The couple's song. The tap that opens the invite starts it. */
   song?: { name: string; src: string } | null;
+  /** Shri Ganesh on the card, or the Jain Prateek for a Jain family. Default: Ganesh. */
+  opening?: InviteOpening | undefined;
   /** Pinned to the top of the screen at every phase, over the card too. */
   top?: React.ReactNode;
   /** Pinned to the bottom of the screen once the invite is open. */
@@ -85,6 +88,7 @@ export function InviteGate({
   guestName,
   couple,
   song = null,
+  opening: inviteOpening,
   top,
   dock,
   children,
@@ -282,7 +286,10 @@ export function InviteGate({
             )}
           >
             <span className="block size-full md:animate-card-bob md:flex md:items-center md:justify-center">
-              <GaneshCover className="size-full md:rounded-input md:overflow-hidden md:aspect-5/9 md:h-full md:max-h-full md:w-auto md:max-w-full" />
+              <GaneshCover
+                opening={inviteOpening}
+                className="size-full md:rounded-input md:overflow-hidden md:aspect-5/9 md:h-full md:max-h-full md:w-auto md:max-w-full"
+              />
             </span>
           </span>
 

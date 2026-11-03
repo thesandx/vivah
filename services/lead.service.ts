@@ -8,6 +8,7 @@ import { NAME_ORDERS } from '@/lib/couple-names';
 import { nameOrderFromSlug } from '@/lib/couple-slug';
 import { appliedCouponSchema } from '@/lib/coupons';
 import { capitalizeName } from '@/lib/guest-name';
+import { INVITE_OPENINGS } from '@/lib/invite-openings';
 import type { LeadRequest } from '@/lib/lead-schema';
 import { LEAD_TAGS } from '@/lib/lead-tags';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
@@ -128,6 +129,14 @@ export const leadSchema = z.object({
    * absent means the bride's name first (`lib/couple-names.ts`).
    */
   nameOrder: z.enum(NAME_ORDERS).optional(),
+  /**
+   * Shri Ganesh and the Ganesh shloka, or the Jain Prateek and the Jain
+   * Mangal shloka for a Jain family, at the top of the invite and on its gate card
+   * (`lib/invite-openings.ts`). Only an admin sets it. Publishing copies it to
+   * the wedding. Optional: absent
+   * means Shri Ganesh, so no backfill.
+   */
+  opening: z.enum(INVITE_OPENINGS).optional(),
   /**
    * The admin's tag on the lead: new, hot, cold or test, set on
    * `/admin/previews/<id>`. Optional: absent means `new` (`lib/lead-tags.ts`).

@@ -79,8 +79,8 @@ export function FunctionsForm({
       <div className={cn('flex flex-col gap-5', className)}>
         {listed.length === 0 ? (
           <p className="text-ink-soft">
-            No functions yet. Add tilak, haldi, mehndi, sangeet or reception, and your invite shows
-            them all on a timeline with the wedding.
+            No functions yet. Add a ring ceremony, tilak, dev darshan, haldi, mehndi, sangeet or
+            reception, and your invite shows them all on a timeline with the wedding.
           </p>
         ) : (
           <dl className="grid gap-4 sm:grid-cols-2">

@@ -5,6 +5,7 @@ import { FieldValue } from '@google-cloud/firestore';
 import { coupleNames, DEFAULT_NAME_ORDER, type NameOrder } from '@/lib/couple-names';
 import { slugProblem } from '@/lib/couple-slug';
 import { type AppliedCoupon, normalizeCouponCode } from '@/lib/coupons';
+import { INVITE_OPENING_LABELS, type InviteOpening } from '@/lib/invite-openings';
 import { LEAD_TAG_LABELS, type LeadTag, leadTag } from '@/lib/lead-tags';
 import { PREVIEW_LIFETIME_SECONDS } from '@/lib/preview-cookie';
 import { ERASE_LIMIT, liveLeadIds } from '@/lib/test-data-cleanup';
@@ -327,6 +328,34 @@ export async function changeWeddingSong(
     adminUid,
   );
   return { ok: true, message: `${song.name} is now the song on the live invite.` };
+}
+
+/**
+ * Sets how a live invite opens: Shri Ganesh, or the Jain Prateek and the
+ * Jain Mangal shloka for a Jain family. The preview it was paid from gets the same
+ * opening, so the two never disagree.
+ */
+export async function changeWeddingOpening(
+  id: string,
+  opening: InviteOpening,
+  adminUid: string,
+): Promise<AdminResult> {
+  const wedding = await getWeddingForAdmin(id);
+  if (wedding === null || wedding.deletedAt !== null) return NOT_FOUND;
+  await weddings.update(id, { opening });
+  const lead = await getLeadForAdmin(wedding.leadId);
+  if (lead !== null && lead.weddingSlug === wedding.slug) {
+    await leads.update(lead.id, { opening });
+  }
+  const label = INVITE_OPENING_LABELS[opening];
+  await audit(
+    'wedding-opening-changed',
+    'wedding',
+    id,
+    `Set the opening on ${wedding.slug} to ${label}.`,
+    adminUid,
+  );
+  return { ok: true, message: `The live invite now opens with ${label}.` };
 }
 
 /**
@@ -888,6 +917,38 @@ export async function changePreviewNameOrder(
     message: live
       ? `The preview and the live invite now say ${names}.`
       : `The preview now says ${names}.`,
+  };
+}
+
+/**
+ * Sets how a preview opens: Shri Ganesh, or the Jain Prateek and the Jain
+ * Mangal shloka for a Jain family. When the couple has paid, the live invite gets
+ * the same opening, so the two never disagree.
+ */
+export async function changePreviewOpening(
+  id: string,
+  opening: InviteOpening,
+  adminUid: string,
+): Promise<AdminResult> {
+  const lead = await getLeadForAdmin(id);
+  if (lead === null || lead.deletedAt !== null) return NOT_FOUND;
+  await leads.update(id, { opening });
+  const wedding = lead.weddingSlug === undefined ? null : await getWeddingBySlug(lead.weddingSlug);
+  const live = wedding !== null && wedding.leadId === id;
+  if (live) await weddings.update(wedding.id, { opening });
+  const label = INVITE_OPENING_LABELS[opening];
+  await audit(
+    'preview-opening-changed',
+    'lead',
+    id,
+    `Set the opening to ${label}${live ? ', on the live invite too' : ''}.`,
+    adminUid,
+  );
+  return {
+    ok: true,
+    message: live
+      ? `The preview and the live invite now open with ${label}.`
+      : `The preview now opens with ${label}.`,
   };
 }
 

@@ -305,6 +305,7 @@ export default async function PreviewPage({
           guestName={null}
           couple={coupleNames(lead)}
           song={song}
+          opening={lead.opening}
           top={
             <PreviewNotch note={published ? 'your invite is live' : 'only you can see this'}>
               {closesAt !== null && (
@@ -331,6 +332,7 @@ export default async function PreviewPage({
               stickyRsvp={false}
               venuePlaceholder
               functions={(lead.functions ?? []).map(emptyFunction)}
+              opening={lead.opening}
               className="flex-1"
             />
           </main>
