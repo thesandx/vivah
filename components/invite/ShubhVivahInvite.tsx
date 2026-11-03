@@ -106,8 +106,8 @@ export interface ShubhVivahInviteProps {
    */
   families?: WeddingFamilies | undefined;
   /**
-   * Shri Ganesh and the Ganesh shloka, or Bhagwan Mahaveer and the Navkar
-   * Mantra for a Jain family (`lib/invite-openings.ts`). Default: Ganesh.
+   * Shri Ganesh and the Ganesh shloka, or Bhagwan Mahaveer and the Jain
+   * Mangal shloka for a Jain family (`lib/invite-openings.ts`). Default: Ganesh.
    */
   opening?: InviteOpening | undefined;
   className?: string;
@@ -293,9 +293,11 @@ export function ShubhVivahInvite({
                 priority
                 className={cn('mx-auto mb-3.5 block h-auto', picture.className)}
               />
-              <p lang="sa" className="jewel-om" aria-hidden="true">
-                ॥ ॐ ॥
-              </p>
+              {opener.om && (
+                <p lang="sa" className="jewel-om" aria-hidden="true">
+                  ॥ ॐ ॥
+                </p>
+              )}
               <p lang={opener.lang} className="jewel-shloka flex flex-col">
                 {opener.lines.map((line) => (
                   <span key={line}>{line}</span>

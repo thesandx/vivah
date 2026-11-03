@@ -332,7 +332,7 @@ export async function changeWeddingSong(
 
 /**
  * Sets how a live invite opens: Shri Ganesh, or Bhagwan Mahaveer and the
- * Navkar Mantra for a Jain family. The preview it was paid from gets the same
+ * Jain Mangal shloka for a Jain family. The preview it was paid from gets the same
  * opening, so the two never disagree.
  */
 export async function changeWeddingOpening(
@@ -921,8 +921,8 @@ export async function changePreviewNameOrder(
 }
 
 /**
- * Sets how a preview opens: Shri Ganesh, or Bhagwan Mahaveer and the Navkar
- * Mantra for a Jain family. When the couple has paid, the live invite gets
+ * Sets how a preview opens: Shri Ganesh, or Bhagwan Mahaveer and the Jain
+ * Mangal shloka for a Jain family. When the couple has paid, the live invite gets
  * the same opening, so the two never disagree.
  */
 export async function changePreviewOpening(

@@ -234,8 +234,8 @@ export default async function AdminInvitePage({
               <h2 className="text-heading">Opening</h2>
               <p className="text-small text-ink-soft">
                 The picture and the prayer at the top of the invite and on its opening card. Choose
-                Jain for a Jain family: Bhagwan Mahaveer and the Navkar Mantra. The preview it was
-                paid from changes too.
+                Jain for a Jain family: Bhagwan Mahaveer and the Jain Mangal shloka. The preview it
+                was paid from changes too.
               </p>
               <AdminActionForm
                 action={changeWeddingOpeningAction.bind(null, wedding.id)}

@@ -480,7 +480,7 @@ export default async function AdminPreviewPage({
               <h2 className="text-heading">Opening</h2>
               <p className="text-small text-ink-soft">
                 The picture and the prayer at the top of the invite and on its opening card. Choose
-                Jain for a Jain family: Bhagwan Mahaveer and the Navkar Mantra.
+                Jain for a Jain family: Bhagwan Mahaveer and the Jain Mangal shloka.
                 {wedding !== null && ' The couple has paid, so the live invite changes too.'}
               </p>
               <AdminActionForm

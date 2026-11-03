@@ -1,7 +1,7 @@
 /**
  * How a couple's invite opens: with Shri Ganesh and the Ganesh shloka, as
- * every Hindu card does, or with Bhagwan Mahaveer and the Navkar Mantra for a
- * Jain family. The choice changes the gate card, the top of the invite and
+ * every Hindu card does, or with Bhagwan Mahaveer and the Jain Mangal shloka
+ * for a Jain family. The choice changes the gate card, the top of the invite and
  * the WhatsApp share card, and nothing else: the maroon-and-gold look stays.
  *
  * Only an admin sets it, on `/admin/previews/<id>` or `/admin/invites/<id>`.
@@ -18,12 +18,14 @@ export const DEFAULT_INVITE_OPENING: InviteOpening = 'ganesh';
 /** What the choice is called on `/admin`. */
 export const INVITE_OPENING_LABELS: Record<InviteOpening, string> = {
   ganesh: 'Shri Ganesh, with the Ganesh shloka',
-  jain: 'Bhagwan Mahaveer, with the Navkar Mantra (Jain)',
+  jain: 'Bhagwan Mahaveer, with the Jain Mangal shloka',
 };
 
 export interface InviteOpeningText {
-  /** The `lang` of the lines: Sanskrit for the shloka, Prakrit for the Navkar Mantra. */
-  lang: 'sa' | 'pra';
+  /** The `lang` of the lines. Both prayers are Sanskrit. */
+  lang: 'sa';
+  /** Show "॥ ॐ ॥" over the lines. The Jain card leaves it out. */
+  om: boolean;
   /** The lines under the picture at the top of the invite, first line the salutation. */
   lines: readonly string[];
   /** The one line on the gate card, under the picture. */
@@ -35,6 +37,7 @@ export const INVITE_OPENING_TEXT: Record<InviteOpening, InviteOpeningText> = {
   // million suns, remove every obstacle from all my work, always."
   ganesh: {
     lang: 'sa',
+    om: true,
     lines: [
       '॥ श्री गणेशाय नमः ॥',
       'वक्रतुण्ड महाकाय सूर्यकोटि समप्रभ ।',
@@ -42,17 +45,17 @@ export const INVITE_OPENING_TEXT: Record<InviteOpening, InviteOpeningText> = {
     ],
     coverTitle: 'श्री गणेशाय नमः',
   },
-  // The first five lines of the Navkar (Namokar) Mantra: the bow to the
-  // Arihants, the Siddhas, the Acharyas, the Upadhyayas and every Sadhu.
+  // The Jain Mangal shloka, as on the product owner's Jain card (2026-11-03):
+  // "Auspicious is Bhagwan Mahavir, auspicious is Gautam the Ganadhar,
+  // auspicious are Kundakunda and the acharyas; may the Jain dharma be
+  // auspicious." The spelling follows that card.
   jain: {
-    lang: 'pra',
+    lang: 'sa',
+    om: false,
     lines: [
       '॥ श्री महावीराय नमः ॥',
-      'णमो अरिहंताणं',
-      'णमो सिद्धाणं',
-      'णमो आयरियाणं',
-      'णमो उवज्झायाणं',
-      'णमो लोए सव्व साहूणं',
+      'मंगलम् भगवान वीरो, मंगलम् गौतमो गणी ।',
+      'मंगलम् कुन्द कुन्दाद्यौ, जैन धर्मोस्तु मंगलम् ॥',
     ],
     coverTitle: 'श्री महावीराय नमः',
   },

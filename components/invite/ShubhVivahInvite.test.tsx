@@ -44,11 +44,12 @@ describe('ShubhVivahInvite', () => {
     expect(screen.getByText('invite you to our wedding')).toBeInTheDocument();
   });
 
-  it('opens with Bhagwan Mahaveer and the Navkar Mantra for a Jain family', () => {
+  it('opens with Bhagwan Mahaveer and the Jain Mangal shloka, with no Om, for a Jain family', () => {
     const { container } = render(<ShubhVivahInvite {...full} opening="jain" />);
     expect(screen.getByText('॥ श्री महावीराय नमः ॥')).toBeInTheDocument();
-    expect(screen.getByText('णमो अरिहंताणं')).toBeInTheDocument();
-    expect(screen.getByText('णमो लोए सव्व साहूणं')).toBeInTheDocument();
+    expect(screen.getByText('मंगलम् भगवान वीरो, मंगलम् गौतमो गणी ।')).toBeInTheDocument();
+    expect(screen.getByText('मंगलम् कुन्द कुन्दाद्यौ, जैन धर्मोस्तु मंगलम् ॥')).toBeInTheDocument();
+    expect(screen.queryByText('॥ ॐ ॥')).toBeNull();
     expect(screen.queryByText('॥ श्री गणेशाय नमः ॥')).toBeNull();
     expect(container.querySelector('img')?.getAttribute('src')).toContain('mahaveer');
   });
