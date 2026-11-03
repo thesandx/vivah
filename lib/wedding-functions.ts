@@ -1,6 +1,7 @@
 /**
  * The wedding functions an invite can list besides the wedding itself:
- * tilak, haldi, mehndi, sangeet and reception. Each has its own date, time
+ * ring ceremony, tilak, dev darshan (the visit to the mandir), haldi, mehndi,
+ * sangeet and reception. Each has its own date, time
  * and venue. Pure, so the rules, the form parsing and the order are tested
  * without a request or a database.
  *
@@ -10,7 +11,7 @@
  * "Wedding Festivities" section only when at least one function is chosen,
  * so a wedding never shows there alone.
  *
- * The list is bounded (one entry per kind, five kinds), so it is an array on
+ * The list is bounded (one entry per kind, seven kinds), so it is an array on
  * the document, not a subcollection. See docs/firestore-modeling.md.
  */
 
@@ -19,7 +20,15 @@ import { z } from 'zod';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 
 /** The functions a couple can add, in the order they usually happen. */
-export const FUNCTION_KINDS = ['tilak', 'haldi', 'mehndi', 'sangeet', 'reception'] as const;
+export const FUNCTION_KINDS = [
+  'ring',
+  'tilak',
+  'darshan',
+  'haldi',
+  'mehndi',
+  'sangeet',
+  'reception',
+] as const;
 export type FunctionKind = (typeof FUNCTION_KINDS)[number];
 
 /** A card on the invite: a function, or the wedding itself. */
@@ -27,7 +36,9 @@ export type FestivityKind = FunctionKind | 'wedding';
 
 /** The name and the small capitals over it, as the invite prints them. */
 export const FESTIVITY_LABELS: Record<FestivityKind, { name: string; tagline: string }> = {
+  ring: { name: 'Ring Ceremony', tagline: 'The promise' },
   tilak: { name: 'Tilak', tagline: 'Blessings' },
+  darshan: { name: 'Dev Darshan', tagline: 'At the mandir' },
   haldi: { name: 'Haldi', tagline: 'The golden glow' },
   mehndi: { name: 'Mehndi', tagline: 'Henna & song' },
   sangeet: { name: 'Sangeet', tagline: 'Music night' },
@@ -41,7 +52,9 @@ export const FESTIVITY_LABELS: Record<FestivityKind, { name: string; tagline: st
  * except the reception, which follows it.
  */
 const ORDER: readonly FestivityKind[] = [
+  'ring',
   'tilak',
+  'darshan',
   'haldi',
   'mehndi',
   'sangeet',
@@ -104,8 +117,8 @@ export interface Festivity {
 /**
  * The cards in the order guests read them: by date, then by time. A card
  * with no date yet takes the wedding's date and sits before the wedding (a
- * reception after it), so an unpaid preview reads Tilak, Haldi, Mehndi,
- * Sangeet, Wedding, Reception. On one day, a card with a time comes in time
+ * reception after it), so an unpaid preview reads Ring Ceremony, Tilak,
+ * Dev Darshan, Haldi, Mehndi, Sangeet, Wedding, Reception. On one day, a card with a time comes in time
  * order; one with no time keeps its usual place. A change of date in the
  * dashboard moves the card on the next load.
  */

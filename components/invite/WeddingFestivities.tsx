@@ -11,7 +11,8 @@ import {
 
 /**
  * The invite's "Wedding Festivities" section, to the product owner's design:
- * a card for each function (tilak, haldi, mehndi, sangeet, reception) and
+ * a card for each function (ring ceremony, tilak, dev darshan, haldi,
+ * mehndi, sangeet, reception) and
  * the wedding, on a gold timeline, each in its own jewel tone. Each card
  * shows the time, the day, the venue and a Directions link.
  *
@@ -36,7 +37,9 @@ export interface WeddingFestivitiesProps {
 }
 
 const TONE: Record<FestivityKind, string> = {
+  ring: 'jewel-fn-ring',
   tilak: 'jewel-fn-tilak',
+  darshan: 'jewel-fn-darshan',
   haldi: 'jewel-fn-haldi',
   mehndi: 'jewel-fn-mehndi',
   sangeet: 'jewel-fn-sangeet',
@@ -57,6 +60,23 @@ function KindIcon({ kind }: { kind: FestivityKind }) {
       strokeLinejoin="round"
       className="size-6.5"
     >
+      {kind === 'ring' && (
+        // One ring with its stone.
+        <>
+          <circle cx="12" cy="14.5" r="5.5" />
+          <path d="M9.5 6 12 3.5 14.5 6 12 8.8Z" />
+          <path d="M9.5 6h5" />
+        </>
+      )}
+      {kind === 'darshan' && (
+        // A mandir: the shikhara over a doorway, with its flag.
+        <>
+          <path d="M6.5 20.5V12L12 5.5l5.5 6.5v8.5" />
+          <path d="M4.5 20.5h15" />
+          <path d="M10.3 20.5v-3.3a1.7 1.7 0 0 1 3.4 0v3.3" />
+          <path d="M12 5.5V2.5l3 1.2-3 1.2" />
+        </>
+      )}
       {kind === 'tilak' && (
         // A diya: the bowl and its flame.
         <>

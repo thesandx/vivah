@@ -64,11 +64,16 @@ import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { nudgeLabel, nudgeStatus } from '@/lib/preview-nudges';
 import { buildPreviewActivity, furthestStep } from '@/lib/preview-report';
-import { functionVenueField, SAMPLE_GUEST, SAMPLE_SLUG } from '@/lib/sample-invite';
+import {
+  functionVenueField,
+  SAMPLE_FUNCTION_KINDS,
+  SAMPLE_GUEST,
+  SAMPLE_SLUG,
+} from '@/lib/sample-invite';
 import { inviteHostLabel, inviteHref } from '@/lib/site-host';
 import { cn } from '@/lib/utils';
 import { formatWeddingDate, todayInIndia } from '@/lib/wedding-date';
-import { FESTIVITY_LABELS, FUNCTION_KINDS } from '@/lib/wedding-functions';
+import { FESTIVITY_LABELS } from '@/lib/wedding-functions';
 import { SONG_SLOTS, songUrl } from '@/lib/wedding-songs';
 import {
   DEFAULT_WHATSAPP_HELLO,
@@ -837,7 +842,7 @@ async function SampleVenuesAdmin() {
               />
             </fieldset>
             <ol className="grid gap-4 md:grid-cols-2">
-              {FUNCTION_KINDS.map((kind) => (
+              {SAMPLE_FUNCTION_KINDS.map((kind) => (
                 <li key={kind} className="border-line rounded-card border-2 p-4">
                   <fieldset className="flex flex-col gap-4">
                     <legend className="text-heading mb-2">{FESTIVITY_LABELS[kind].name}</legend>

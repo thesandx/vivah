@@ -7,13 +7,14 @@ import {
   isOldSampleSlug,
   isSampleSlug,
   parseSampleVenuesForm,
+  SAMPLE_FUNCTION_KINDS,
   SAMPLE_SLUG,
   sampleVenuesSchema,
   sampleWedding,
   sampleWeddingDate,
 } from '@/lib/sample-invite';
 import { weddingFamiliesSchema } from '@/lib/wedding-families';
-import { FUNCTION_KINDS, weddingFunctionsSchema } from '@/lib/wedding-functions';
+import { weddingFunctionsSchema } from '@/lib/wedding-functions';
 
 describe('sampleWeddingDate', () => {
   it('is 7 December this year while it is a month or more away', () => {
@@ -66,7 +67,7 @@ describe('the sample venues', () => {
     data.set('venueName', DEFAULT_SAMPLE_VENUES.venueName);
     data.set('venueCity', DEFAULT_SAMPLE_VENUES.venueCity);
     data.set('venueMapsUrl', DEFAULT_SAMPLE_VENUES.venueMapsUrl);
-    for (const kind of FUNCTION_KINDS) {
+    for (const kind of SAMPLE_FUNCTION_KINDS) {
       data.set(functionVenueField(kind, 'venue'), DEFAULT_SAMPLE_VENUES.functions[kind].venue);
       data.set(functionVenueField(kind, 'mapsUrl'), DEFAULT_SAMPLE_VENUES.functions[kind].mapsUrl);
     }

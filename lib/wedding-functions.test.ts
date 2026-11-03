@@ -85,6 +85,16 @@ describe('sortFestivities', () => {
     ]);
     expect(sorted.map((entry) => entry.kind)).toEqual(['haldi', 'wedding', 'reception']);
   });
+
+  it('puts the ring ceremony first and dev darshan before haldi on the same day', () => {
+    const sorted = sortFestivities([
+      card('wedding', '2027-01-25'),
+      card('haldi', '2027-01-25'),
+      card('darshan', '2027-01-25'),
+      card('ring', '2027-01-24'),
+    ]);
+    expect(sorted.map((entry) => entry.kind)).toEqual(['ring', 'darshan', 'haldi', 'wedding']);
+  });
 });
 
 describe('festivityCards', () => {
