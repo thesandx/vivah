@@ -56,7 +56,7 @@ import { buildPreviewActivity, type PreviewActivity } from '@/lib/preview-report
 import { siteOrigin } from '@/lib/seo';
 import { inviteHostLabel } from '@/lib/site-host';
 import { formatWeddingDate } from '@/lib/wedding-date';
-import { FESTIVITY_LABELS, FUNCTION_KINDS } from '@/lib/wedding-functions';
+import { FESTIVITY_LABELS, functionKindsToShow } from '@/lib/wedding-functions';
 import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { welcomeMessage } from '@/lib/welcome-message';
 import { getLeadForAdmin } from '@/services/admin.service';
@@ -521,7 +521,7 @@ export default async function AdminPreviewPage({
                   label="Save functions"
                 >
                   <div className="grid gap-1 sm:grid-cols-2">
-                    {FUNCTION_KINDS.map((kind) => (
+                    {functionKindsToShow(lead.functions ?? []).map((kind) => (
                       <Checkbox
                         key={kind}
                         label={FESTIVITY_LABELS[kind].name}

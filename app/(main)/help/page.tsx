@@ -127,7 +127,7 @@ const HOW_TOS: readonly (HowTo & { slot: SiteVideoSlot })[] = [
     eyebrow: 'Your functions',
     title: 'Add your haldi, mehndi and other functions',
     intro:
-      'Your invite can show ring ceremony, tilak, dev darshan, haldi, mehndi, sangeet and reception with the wedding, each with its own date, time, venue and map. The steps below add haldi. The steps are the same for every function: tick its name and fill in its fields.',
+      'Your invite can show ring ceremony, tilak, haldi, mehndi, sangeet and reception with the wedding, each with its own date, time, venue and map. The steps below add haldi. The steps are the same for every function: tick its name and fill in its fields.',
     steps: FUNCTION_STEPS,
     slot: 'help-functions',
     videoLabel: 'Video: add the haldi to your invite in the dashboard',

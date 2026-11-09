@@ -14,12 +14,13 @@ import {
   FUNCTION_KINDS,
   functionFieldName,
   type FunctionKind,
+  functionKindsToShow,
   type WeddingFunction,
 } from '@/lib/wedding-functions';
 
 /**
- * The functions besides the wedding (tilak, haldi, mehndi, sangeet,
- * reception), each with its date, time, venue and map link. Read-only
+ * The functions besides the wedding (ring ceremony, tilak, haldi, mehndi,
+ * sangeet, reception), each with its date, time, venue and map link. Read-only
  * first; "Edit functions" turns it into a form where a tick adds or removes
  * a function. The invite sorts the cards by date, so a new date moves a
  * card on the next load.
@@ -79,8 +80,8 @@ export function FunctionsForm({
       <div className={cn('flex flex-col gap-5', className)}>
         {listed.length === 0 ? (
           <p className="text-ink-soft">
-            No functions yet. Add a ring ceremony, tilak, dev darshan, haldi, mehndi, sangeet or
-            reception, and your invite shows them all on a timeline with the wedding.
+            No functions yet. Add a ring ceremony, tilak, haldi, mehndi, sangeet or reception, and
+            your invite shows them all on a timeline with the wedding.
           </p>
         ) : (
           <dl className="grid gap-4 sm:grid-cols-2">
@@ -131,7 +132,7 @@ export function FunctionsForm({
       <p className="text-small text-ink-soft">
         Tick the functions you are having. The invite shows them with the wedding, in date order.
       </p>
-      {FUNCTION_KINDS.map((kind) => {
+      {functionKindsToShow(initial.map((entry) => entry.kind)).map((kind) => {
         const entry = saved.get(kind);
         const on = ticked.has(kind);
         const name = FESTIVITY_LABELS[kind].name;
