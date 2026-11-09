@@ -6,6 +6,8 @@ import {
   type Festivity,
   festivityCards,
   formatFestivityDate,
+  functionKindsToShow,
+  OFFERED_FUNCTION_KINDS,
   parseWeddingFunctions,
   sortFestivities,
   weddingFunctionsSchema,
@@ -163,5 +165,34 @@ describe('parseWeddingFunctions', () => {
 
   it('saves no functions when none is ticked', () => {
     expect(parseWeddingFunctions({})).toEqual({ ok: true, functions: [] });
+  });
+});
+
+describe('offered function kinds', () => {
+  it('no longer offers dev darshan on a picker', () => {
+    expect(OFFERED_FUNCTION_KINDS).toEqual([
+      'ring',
+      'tilak',
+      'haldi',
+      'mehndi',
+      'sangeet',
+      'reception',
+    ]);
+  });
+
+  it('shows only the offered kinds when dev darshan is not saved', () => {
+    expect(functionKindsToShow(['haldi'])).toEqual(OFFERED_FUNCTION_KINDS);
+  });
+
+  it('keeps a saved dev darshan, in its usual place, so it can be removed', () => {
+    expect(functionKindsToShow(['darshan', 'haldi'])).toEqual([
+      'ring',
+      'tilak',
+      'darshan',
+      'haldi',
+      'mehndi',
+      'sangeet',
+      'reception',
+    ]);
   });
 });

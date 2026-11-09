@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils';
-import { FESTIVITY_LABELS, FUNCTION_KINDS, type FunctionKind } from '@/lib/wedding-functions';
+import {
+  FESTIVITY_LABELS,
+  type FunctionKind,
+  OFFERED_FUNCTION_KINDS,
+} from '@/lib/wedding-functions';
 
 export interface FunctionChoiceProps {
   /** The group's name, read out with the choices. */
@@ -10,8 +14,8 @@ export interface FunctionChoiceProps {
 }
 
 /**
- * The functions a couple is having besides the wedding: tilak, haldi,
- * mehndi, sangeet and reception, as pills to tick. Any number, or none.
+ * The functions a couple is having besides the wedding: ring ceremony,
+ * tilak, haldi, mehndi, sangeet and reception, as pills to tick. Any number, or none.
  *
  * Native checkboxes under the pills, so a keyboard and a screen reader work
  * as they do with any checkbox. A ticked pill shows a tick as well as its
@@ -22,14 +26,14 @@ export function FunctionChoice({ label, value, onChange, className }: FunctionCh
   function toggle(kind: FunctionKind, checked: boolean): void {
     const next = checked ? [...value, kind] : value.filter((entry) => entry !== kind);
     // Kept in the usual order, whatever order they were tapped in.
-    onChange(FUNCTION_KINDS.filter((entry) => next.includes(entry)));
+    onChange(OFFERED_FUNCTION_KINDS.filter((entry) => next.includes(entry)));
   }
 
   return (
     <fieldset className={cn('flex flex-col gap-3', className)}>
       <legend className="sr-only">{label}</legend>
       <div className="flex flex-wrap justify-center gap-3">
-        {FUNCTION_KINDS.map((kind) => {
+        {OFFERED_FUNCTION_KINDS.map((kind) => {
           const checked = value.includes(kind);
           return (
             <label

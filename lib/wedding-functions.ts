@@ -31,6 +31,28 @@ export const FUNCTION_KINDS = [
 ] as const;
 export type FunctionKind = (typeof FUNCTION_KINDS)[number];
 
+/**
+ * Kinds a stored invite can still have, but that no picker offers any more.
+ * Dev darshan left the sign-up card, the dashboard and `/admin` in November
+ * 2026. It stays in `FUNCTION_KINDS`, so an invite that saved it still reads
+ * as valid, shows the card, and can untick it.
+ */
+const RETIRED_FUNCTION_KINDS: ReadonlySet<FunctionKind> = new Set(['darshan']);
+
+/** The functions a picker offers, in the usual order. */
+export const OFFERED_FUNCTION_KINDS: readonly FunctionKind[] = FUNCTION_KINDS.filter(
+  (kind) => !RETIRED_FUNCTION_KINDS.has(kind),
+);
+
+/**
+ * The tick boxes for an invite or a preview: every offered kind, plus a
+ * retired kind it already has, so the couple or the admin can still edit or
+ * remove it. In the usual order.
+ */
+export function functionKindsToShow(saved: readonly FunctionKind[]): FunctionKind[] {
+  return FUNCTION_KINDS.filter((kind) => !RETIRED_FUNCTION_KINDS.has(kind) || saved.includes(kind));
+}
+
 /** A card on the invite: a function, or the wedding itself. */
 export type FestivityKind = FunctionKind | 'wedding';
 
