@@ -31,6 +31,7 @@ import {
   type GuestLinkPayload,
   renameGuestLinkIn,
 } from '@/services/guest-link.service';
+import { eraseInviteChanges } from '@/services/invite-change.service';
 import { type LeadDocument, leads } from '@/services/lead.service';
 import { MAX_PAGE_SIZE, type Repository, type StoredDocument } from '@/services/repository';
 import {
@@ -1010,8 +1011,10 @@ export async function eraseTestData(
       // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing test data (ADR-0016); a claim is a lock, not data
       await slugClaims.hardDelete(slugClaimId(wedding.slug));
     }
-    // The guest links first: a subcollection outlives its parent document.
+    // The guest links and the change log first: a subcollection outlives
+    // its parent document.
     await eraseGuestLinks(id);
+    await eraseInviteChanges(id);
     // eslint-disable-next-line data-safety/no-permanent-delete -- admin erasing a deleted test invite, row by row (ADR-0016)
     await weddings.hardDelete(id);
     result.erasedWeddings += 1;

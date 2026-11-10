@@ -28,6 +28,8 @@ import { AdminActionForm } from '@/components/admin/AdminActionForm';
 import { AdminSignInScreen } from '@/components/admin/AdminSignInScreen';
 import { AdminSignOutButton } from '@/components/admin/AdminSignOutButton';
 import { CopyButton } from '@/components/admin/CopyButton';
+import { type InviteChangeEntry, InviteChangesCard } from '@/components/admin/InviteChangesCard';
+import { InviteVisitsCard } from '@/components/admin/InviteVisitsCard';
 import { StateBadge } from '@/components/admin/StateBadge';
 import { FamiliesForm } from '@/components/dashboard/FamiliesForm';
 import { FunctionsForm } from '@/components/dashboard/FunctionsForm';
@@ -46,6 +48,8 @@ import { coupleNames, NAME_ORDER_LABELS, NAME_ORDERS } from '@/lib/couple-names'
 import { env } from '@/lib/env';
 import { inviteOrigin } from '@/lib/invite-meta';
 import { INVITE_OPENING_LABELS, INVITE_OPENINGS } from '@/lib/invite-openings';
+import { FROM_ADMIN_MARK, withInviteMark } from '@/lib/invite-tracking';
+import { buildInviteVisitReport, type InviteVisitReport } from '@/lib/invite-visit-report';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref, inviteUrl } from '@/lib/site-host';
@@ -53,6 +57,8 @@ import { type SongOption, songUrl } from '@/lib/wedding-songs';
 import { getWeddingForAdmin, weddingHoldsAddress } from '@/services/admin.service';
 import { getAdminSession } from '@/services/admin-session.service';
 import { type GuestLinkDocument, listGuestLinks } from '@/services/guest-link.service';
+import { inviteBeaconsFor } from '@/services/invite-beacon.service';
+import { listInviteChanges } from '@/services/invite-change.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 import { listSongOptions } from '@/services/wedding-songs.service';
 
@@ -97,11 +103,17 @@ export default async function AdminInvitePage({
   const deleted = wedding.deletedAt !== null;
   const creditHidden = wedding.hideCredit === true;
   const editLinkHidden = wedding.hideEditLink === true;
-  const [restore, songs, guestLinks] = await Promise.all([
+  const [restore, songs, guestLinks, beacons, changes] = await Promise.all([
     deleted ? restoreChoice(wedding) : null,
     deleted ? [] : songOptions(),
     deleted ? [] : guestLinksOf(wedding.id),
+    beaconsOf(wedding.id),
+    changesOf(wedding.id),
   ]);
+  const visits: InviteVisitReport | null =
+    beacons === null ? null : buildInviteVisitReport(beacons.items, guestLinks ?? []);
+  // The admin's own visits from here are never counted (ADR-0020).
+  const adminInviteHref = withInviteMark(inviteHref(wedding.slug, env.rootDomain), FROM_ADMIN_MARK);
   const origin = inviteOrigin(wedding.slug, env.rootDomain, env.appUrl);
   const currentSong = wedding.song ?? null;
   const currentSlot =
@@ -129,7 +141,7 @@ export default async function AdminInvitePage({
             <p className="text-ink-soft font-semibold break-all">Was {address}</p>
           ) : (
             <a
-              href={inviteHref(wedding.slug, env.rootDomain)}
+              href={adminInviteHref}
               target="_blank"
               rel="noopener noreferrer"
               className="text-brand decoration-butter font-semibold break-all underline decoration-2 underline-offset-4"
@@ -186,11 +198,14 @@ export default async function AdminInvitePage({
             </Card>
           )}
 
+          <InviteVisitsCard report={visits} capped={beacons?.capped ?? false} />
+          <InviteChangesCard entries={changes?.items ?? null} more={changes?.more ?? false} />
+
           <Card className="flex flex-col gap-4">
             <h2 className="text-heading">Invite details</h2>
             <WeddingDetailsForm
               save={saveWeddingDetailsAsAdmin.bind(null, wedding.id)}
-              inviteHref={inviteHref(wedding.slug, env.rootDomain)}
+              inviteHref={adminInviteHref}
               showNameOrder={false}
               initial={{
                 bride: wedding.bride,
@@ -262,7 +277,7 @@ export default async function AdminInvitePage({
               groom={wedding.groom}
               nameOrder={wedding.nameOrder}
               save={saveWeddingFamiliesAsAdmin.bind(null, wedding.id)}
-              inviteHref={inviteHref(wedding.slug, env.rootDomain)}
+              inviteHref={adminInviteHref}
             />
           </Card>
 
@@ -271,7 +286,7 @@ export default async function AdminInvitePage({
             <FunctionsForm
               initial={wedding.functions ?? []}
               save={saveWeddingFunctionsAsAdmin.bind(null, wedding.id)}
-              inviteHref={inviteHref(wedding.slug, env.rootDomain)}
+              inviteHref={adminInviteHref}
             />
           </Card>
 
@@ -537,6 +552,39 @@ async function guestLinksOf(weddingId: string): Promise<GuestLinkDocument[] | nu
     return await listGuestLinks(weddingId);
   } catch (error) {
     logger.error('Reading the guest links failed', error, { weddingId });
+    return null;
+  }
+}
+
+/** The invite's visit beacons, or `null` when the read fails: the card says so. */
+async function beaconsOf(
+  weddingId: string,
+): Promise<Awaited<ReturnType<typeof inviteBeaconsFor>> | null> {
+  try {
+    return await inviteBeaconsFor(weddingId);
+  } catch (error) {
+    logger.error('Reading the invite beacons failed', error, { weddingId });
+    return null;
+  }
+}
+
+/** The couple's change log, or `null` when the read fails: the card says so. */
+async function changesOf(
+  weddingId: string,
+): Promise<{ items: InviteChangeEntry[]; more: boolean } | null> {
+  try {
+    const { items, more } = await listInviteChanges(weddingId);
+    return {
+      items: items.map((entry) => ({
+        id: entry.id,
+        area: entry.area,
+        lines: entry.lines,
+        at: entry.createdAt,
+      })),
+      more,
+    };
+  } catch (error) {
+    logger.error('Reading the invite changes failed', error, { weddingId });
     return null;
   }
 }

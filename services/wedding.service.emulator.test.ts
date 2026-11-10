@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { SONGS_DOC_ID } from '@/lib/wedding-songs';
+import { listInviteChanges } from '@/services/invite-change.service';
 import { createLead, leads, openPreviewLink } from '@/services/lead.service';
 import {
   checkSlug,
@@ -204,6 +205,21 @@ describeEmulator('the dashboards (emulator)', () => {
 
     await updateWeddingDetails(slug, phone, { ...FORM, venueMapsUrl: '' });
     expect((await getWeddingBySlug(slug))?.venueMapsUrl).toBeNull();
+  });
+
+  it('logs each save that changed something, old to new, newest first', async () => {
+    const { slug, phone } = await ownedWedding();
+    const wedding = await getWeddingBySlug(slug);
+    await updateWeddingDetails(slug, phone, FORM);
+    await updateWeddingDetails(slug, phone, FORM);
+    await updateWeddingDetails(slug, phone, { ...FORM, venueName: 'Taj Palace, Chanakyapuri' });
+    const { items } = await listInviteChanges(wedding?.id ?? '');
+    expect(items).toHaveLength(2);
+    expect(items[0]).toMatchObject({
+      area: 'details',
+      lines: [{ label: 'Venue', from: FORM.venueName, to: 'Taj Palace, Chanakyapuri' }],
+    });
+    expect(items[1]?.area).toBe('details');
   });
 
   it('answers anyone but the couple as if the address were unknown', async () => {

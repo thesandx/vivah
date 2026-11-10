@@ -105,6 +105,34 @@
           "order": "DESCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "inviteBeacons",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "weddingId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "inviteChanges",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "deletedAt",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [
@@ -241,6 +269,31 @@
     {
       "collectionGroup": "previewBeacons",
       "fieldPath": "expireAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "inviteBeacons",
+      "fieldPath": "updatedAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "inviteBeacons",
+      "fieldPath": "viewId",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "inviteBeacons",
+      "fieldPath": "guestLinkId",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "inviteBeacons",
+      "fieldPath": "expireAt",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "inviteChanges",
+      "fieldPath": "lines",
       "indexes": []
     }
   ]

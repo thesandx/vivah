@@ -515,6 +515,7 @@ export function ShubhVivahInvite({
                   scrolls (PRD). In place from md up. */}
               <a
                 href={rsvpWhatsAppUrl(rsvpPhoneE164, first, second, guestName, rsvpMessage)}
+                data-invite-event="rsvp-tapped"
                 target="_blank"
                 rel="noopener noreferrer"
                 className={cn(
