@@ -59,6 +59,7 @@ The production image is ~64 MB compressed, boots in ~2s, stops on `SIGTERM` in ~
 - [`docs/data-layer.md`](./docs/data-layer.md) — before using the repository, Cloud Storage or the emulator.
 - [`docs/data-recovery.md`](./docs/data-recovery.md) — before code that deletes data, before a bulk write, and during a data incident.
 - [`docs/brand.md`](./docs/brand.md) — before changing the logo, the favicon, the app icons or the share image.
+- [`docs/launch-playbook/`](./docs/launch-playbook/launch-playbook.md) — before you start a new product from this template. It lists the Day-0 items to ask the owner for, then the launch phases in order.
 - [`docs/auth.md`](./docs/auth.md) — before sign-in, sessions, profiles, or anything behind a login.
 - [`docs/local-development.md`](./docs/local-development.md) — before setting up, or confused by tooling.
 - [`docs/testing.md`](./docs/testing.md) — before writing tests. Explains the Server Component limitation.
