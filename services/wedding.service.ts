@@ -8,6 +8,12 @@ import { z } from 'zod';
 import { NAME_ORDERS } from '@/lib/couple-names';
 import { isValidCoupleSlug, slugCandidates, slugProblem } from '@/lib/couple-slug';
 import { capitalizeName } from '@/lib/guest-name';
+import {
+  detailsChanges,
+  familiesChanges,
+  functionsChanges,
+  songChanges,
+} from '@/lib/invite-changes';
 import { isGoogleMapsUrl } from '@/lib/invite-contact';
 import { INVITE_OPENINGS } from '@/lib/invite-openings';
 import { phoneHintDigits } from '@/lib/phone';
@@ -19,6 +25,7 @@ import {
   weddingFunctionsSchema,
 } from '@/lib/wedding-functions';
 import { chosenSongSchema, type SongSlot } from '@/lib/wedding-songs';
+import { recordInviteChange } from '@/services/invite-change.service';
 import {
   type LeadDocument,
   type LeadPayload,
@@ -198,6 +205,7 @@ export async function updateWeddingDetails(
   const parsed = parseWeddingDetails(form);
   if (!parsed.ok) return { ok: false, reason: 'invalid', errors: parsed.errors };
   await weddings.update(wedding.id, parsed.details);
+  await recordInviteChange(wedding.id, 'details', detailsChanges(wedding, parsed.details));
   return { ok: true };
 }
 
@@ -218,6 +226,7 @@ export async function updateWeddingSong(
   const song = await songInSlot(slot);
   if (song === null) return { ok: false, reason: 'invalid' };
   await weddings.update(wedding.id, { song });
+  await recordInviteChange(wedding.id, 'song', songChanges(wedding.song?.name ?? null, song.name));
   return { ok: true, name: song.name };
 }
 
@@ -235,6 +244,11 @@ export async function updateWeddingFunctions(
     return { ok: false, reason: 'not-found' };
   }
   await weddings.update(wedding.id, { functions: [...functions] });
+  await recordInviteChange(
+    wedding.id,
+    'functions',
+    functionsChanges(wedding.functions ?? [], functions),
+  );
   return { ok: true };
 }
 
@@ -252,6 +266,7 @@ export async function updateWeddingFamilies(
     return { ok: false, reason: 'not-found' };
   }
   await weddings.update(wedding.id, { families });
+  await recordInviteChange(wedding.id, 'families', familiesChanges(wedding.families, families));
   return { ok: true };
 }
 

@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/Card';
 import { coupleNames } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { inviteOrigin } from '@/lib/invite-meta';
+import { FROM_DASHBOARD_MARK, withInviteMark } from '@/lib/invite-tracking';
 import { logger } from '@/lib/logger';
 import { formatPhoneForDisplay } from '@/lib/phone';
 import { inviteHostLabel, inviteHref } from '@/lib/site-host';
@@ -50,6 +51,11 @@ export async function CoupleSite({
       : (songs.find((option) => option.src === songUrl(currentSong.file))?.slot ?? null);
   const origin = inviteOrigin(wedding.slug, env.rootDomain, env.appUrl);
   const names = coupleNames(wedding);
+  // The couple's own visits are counted apart from their guests' (ADR-0020).
+  const coupleInviteHref = withInviteMark(
+    inviteHref(wedding.slug, env.rootDomain),
+    FROM_DASHBOARD_MARK,
+  );
 
   return (
     <>
@@ -57,7 +63,7 @@ export async function CoupleSite({
         <div className="flex min-w-0 flex-col gap-2">
           <h1 className="text-title break-words">{names}</h1>
           <a
-            href={inviteHref(wedding.slug, env.rootDomain)}
+            href={coupleInviteHref}
             target="_blank"
             rel="noopener noreferrer"
             className="text-brand decoration-butter font-semibold break-all underline decoration-2 underline-offset-4"
@@ -90,7 +96,7 @@ export async function CoupleSite({
           </div>
           <WeddingDetailsForm
             save={saveWeddingDetailsAction.bind(null, wedding.slug)}
-            inviteHref={inviteHref(wedding.slug, env.rootDomain)}
+            inviteHref={coupleInviteHref}
             initial={{
               bride: wedding.bride,
               groom: wedding.groom,
@@ -118,7 +124,7 @@ export async function CoupleSite({
             groom={wedding.groom}
             nameOrder={wedding.nameOrder}
             save={saveFamiliesAction.bind(null, wedding.slug)}
-            inviteHref={inviteHref(wedding.slug, env.rootDomain)}
+            inviteHref={coupleInviteHref}
           />
         </Card>
 
@@ -133,7 +139,7 @@ export async function CoupleSite({
           <FunctionsForm
             initial={wedding.functions ?? []}
             save={saveFunctionsAction.bind(null, wedding.slug)}
-            inviteHref={inviteHref(wedding.slug, env.rootDomain)}
+            inviteHref={coupleInviteHref}
           />
         </Card>
 

@@ -78,6 +78,18 @@ export default function PrivacyPage() {
             you. It holds nothing you type. We set no cookie for it. Kept for 12 months.
           </li>
           <li>
+            <strong className="text-ink">Visits to your live invite</strong>: how many times guests
+            open it, through which guest link, and whether they tap RSVP. It holds no guest&apos;s
+            name, number or address. We set no cookie for it. The guest&apos;s browser keeps one
+            word to know it opened the invite before, which never leaves the browser. Kept for 12
+            months.
+          </li>
+          <li>
+            <strong className="text-ink">The changes you make in your dashboard</strong>: what you
+            changed and when, with the old and the new value, so our team can help if something goes
+            wrong. Kept as long as your invite.
+          </li>
+          <li>
             <strong className="text-ink">The Google Ads click id</strong>, only if you came from one
             of our ads, to learn which ads bring couples to us. Kept as long as your preview or
             invite.
@@ -163,9 +175,9 @@ export default function PrivacyPage() {
           We set one cookie to keep you signed in to your dashboard, and one to keep your preview on
           the phone that opened it. Google Ads and Meta also set cookies on our site and preview
           pages. They tell us which of our ads led to a preview or a payment. We use no analytics
-          cookies and no remarketing. Our own home page and preview measurement sets no cookie. You
-          can block or delete cookies in your browser settings. Invite pages your guests open set no
-          cookies.
+          cookies and no remarketing. Our own home page, preview and invite measurement sets no
+          cookie. You can block or delete cookies in your browser settings. Invite pages your guests
+          open set no cookies.
         </p>
       </section>
 

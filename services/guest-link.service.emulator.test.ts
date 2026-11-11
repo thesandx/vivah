@@ -91,6 +91,7 @@ describeEmulator('guest links (emulator)', () => {
 
     expect(await deleteGuestLink(wedding.slug, OWNER, guestLinkId('neha'))).toEqual({
       ok: true,
+      name: 'Neha',
     });
     expect(await isGuestLinkDeleted(wedding.id, 'neha')).toBe(true);
     const segments = (await listGuestLinks(wedding.id)).map((link) => link.segment);

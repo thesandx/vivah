@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 
+import { InviteVisitTracker } from '@/components/analytics/InviteVisitTracker';
 import { InviteGate } from '@/components/invite/InviteGate';
 import { InviteUnavailable } from '@/components/invite/InviteUnavailable';
 import { PreviewShield } from '@/components/invite/PreviewShield';
@@ -10,7 +11,7 @@ import { ShubhVivahInvite } from '@/components/invite/ShubhVivahInvite';
 import { BUSINESS } from '@/lib/business';
 import { coupleNames, type NameOrder } from '@/lib/couple-names';
 import { env } from '@/lib/env';
-import { parseGuestName } from '@/lib/guest-name';
+import { guestLinkKey, parseGuestName } from '@/lib/guest-name';
 import { inviteCard, inviteMetadata, type InviteMetaInput } from '@/lib/invite-meta';
 import { DEFAULT_INVITE_OPENING, type InviteOpening } from '@/lib/invite-openings';
 import type { LinkPreviewCard } from '@/lib/link-preview-page';
@@ -18,7 +19,7 @@ import { isSampleSlug, SAMPLE_RSVP_MESSAGE, sampleWedding } from '@/lib/sample-i
 import { editDetailsUrl, inviteDomainLabel, madeByUrl } from '@/lib/site-host';
 import type { WeddingFamilies } from '@/lib/wedding-families';
 import type { WeddingFunction } from '@/lib/wedding-functions';
-import { isGuestLinkDeleted } from '@/services/guest-link.service';
+import { guestLinkId, isGuestLinkDeleted } from '@/services/guest-link.service';
 import { getSampleVenues } from '@/services/sample-invite.service';
 import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
 import { inviteSong } from '@/services/wedding-songs.service';
@@ -131,6 +132,13 @@ async function guestFrom(wedding: Invite, segment: string | null): Promise<strin
   return (await loadDeleted(wedding.id, segment)) ? null : name;
 }
 
+/** The guest link id the visit is counted under, or `null` for the plain link. */
+function linkIdFor(guestName: string | null, segment: string | null): string | null {
+  if (guestName === null || segment === null) return null;
+  const key = guestLinkKey(segment);
+  return key === null ? null : guestLinkId(key);
+}
+
 /**
  * What the link preview needs: `null` for no invite, `'unavailable'` for a
  * paused one, which shows no names.
@@ -194,43 +202,54 @@ export async function CoupleInvite({
   if (wedding === null) notFound();
   if (wedding.unavailable) return <InviteUnavailable />;
   const guestName = await guestFrom(wedding, guestSegment);
+  const invite = (
+    <InviteGate
+      guestName={guestName}
+      couple={coupleNames(wedding)}
+      song={wedding.song}
+      opening={wedding.opening}
+    >
+      {/* Full width, not PageShell: the petals run edge to edge, and the
+          invite narrows its own text column. */}
+      <main className="flex flex-1 flex-col">
+        <ShubhVivahInvite
+          bride={wedding.bride}
+          groom={wedding.groom}
+          nameOrder={wedding.nameOrder}
+          guestName={guestName}
+          weddingDate={wedding.weddingDate}
+          ceremonyTime={wedding.ceremonyTime}
+          venueName={wedding.venueName}
+          venueCity={wedding.venueCity}
+          venueMapsUrl={wedding.venueMapsUrl}
+          rsvpPhoneE164={wedding.rsvpPhoneE164}
+          {...(wedding.sample && { rsvpMessage: SAMPLE_RSVP_MESSAGE })}
+          functions={wedding.functions}
+          families={wedding.families}
+          opening={wedding.opening}
+          madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
+          hideCredit={wedding.hideCredit}
+          {...(!wedding.sample &&
+            !wedding.hideEditLink && {
+              editDetailsUrl: editDetailsUrl(wedding.slug, env.rootDomain, env.appUrl),
+            })}
+          className="flex-1"
+        />
+      </main>
+    </InviteGate>
+  );
 
   return (
     <>
-      <InviteGate
-        guestName={guestName}
-        couple={coupleNames(wedding)}
-        song={wedding.song}
-        opening={wedding.opening}
-      >
-        {/* Full width, not PageShell: the petals run edge to edge, and the
-          invite narrows its own text column. */}
-        <main className="flex flex-1 flex-col">
-          <ShubhVivahInvite
-            bride={wedding.bride}
-            groom={wedding.groom}
-            nameOrder={wedding.nameOrder}
-            guestName={guestName}
-            weddingDate={wedding.weddingDate}
-            ceremonyTime={wedding.ceremonyTime}
-            venueName={wedding.venueName}
-            venueCity={wedding.venueCity}
-            venueMapsUrl={wedding.venueMapsUrl}
-            rsvpPhoneE164={wedding.rsvpPhoneE164}
-            {...(wedding.sample && { rsvpMessage: SAMPLE_RSVP_MESSAGE })}
-            functions={wedding.functions}
-            families={wedding.families}
-            opening={wedding.opening}
-            madeByUrl={madeByUrl(env.rootDomain, env.appUrl)}
-            hideCredit={wedding.hideCredit}
-            {...(!wedding.sample &&
-              !wedding.hideEditLink && {
-                editDetailsUrl: editDetailsUrl(wedding.slug, env.rootDomain, env.appUrl),
-              })}
-            className="flex-1"
-          />
-        </main>
-      </InviteGate>
+      {/* A couple's invite counts its visits (ADR-0020). The sample does not:
+        it is our demo, not a couple's page. */}
+      {wedding.id === null ? (
+        invite
+      ) : (
+        <InviteVisitTracker weddingId={wedding.id} guestLinkId={linkIdFor(guestName, guestSegment)}>
+          {invite}
+        </InviteVisitTracker>
+      )}
       {/* The sample is marked like an unpaid preview, so a screenshot of it
           cannot pass for a couple's invite. */}
       {wedding.sample && (

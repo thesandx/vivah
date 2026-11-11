@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { guestLinkKey, guestLinkSegment, parseGuestName } from '@/lib/guest-name';
 import { canEditWedding } from '@/lib/wedding-details';
+import { recordInviteChange } from '@/services/invite-change.service';
 import { createRepository, type StoredDocument } from '@/services/repository';
 import { getWeddingBySlug, type WeddingDocument } from '@/services/wedding.service';
 
@@ -150,7 +151,13 @@ export async function createGuestLink(
 ): Promise<GuestLinkResult> {
   const wedding = await ownedWedding(slug, callerPhoneE164);
   if (wedding === null) return NOT_YOURS;
-  return createGuestLinkIn(wedding.id, rawName);
+  const result = await createGuestLinkIn(wedding.id, rawName);
+  if (result.ok) {
+    await recordInviteChange(wedding.id, 'guest-links', [
+      { label: 'Guest link made', from: null, to: result.link.name },
+    ]);
+  }
+  return result;
 }
 
 /**
@@ -161,10 +168,16 @@ export async function deleteGuestLink(
   slug: string,
   callerPhoneE164: string | null,
   linkId: string,
-): Promise<{ ok: true } | { ok: false; reason: 'not-found'; message: string }> {
+): Promise<{ ok: true; name: string } | { ok: false; reason: 'not-found'; message: string }> {
   const wedding = await ownedWedding(slug, callerPhoneE164);
   if (wedding === null) return NOT_YOURS;
-  return deleteGuestLinkIn(wedding.id, linkId);
+  const result = await deleteGuestLinkIn(wedding.id, linkId);
+  if (result.ok) {
+    await recordInviteChange(wedding.id, 'guest-links', [
+      { label: 'Guest link deleted', from: null, to: result.name },
+    ]);
+  }
+  return result;
 }
 
 const INVALID_NAME = {
@@ -237,12 +250,13 @@ export async function createGuestLinkIn(
 export async function deleteGuestLinkIn(
   weddingId: string,
   linkId: string,
-): Promise<{ ok: true } | { ok: false; reason: 'not-found'; message: string }> {
+): Promise<{ ok: true; name: string } | { ok: false; reason: 'not-found'; message: string }> {
   if (!isGuestLinkId(linkId)) return ALREADY_GONE;
   const repository = guestLinksOf(weddingId);
-  if ((await repository.get(linkId)) === null) return ALREADY_GONE;
+  const link = await repository.get(linkId);
+  if (link === null) return ALREADY_GONE;
   await repository.softDelete(linkId);
-  return { ok: true };
+  return { ok: true, name: link.name };
 }
 
 /**
