@@ -116,7 +116,7 @@ const VIEWS = [
   { value: 'previews', label: 'Previews' },
   { value: 'visitors', label: 'Visitors' },
   { value: 'tracker', label: 'Preview tracker' },
-  { value: 'coupons', label: 'Coupons' },
+  { value: 'coupons', label: 'Price & coupons' },
   { value: 'activity', label: 'Activity' },
   { value: 'home', label: 'Home page' },
 ] as const;

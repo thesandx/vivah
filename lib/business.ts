@@ -49,25 +49,20 @@ export const SOCIAL = {
 } as const;
 
 /**
- * The list price, in rupees, one time. The home page prints it, and the pay
- * button charges it less any coupon the couple applies (`lib/coupons.ts`).
+ * The default list price, in rupees, one time. The admin changes the price
+ * the site shows and charges on `/admin` > Coupons (`lib/preview-pricing.ts`);
+ * this is the price before the first save, and the "from" price in the FAQ.
  * The product owner raised it from ₹499 to ₹799 on 2026-10-24, with coupon
  * codes, so a couple sees a discount when they ask for one. ADR-0015.
  */
 export const PRICE_FROM_RUPEES = 799;
 
 /**
- * The struck-through price the publish banner's short bar shows beside
- * `PRICE_FROM_RUPEES`, with the percentage off ("₹1,999 ₹799 · 60% OFF").
- * The product owner chose it on 2026-10-31.
+ * The default struck-through price beside the price on the preview's pay
+ * button ("₹1,999 ₹799 · 60% OFF"). The product owner chose it on
+ * 2026-10-31; the admin changes it on `/admin` > Coupons.
  */
 export const STRUCK_PRICE_RUPEES = 1999;
-
-/** The whole percentage `paid` is below `STRUCK_PRICE_RUPEES`. 0 when it is not below. */
-export function percentOffStruck(paidRupees: number): number {
-  if (paidRupees >= STRUCK_PRICE_RUPEES) return 0;
-  return Math.round(((STRUCK_PRICE_RUPEES - paidRupees) / STRUCK_PRICE_RUPEES) * 100);
-}
 
 /**
  * What paper cards cost and how long they take, as the home page's "paper or

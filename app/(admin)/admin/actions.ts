@@ -63,6 +63,7 @@ import {
   removeDemoVideo,
   saveDemoVideo,
 } from '@/services/demo-video.service';
+import { savePreviewPrices, setCheckoutBar } from '@/services/preview-pricing.service';
 import { resetSampleVenues, saveSampleVenues } from '@/services/sample-invite.service';
 import {
   createStepImageUpload,
@@ -705,6 +706,26 @@ export async function turnCouponOnAction(id: string): Promise<ActionState> {
 
 export async function turnCouponOffAction(id: string): Promise<ActionState> {
   return run('coupon-off', id, (uid) => setCouponActive(id, false, uid));
+}
+
+/** Saves the preview's price and cut price from the Coupons tab. */
+export async function savePreviewPricesAction(
+  _state: ActionState,
+  form: FormData,
+): Promise<ActionState> {
+  const fields = {
+    priceRupees: text(form, 'priceRupees'),
+    struckRupees: text(form, 'struckRupees'),
+  };
+  return run('preview-price', 'preview-pricing', (uid) => savePreviewPrices(fields, uid));
+}
+
+export async function turnCheckoutBarOnAction(): Promise<ActionState> {
+  return run('checkout-bar-on', 'preview-pricing', (uid) => setCheckoutBar(true, uid));
+}
+
+export async function turnCheckoutBarOffAction(): Promise<ActionState> {
+  return run('checkout-bar-off', 'preview-pricing', (uid) => setCheckoutBar(false, uid));
 }
 
 /** Shows the home page ribbon with the chosen coupon. */

@@ -2,7 +2,6 @@ import 'server-only';
 
 import { z } from 'zod';
 
-import { PRICE_FROM_RUPEES } from '@/lib/business';
 import {
   type AppliedCoupon,
   COUPON_CODE_PATTERN,
@@ -16,6 +15,7 @@ import { logger } from '@/lib/logger';
 import { withTimeout } from '@/lib/utils';
 import type { AdminResult } from '@/services/admin.service';
 import { recordAdminActionIn } from '@/services/admin-audit.service';
+import { getPreviewPricingToCharge } from '@/services/preview-pricing.service';
 import { createRepository, MAX_PAGE_SIZE, type StoredDocument } from '@/services/repository';
 
 /**
@@ -88,9 +88,13 @@ export const COUPON_NOT_VALID = 'This code does not work. Check it, or pay the f
  * The price for a code the couple typed, or the list price for none. The
  * server always prices the order from this, never from the page. An unknown
  * code and a code the admin turned off read the same to the couple.
+ *
+ * The list price is the one the admin set on `/admin` > Coupons
+ * (`services/preview-pricing.service.ts`). A failed read of it throws, so a
+ * payment never starts at a price the page did not show.
  */
 export async function quotePrice(rawCode: string | null): Promise<PriceQuote> {
-  const listRupees = PRICE_FROM_RUPEES;
+  const listRupees = (await getPreviewPricingToCharge()).priceRupees;
   if (rawCode === null || normalizeCouponCode(rawCode) === '') {
     return { ok: true, listRupees, payableRupees: listRupees, coupon: null };
   }

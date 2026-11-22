@@ -20,7 +20,7 @@ import { SiteHeader } from '@/components/layout/SiteHeader';
 import { Alert } from '@/components/ui/Alert';
 import { buttonStyles } from '@/components/ui/Button';
 import { Face } from '@/components/ui/Face';
-import { BUSINESS, PRICE_FROM_RUPEES, whatsAppChatUrl } from '@/lib/business';
+import { BUSINESS, whatsAppChatUrl } from '@/lib/business';
 import { coupleNames } from '@/lib/couple-names';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
@@ -32,6 +32,7 @@ import { emptyFunction } from '@/lib/wedding-functions';
 import { getHomeRibbon } from '@/services/coupon.service';
 import { getPreview, type PreviewAccess } from '@/services/lead.service';
 import { paymentMode, paymentProviderName, payments } from '@/services/payment.service';
+import { getPreviewPricing } from '@/services/preview-pricing.service';
 import { getHomeTestimonials } from '@/services/testimonials.service';
 import { checkSlug, freeSlugSuggestions } from '@/services/wedding.service';
 import { inviteSong } from '@/services/wedding-songs.service';
@@ -196,6 +197,9 @@ export default async function PreviewPage({
   // Two real reviews and a WhatsApp link beside the pay button. Reviews are
   // optional: the sheet shows without them when they do not load.
   const payReviews = published ? [] : await payReviewsOrNone();
+  // The admin's price, cut price and checkout look (`/admin` > Coupons).
+  // The defaults when the read fails; the payment reads it again, strictly.
+  const pricing = await getPreviewPricing();
   const chatUrl = whatsAppChatUrl(
     BUSINESS.whatsAppE164,
     `Hi, I have a question about my invite preview: ${siteOrigin(env.rootDomain, env.appUrl)}/p/${lead.id}`,
@@ -209,8 +213,8 @@ export default async function PreviewPage({
   // conversion. The list price when the payment cannot be read.
   const paidRupees =
     published && payment === 'success' && lead.paymentId !== undefined
-      ? await paidAmount(lead.paymentId)
-      : PRICE_FROM_RUPEES;
+      ? await paidAmount(lead.paymentId, pricing.priceRupees)
+      : pricing.priceRupees;
 
   let dock: React.ReactNode;
   if (published && lead.weddingSlug !== undefined) {
@@ -258,7 +262,9 @@ export default async function PreviewPage({
         {...(chosen !== undefined && { chosen })}
         suggestions={suggestions}
         domainLabel={domainLabel}
-        priceRupees={PRICE_FROM_RUPEES}
+        priceRupees={pricing.priceRupees}
+        struckRupees={pricing.struckRupees}
+        layout={pricing.checkoutBar ? 'bar' : 'sheet'}
         hasSong={song !== null}
         {...(notice !== undefined && { notice })}
         mode={paidWithoutAddress ? 'paid' : mode === 'test' ? 'test' : 'live'}
@@ -351,16 +357,16 @@ export default async function PreviewPage({
 }
 
 /** What a payment took, in rupees, after any coupon. The list price when it cannot be read. */
-async function paidAmount(paymentId: string): Promise<number> {
+async function paidAmount(paymentId: string, listRupees: number): Promise<number> {
   try {
     const record = await payments.get(paymentId);
-    return record?.amountPaid ?? record?.amountRupees ?? PRICE_FROM_RUPEES;
+    return record?.amountPaid ?? record?.amountRupees ?? listRupees;
   } catch (error) {
     logger.warn('Reading a payment for the purchase conversion failed', {
       paymentId,
       reason: error instanceof Error ? error.message : String(error),
     });
-    return PRICE_FROM_RUPEES;
+    return listRupees;
   }
 }
 

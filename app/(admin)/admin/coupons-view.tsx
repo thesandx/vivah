@@ -3,7 +3,10 @@ import Link from 'next/link';
 import {
   createCouponAction,
   hideRibbonAction,
+  savePreviewPricesAction,
   saveRibbonAction,
+  turnCheckoutBarOffAction,
+  turnCheckoutBarOnAction,
   turnCouponOffAction,
   turnCouponOnAction,
 } from '@/app/(admin)/admin/actions';
@@ -15,20 +18,22 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { formatAdminTime } from '@/lib/admin-list';
-import { PRICE_FROM_RUPEES } from '@/lib/business';
 import { coupleNames } from '@/lib/couple-names';
 import { discountedPrice, formatRupees, MAX_PERCENT_OFF, usesByCode } from '@/lib/coupons';
 import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
+import { type PreviewPricing, roundedPercentOff } from '@/lib/preview-pricing';
 import { inviteHostLabel } from '@/lib/site-host';
 import { listAllLeads } from '@/services/admin.service';
 import { type CouponDocument, getRibbonCode, listCoupons } from '@/services/coupon.service';
 import type { LeadDocument } from '@/services/lead.service';
+import { getPreviewPricingForAdmin } from '@/services/preview-pricing.service';
 
 /**
- * The Coupons tab of `/admin` (ADR-0015): make a code, turn it on or off,
- * see who used it for a referral cashback, and choose the code the home page
- * ribbon shows.
+ * The Coupons tab of `/admin` (ADR-0015): set the preview's price and cut
+ * price, choose the checkout look, make a code, turn it on or off, see who
+ * used it for a referral cashback, and choose the code the home page ribbon
+ * shows.
  *
  * Uses are read from the leads: a lead records its code when it is paid,
  * by a payment or by "Make live" on its preview page.
@@ -38,17 +43,19 @@ interface Loaded {
   coupons: CouponDocument[];
   uses: Map<string, LeadDocument[]>;
   ribbonCode: string | null;
+  pricing: PreviewPricing;
   capped: boolean;
 }
 
 async function load(): Promise<Loaded | null> {
   try {
-    const [coupons, leads, ribbonCode] = await Promise.all([
+    const [coupons, leads, ribbonCode, pricing] = await Promise.all([
       listCoupons(),
       listAllLeads(),
       getRibbonCode(),
+      getPreviewPricingForAdmin(),
     ]);
-    return { coupons, uses: usesByCode(leads.items), ribbonCode, capped: leads.capped };
+    return { coupons, uses: usesByCode(leads.items), ribbonCode, pricing, capped: leads.capped };
   } catch (error) {
     logger.error('Loading the coupons failed', error);
     return null;
@@ -61,11 +68,11 @@ export async function CouponsView() {
   return (
     <>
       <header className="flex flex-col gap-1">
-        <h2 className="text-title">Coupons</h2>
+        <h2 className="text-title">Price and coupons</h2>
         <p className="text-ink-soft max-w-prose">
-          The price is {formatRupees(PRICE_FROM_RUPEES)}. A couple types a code on the payment sheet
-          of their preview and pays less. Turn a code off to stop it working; who used it stays
-          listed.
+          Set what a couple pays for their preview, and how the pay button looks. A couple types a
+          code on the payment sheet of their preview and pays less. Turn a code off to stop it
+          working; who used it stays listed.
         </p>
       </header>
 
@@ -75,15 +82,87 @@ export async function CouponsView() {
         </Alert>
       ) : (
         <>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <PriceCard pricing={loaded.pricing} />
+            <CheckoutCard pricing={loaded.pricing} />
+          </div>
           <RibbonCard coupons={loaded.coupons} ribbonCode={loaded.ribbonCode} />
-          <NewCouponCard />
+          <NewCouponCard priceRupees={loaded.pricing.priceRupees} />
           {loaded.capped && (
             <Alert tone="info" title="Uses count the newest 2,000 previews only." />
           )}
-          <CouponList coupons={loaded.coupons} uses={loaded.uses} ribbonCode={loaded.ribbonCode} />
+          <CouponList
+            coupons={loaded.coupons}
+            uses={loaded.uses}
+            ribbonCode={loaded.ribbonCode}
+            priceRupees={loaded.pricing.priceRupees}
+          />
         </>
       )}
     </>
+  );
+}
+
+function PriceCard({ pricing }: { pricing: PreviewPricing }) {
+  const percent = roundedPercentOff(pricing.struckRupees, pricing.priceRupees);
+  return (
+    <Card className="flex flex-col gap-4">
+      <h3 className="text-heading">Price</h3>
+      <p className="text-small text-ink-soft max-w-prose">
+        The pay button shows the cut price struck through, the price, and the percentage off,
+        rounded to the nearest 10. Payments charge the price, less any coupon. Changes show within a
+        minute.
+      </p>
+      <p className="font-semibold">
+        Now: <s className="text-ink-soft font-normal">{formatRupees(pricing.struckRupees)}</s>{' '}
+        {formatRupees(pricing.priceRupees)}
+        {percent > 0 ? ` · ${percent}% OFF` : ' · no cut price shown'}
+      </p>
+      <AdminActionForm action={savePreviewPricesAction} label="Save the price" variant="primary">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Input
+            label="Price, in ₹"
+            name="priceRupees"
+            hint="What the couple pays before a coupon."
+            inputMode="numeric"
+            autoComplete="off"
+            defaultValue={String(pricing.priceRupees)}
+            required
+          />
+          <Input
+            label="Cut price, in ₹"
+            name="struckRupees"
+            hint="Struck through beside the price. The same as the price hides it."
+            inputMode="numeric"
+            autoComplete="off"
+            defaultValue={String(pricing.struckRupees)}
+            required
+          />
+        </div>
+      </AdminActionForm>
+    </Card>
+  );
+}
+
+function CheckoutCard({ pricing }: { pricing: PreviewPricing }) {
+  const on = pricing.checkoutBar;
+  return (
+    <Card className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 className="text-heading">Checkout bar</h3>
+        <Badge tone={on ? 'success' : 'neutral'}>{on ? 'On' : 'Off'}</Badge>
+      </div>
+      <p className="text-small text-ink-soft max-w-prose">
+        On: the preview shows a fixed bar at the foot, like a shopping site, with the price and one
+        “Buy at {formatRupees(pricing.priceRupees)}” button. It does not drag or grow. Off: the
+        drag-up pay sheet. Both keep the coupon line.
+      </p>
+      <AdminActionForm
+        action={on ? turnCheckoutBarOffAction : turnCheckoutBarOnAction}
+        label={on ? 'Use the drag-up sheet' : 'Use the fixed bar'}
+        variant={on ? 'secondary' : 'primary'}
+      />
+    </Card>
   );
 }
 
@@ -132,7 +211,7 @@ function RibbonCard({
   );
 }
 
-function NewCouponCard() {
+function NewCouponCard({ priceRupees }: { priceRupees: number }) {
   return (
     <Card className="flex flex-col gap-4">
       <h3 className="text-heading">New coupon</h3>
@@ -150,7 +229,7 @@ function NewCouponCard() {
           <Input
             label="Discount, in %"
             name="percentOff"
-            hint={`From 1 to ${MAX_PERCENT_OFF}. 20 makes ${formatRupees(PRICE_FROM_RUPEES)} into ${formatRupees(discountedPrice(PRICE_FROM_RUPEES, 20))}.`}
+            hint={`From 1 to ${MAX_PERCENT_OFF}. 20 makes ${formatRupees(priceRupees)} into ${formatRupees(discountedPrice(priceRupees, 20))}.`}
             inputMode="numeric"
             autoComplete="off"
             required
@@ -172,10 +251,12 @@ function CouponList({
   coupons,
   uses,
   ribbonCode,
+  priceRupees,
 }: {
   coupons: readonly CouponDocument[];
   uses: Map<string, LeadDocument[]>;
   ribbonCode: string | null;
+  priceRupees: number;
 }) {
   if (coupons.length === 0) {
     return (
@@ -203,7 +284,7 @@ function CouponList({
               <p>
                 {coupon.percentOff}% off: the couple pays{' '}
                 <span className="font-semibold">
-                  {formatRupees(discountedPrice(PRICE_FROM_RUPEES, coupon.percentOff))}
+                  {formatRupees(discountedPrice(priceRupees, coupon.percentOff))}
                 </span>
                 .
               </p>

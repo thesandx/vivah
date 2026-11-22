@@ -13,23 +13,24 @@ import { Alert } from '@/components/ui/Alert';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
 import { usePreviewTracking } from '@/hooks/usePreviewTracking';
 import { usePublishInvite } from '@/hooks/usePublishInvite';
-import {
-  MONEY_BACK_DAYS,
-  PAPER_CARDS,
-  PAYMENT_METHODS,
-  percentOffStruck,
-  STRUCK_PRICE_RUPEES,
-} from '@/lib/business';
+import { MONEY_BACK_DAYS, PAPER_CARDS, PAYMENT_METHODS } from '@/lib/business';
 import { coupleNames, type NameOrder } from '@/lib/couple-names';
+import { roundedPercentOff } from '@/lib/preview-pricing';
 import { cn } from '@/lib/utils';
 
 /**
  * The two payment dialogs at the foot of the couple's preview.
  *
  * Closed, it is a short bar: "Your personal wedding website is just one step away", the
- * couple's address, and one green button with the price struck from
- * `STRUCK_PRICE_RUPEES` and the percentage off (the product owner,
- * 2026-10-31). Dragging its handle up, as on an iPhone sheet, or tapping it,
+ * couple's address, and one green button with the cut price (`struckRupees`)
+ * struck through and the percentage off, rounded to the nearest 10 (the
+ * product owner, 2026-10-31 and 2026-11-22). The admin sets both prices on
+ * `/admin` > Coupons.
+ *
+ * `layout="bar"` (an `/admin` switch, the product owner, 2026-11-22) swaps
+ * the short bar for a fixed checkout bar, as on a shopping site: the price
+ * on the left, one green "Buy at ₹799" button on the right, and the coupon
+ * line above them. It never drags or grows; "Details" opens the checkout. Dragging its handle up, as on an iPhone sheet, or tapping it,
  * opens the full sheet: the price against what paper cards cost, one green
  * button and the trust lines. Dragging down closes it. Scrolling does not
  * open it. The green button on either goes straight to
@@ -44,7 +45,7 @@ import { cn } from '@/lib/utils';
  * It is a transaction surface, so it is set apart from the invite behind it:
  * Inter (`font-pay`), neutral greys, and one green action (the `pay-*`
  * tokens). Only the couple's names keep the invite's serif. Every claim on it
- * is true today: the price is `PRICE_FROM_RUPEES` (passed in), and the
+ * is true today: the price is the admin's (passed in), and the
  * paper-card figures are `PAPER_CARDS` (the product owner's pick, 2026-10-23). No star ratings and no couple counts. The
  * money-back line is the refund policy's own promise, `MONEY_BACK_DAYS`
  * (the product owner, 2026-11-02). Next to the pay button
@@ -83,6 +84,10 @@ export interface PublishBannerProps {
   domainLabel: string;
   /** The one-time list price, in rupees, before any coupon. */
   priceRupees: number;
+  /** The cut price struck through beside it. Default: no cut price. */
+  struckRupees?: number;
+  /** `sheet`: the drag-up short bar (default). `bar`: the fixed checkout bar. */
+  layout?: 'sheet' | 'bar';
   /** Whether the couple chose a song, so the copy only promises what is there. */
   hasSong?: boolean;
   /** Shown above the address when the chosen one was taken meanwhile. */
@@ -318,6 +323,8 @@ export function PublishBanner({
   suggestions,
   domainLabel,
   priceRupees,
+  struckRupees = priceRupees,
+  layout = 'sheet',
   hasSong = false,
   notice,
   checkSlug,
@@ -344,6 +351,14 @@ export function PublishBanner({
   const price = `₹${payable.toLocaleString('en-IN')}`;
   const saving =
     coupon === null ? null : `−₹${(priceRupees - coupon.payableRupees).toLocaleString('en-IN')}`;
+  // The cut price and the percentage off, only when the price is below it.
+  const percentOff = roundedPercentOff(struckRupees, payable);
+  const struck =
+    payable < struckRupees ? (
+      <s className="text-small font-normal opacity-75">
+        <span className="sr-only">was </span>₹{struckRupees.toLocaleString('en-IN')}
+      </s>
+    ) : null;
 
   // The pay buttons send the applied code. Without one, the call is the
   // same as before coupons existed.
@@ -449,7 +464,7 @@ export function PublishBanner({
           className,
         )}
       >
-        {!open && (
+        {!open && layout === 'sheet' && (
           // The drag zone: the handle and, while short, the title. A drag up
           // opens the full sheet, a drag down closes it, and a tap toggles it.
           <div
@@ -490,7 +505,62 @@ export function PublishBanner({
             </button>
           </div>
         )}
-        {!open && !expanded ? (
+        {!open && layout === 'bar' ? (
+          <div className="flex flex-col gap-2 pt-3">
+            {directError}
+            {couponLine()}
+            <div className="flex items-center gap-3">
+              <div className="flex min-w-0 shrink-0 flex-col leading-tight tabular-nums">
+                {struck !== null && (
+                  <span className="text-pay-muted flex items-center gap-1.5">
+                    {struck}
+                    {percentOff > 0 && (
+                      <span className="bg-pay-action-soft text-pay-action rounded-pill text-small px-2 font-bold">
+                        {percentOff}% OFF
+                      </span>
+                    )}
+                  </span>
+                )}
+                <span className="text-title text-pay-ink font-bold tracking-tight">{price}</span>
+                <button
+                  type="button"
+                  onClick={() => setOpen(true)}
+                  className="text-small text-pay-body decoration-pay-line self-start font-semibold underline decoration-2 underline-offset-4"
+                >
+                  Details
+                </button>
+              </div>
+              <button
+                type="button"
+                onClick={payNow}
+                disabled={directWorking}
+                aria-busy={directWorking}
+                className={cn(
+                  'text-on-brand rounded-input text-body inline-flex min-h-14 flex-1 items-center justify-center gap-2 px-4 font-bold tabular-nums transition-colors select-none',
+                  directWorking
+                    ? 'bg-pay-action-deep cursor-wait'
+                    : 'bg-pay-action hover:bg-pay-action-deep active:translate-y-px',
+                )}
+              >
+                {directWorking ? (
+                  <>
+                    {spinner}
+                    {directLabel}
+                  </>
+                ) : live ? (
+                  `Buy at ${price}`
+                ) : (
+                  'Continue to publish'
+                )}
+              </button>
+            </div>
+            <p className="text-small text-pay-body flex items-center justify-center gap-1.5 text-center">
+              {live && <Lock />}
+              {live && 'Secure payment · '}
+              {MONEY_BACK_DAYS}-day full refund
+            </p>
+          </div>
+        ) : !open && !expanded ? (
           <div className="animate-fade-in flex flex-col gap-2">
             {directError}
             <button
@@ -514,14 +584,11 @@ export function PublishBanner({
               ) : (
                 <>
                   <span className="text-body">{live ? 'Make it live' : 'Continue'}</span>
-                  <s className="text-small font-normal opacity-75">
-                    <span className="sr-only">was </span>₹
-                    {STRUCK_PRICE_RUPEES.toLocaleString('en-IN')}
-                  </s>
+                  {struck}
                   <span className="text-heading font-bold">{price}</span>
-                  {payable < STRUCK_PRICE_RUPEES && (
+                  {percentOff > 0 && (
                     <span className="bg-surface text-pay-action rounded-pill text-small px-2 font-bold">
-                      {percentOffStruck(payable)}% OFF
+                      {percentOff}% OFF
                     </span>
                   )}
                 </>

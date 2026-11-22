@@ -15,6 +15,11 @@ import {
   setCouponActive,
 } from '@/services/coupon.service';
 import { createLead, leads } from '@/services/lead.service';
+import {
+  getPreviewPricingForAdmin,
+  savePreviewPrices,
+  setCheckoutBar,
+} from '@/services/preview-pricing.service';
 
 /**
  * Coupons against the real Firestore emulator: the unique code is a check
@@ -37,6 +42,43 @@ function uniqueCode(prefix: string): string {
 }
 
 describeEmulator('coupons (emulator)', () => {
+  it('charges the price the admin set, with a coupon off it, then the default again', async () => {
+    const code = uniqueCode('P');
+    expect((await createCoupon({ code, percentOff: '20', note: '' }, ADMIN)).ok).toBe(true);
+    try {
+      expect((await savePreviewPrices({ priceRupees: '999', struckRupees: '799' }, ADMIN)).ok).toBe(
+        false,
+      );
+      expect(
+        (await savePreviewPrices({ priceRupees: '699', struckRupees: '2499' }, ADMIN)).ok,
+      ).toBe(true);
+      expect(await quotePrice(null)).toMatchObject({
+        ok: true,
+        listRupees: 699,
+        payableRupees: 699,
+      });
+      expect(await quotePrice(code)).toMatchObject({
+        ok: true,
+        payableRupees: discountedPrice(699, 20),
+      });
+      expect((await setCheckoutBar(true, ADMIN)).ok).toBe(true);
+      expect(await getPreviewPricingForAdmin()).toEqual({
+        priceRupees: 699,
+        struckRupees: 2499,
+        checkoutBar: true,
+      });
+    } finally {
+      // The other suites expect the default price.
+      await savePreviewPrices(
+        { priceRupees: String(PRICE_FROM_RUPEES), struckRupees: '1999' },
+        ADMIN,
+      );
+      await setCheckoutBar(false, ADMIN);
+      await setCouponActive((await findCoupon(code))?.id ?? '', false, ADMIN);
+    }
+    expect(await quotePrice(null)).toMatchObject({ payableRupees: PRICE_FROM_RUPEES });
+  });
+
   it('makes a code once, prices with it, and stops pricing once it is off', async () => {
     const code = uniqueCode('T');
     expect(
