@@ -8,6 +8,8 @@ import { HOME_CTAS, HOME_SECTIONS } from '@/lib/visit-tracking';
 vi.mock('@/app/(main)/home-testimonials', () => ({ HomeTestimonials: () => null }));
 // So is the coupon ribbon; `OfferRibbon` has its own test.
 vi.mock('@/app/(main)/home-ribbon', () => ({ HomeRibbon: () => null }));
+// The price reads the admin's setting; `PaperVsDigital` has its own test.
+vi.mock('@/app/(main)/home-price', () => ({ HomePrice: () => '₹799', HomeCompare: () => null }));
 
 /**
  * Smoke test for the home page. `HomePage` is a synchronous Server Component,

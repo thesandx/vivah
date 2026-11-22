@@ -24,6 +24,7 @@ function renderBanner() {
       suggestions={[]}
       domainLabel="vivah.online"
       priceRupees={499}
+      struckRupees={1999}
       checkSlug={() => Promise.resolve({ available: true })}
       publish={publish}
     />,
@@ -94,7 +95,7 @@ describe('PublishBanner', () => {
       screen.getByText('Your personal wedding website is just one step away'),
     ).toBeInTheDocument();
     expect(screen.getByText('priya-rahul.vivah.online')).toBeInTheDocument();
-    expect(screen.getByText('75% OFF')).toBeInTheDocument();
+    expect(screen.getByText('80% OFF')).toBeInTheDocument();
     act(() => {
       window.dispatchEvent(new Event('scroll'));
     });
@@ -140,6 +141,7 @@ describe('PublishBanner modes', () => {
         suggestions={[]}
         domainLabel="vivah.online"
         priceRupees={499}
+        struckRupees={1999}
         mode={mode}
         providerName="Razorpay"
         checkSlug={() => Promise.resolve({ available: true })}
@@ -210,7 +212,7 @@ describe('PublishBanner modes', () => {
     const button = screen.getByRole('button', { name: 'Make it live · ₹499' });
     expect(button).toHaveTextContent('Make it live');
     expect(button).toHaveTextContent('₹1,999');
-    expect(button).toHaveTextContent('75% OFF');
+    expect(button).toHaveTextContent('80% OFF');
   });
 
   it('promises the 7-day refund under the short bar button', () => {
@@ -287,5 +289,55 @@ describe('PublishBanner modes', () => {
   it('offers no coupon line in test mode', () => {
     renderBanner();
     expect(screen.queryByRole('button', { name: 'Have a coupon code?' })).not.toBeInTheDocument();
+  });
+
+  describe('with the fixed checkout bar', () => {
+    function renderBar(struckRupees = 1999) {
+      const publish = vi.fn(() => new Promise<{ ok: false; message: string }>(() => undefined));
+      const applyCoupon = vi.fn(() =>
+        Promise.resolve({ ok: true as const, code: 'NEW20', percentOff: 20, payableRupees: 640 }),
+      );
+      render(
+        <PublishBanner
+          bride="Riya"
+          groom="Arjun"
+          leadId="lead-1"
+          chosen="priya-rahul"
+          suggestions={[]}
+          domainLabel="vivah.online"
+          priceRupees={799}
+          struckRupees={struckRupees}
+          layout="bar"
+          mode="live"
+          checkSlug={() => Promise.resolve({ available: true })}
+          publish={publish}
+          applyCoupon={applyCoupon}
+        />,
+      );
+      return { publish, applyCoupon };
+    }
+
+    it('shows the price and one "Buy at" button, with no drag handle', () => {
+      const { publish } = renderBar();
+      expect(
+        screen.queryByRole('button', { name: 'Show everything about publishing' }),
+      ).not.toBeInTheDocument();
+      expect(screen.getByText('60% OFF')).toBeInTheDocument();
+      expect(screen.getByText('₹1,999', { exact: false })).toBeInTheDocument();
+      fireEvent.click(screen.getByRole('button', { name: 'Buy at ₹799' }));
+      expect(publish).toHaveBeenCalledWith('lead-1', 'priya-rahul');
+    });
+
+    it('is slim: no coupon line, no Details, no trust line', () => {
+      renderBar();
+      expect(screen.queryByRole('button', { name: 'Have a coupon code?' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Details' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/full refund/)).not.toBeInTheDocument();
+    });
+
+    it('shows no cut price when it equals the price', () => {
+      renderBar(799);
+      expect(screen.queryByText(/% OFF/)).not.toBeInTheDocument();
+    });
   });
 });

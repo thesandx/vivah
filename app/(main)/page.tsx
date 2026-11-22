@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 
 import { HomeDemoVideo } from '@/app/(main)/home-demo-video';
+import { HomeCompare, HomePrice } from '@/app/(main)/home-price';
 import { HomeRibbon } from '@/app/(main)/home-ribbon';
 import { HomeTestimonials } from '@/app/(main)/home-testimonials';
 import { VisitTracker } from '@/components/analytics/VisitTracker';
@@ -11,7 +12,6 @@ import { FeatureList } from '@/components/home/FeatureList';
 import { GuestPreview } from '@/components/home/GuestPreview';
 import { HowItWorks } from '@/components/home/HowItWorks';
 import { LiveInvitePhone } from '@/components/home/LiveInvitePhone';
-import { PaperVsDigital } from '@/components/home/PaperVsDigital';
 import { SectionHeading } from '@/components/home/SectionHeading';
 import { PageShell } from '@/components/layout/PageShell';
 import { LeadForm } from '@/components/lead/LeadForm';
@@ -23,7 +23,6 @@ import { JsonLd } from '@/components/seo/JsonLd';
 import { buttonStyles } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { WhatsAppIcon } from '@/components/ui/WhatsAppIcon';
-import { PRICE_FROM_RUPEES } from '@/lib/business';
 import { DEMO_STEPS } from '@/lib/demo-video';
 import { env } from '@/lib/env';
 import { SAMPLE_GUEST, SAMPLE_SLUG, sampleWedding } from '@/lib/sample-invite';
@@ -161,7 +160,7 @@ export default function HomePage() {
                   Get your personal wedding site and send personalised digital invites to friends
                   and family at{' '}
                   <span className="decoration-butter whitespace-nowrap underline decoration-4 underline-offset-8">
-                    just ₹{PRICE_FROM_RUPEES.toLocaleString('en-IN')}
+                    just <HomePrice />
                   </span>
                   .
                 </p>
@@ -296,7 +295,7 @@ export default function HomePage() {
                 title="Paper cards or a wedding website"
                 intro="Keep the printed card for the elders if you like. Send everyone else a link."
               />
-              <PaperVsDigital />
+              <HomeCompare />
               <SectionCta
                 line="Paper cards fade. Your love story stays one tap away."
                 action="Make our invite timeless"

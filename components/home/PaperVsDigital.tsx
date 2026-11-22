@@ -10,12 +10,7 @@ import { cn } from '@/lib/utils';
 
 type Cell = string | boolean;
 
-const ROWS: readonly { feature: string; paper: Cell; digital: Cell }[] = [
-  {
-    feature: 'Cost',
-    paper: PAPER_CARDS.cost,
-    digital: `₹${PRICE_FROM_RUPEES.toLocaleString('en-IN')}, one time`,
-  },
+const OTHER_ROWS: readonly { feature: string; paper: Cell; digital: Cell }[] = [
   { feature: 'Ready in', paper: PAPER_CARDS.readyIn, digital: '5 minutes' },
   { feature: 'Each guest’s name', paper: 'Written by hand', digital: 'On every link' },
   { feature: 'Change it after sending', paper: false, digital: true },
@@ -59,10 +54,23 @@ function Value({ cell, strong }: { cell: Cell; strong?: boolean }) {
 }
 
 export interface PaperVsDigitalProps {
+  /** The price the admin set. Default: `PRICE_FROM_RUPEES`. */
+  priceRupees?: number;
   className?: string;
 }
 
-export function PaperVsDigital({ className }: PaperVsDigitalProps) {
+export function PaperVsDigital({
+  priceRupees = PRICE_FROM_RUPEES,
+  className,
+}: PaperVsDigitalProps) {
+  const rows = [
+    {
+      feature: 'Cost',
+      paper: PAPER_CARDS.cost,
+      digital: `₹${priceRupees.toLocaleString('en-IN')}, one time`,
+    } as const,
+    ...OTHER_ROWS,
+  ];
   return (
     <div
       className={cn(
@@ -86,7 +94,7 @@ export function PaperVsDigital({ className }: PaperVsDigitalProps) {
           </tr>
         </thead>
         <tbody>
-          {ROWS.map((row) => (
+          {rows.map((row) => (
             <tr key={row.feature} className="border-sunken border-t-2 first:border-t-0">
               <th scope="row" className="p-3 text-left font-normal sm:p-4">
                 {row.feature}
