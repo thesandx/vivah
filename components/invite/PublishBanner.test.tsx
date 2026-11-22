@@ -328,22 +328,11 @@ describe('PublishBanner modes', () => {
       expect(publish).toHaveBeenCalledWith('lead-1', 'priya-rahul');
     });
 
-    it('keeps the coupon line, and the button follows the coupon', async () => {
-      const { publish, applyCoupon } = renderBar();
-      fireEvent.click(screen.getByRole('button', { name: 'Have a coupon code?' }));
-      fireEvent.change(screen.getByRole('textbox'), { target: { value: 'NEW20' } });
-      fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
-      expect(applyCoupon).toHaveBeenCalledWith('NEW20');
-      const buy = await screen.findByRole('button', { name: 'Buy at ₹640' });
-      expect(screen.getByText('70% OFF')).toBeInTheDocument();
-      fireEvent.click(buy);
-      expect(publish).toHaveBeenCalledWith('lead-1', 'priya-rahul', 'NEW20');
-    });
-
-    it('opens the checkout from "Details"', () => {
+    it('is slim: no coupon line, no Details, no trust line', () => {
       renderBar();
-      fireEvent.click(screen.getByRole('button', { name: 'Details' }));
-      expect(screen.getByText('Total, paid once')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Have a coupon code?' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: 'Details' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/full refund/)).not.toBeInTheDocument();
     });
 
     it('shows no cut price when it equals the price', () => {

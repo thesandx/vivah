@@ -28,9 +28,10 @@ import { cn } from '@/lib/utils';
  * `/admin` > Coupons.
  *
  * `layout="bar"` (an `/admin` switch, the product owner, 2026-11-22) swaps
- * the short bar for a fixed checkout bar, as on a shopping site: the price
- * on the left, one green "Buy at ₹799" button on the right, and the coupon
- * line above them. It never drags or grows; "Details" opens the checkout. Dragging its handle up, as on an iPhone sheet, or tapping it,
+ * the short bar for a slim fixed checkout bar, as on a shopping site: the
+ * price on the left and one green "Buy at ₹799" button on the right. It never
+ * drags or grows, and has no coupon line, no "Details" and no trust line (the
+ * product owner, 2026-11-22). Dragging its handle up, as on an iPhone sheet, or tapping it,
  * opens the full sheet: the price against what paper cards cost, one green
  * button and the trust lines. Dragging down closes it. Scrolling does not
  * open it. The green button on either goes straight to
@@ -457,9 +458,11 @@ export function PublishBanner({
           'bg-surface rounded-t-sheet font-pay text-pay-body relative mx-auto flex w-full max-w-xl flex-col px-5 antialiased',
           open
             ? 'gap-5 py-5'
-            : expanded
-              ? 'max-h-[85dvh] gap-3 overflow-y-auto pt-1 pb-3'
-              : 'gap-3 pt-1 pb-3',
+            : layout === 'bar'
+              ? 'py-3'
+              : expanded
+                ? 'max-h-[85dvh] gap-3 overflow-y-auto pt-1 pb-3'
+                : 'gap-3 pt-1 pb-3',
           open && 'max-h-[90dvh] overflow-y-auto',
           className,
         )}
@@ -506,9 +509,8 @@ export function PublishBanner({
           </div>
         )}
         {!open && layout === 'bar' ? (
-          <div className="flex flex-col gap-2 pt-3">
+          <div className="flex flex-col gap-2">
             {directError}
-            {couponLine()}
             <div className="flex items-center gap-3">
               <div className="flex min-w-0 shrink-0 flex-col leading-tight tabular-nums">
                 {struck !== null && (
@@ -521,14 +523,7 @@ export function PublishBanner({
                     )}
                   </span>
                 )}
-                <span className="text-title text-pay-ink font-bold tracking-tight">{price}</span>
-                <button
-                  type="button"
-                  onClick={() => setOpen(true)}
-                  className="text-small text-pay-body decoration-pay-line self-start font-semibold underline decoration-2 underline-offset-4"
-                >
-                  Details
-                </button>
+                <span className="text-heading text-pay-ink font-bold tracking-tight">{price}</span>
               </div>
               <button
                 type="button"
@@ -536,7 +531,7 @@ export function PublishBanner({
                 disabled={directWorking}
                 aria-busy={directWorking}
                 className={cn(
-                  'text-on-brand rounded-input text-body inline-flex min-h-14 flex-1 items-center justify-center gap-2 px-4 font-bold tabular-nums transition-colors select-none',
+                  'text-on-brand rounded-input text-body inline-flex min-h-12 flex-1 items-center justify-center gap-2 px-4 font-bold tabular-nums transition-colors select-none',
                   directWorking
                     ? 'bg-pay-action-deep cursor-wait'
                     : 'bg-pay-action hover:bg-pay-action-deep active:translate-y-px',
@@ -554,11 +549,6 @@ export function PublishBanner({
                 )}
               </button>
             </div>
-            <p className="text-small text-pay-body flex items-center justify-center gap-1.5 text-center">
-              {live && <Lock />}
-              {live && 'Secure payment · '}
-              {MONEY_BACK_DAYS}-day full refund
-            </p>
           </div>
         ) : !open && !expanded ? (
           <div className="animate-fade-in flex flex-col gap-2">
