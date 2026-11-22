@@ -155,7 +155,7 @@ function CheckoutCard({ pricing }: { pricing: PreviewPricing }) {
       <p className="text-small text-ink-soft max-w-prose">
         On: the preview shows a fixed bar at the foot, like a shopping site, with the price and one
         “Buy at {formatRupees(pricing.priceRupees)}” button. It does not drag or grow. Off: the
-        drag-up pay sheet. Both keep the coupon line.
+        drag-up pay sheet. Couples can type a coupon code only on the sheet.
       </p>
       <AdminActionForm
         action={on ? turnCheckoutBarOffAction : turnCheckoutBarOnAction}
